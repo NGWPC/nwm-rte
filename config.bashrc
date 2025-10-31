@@ -6,13 +6,13 @@ set -euo pipefail
 # CHOICE_CACHE="--no-cache"
 CHOICE_CACHE=""
 
-### Freeform name tag for image that is built in this process
-CHOICE_TARGET_IMAGE_NAME="ngen_rte"
-
 ### Choose from: ["ghcr", "build_from_local", "build_from_remote"]
 CHOICE_NGEN_SOURCE_MODE="ghcr"
 # CHOICE_NGEN_SOURCE_MODE="build_from_local"
 # CHOICE_NGEN_SOURCE_MODE="build_from_remote"
+
+### Freeform name tag for image that is built in this process
+CHOICE_TARGET_IMAGE_NAME="ngen_rte:`date '+%Y%m%d%H%M%S'`-${CHOICE_NGEN_SOURCE_MODE}"
 
 ### Only used when ngen source mode is "build_from_remote". Choose any GitHub tag (or branch name).
 CHOICE_NGEN_REMOTE_REPO_TAG="development"
