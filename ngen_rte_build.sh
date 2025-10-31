@@ -45,7 +45,13 @@ elif [[ $CHOICE_NGEN_SOURCE_MODE == "build_from_remote" ]]; then
     NGEN_BRANCH="development"
     if test -d ${NGEN_SOURCE_LOCAL}; then
         info "Pulling branch ${NGEN_BRANCH} and submodules from ${NGEN_SOURCE_LOCAL}"
-        ( cd ${NGEN_SOURCE_LOCAL} && git fetch && git checkout ${NGEN_BRANCH} && git pull && git submodule update --recursive )
+        ( \
+            cd ${NGEN_SOURCE_LOCAL} && \
+            git fetch && \
+            git checkout ${NGEN_BRANCH} && \
+            git pull --recurse-submodules && \
+            git submodule update --init --recursive \
+        )
     else
         info "Cloning branch ${NGEN_BRANCH} from ${NGEN_GIT_URL}"
         git clone --branch ${NGEN_BRANCH} --recurse-submodules "${NGEN_GIT_URL}" "${NGEN_SOURCE_LOCAL}"
