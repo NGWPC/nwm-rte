@@ -42,19 +42,18 @@ elif [[ $CHOICE_NGEN_SOURCE_MODE == "build_from_remote" ]]; then
     NGEN_BASE_IMAGE="ngen:${CHOICE_NGEN_SOURCE_MODE}"
     NGEN_SOURCE_LOCAL="${HOME}/ngwpc/ngen_tmp"
     NGEN_GIT_URL="https://github.com/NGWPC/ngen.git"
-    NGEN_BRANCH="development"
     if test -d ${NGEN_SOURCE_LOCAL}; then
-        info "Pulling branch ${NGEN_BRANCH} and submodules from ${NGEN_SOURCE_LOCAL}"
+        info "Pulling branch ${CHOICE_NGEN_REMOTE_REPO_TAG} and submodules from ${NGEN_SOURCE_LOCAL}"
         ( \
             cd ${NGEN_SOURCE_LOCAL} && \
             git fetch && \
-            git checkout ${NGEN_BRANCH} && \
+            git checkout ${CHOICE_NGEN_REMOTE_REPO_TAG} && \
             git pull --recurse-submodules && \
             git submodule update --init --recursive \
         )
     else
-        info "Cloning branch ${NGEN_BRANCH} from ${NGEN_GIT_URL}"
-        git clone --branch ${NGEN_BRANCH} --recurse-submodules "${NGEN_GIT_URL}" "${NGEN_SOURCE_LOCAL}"
+        info "Cloning branch ${CHOICE_NGEN_REMOTE_REPO_TAG} from ${NGEN_GIT_URL}"
+        git clone --branch ${CHOICE_NGEN_REMOTE_REPO_TAG} --recurse-submodules "${NGEN_GIT_URL}" "${NGEN_SOURCE_LOCAL}"
     fi
     ( cd ${NGEN_SOURCE_LOCAL} && sudo docker build -t ${NGEN_BASE_IMAGE} . )
 
