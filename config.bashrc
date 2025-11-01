@@ -2,25 +2,34 @@
 
 set -euo pipefail
 
-### Passed to `docker build` call. Choose from: ["--no-cache", ""]. Has mild impact when using ghcr base.
-# CHOICE_CACHE="--no-cache"
-CHOICE_CACHE=""
 
-### Choose from: ["ghcr", "build_from_local", "build_from_remote"]
-CHOICE_NGEN_SOURCE_MODE="ghcr"
-# CHOICE_NGEN_SOURCE_MODE="build_from_local"
-# CHOICE_NGEN_SOURCE_MODE="build_from_remote"
+### NO_CACHE: Passed to `docker build` call. Choose from: ["--no-cache", ""]. Has mild effect on RTE build speed when using pre-built base ngen image.
+# NO_CACHE="--no-cache"
+NO_CACHE=""
+
+
+### NGEN_SOURCE_MODE: Choose from: ["ghcr", "existing_local_tag", "build_from_local", "build_from_remote"]
+
+NGEN_SOURCE_MODE="ghcr"
+## Only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.
+# NGEN_BASE__REMOTE_GHCR_TAG="latest"
+## This one is based on PR 68 https://github.com/NGWPC/ngen/pull/68: https://github.com/NGWPC/ngen/commit/891e15f1c4121bc1735709fb7782f3fcadf88c43
+NGEN_BASE__REMOTE_GHCR_TAG="891e15f1c412"
+
+# NGEN_SOURCE_MODE="existing_local_tag"
+## Only used when ngen image source mode is "existing_local_tag". Choose any existing local image tag.
+# NGEN_BASE__EXISTING_LOCAL_TAG="ngen:build_from_remote"
+
+# NGEN_SOURCE_MODE="build_from_remote"
+## Only used when ngen source mode is "build_from_remote". Choose any GitHub tag (or branch name).
+# NGEN_BASE__REMOTE_REPO_TAG="development"
+# NGEN_BASE__REMOTE_REPO_TAG="philmiller-8862-finalize-forcings-engine"
+
+# NGEN_SOURCE_MODE="build_from_local"
+
 
 ### Freeform name tag for image that is built in this process
-CHOICE_TARGET_IMAGE_NAME="ngen_rte:`date '+%Y%m%d%H%M%S'`-${CHOICE_NGEN_SOURCE_MODE}"
-
-### Only used when ngen source mode is "build_from_remote". Choose any GitHub tag (or branch name).
-CHOICE_NGEN_REMOTE_REPO_TAG="development"
-
-### Only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.
-### This one is based on PR 68 https://github.com/NGWPC/ngen/pull/68: https://github.com/NGWPC/ngen/commit/891e15f1c4121bc1735709fb7782f3fcadf88c43
-# CHOICE_NGEN_REMOTE_GHCR_TAG="latest"
-CHOICE_NGEN_REMOTE_GHCR_TAG="891e15f1c412"
+TARGET_IMAGE_NAME="ngen_rte:`date '+%Y%m%d%H%M%S'`-${NGEN_SOURCE_MODE}"
 
 
 ##### Forecast Manager

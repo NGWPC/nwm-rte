@@ -30,52 +30,54 @@ source config.bashrc
 
 
 ### Build ngen base image if specified, otherwise just set var to ghcr URL
-if [[ $CHOICE_NGEN_SOURCE_MODE == "ghcr" ]]; then
-    NGEN_BASE_IMAGE="ghcr.io/ngwpc/ngen:${CHOICE_NGEN_REMOTE_GHCR_TAG}"
+if [[ $NGEN_SOURCE_MODE == "ghcr" ]]; then
+    NGEN_BASE_IMAGE="ghcr.io/ngwpc/ngen:${NGEN_BASE__REMOTE_GHCR_TAG}"
 
-elif [[ $CHOICE_NGEN_SOURCE_MODE == "build_from_local" ]]; then
-    NGEN_BASE_IMAGE="ngen:${CHOICE_NGEN_SOURCE_MODE}"
+elif [[ $NGEN_SOURCE_MODE == "existing_local_tag" ]]; then
+    NGEN_BASE_IMAGE="${NGEN_BASE__EXISTING_LOCAL_TAG}"
+
+elif [[ $NGEN_SOURCE_MODE == "build_from_local" ]]; then
+    NGEN_BASE_IMAGE="ngen:${NGEN_SOURCE_MODE}"
     NGEN_SOURCE_LOCAL="${HOME}/ngwpc/ngen"
     ( cd ${NGEN_SOURCE_LOCAL} && sudo docker build -t ${NGEN_BASE_IMAGE} . )
 
-elif [[ $CHOICE_NGEN_SOURCE_MODE == "build_from_remote" ]]; then
-    NGEN_BASE_IMAGE="ngen:${CHOICE_NGEN_SOURCE_MODE}"
+elif [[ $NGEN_SOURCE_MODE == "build_from_remote" ]]; then
+    NGEN_BASE_IMAGE="ngen:${NGEN_SOURCE_MODE}"
     NGEN_SOURCE_LOCAL="${HOME}/ngwpc/ngen_tmp"
     NGEN_GIT_URL="https://github.com/NGWPC/ngen.git"
     if test -d ${NGEN_SOURCE_LOCAL}; then
-        info "Pulling branch ${CHOICE_NGEN_REMOTE_REPO_TAG} and submodules from ${NGEN_SOURCE_LOCAL}"
+        info "Pulling branch ${NGEN_BASE__REMOTE_REPO_TAG} and submodules from ${NGEN_SOURCE_LOCAL}"
         ( \
             cd ${NGEN_SOURCE_LOCAL} && \
             git fetch && \
-            git checkout ${CHOICE_NGEN_REMOTE_REPO_TAG} && \
+            git checkout ${NGEN_BASE__REMOTE_REPO_TAG} && \
             git pull --recurse-submodules && \
             git submodule update --init --recursive \
         )
     else
-        info "Cloning branch ${CHOICE_NGEN_REMOTE_REPO_TAG} from ${NGEN_GIT_URL}"
-        git clone --branch ${CHOICE_NGEN_REMOTE_REPO_TAG} --recurse-submodules "${NGEN_GIT_URL}" "${NGEN_SOURCE_LOCAL}"
+        info "Cloning branch ${NGEN_BASE__REMOTE_REPO_TAG} from ${NGEN_GIT_URL}"
+        git clone --branch ${NGEN_BASE__REMOTE_REPO_TAG} --recurse-submodules "${NGEN_GIT_URL}" "${NGEN_SOURCE_LOCAL}"
     fi
     ( cd ${NGEN_SOURCE_LOCAL} && sudo docker build -t ${NGEN_BASE_IMAGE} . )
 
 else
-    fatal "Not implemented: CHOICE_NGEN_SOURCE_MODE=${CHOICE_NGEN_SOURCE_MODE}"
+    fatal "Not implemented: NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE}"
 fi
 # exit 0
 
-
 ### Build RTE image from ngen base image
-info "Building image: ${CHOICE_TARGET_IMAGE_NAME}"
-sudo docker build -t ${CHOICE_TARGET_IMAGE_NAME} -f Dockerfile.rte ${CHOICE_CACHE} \
+info "Building image: ${TARGET_IMAGE_NAME}"
+sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} \
     --build-arg NGEN_BASE_IMAGE=${NGEN_BASE_IMAGE} \
     --build-arg REPO_TAG__FCST_MGR="${COMPONENT__FCST_MGR__REMOTE_REPO_TAG}" \
     --build-arg REPO_TAG__MSW_MGR="${COMPONENT__MSW_MGR__REMOTE_REPO_TAG}" \
     --build-arg REPO_TAG__CAL_MGR="${COMPONENT__CAL_MGR__REMOTE_REPO_TAG}" \
     --build-arg REPO_TAG__REGION_MGR="${COMPONENT__REGION_MGR__REMOTE_REPO_TAG}" \
     ".." \
-    |& tee "docker_logs/build/${CHOICE_TARGET_IMAGE_NAME}.log"
+    |& tee "docker_logs/build/${TARGET_IMAGE_NAME}.log"
 
-info "Built image: ${CHOICE_TARGET_IMAGE_NAME}"
-info "Command to start and enter container without executing anything: sudo docker run --entrypoint /bin/bash -it --rm ${CHOICE_TARGET_IMAGE_NAME}"
+info "Built image: ${TARGET_IMAGE_NAME}"
+info "Command to start and enter container without executing anything: sudo docker run --entrypoint /bin/bash -it --rm ${TARGET_IMAGE_NAME}"
 # exit 0
 
 
@@ -95,7 +97,7 @@ function docker_run {
         -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
         -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
         \
-        --rm ${CHOICE_TARGET_IMAGE_NAME} $*
+        --rm ${TARGET_IMAGE_NAME} $*
 }
 
 
