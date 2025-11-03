@@ -44,7 +44,7 @@ COMPONENT__FCST_MGR__REMOTE_REPO_TAG="development"
 # COMPONENT__MSW_MGR__SOURCE_MODE="remote"
 # COMPONENT__MSW_MGR__SOURCE_MODE="local"
 ### Only used when sourcing mswm from GitHub
-# COMPONENT__MSW_MGR__REPO_TAG="development"
+# COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
 COMPONENT__MSW_MGR__REMOTE_REPO_TAG="jwade_NGWPC-8667_historical_bmi_forcing"
 
 ##### Calibration Manager
@@ -52,7 +52,7 @@ COMPONENT__MSW_MGR__REMOTE_REPO_TAG="jwade_NGWPC-8667_historical_bmi_forcing"
 # COMPONENT__CAL_MGR__SOURCE_MODE="remote"
 # COMPONENT__CAL_MGR__SOURCE_MODE="local"
 ### Only used when sourcing calibration manager from GitHub
-# COMPONENT__CAL_MGR__REPO_TAG="development"
+# COMPONENT__CAL_MGR__REMOTE_REPO_TAG="development"
 COMPONENT__CAL_MGR__REMOTE_REPO_TAG="jwade_NGWPC-8667_historical_bmi_forcing"
 
 
