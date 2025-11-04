@@ -16,6 +16,7 @@ TEST_FORMULATION_SUFFIX = "bmi"
 TEST_DIR_BASE = f"/ngwpc/run_ngen/kge_dds/test_{TEST_FORMULATION_SUFFIX}/01123000"
 TEST_DIR_INPUT = f"{TEST_DIR_BASE}/Input"
 TEST_DIR_OUTPUT = f"{TEST_DIR_BASE}/Output"
+TEST_NGEN_LOG_FILE = f"{TEST_DIR_BASE}/logs/ngen.log"
 
 ### Read by build_calib_realization()
 CALIB_CONFIG_CONFIG = f"/ngwpc/run_ngen/cold_start_workflow/input_calibration_{TEST_FORMULATION_SUFFIX}.config"
@@ -98,6 +99,7 @@ def calibration__build_and_run() -> None:
     ]
     print_with_newlines(f"Running command args: {cmd}")
     subprocess.check_call(cmd)
+    shutil.copyfile(TEST_NGEN_LOG_FILE, TEST_NGEN_LOG_FILE + ".calib.log")
 
 
 def coldstart__build() -> RealizationBuilder:
@@ -114,6 +116,7 @@ def coldstart__run(rb_cs: RealizationBuilder) -> None:
         valid_yaml=FORECAST_CONFIG_YAML,
         real_path=str(rb_cs.realization_file),
     )
+    shutil.copyfile(TEST_NGEN_LOG_FILE, TEST_NGEN_LOG_FILE + ".coldstart.log")
 
 
 def forecast__build() -> RealizationBuilder:
@@ -130,6 +133,7 @@ def forecast__run(rb_fcst: RealizationBuilder) -> None:
         valid_yaml=FORECAST_CONFIG_YAML,
         real_path=str(rb_fcst.realization_file),
     )
+    shutil.copyfile(TEST_NGEN_LOG_FILE, TEST_NGEN_LOG_FILE + ".forecast.log")
 
 
 def delete_input_symlinks() -> None:
