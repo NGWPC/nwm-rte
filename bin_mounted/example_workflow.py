@@ -153,9 +153,10 @@ def main():
     assert os.path.exists("/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/")
 
     ### TODO temporary workaround, this may not be needed in some branches
-    delete_input_symlinks()
+    # delete_input_symlinks()
 
     calibration__build_and_run()
+    # return
 
     rb_cs = coldstart__build()
     rb_fcst = forecast__build()
