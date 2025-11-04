@@ -14,7 +14,9 @@ NGEN_SOURCE_MODE="ghcr"
 ## Only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.
 # NGEN_BASE__REMOTE_GHCR_TAG="latest"
 ## This one is based on PR 68 https://github.com/NGWPC/ngen/pull/68: https://github.com/NGWPC/ngen/commit/891e15f1c4121bc1735709fb7782f3fcadf88c43
-NGEN_BASE__REMOTE_GHCR_TAG="891e15f1c412"
+# NGEN_BASE__REMOTE_GHCR_TAG="891e15f1c412"
+## This one is based on PR 58: https://github.com/NGWPC/ngen/pull/58
+NGEN_BASE__REMOTE_GHCR_TAG="350dcd08a53e"
 
 # NGEN_SOURCE_MODE="existing_local_tag"
 ## Only used when ngen image source mode is "existing_local_tag". Choose any existing local image tag.
@@ -46,6 +48,7 @@ COMPONENT__FCST_MGR__REMOTE_REPO_TAG="development"
 ### Only used when sourcing mswm from GitHub
 # COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
 COMPONENT__MSW_MGR__REMOTE_REPO_TAG="jwade_NGWPC-8667_historical_bmi_forcing"
+# COMPONENT__MSW_MGR__REMOTE_REPO_TAG="jwade_symlink_fix"
 
 ##### Calibration Manager
 ### TODO implement this switch (currently need to edit Dockerfile.rte to switch). When implemented, will choose from ["remote", "local"]
