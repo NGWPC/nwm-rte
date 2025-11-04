@@ -28,6 +28,7 @@ set -x
 
 source config.bashrc
 
+TIMESTAMP=`date '+%Y%m%d%H%M%S'`
 
 ### Build ngen base image if specified, otherwise just set var to ghcr URL
 if [[ $NGEN_SOURCE_MODE == "ghcr" ]]; then
@@ -74,7 +75,7 @@ sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} \
     --build-arg REPO_TAG__CAL_MGR="${COMPONENT__CAL_MGR__REMOTE_REPO_TAG}" \
     --build-arg REPO_TAG__REGION_MGR="${COMPONENT__REGION_MGR__REMOTE_REPO_TAG}" \
     ".." \
-    |& tee "docker_logs/build/${TARGET_IMAGE_NAME}.log"
+    |& tee "docker_logs/build/${TARGET_IMAGE_NAME}-${TIMESTAMP}.log"
 
 info "Built image: ${TARGET_IMAGE_NAME}"
 info "Command to start and enter container without executing anything: sudo docker run --entrypoint /bin/bash -it --rm ${TARGET_IMAGE_NAME}"
