@@ -12,6 +12,8 @@ ARG REPO_TAG__FCST_MGR
 ARG REPO_TAG__MSW_MGR
 ARG REPO_TAG__CAL_MGR
 ARG REPO_TAG__REGION_MGR
+ARG REPO_TAG__VERF_MGR
+ARG REPO_TAG__EVAL_MGR
 
 ### Static args
 ARG PYTHON_ENV="/ngen-app/ngen-python/bin"
@@ -21,6 +23,8 @@ ARG REPO_NAME__FCST_MGR="nwm-fcst-mgr"
 ARG REPO_NAME__CAL_MGR="nwm-cal-mgr"
 ARG REPO_NAME__MSW_MGR="nwm-msw-mgr"
 ARG REPO_NAME__REGION_MGR="nwm-region-mgr"
+ARG REPO_NAME__VERF_MGR="nwm-verf"
+ARG REPO_NAME__EVAL_MGR="nwm-eval-mgr"
 ARG MSWM_MODULE_PARAMETER_FILES="/ngen-app/${REPO_NAME__MSW_MGR}/src/mswm/module_parameter_files"
 ### For Python 3.10 base image (ngen ghcr ngen:latest as of 10/28/25)
 # ARG PYTHON_VERSION_STR="python3.10"
@@ -30,6 +34,7 @@ ARG PYTHON_VERSION_STR="python3.11"
 
 ### Activate the venv
 ENV PATH="${PYTHON_ENV}:${PATH}"
+RUN pip install --upgrade pip
 
 
 ##############################
@@ -86,10 +91,24 @@ ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/pyt
 #### Region Manager
 
 ## From GitHub
-# RUN pip install "nwm_region_mgr[parreg] @ git+${GITHUB_ORG_URL}/${REPO_NAME__REGION_MGR}@${REPO_TAG__REGION_MGR}"
+RUN pip install "nwm_region_mgr[parreg] @ git+${GITHUB_ORG_URL}/${REPO_NAME__REGION_MGR}@${REPO_TAG__REGION_MGR}"
 
 # ## From local
 # COPY "${REPO_NAME__REGION_MGR}/" "/tmp/${REPO_NAME__REGION_MGR}/"
 # RUN \
 #     pip install "/tmp/${REPO_NAME__REGION_MGR}[parreg]" && \
 #     rm -rf "/tmp/${REPO_NAME__REGION_MGR}/"
+
+
+##############################
+#### Verification Manager
+
+## From GitHub
+RUN pip install "${REPO_NAME__VERF_MGR} @ git+${GITHUB_ORG_URL}/${REPO_NAME__VERF_MGR}@${REPO_TAG__VERF_MGR}"
+
+
+##############################
+#### Evaluation Manager
+
+## From GitHub
+RUN pip install "nwm_eval @ git+${GITHUB_ORG_URL}/${REPO_NAME__EVAL_MGR}@${REPO_TAG__EVAL_MGR}"
