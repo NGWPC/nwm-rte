@@ -64,8 +64,7 @@ COMPONENT__CAL_MGR__REMOTE_REPO_TAG="jwade_NGWPC-8667_historical_bmi_forcing"
 # COMPONENT__REGION_MGR__SOURCE_MODE="remote"
 # COMPONENT__REGION_MGR__SOURCE_MODE="local"
 ### Only used when sourcing region manager from GitHub
-# COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
-COMPONENT__REGION_MGR__REMOTE_REPO_TAG="deps_allow_any_py311"
+COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
 
 
 ### Only used when sourcing verification manager from GitHub
