@@ -99,13 +99,15 @@ function docker_run {
         -v "${HOME}/ngwpc/run_ngen/data/geo_em_CONUS.nc:/ngen-app/data/esmf_mesh/NWM/domain/geo_em_CONUS.nc" \
         -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
         -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
+        -v "${MNT_REGION_MGR_INPUT_DATA_HOST}:${MNT_REGION_MGR_INPUT_DATA_CONTAINER_1}" \
+        -v "${MNT_REGION_MGR_INPUT_DATA_HOST}:${MNT_REGION_MGR_INPUT_DATA_CONTAINER_2}" \
         \
-        --rm ${TARGET_IMAGE_NAME} $*
+        --rm -it ${TARGET_IMAGE_NAME}
 }
 
 
-docker_run "/ngen-app/bin/bin_mounted/example_workflow.py"
-# docker_run
+# docker_run "/ngen-app/bin/bin_mounted/example_workflow.py"
+docker_run
 
 exit 0
 

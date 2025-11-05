@@ -114,6 +114,10 @@ MNT__MODULE_PARAM_FILES_DIR__CONTAINER_2="${HOME}/ngwpc/nwm-msw-mgr/src/mswm/mod
 # MNT__MODULE_PARAM_FILES_DIR__HOST="${HOME}/ngwpc/nwm-cal-mgr/module_parameter_files"
 # MNT__MODULE_PARAM_FILES_DIR__CONTAINER="/ngen-app/nwm-cal-mgr/module_parameter_files"
 
+MNT_REGION_MGR_INPUT_DATA_HOST="${HOME}/repos/temp/nwm_region_mgr/data"
+MNT_REGION_MGR_INPUT_DATA_CONTAINER_1="/ngen-app/nwm_region_mgr/data"
+MNT_REGION_MGR_INPUT_DATA_CONTAINER_2="${HOME}/ngwpc/nwm_region_mgr/data"
+
 
 ### Logging functions
 BASENAME="$(basename "$(readlink -f "$0")")"
