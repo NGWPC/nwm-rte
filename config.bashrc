@@ -31,8 +31,8 @@ NGEN_BASE__REMOTE_GHCR_TAG="350dcd08a53e"
 
 
 ### Freeform name tag for image that is built in this process
-TARGET_IMAGE_NAME="ngen_rte:`date '+%Y%m%d%H%M%S'`-${NGEN_SOURCE_MODE}"
-
+# TARGET_IMAGE_NAME="ngen_rte:`date '+%Y%m%d%H%M%S'`-${NGEN_SOURCE_MODE}"
+TARGET_IMAGE_NAME="ngen_rte"
 
 ##### Forecast Manager
 ### TODO implement this switch (currently need to edit Dockerfile.rte to switch). When implemented, will choose from ["remote", "local"]
