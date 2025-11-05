@@ -101,6 +101,8 @@ function docker_run {
         -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
         -v "${MNT_REGION_MGR_INPUT_DATA_HOST}:${MNT_REGION_MGR_INPUT_DATA_CONTAINER_1}" \
         -v "${MNT_REGION_MGR_INPUT_DATA_HOST}:${MNT_REGION_MGR_INPUT_DATA_CONTAINER_2}" \
+        -v "${MNT_REGION_MGR_CONFIGS_HOST}:${MNT_REGION_MGR_CONFIGS_CONTAINER_1}" \
+        -v "${MNT_REGION_MGR_CONFIGS_HOST}:${MNT_REGION_MGR_CONFIGS_CONTAINER_2}" \
         \
         --rm -it ${TARGET_IMAGE_NAME}
 }

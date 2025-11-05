@@ -118,6 +118,9 @@ MNT_REGION_MGR_INPUT_DATA_HOST="${HOME}/repos/temp/nwm_region_mgr/data"
 MNT_REGION_MGR_INPUT_DATA_CONTAINER_1="/ngen-app/nwm_region_mgr/data"
 MNT_REGION_MGR_INPUT_DATA_CONTAINER_2="${HOME}/ngwpc/nwm_region_mgr/data"
 
+MNT_REGION_MGR_CONFIGS_HOST="${HOME}/repos/temp/nwm_region_mgr/configs"
+MNT_REGION_MGR_CONFIGS_CONTAINER_1="/ngen-app/nwm_region_mgr/configs"
+MNT_REGION_MGR_CONFIGS_CONTAINER_2="${HOME}/ngwpc/nwm_region_mgr/configs"
 
 ### Logging functions
 BASENAME="$(basename "$(readlink -f "$0")")"
