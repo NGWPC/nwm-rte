@@ -104,12 +104,12 @@ function docker_run {
         -v "${MNT_REGION_MGR_CONFIGS_HOST}:${MNT_REGION_MGR_CONFIGS_CONTAINER_1}" \
         -v "${MNT_REGION_MGR_CONFIGS_HOST}:${MNT_REGION_MGR_CONFIGS_CONTAINER_2}" \
         \
-        --rm -it ${TARGET_IMAGE_NAME}
+        --rm ${TARGET_IMAGE_NAME}
 }
 
 
 # docker_run "/ngen-app/bin/bin_mounted/example_workflow.py"
-docker_run
+# docker_run
 
 exit 0
 
