@@ -12,7 +12,8 @@ mkdir -p "${S3_ROOT__HOST}"
 
 # TODO if updating these, also need to update example_workflow.py
 TEST_GAGE="01123000"
-WORKFLOW_INPUT_CONFIG_ROOT="${RUN_NGEN_ROOT__HOST}/cold_start_workflow"
+WORKFLOW_INPUT_CONFIG_ROOT__COLDSTART="${RUN_NGEN_ROOT__HOST}/cold_start_workflow"
+WORKFLOW_INPUT_CONFIG_ROOT__VALIDATION="${RUN_NGEN_ROOT__HOST}/kge_dds/test_bmi/${TEST_GAGE}/Output/Validation_Run"
 
 DATA__HYDROFABRIC__S3_SOURCE="s3://ngwpc-hydrofabric"
 DATA__HYDROFABRIC__HOST="${S3_ROOT__HOST}/ngwpc-hydrofabric"
@@ -26,8 +27,9 @@ DATA__GEO_EM_CONUS_NC__HOST="${RUN_NGEN_ROOT__HOST}/data/geo_em_CONUS.nc"
 DATA__GAGE_01011000_MESH_NC__S3_SOURCE="s3://ngwpc-dev/max.kipp/esmf_mesh/gages-01011000_ESMF_Mesh.nc"
 DATA__GAGE_01011000_MESH_NC__S3_HOST="${RUN_NGEN_ROOT__HOST}/data/gages-01011000_ESMF_Mesh.nc"
 
-TEST_RUN_CONFIG__CALIBRATION__SOURCEFILE="s3://ngwpc-dev/max.kipp/run_ngen/cold_start_workflow/input_calibration_bmi.config"
-TEST_RUN_CONFIG__FORECAST__SOURCEFILE="s3://ngwpc-dev/max.kipp/run_ngen/cold_start_workflow/input_forecast.config"
+TEST_RUN_CONFIG__CALIBRATION__SOURCE="s3://ngwpc-dev/max.kipp/run_ngen/cold_start_workflow/input_calibration_bmi.config"
+TEST_RUN_CONFIG__FORECAST__SOURCE="s3://ngwpc-dev/max.kipp/run_ngen/cold_start_workflow/input_forecast.config"
+TEST_RUN_CONFIG__VALIDATION__SOURCE="s3://ngwpc-dev/max.kipp/run_ngen/kge_dds/test_bmi/${TEST_GAGE}/Output/Validation_Run/${TEST_GAGE}_config_valid_best.yaml"
 
 
 ### Download hydrofabric data
@@ -51,14 +53,16 @@ aws s3 cp "${DATA__GEO_EM_CONUS_NC__S3_SOURCE}" "${DATA__GEO_EM_CONUS_NC__HOST}"
 aws s3 cp "${DATA__GAGE_01011000_MESH_NC__S3_SOURCE}" "${DATA__GAGE_01011000_MESH_NC__S3_HOST}"
 
 ### Download .config files
-mkdir -p "${WORKFLOW_INPUT_CONFIG_ROOT}"
+mkdir -p "${WORKFLOW_INPUT_CONFIG_ROOT__COLDSTART}"
 ## Calibration config file
-# curl -O --output-dir "${WORKFLOW_INPUT_CONFIG_ROOT}/" "https://raw.githubusercontent.com/NGWPC/nwm-msw-mgr/development/src/mswm/example_inputs/calibration/input_calibration.config"
-aws s3 cp "${TEST_RUN_CONFIG__CALIBRATION__SOURCEFILE}" "${WORKFLOW_INPUT_CONFIG_ROOT}/"
+# curl -O --output-dir "${WORKFLOW_INPUT_CONFIG_ROOT__COLDSTART}/" "https://raw.githubusercontent.com/NGWPC/nwm-msw-mgr/development/src/mswm/example_inputs/calibration/input_calibration.config"
+aws s3 cp "${TEST_RUN_CONFIG__CALIBRATION__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROOT__COLDSTART}/"
 ## Forecast config file
-# curl -O --output-dir "${WORKFLOW_INPUT_CONFIG_ROOT}/" "https://raw.githubusercontent.com/NGWPC/nwm-msw-mgr/development/src/mswm/example_inputs/forecast/input_forecast.config"
-aws s3 cp "${TEST_RUN_CONFIG__FORECAST__SOURCEFILE}" "${WORKFLOW_INPUT_CONFIG_ROOT}/"
-
+# curl -O --output-dir "${WORKFLOW_INPUT_CONFIG_ROOT__COLDSTART}/" "https://raw.githubusercontent.com/NGWPC/nwm-msw-mgr/development/src/mswm/example_inputs/forecast/input_forecast.config"
+aws s3 cp "${TEST_RUN_CONFIG__FORECAST__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROOT__COLDSTART}/"
+# Validation config file
+mkdir -p "${WORKFLOW_INPUT_CONFIG_ROOT__VALIDATION}"
+aws s3 cp "${TEST_RUN_CONFIG__VALIDATION__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROOT__VALIDATION}/"
 
 ### Clone repos unless they already exist on disk
 function clone_if_not_exists {
