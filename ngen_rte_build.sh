@@ -4,23 +4,15 @@
 # 
 # This script builds the ngen base image (or sources it from existing ghcr image),
 # then adds components such as mswm, fcst mgr, cal mgr, etc. to that image,
-# then uses docker run with host disk mounts to run an example workflow script.
 # 
 # See config.bashrc for configuration. Components can be installed from GitHub or from local source code.
 # 
 # Requirements:
-#   1. Various data files have been copied from s3.
-#       See config.bashrc comments for examples:
-#           Some to ~/s3/ngwpc-hydrofabric/
-#           Some to ~/s3/ngwpc-forcing/
-#           Some to ~/ngwpc/run_ngen/
-#   2. For BMI config templates:
-#       Repo ngwpc/ngen-forcing has been cloned to ~/ngwpc/ngen-forcing/
-#   3. For module_parameter_files:
-#       Repo ngwpc/nwm-msw-mgr has been cloned to ~/ngwpc/nwm-msw-mgr/
-# 
-# If installing components such as nwm-fcst-mgr, nwm-cal-mgr, and nwm-msw-mgr from local sources instead of from GitHub,
-# then this script assumes this is ran from a sibling directory of those (already cloned, checked out, pulled).
+#   Note: ./setup_workspace.sh can be used to clone the following repos.
+#   
+#   If the Dockerfile is set up to install packages such as nwm-fcst-mgr, nwm-cal-mgr, nwm-msw-mgr, and others
+#   from local sources instead of from GitHub, then this script assumes this is ran from a sibling directory
+#   of those repositories (already cloned, checked out, pulled).
 #
 
 set -euo pipefail
@@ -81,34 +73,5 @@ sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} \
 
 info "Built image: ${TARGET_IMAGE_NAME}"
 info "Command to start and enter container without executing anything: sudo docker run --entrypoint /bin/bash -it --rm ${TARGET_IMAGE_NAME}"
-# exit 0
-
-
-    # time sudo docker run --entrypoint /bin/sh -it \
-function docker_run {
-    time sudo docker run --entrypoint python \
-        -v "${MNT__RUN_NGEN__HOST}:${MNT__RUN_NGEN__CONTAINER_1}" \
-        -v "${MNT__RUN_NGEN__HOST}:${MNT__RUN_NGEN__CONTAINER_2}" \
-        -v "${MNT__NGEN_FORCING__HOST}:${MNT__NGEN_FORCING__CONTAINER_1}" \
-        -v "${MNT__NGEN_FORCING__HOST}:${MNT__NGEN_FORCING__CONTAINER_2}" \
-        -v "${MNT__S3_DATA__HOST}:${MNT__S3_DATA__CONTAINER_1}" \
-        -v "${MNT__S3_DATA__HOST}:${MNT__S3_DATA__CONTAINER_2}" \
-        -v "${MNT__MODULE_PARAM_FILES_DIR__HOST}:${MNT__MODULE_PARAM_FILES_DIR__CONTAINER_1}" \
-        -v "${MNT__MODULE_PARAM_FILES_DIR__HOST}:${MNT__MODULE_PARAM_FILES_DIR__CONTAINER_2}" \
-        -v "${HOME}/ngwpc/ngen/data":"/ngen-app/data" \
-        -v "${HOME}/ngwpc/run_ngen/data/geo_em_CONUS.nc:/ngen-app/data/esmf_mesh/NWM/domain/geo_em_CONUS.nc" \
-        -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
-        -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
-        \
-        --rm ${TARGET_IMAGE_NAME} $*
-}
-
-
-docker_run "/ngen-app/bin/bin_mounted/example_workflow.py"
-# docker_run
 
 exit 0
-
-##### These mounts might be needed in some branches
-        # -v "${MNT__MODULE_PARAM_FILES_DIR__HOST}:${MNT__MODULE_PARAM_FILES_DIR__CONTAINER_1}" \
-        # -v "${MNT__MODULE_PARAM_FILES_DIR__HOST}:${MNT__MODULE_PARAM_FILES_DIR__CONTAINER_2}" \
