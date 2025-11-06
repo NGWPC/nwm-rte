@@ -1,32 +1,45 @@
-# run-time-environment-trial
-A configurable Docker build for ngen + manager (component) packages
+# NWM Runtime Environment
 
-[ngen_rte_build.sh](ngen_rte_build.sh) sources configuration from [config.bashrc](config.bashrc), then builds an image using [Dockerfile.rte](Dockerfile.rte), then uses `docker run` to start an ephemeral container of the new image with various host disk mounts applied, and run a Python script in that container.
+A configurable `docker build` and `docker run` sequence for headless end-to-end execution of ngen core + manager package capabilities.
 
-The ngen base image can be specified as a ghcr image, or as local source code, or as remote source code.
+## Description of Primary Files
+
+[setup_workspace.sh](setup_workspace.sh) sources configuration from [config.bashrc](config.bashrc), downloads data from s3, and clones repos from GitHub.  Some data is mounted from those repos after cloning.  Other data is mounted from non-repo locations.
+
+[ngen_rte_build.sh](ngen_rte_build.sh) sources configuration from [config.bashrc](config.bashrc), then builds an image using [Dockerfile.rte](Dockerfile.rte).
+
+[ngen_rte_run.sh](ngen_rte_run.sh) uses `docker run` to start an ephemeral container of the new image with various host disk mounts applied, and runs a Python script in that container.  By default it runs [example_workflow.py](bin_mounted/example_workflow.py).
+
+## Configuration Options
+
+The ngen base image can be specified as a ghcr image, or as local source code (build from existing clone), or as remote source code (clone fresh or pull, then build).
 
 The manager packages can be specified as local source code, or as remote source code (specifying a tag/branch/commit).  To switch the "sourcing mode" of the manager packages s.t. they install from local instead of from GitHub or vice-versa, currently it is required to comment/uncomment blocks of code in [Dockerfile.rte](Dockerfile.rte).
 
-See notes in [ngen_rte_build.sh](ngen_rte_build.sh) and [config.bashrc](config.bashrc) for more details.
+See notes in the files for additional details.
 
 
-## Setup
+## Steps to Get Started
 
-### Acquire Data Paths
-
-See data paths mentioned in the config.bashrc notes. Those paths are mounted into the container during `docker run`.
-
-The paths must be accessible by the host OS.  It should work to use s3fs if desired (host mounts s3, container mounts host), or the data can be actually copied to the local disk.
-
-### Local Repo Paths
-
-When opting to build from local code rather than from GitHub (for ngen as well as for Python manager packages), currently the setup expects those local repos to exist at the root of `~/ngwpc/`.
-
-## Usage
-
-Be ready to supply `sudo` password when prompted.
+1. Clone this repo:
 
 ```shell
-cd ~/ngwpc/run-time-environment-trial
-./ngen_rte_build.sh
+git clone https://github.com/NGWPC/nwm-rte
 ```
+
+2. Review [config.bashrc](config.bashrc), edit variables as needed, in particular: `REPOS_COMMON_ROOT__HOST`, `NGEN_SOURCE_MODE`, `NGEN_BASE__REMOTE_GHCR_TAG`, and the branch choices for the various manager packages.
+
+3. Download data, clone other repos, build the docker image, and run an example workflow:
+
+```shell
+./setup_workspace.sh
+./ngen_rte_build.sh
+./ngen_rte_run.sh
+```
+
+
+## Additional Usage Notes
+
+It should work to use s3fs if desired (host mounts s3, container mounts host), if not wanting to copy s3 data to the local disk.
+
+Be ready to supply `sudo` password when prompted.
