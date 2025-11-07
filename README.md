@@ -21,10 +21,17 @@ See notes in the files for additional details.
 
 ## Steps to Get Started
 
-1. Clone this repo:
+1. Clone this repo and enter it:
 
 ```shell
+# Via https
 git clone https://github.com/NGWPC/nwm-rte
+# Via ssh
+git clone git@github.com:NGWPC/nwm-rte.git
+# Enter the repo
+cd nwm-rte
+# Check out a branch (at time of writing, poc branch was appropriate)
+git checkout poc
 ```
 
 2. Review [config.bashrc](config.bashrc), edit variables as needed, in particular: `REPOS_COMMON_ROOT__HOST`, `NGEN_SOURCE_MODE`, `NGEN_BASE__REMOTE_GHCR_TAG`, and the branch choices for the various manager packages.
@@ -32,11 +39,11 @@ git clone https://github.com/NGWPC/nwm-rte
 3. Download data, clone other repos, build the docker image, and run an example workflow:
 
 ```shell
-# Set up s3 credentials before running
+# Set up s3 credentials before running.  This takes about 7 minutes.
 time ./setup_data.sh |& tee setup_data.log
-# Be ready to provide git credentials if prompted
+# Be ready to provide git credentials several times if prompted.  This takes about 3 minutes.
 time ./setup_clone_repos.sh |& tee setup_clone_repos.log
-# Be ready to supply sudo password if prompted
+# Be ready to supply sudo password if prompted.  This takes 2 to 5 minutes, depending which packages are installed, if using an existing GHCR image for ngen.
 time ./ngen_rte_build.sh
 # Be ready to supply sudo password if prompted
 time ./ngen_rte_run.sh
