@@ -24,8 +24,6 @@ See notes in the files for additional details.
 1. Clone this repo and enter it:
 
 ```shell
-# Via https
-git clone https://github.com/NGWPC/nwm-rte
 # Via ssh
 git clone git@github.com:NGWPC/nwm-rte.git
 # Enter the repo
