@@ -77,17 +77,17 @@ COMPONENT__CAL_MGR__REMOTE_REPO_TAG="development"
 ##### Package: Region Manager
 ### Only used when sourcing region manager from GitHub
 ### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
-# COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
+COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
 
 ##### Package: Verification
 ### Only used when sourcing verification manager from GitHub
 ### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
-# COMPONENT__VERF__REMOTE_REPO_TAG="development"
+COMPONENT__VERF__REMOTE_REPO_TAG="development"
 
 #### Evaluation
 ### Only used when sourcing evaluation manager from GitHub
 ### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
-# COMPONENT__EVAL__REMOTE_REPO_TAG="development"
+COMPONENT__EVAL__REMOTE_REPO_TAG="development"
 
 
 ### Config template mounts from ngen-forcing repo
