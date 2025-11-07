@@ -18,7 +18,7 @@ WORKFLOW_INPUT_CONFIG_ROOT__VALIDATION="${RUN_NGEN_ROOT__HOST}/kge_dds/test_bmi/
 DATA__HYDROFABRIC__S3_SOURCE="s3://ngwpc-hydrofabric"
 DATA__HYDROFABRIC__HOST="${S3_ROOT__HOST}/ngwpc-hydrofabric"
 
-DATA__PARAMETERS__S3_SOURCE="s3://ngwpc-dev/jeff.wade"
+DATA__PARAMETERS__S3_SOURCE="s3://ngwpc-dev/jeff.wade/rte_test_inputs"
 DATA__PARAMETERS__HOST="${RUN_NGEN_ROOT__HOST}/data"
 
 DATA__GEO_EM_CONUS_NC__S3_SOURCE="s3://ngwpc-dev/kyle.larkin/esmf/geo_em_CONUS.nc"
