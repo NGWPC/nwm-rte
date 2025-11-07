@@ -2,21 +2,31 @@
 
 set -euo pipefail
 
-
 ### NO_CACHE: Passed to `docker build` call. Choose from: ["--no-cache", ""]. Has mild effect on RTE build speed when using pre-built base ngen image.
 # NO_CACHE="--no-cache"
 NO_CACHE=""
 
 
+# If you use this for REPOS_COMMON_ROOT__HOST, then the other repos are assumed to be siblings of this repo
+THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
+
+
 ### REPOS_COMMON_ROOT__HOST:
-###     A typical choice for this is "${HOME}/ngwpc",
-###     but another location such as "${HOME}/ngwpc__rte" could be used if wanting to isolate the RTE.
-###     ./setup_workspace.sh sets up this local directory by downloading data into it and cloning repos into it.
-###     ./ngen_rte_build.sh does not use this.
-###     ./ngen_rte_run.sh mounts various subdirectories and files from this local directory, into the container, during runtime.
+###
+###     What this variable is for:
+###         ./setup_workspace.sh sets up this local directory by downloading data into it and cloning repos into it.
+###         ./ngen_rte_build.sh does not use this.
+###         ./ngen_rte_run.sh mounts various subdirectories and files from this local directory, into the container, during runtime.
+###
+###     Choices for this variable:
+###         A typical choice for this is "${HOME}/ngwpc",
+###         but another location such as "${HOME}/ngwpc__rte" could be used if wanting to isolate the RTE.
+###         To fully make this fully relative (to assume other repos are siblings of this repo), use ${THIS_SCRIPTS_GRANDPARENT_DIR} for this.
 ###     
 REPOS_COMMON_ROOT__HOST="${HOME}/ngwpc"
 # REPOS_COMMON_ROOT__HOST="${HOME}/ngwpc__rte"
+# REPOS_COMMON_ROOT__HOST=${THIS_SCRIPTS_GRANDPARENT_DIR}
+
 
 RUN_NGEN_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/run_ngen"
 S3_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/s3"
@@ -66,15 +76,18 @@ COMPONENT__CAL_MGR__REMOTE_REPO_TAG="development"
 
 ##### Package: Region Manager
 ### Only used when sourcing region manager from GitHub
-COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
+### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
+# COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
 
 ##### Package: Verification
 ### Only used when sourcing verification manager from GitHub
-COMPONENT__VERF__REMOTE_REPO_TAG="development"
+### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
+# COMPONENT__VERF__REMOTE_REPO_TAG="development"
 
 #### Evaluation
 ### Only used when sourcing evaluation manager from GitHub
-COMPONENT__EVAL__REMOTE_REPO_TAG="development"
+### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
+# COMPONENT__EVAL__REMOTE_REPO_TAG="development"
 
 
 ### Config template mounts from ngen-forcing repo

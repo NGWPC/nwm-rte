@@ -91,7 +91,8 @@ ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/pyt
 #### Region Manager
 
 ## From GitHub
-RUN pip install "nwm_region_mgr[parreg] @ git+${GITHUB_ORG_URL}/${REPO_NAME__REGION_MGR}@${REPO_TAG__REGION_MGR}"
+### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
+# RUN pip install "nwm_region_mgr[parreg] @ git+${GITHUB_ORG_URL}/${REPO_NAME__REGION_MGR}@${REPO_TAG__REGION_MGR}"
 
 ## From local
 # COPY "${REPO_NAME__REGION_MGR}/" "/tmp/${REPO_NAME__REGION_MGR}/"
@@ -104,11 +105,13 @@ RUN pip install "nwm_region_mgr[parreg] @ git+${GITHUB_ORG_URL}/${REPO_NAME__REG
 #### Verification Manager
 
 ## From GitHub
-RUN pip install "${REPO_NAME__VERF_MGR} @ git+${GITHUB_ORG_URL}/${REPO_NAME__VERF_MGR}@${REPO_TAG__VERF_MGR}"
+### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
+# RUN pip install "${REPO_NAME__VERF_MGR} @ git+${GITHUB_ORG_URL}/${REPO_NAME__VERF_MGR}@${REPO_TAG__VERF_MGR}"
 
 
 ##############################
 #### Evaluation Manager
 
 ## From GitHub
-RUN pip install "nwm_eval @ git+${GITHUB_ORG_URL}/${REPO_NAME__EVAL_MGR}@${REPO_TAG__EVAL_MGR}"
+### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
+# RUN pip install "nwm_eval @ git+${GITHUB_ORG_URL}/${REPO_NAME__EVAL_MGR}@${REPO_TAG__EVAL_MGR}"
