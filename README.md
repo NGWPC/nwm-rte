@@ -4,11 +4,13 @@ A configurable `docker build` and `docker run` sequence for headless end-to-end 
 
 ## Description of Primary Files
 
-[setup_workspace.sh](setup_workspace.sh) sources configuration from [config.bashrc](config.bashrc), downloads data from s3, and clones repos from GitHub.  Some data is mounted from those repos after cloning.  Other data is mounted from non-repo locations.
+[setup_data.sh](setup_data.sh) sources configuration from [config.bashrc](config.bashrc) and downloads data from s3.
+
+[setup_clone_repos.sh](setup_clone_repos.sh) sources configuration from [config.bashrc](config.bashrc) and clones repos from GitHub.
 
 [ngen_rte_build.sh](ngen_rte_build.sh) sources configuration from [config.bashrc](config.bashrc), then builds an image using [Dockerfile.rte](Dockerfile.rte).
 
-[ngen_rte_run.sh](ngen_rte_run.sh) uses `docker run` to start an ephemeral container of the new image with various host disk mounts applied, and runs a Python script in that container.  By default it runs [example_workflow.py](bin_mounted/example_workflow.py).
+[ngen_rte_run.sh](ngen_rte_run.sh) uses `docker run` to start an ephemeral container of the new image with various host disk mounts applied, and runs a Python script in that container.  By default it runs [example_workflow.py](bin_mounted/example_workflow.py).  Some data is mounted from cloned repos.  Other data is mounted from non-repo locations.
 
 ## Configuration Options
 
