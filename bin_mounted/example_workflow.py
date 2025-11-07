@@ -146,10 +146,11 @@ def main():
     assert_paths__core()
     assert_paths__raw_config()
 
-    # NOTE this deletes the test output dir.
-    # If wanting to skip Calibration but still do CS and/or Forecast,
-    # then remove this line so that the test calibration results remain available.
-    delete_test_output_dir()
+    ### NOTE this deletes the test output dir.
+    ### If wanting to skip Calibration but still do CS and/or Forecast,
+    ### then remove this line so that the test calibration results remain available.
+    # delete_test_output_dir()
+
     calibration__build_and_run()
 
     rb_cs = coldstart__build()
