@@ -23,6 +23,7 @@ ARG REPO_NAME__FCST_MGR="nwm-fcst-mgr"
 ARG REPO_NAME__CAL_MGR="nwm-cal-mgr"
 ARG REPO_NAME__MSW_MGR="nwm-msw-mgr"
 ARG REPO_NAME__REGION_MGR="nwm-region-mgr"
+ARG REPO_NAME__REGION_MGR_UNDERSCORES="nwm_region_mgr"
 ARG REPO_NAME__VERF_MGR="nwm-verf"
 ARG REPO_NAME__EVAL_MGR="nwm-eval-mgr"
 ARG MSWM_MODULE_PARAMETER_FILES="/ngen-app/${REPO_NAME__MSW_MGR}/src/mswm/module_parameter_files"
@@ -91,15 +92,15 @@ ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/pyt
 #### Region Manager
 
 ## From GitHub
-RUN pip install "nwm_region_mgr[parreg] @ git+${GITHUB_ORG_URL}/${REPO_NAME__REGION_MGR}@${REPO_TAG__REGION_MGR}"
+# RUN pip install "nwm_region_mgr[parreg] @ git+${GITHUB_ORG_URL}/${REPO_NAME__REGION_MGR}@${REPO_TAG__REGION_MGR}"
 
-# ## From local
-# COPY "${REPO_NAME__REGION_MGR}/" "/tmp/${REPO_NAME__REGION_MGR}/"
-# RUN \
-#     pip install "/tmp/${REPO_NAME__REGION_MGR}[parreg]" && \
-#     rm -rf "/tmp/${REPO_NAME__REGION_MGR}/"
+## From local
+COPY . "/ngen-app/${REPO_NAME__REGION_MGR}/"
 
+RUN \
+    pip install nwm-region-mgr[parreg] "/ngen-app/${REPO_NAME__REGION_MGR}"
 
+    
 ##############################
 #### Verification Manager
 
@@ -112,3 +113,5 @@ RUN pip install "${REPO_NAME__VERF_MGR} @ git+${GITHUB_ORG_URL}/${REPO_NAME__VER
 
 ## From GitHub
 RUN pip install "nwm_eval @ git+${GITHUB_ORG_URL}/${REPO_NAME__EVAL_MGR}@${REPO_TAG__EVAL_MGR}"
+
+RUN pip install "shapely<2.0"

@@ -47,7 +47,7 @@ COMPONENT__FCST_MGR__REMOTE_REPO_TAG="development"
 # COMPONENT__MSW_MGR__SOURCE_MODE="local"
 ### Only used when sourcing mswm from GitHub
 # COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
-COMPONENT__MSW_MGR__REMOTE_REPO_TAG="jwade_NGWPC-8667_historical_bmi_forcing"
+COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
 # COMPONENT__MSW_MGR__REMOTE_REPO_TAG="jwade_symlink_fix"
 
 ##### Calibration Manager
@@ -56,13 +56,13 @@ COMPONENT__MSW_MGR__REMOTE_REPO_TAG="jwade_NGWPC-8667_historical_bmi_forcing"
 # COMPONENT__CAL_MGR__SOURCE_MODE="local"
 ### Only used when sourcing calibration manager from GitHub
 # COMPONENT__CAL_MGR__REMOTE_REPO_TAG="development"
-COMPONENT__CAL_MGR__REMOTE_REPO_TAG="jwade_NGWPC-8667_historical_bmi_forcing"
+COMPONENT__CAL_MGR__REMOTE_REPO_TAG="development"
 
 
 ##### Region Manager
 ### TODO implement this switch (currently need to edit Dockerfile.rte to switch). When implemented, will choose from ["remote", "local"]
 # COMPONENT__REGION_MGR__SOURCE_MODE="remote"
-# COMPONENT__REGION_MGR__SOURCE_MODE="local"
+COMPONENT__REGION_MGR__SOURCE_MODE="local"
 ### Only used when sourcing region manager from GitHub
 COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
 
