@@ -31,12 +31,12 @@ elif [[ $NGEN_SOURCE_MODE == "existing_local_tag" ]]; then
 
 elif [[ $NGEN_SOURCE_MODE == "build_from_local" ]]; then
     NGEN_BASE_IMAGE="ngen:${NGEN_SOURCE_MODE}"
-    NGEN_SOURCE_LOCAL="${HOME}/ngwpc/ngen"
+    NGEN_SOURCE_LOCAL="${REPOS_COMMON_ROOT__HOST}/ngen"
     ( cd ${NGEN_SOURCE_LOCAL} && sudo docker build -t ${NGEN_BASE_IMAGE} . )
 
 elif [[ $NGEN_SOURCE_MODE == "build_from_remote" ]]; then
     NGEN_BASE_IMAGE="ngen:${NGEN_SOURCE_MODE}"
-    NGEN_SOURCE_LOCAL="${HOME}/ngwpc/ngen_tmp"
+    NGEN_SOURCE_LOCAL="${REPOS_COMMON_ROOT__HOST}/ngen_tmp"
     NGEN_GIT_URL="https://github.com/NGWPC/ngen.git"
     if test -d ${NGEN_SOURCE_LOCAL}; then
         info "Pulling branch ${NGEN_BASE__REMOTE_REPO_TAG} and submodules from ${NGEN_SOURCE_LOCAL}"
