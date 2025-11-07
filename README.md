@@ -21,6 +21,18 @@ See notes in the files for additional details.
 
 ## Steps to Get Started
 
+1. Make a directory to contain the repos and data, and enter it
+
+```shell
+# Note: this can be any location on your disk, but ~/ngwpc is a standard convention.
+# In a later step, a setup script will clone many repos into this location.
+# For each clone, if that particular repos already exists on your disk, it will skip that clone.
+# Meaning, it will not alter the state of the repos that you already have cloned, but it will clone
+# additional repos as necessary.
+mkdir -p ~/ngwpc
+cd ~/ngwpc
+```
+
 1. Clone this repo and enter it:
 
 ```shell
@@ -37,13 +49,21 @@ git checkout poc
 3. Download data, clone other repos, build the docker image, and run an example workflow:
 
 ```shell
-# Set up s3 credentials before running.  This takes about 7 minutes.
+# This downloads data.
+# You need to set up s3 credentials before running.
+# This takes about 7 minutes.
 time ./setup_data.sh |& tee setup_data.log
-# Be ready to provide git credentials several times if prompted.  This takes about 3 minutes.
+# This clones repos. It will not alter the state of existing repos on your disk (for each clone, it skips if the folder already exists on disk).
+# Be ready to provide git credentials several times if prompted.
+# This takes about 3 minutes.
 time ./setup_clone_repos.sh |& tee setup_clone_repos.log
-# Be ready to supply sudo password if prompted.  This takes 2 to 5 minutes, depending which packages are installed, if using an existing GHCR image for ngen.
+# This builds a local Docker image of ngen RTE, containing ngen base + manager (component) packages.
+# Be ready to supply sudo password if prompted.
+# If sourcing the ngen base image from an existing GHCR image, this takes 2 to 5 minutes, depending which packages are installed.
+# If building the ngen base image from source code, this takes longer.
 time ./ngen_rte_build.sh
-# Be ready to supply sudo password if prompted
+# This starts an ephemeral container of the ngen RTE image and runs an example workflow script (runs forecast).
+# Be ready to supply sudo password if prompted.
 time ./ngen_rte_run.sh
 ```
 
