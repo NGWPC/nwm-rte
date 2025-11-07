@@ -13,9 +13,9 @@
 #           s3://ngwpc-forcing
 #           s3://ngwpc-dev/
 # 
-#   2. Repo ngwpc/ngen-forcing has been cloned to ~/ngwpc/ngen-forcing/ (for BMI config templates)
+#   2. Repo ngwpc/ngen-forcing has been cloned to ${REPOS_COMMON_ROOT__HOST}/ngen-forcing/ (for BMI config templates)
 # 
-#   3. Repo ngwpc/nwm-msw-mgr has been cloned to ~/ngwpc/nwm-msw-mgr/ (for module_parameter_files)
+#   3. Repo ngwpc/nwm-msw-mgr has been cloned to ${REPOS_COMMON_ROOT__HOST}/nwm-msw-mgr/ (for module_parameter_files)
 # 
 
 
