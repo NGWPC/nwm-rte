@@ -19,13 +19,15 @@ THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
 ###         ./ngen_rte_run.sh mounts various subdirectories and files from this local directory, into the container, during runtime.
 ###
 ###     Choices for this variable:
-###         A typical choice for this is "${HOME}/ngwpc",
-###         but another location such as "${HOME}/ngwpc__rte" could be used if wanting to isolate the RTE.
-###         To fully make this fully relative (to assume other repos are siblings of this repo), use ${THIS_SCRIPTS_GRANDPARENT_DIR} for this.
+###         A typical choice for this is ${THIS_SCRIPTS_GRANDPARENT_DIR}, which is equivalent to "${HOME}/ngwpc" if you run this from "${HOME}/ngwpc/nwm-rte"
+###         but another location such as "${HOME}/ngwpc__rte" could be used if wanting to isolate the RTE from other work.
+###
+###         Using ${THIS_SCRIPTS_GRANDPARENT_DIR} guarantees that the setup scripts (`./setup_data.sh` and `./setup_clone_repos.sh`)
+###         will copy data and clone repos into the same locations where the build script and run script will look for them.
 ###     
-REPOS_COMMON_ROOT__HOST="${HOME}/ngwpc"
+REPOS_COMMON_ROOT__HOST=${THIS_SCRIPTS_GRANDPARENT_DIR}
+# REPOS_COMMON_ROOT__HOST="${HOME}/ngwpc"
 # REPOS_COMMON_ROOT__HOST="${HOME}/ngwpc__rte"
-# REPOS_COMMON_ROOT__HOST=${THIS_SCRIPTS_GRANDPARENT_DIR}
 
 
 RUN_NGEN_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/run_ngen"
