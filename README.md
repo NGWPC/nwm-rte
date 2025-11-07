@@ -32,14 +32,17 @@ git clone https://github.com/NGWPC/nwm-rte
 3. Download data, clone other repos, build the docker image, and run an example workflow:
 
 ```shell
-./setup_workspace.sh
-./ngen_rte_build.sh
-./ngen_rte_run.sh
+# Set up s3 credentials before running
+time ./setup_data.sh |& tee setup_data.log
+# Be ready to provide git credentials if prompted
+time ./setup_clone_repos.sh |& tee setup_clone_repos.log
+# Be ready to supply sudo password if prompted
+time ./ngen_rte_build.sh
+# Be ready to supply sudo password if prompted
+time ./ngen_rte_run.sh
 ```
 
 
 ## Additional Usage Notes
 
 It should work to use s3fs if desired (host mounts s3, container mounts host), if not wanting to copy s3 data to the local disk.
-
-Be ready to supply `sudo` password when prompted.
