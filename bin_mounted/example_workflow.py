@@ -43,8 +43,6 @@ REALIZATION_KWARGS__COLDSTART_AND_FORECAST = {
 
 def assert_paths__core() -> None:
     file_paths = [
-        f"{TEST_DIR_INPUT}/ngen",
-        f"{TEST_DIR_INPUT}/gauge_01123000.gpkg",
         "/s3/ngwpc-hydrofabric/2.2/CONUS/01123000/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_01123000.gpkg",
         "/ngen-app/ngen/cmake_build/ngen",
         "/ngen-app/ngen/extern/sloth/cmake_build/libslothmodel.so",
@@ -81,10 +79,19 @@ def assert_paths__raw_config():
             raise FileNotFoundError(fp)
 
 
+def assert_paths_common_input():
+    for fp in [
+        f"{TEST_DIR_INPUT}/ngen",
+        f"{TEST_DIR_INPUT}/gauge_01123000.gpkg",
+    ]:
+        if not os.path.isfile(fp):
+            raise FileNotFoundError(fp)
+
 def calibration__build_and_run() -> None:
     print("Building calibration realization")
     rb_calib = RealizationBuilder(CALIB_CONFIG_CONFIG)
     rb_calib.build_calib_realization()
+    assert_paths_common_input()
     if not os.path.isfile(rb_calib.calib_config_file):
         raise FileNotFoundError(rb_calib.calib_config_file)
     print("Running calibration")
@@ -100,6 +107,7 @@ def calibration__build_and_run() -> None:
 
 def coldstart__build() -> RealizationBuilder:
     print("Building coldstart realization")
+    assert_paths_common_input()
     rb_cs = RealizationBuilder(**REALIZATION_KWARGS__COLDSTART_AND_FORECAST, use_cold_start=True)
     rb_cs.build_fcst_realization()
     if not os.path.isfile(rb_cs.realization_file):
@@ -118,6 +126,7 @@ def coldstart__run(rb_cs: RealizationBuilder) -> None:
 
 def forecast__build() -> RealizationBuilder:
     print("Building forecast realization")
+    assert_paths_common_input()
     rb_fcst = RealizationBuilder(**REALIZATION_KWARGS__COLDSTART_AND_FORECAST, use_cold_start=False)
     rb_fcst.build_fcst_realization()
     if not os.path.isfile(rb_fcst.realization_file):
