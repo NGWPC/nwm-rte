@@ -23,9 +23,6 @@ DATA__PARAMETERS__HOST="${RUN_NGEN_ROOT__HOST}/data"
 DATA__GEO_EM_CONUS_NC__S3_SOURCE="s3://ngwpc-dev/kyle.larkin/esmf/geo_em_CONUS.nc"
 DATA__GEO_EM_CONUS_NC__HOST="${RUN_NGEN_ROOT__HOST}/data/geo_em_CONUS.nc"
 
-DATA__GAGE_01011000_MESH_NC__S3_SOURCE="s3://ngwpc-dev/max.kipp/esmf_mesh/gages-01011000_ESMF_Mesh.nc"
-DATA__GAGE_01011000_MESH_NC__S3_HOST="${RUN_NGEN_ROOT__HOST}/data/gages-01011000_ESMF_Mesh.nc"
-
 TEST_RUN_CONFIG__CALIBRATION__SOURCE="s3://ngwpc-dev/max.kipp/run_ngen/cold_start_workflow/input_calibration_bmi.config"
 TEST_RUN_CONFIG__FORECAST__SOURCE="s3://ngwpc-dev/max.kipp/run_ngen/cold_start_workflow/input_forecast.config"
 TEST_RUN_CONFIG__VALIDATION__SOURCE="s3://ngwpc-dev/max.kipp/run_ngen/kge_dds/test_bmi/${TEST_GAGE}/Output/Validation_Run/${TEST_GAGE}_config_valid_best.yaml"
@@ -49,7 +46,6 @@ aws s3 sync "s3://ngwpc-forcing/aorc_2.2/CONUS/Gage_${TEST_GAGE}/" "${S3_ROOT__H
 ### Download various ngen parameterization files
 aws s3 sync "${DATA__PARAMETERS__S3_SOURCE}/" "${DATA__PARAMETERS__HOST}/"
 aws s3 cp "${DATA__GEO_EM_CONUS_NC__S3_SOURCE}" "${DATA__GEO_EM_CONUS_NC__HOST}"
-aws s3 cp "${DATA__GAGE_01011000_MESH_NC__S3_SOURCE}" "${DATA__GAGE_01011000_MESH_NC__S3_HOST}"
 
 ### Download .config files
 mkdir -p "${WORKFLOW_INPUT_CONFIG_ROOT__COLDSTART}"
