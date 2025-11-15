@@ -28,6 +28,7 @@ TEST_NGEN_LOG_FILE = f"{TEST_DIR_BASE}/logs/ngen.log"
 
 ### Read by build_calib_realization()
 CALIB_CONFIG_CONFIG = f"/ngwpc/run_ngen/cold_start_workflow/input_calibration_{TEST_FORMULATION_SUFFIX}.config"
+# CALIB_CONFIG_CONFIG = f"/ngwpc/run_ngen/cold_start_workflow/input_calibration_{TEST_FORMULATION_SUFFIX}_short.config"
 
 ### Read by build_fcst_realization() for CS and for Forecast
 FORECAST_CONFIG_CONFIG = "/ngwpc/run_ngen/cold_start_workflow/input_forecast.config"
@@ -86,6 +87,7 @@ def assert_paths_common_input():
     ]:
         if not os.path.isfile(fp):
             raise FileNotFoundError(fp)
+
 
 def calibration__build_and_run() -> None:
     print("Building calibration realization")
@@ -151,6 +153,27 @@ def delete_test_output_dir():
         pass
 
 
+def delete_files_to_force_esmf_and_netcdf_actions():
+    dirs_to_delete = ["/ngwpc/run_ngen/data/scratch/NWM"]
+    for d in dirs_to_delete:
+        if os.path.exists(d):
+            print(f"Deleting: {d}")
+            shutil.rmtree(d)
+        else:
+            print(f"Did not exist: {d}")
+
+    files_to_delete = [
+        "/ngwpc/run_ngen/data/esmf_mesh/gauge_01123000_ESMF_Mesh.nc",
+        "/ngen-app/data/esmf_mesh/gauge_01123000_ESMF_Mesh.nc",
+    ]
+    for f in files_to_delete:
+        if os.path.exists(f):
+            print(f"Deleting: {f}")
+            os.remove(f)
+        else:
+            print(f"Did not exist: {f}")
+
+
 def main():
     assert_paths__core()
     assert_paths__raw_config()
@@ -160,11 +183,13 @@ def main():
     ### then remove this line so that the test calibration results remain available.
     # delete_test_output_dir()
 
+    delete_files_to_force_esmf_and_netcdf_actions()
     calibration__build_and_run()
 
     rb_cs = coldstart__build()
     rb_fcst = forecast__build()
 
+    delete_files_to_force_esmf_and_netcdf_actions()
     coldstart__run(rb_cs)
     forecast__run(rb_fcst)
 
