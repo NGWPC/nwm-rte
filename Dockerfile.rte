@@ -14,6 +14,7 @@ ARG REPO_TAG__CAL_MGR
 ARG REPO_TAG__REGION_MGR
 ARG REPO_TAG__VERF_MGR
 ARG REPO_TAG__EVAL_MGR
+ARG REPO_TAG__DATA_ASSIM_ENGINE
 
 ### Static args
 ARG PYTHON_ENV="/ngen-app/ngen-python/bin"
@@ -25,12 +26,14 @@ ARG REPO_NAME__MSW_MGR="nwm-msw-mgr"
 ARG REPO_NAME__REGION_MGR="nwm-region-mgr"
 ARG REPO_NAME__VERF_MGR="nwm-verf"
 ARG REPO_NAME__EVAL_MGR="nwm-eval-mgr"
+ARG REPO_NAME__DATA_ASSIM_ENGINE="data-assimilation-engine"
 ARG MSWM_MODULE_PARAMETER_FILES="/ngen-app/${REPO_NAME__MSW_MGR}/src/mswm/module_parameter_files"
 ### For Python 3.10 base image (ngen ghcr ngen:latest as of 10/28/25)
 # ARG PYTHON_VERSION_STR="python3.10"
 ### For Python 3.11 base image (ngen development as of 10/28/25)
 ARG PYTHON_VERSION_STR="python3.11"
 
+ENV PIP_NO_CACHE_DIR=1
 
 ### Activate the venv
 ENV PATH="${PYTHON_ENV}:${PATH}"
@@ -92,7 +95,7 @@ ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/pyt
 
 ## From GitHub
 ### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
-# RUN pip install "nwm_region_mgr[parreg] @ git+${GITHUB_ORG_URL}/${REPO_NAME__REGION_MGR}@${REPO_TAG__REGION_MGR}"
+RUN pip install "nwm_region_mgr[parreg] @ git+${GITHUB_ORG_URL}/${REPO_NAME__REGION_MGR}@${REPO_TAG__REGION_MGR}"
 
 ## From local
 # COPY "${REPO_NAME__REGION_MGR}/" "/tmp/${REPO_NAME__REGION_MGR}/"
@@ -104,9 +107,15 @@ ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/pyt
 ##############################
 #### Verification Manager
 
+# Problem: dependency teehr (https://github.com/RTIInternational/teehr) calls for min version 1.6.5 for netCDF4. ngen-forcing throws segfaults at 1.6.4+
+
 ## From GitHub
 ### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
-# RUN pip install "${REPO_NAME__VERF_MGR} @ git+${GITHUB_ORG_URL}/${REPO_NAME__VERF_MGR}@${REPO_TAG__VERF_MGR}"
+# RUN pip install "nwm.verf @ git+${GITHUB_ORG_URL}/${REPO_NAME__VERF_MGR}@${REPO_TAG__VERF_MGR}"
+
+## From local
+# COPY "${REPO_NAME__VERF_MGR}/" "/tmp/${REPO_NAME__VERF_MGR}/"
+# RUN pip install "/tmp/${REPO_NAME__VERF_MGR}" && rm -rf "/tmp/${REPO_NAME__VERF_MGR}/"
 
 
 ##############################
@@ -115,3 +124,33 @@ ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/pyt
 ## From GitHub
 ### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
 # RUN pip install "nwm_eval @ git+${GITHUB_ORG_URL}/${REPO_NAME__EVAL_MGR}@${REPO_TAG__EVAL_MGR}"
+RUN pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__EVAL_MGR}@${REPO_TAG__EVAL_MGR}"
+
+
+##############################
+#### Data Assimilation Engine
+
+## From GitHub
+### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
+# RUN pip install "data_assimilation_engine @ git+${GITHUB_ORG_URL}/${REPO_NAME__DATA_ASSIM_ENGINE}@${REPO_TAG__DATA_ASSIM_ENGINE}"
+RUN pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__DATA_ASSIM_ENGINE}@${REPO_TAG__DATA_ASSIM_ENGINE}"
+
+
+# ##############################
+# ##### For testing shapely 2 upgrade, below re-installs ngen-forcing. Not to be used in production.
+
+# ## From GitHub
+# ##  For ngen-forcing, these methods of pip install directly from GitHub don't seem to (re)install the various packages within the repo properly, so use git clone for now
+# ##      RUN pip install "${GITHUB_ORG_URL}/ngen-forcing/archive/maxkipp-ngwpc-8941-upgrade-shapely-2.tar.gz"
+# ##      RUN pip install "git+${GITHUB_ORG_URL}/ngen-forcing@maxkipp-ngwpc-8941-upgrade-shapely-2"
+# RUN \
+#     mkdir -p /tmp && cd /tmp && \
+#     git clone --depth 1 --branch "maxkipp-ngwpc-8941-upgrade-shapely-2" "${GITHUB_ORG_URL}/ngen-forcing.git" && \
+#     pip install ./ngen-forcing && \
+#     rm -rf ./ngen-forcing
+
+# ## From local
+# # COPY "ngen-forcing/" "/tmp/ngen-forcing/"
+# # RUN pip install "/tmp/ngen-forcing" && rm -rf "/tmp/ngen-forcing/"
+
+# RUN pip install netCDF4==1.6.3

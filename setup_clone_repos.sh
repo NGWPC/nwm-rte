@@ -14,6 +14,7 @@ function clone_if_not_exists {
     else
         ( cd "${REPOS_COMMON_ROOT__HOST}" && git clone --recurse-submodules "git@github.com:NGWPC/${1}.git" )
     fi
+    # ( cd "${REPOS_COMMON_ROOT__HOST}/${1}" && git pull --recurse-submodules && git submodule update --init --recursive )
 }
 clone_if_not_exists "ngen-forcing"
 clone_if_not_exists "ngen"
@@ -23,6 +24,7 @@ clone_if_not_exists "nwm-cal-mgr"
 clone_if_not_exists "nwm-verf"
 clone_if_not_exists "nwm-eval-mgr"
 clone_if_not_exists "nwm-region-mgr"
+clone_if_not_exists "data-assimilation-engine"
 clone_if_not_exists "nwm-rte"
 
 exit 0
