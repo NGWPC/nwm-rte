@@ -4,8 +4,8 @@ set -euo pipefail
 SHAPELY_UPGRADE_BRANCH="maxkipp-ngwpc-8941-upgrade-shapely-2"
 
 ### NO_CACHE: Passed to `docker build` call. Choose from: ["--no-cache", ""]. Has mild effect on RTE build speed when using pre-built base ngen image.
-# NO_CACHE="--no-cache"
-NO_CACHE=""
+NO_CACHE="--no-cache"
+# NO_CACHE=""
 
 
 # If you use this for REPOS_COMMON_ROOT__HOST, then the other repos are assumed to be siblings of this repo
