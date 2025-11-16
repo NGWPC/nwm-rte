@@ -35,7 +35,8 @@ function docker_run {
         -v "${MNT__S3_DATA__HOST}:${MNT__S3_DATA__CONTAINER_2}" \
         -v "${MNT__MODULE_PARAM_FILES_DIR__HOST}:${MNT__MODULE_PARAM_FILES_DIR__CONTAINER_1}" \
         -v "${MNT__MODULE_PARAM_FILES_DIR__HOST}:${MNT__MODULE_PARAM_FILES_DIR__CONTAINER_2}" \
-        -v "${RUN_NGEN_ROOT__HOST}/data/geo_em_CONUS.nc:/ngen-app/data/esmf_mesh/NWM/domain/geo_em_CONUS.nc" \
+        -v "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/:/ngen-app/data/esmf_mesh/" \
+        -v "${RUN_NGEN_ROOT__HOST}/data/scratch:/ngen-app/data/scratch" \
         -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
         -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
         \
