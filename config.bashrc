@@ -81,7 +81,8 @@ COMPONENT__MSW_MGR__REMOTE_REPO_TAG="${SHAPELY_UPGRADE_BRANCH}"
 
 ##### Package: Calibration Manager
 ### Only used when sourcing calibration manager from GitHub
-COMPONENT__CAL_MGR__REMOTE_REPO_TAG="development"
+# COMPONENT__CAL_MGR__REMOTE_REPO_TAG="development"
+COMPONENT__CAL_MGR__REMOTE_REPO_TAG="${SHAPELY_UPGRADE_BRANCH}"
 
 ##### Package: Region Manager
 ### Only used when sourcing region manager from GitHub
