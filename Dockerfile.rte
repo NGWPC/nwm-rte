@@ -109,13 +109,22 @@ RUN pip install "nwm_region_mgr[parreg] @ git+${GITHUB_ORG_URL}/${REPO_NAME__REG
 
 # Problem: dependency teehr (https://github.com/RTIInternational/teehr) calls for min version 1.6.5 for netCDF4. ngen-forcing throws segfaults at 1.6.4+
 
-## From GitHub
-### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
-# RUN pip install "nwm.verf @ git+${GITHUB_ORG_URL}/${REPO_NAME__VERF_MGR}@${REPO_TAG__VERF_MGR}"
-
-## From local
+### Solution A: Fork teehr and lower the netCDF4 version in the fork (here using local changes to simulate a fork)
+### To set this up (from ngwpc repo root):
+###     Run: git clone git@github.com:RTIInternational/teehr.git
+###     Run: ( cd teehr && git checkout v0.5.2 )
+###     Set local teehr's pyproject.toml with netcdf4 = "1.6.3"
+###     Set local nwm-verf's pyproject.toml with "teehr" (no specific version for teehr so it will accept the local teehr mod)
+# COPY "teehr/" "/tmp/teehr/"
+# RUN pip install "/tmp/teehr" && rm -rf "/tmp/teehr/"
 # COPY "${REPO_NAME__VERF_MGR}/" "/tmp/${REPO_NAME__VERF_MGR}/"
 # RUN pip install "/tmp/${REPO_NAME__VERF_MGR}" && rm -rf "/tmp/${REPO_NAME__VERF_MGR}/"
+
+### Solution B: After installing RTIInternational/teehr (upstream), re-install netCDF4 version 1.6.3.  This may result in conflict messages when installing tehr itself.
+### To set this up:
+###     No action needed other than pointing to the right testing branch of nwm-verf
+RUN pip install "nwm.verf @ git+${GITHUB_ORG_URL}/${REPO_NAME__VERF_MGR}@${REPO_TAG__VERF_MGR}"
+RUN pip install netCDF4==1.6.3
 
 
 ##############################
@@ -152,5 +161,3 @@ RUN pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__DATA_ASSIM_ENGINE}@${REPO_TA
 # ## From local
 # # COPY "ngen-forcing/" "/tmp/ngen-forcing/"
 # # RUN pip install "/tmp/ngen-forcing" && rm -rf "/tmp/ngen-forcing/"
-
-# RUN pip install netCDF4==1.6.3
