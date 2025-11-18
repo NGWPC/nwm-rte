@@ -1,9 +1,19 @@
+import copy
+from datetime import datetime
 import functools
 import os
+import pprint
 import shutil
 import subprocess
 
 from mswm.build_inputs import RealizationBuilder
+from mswm.utils.input_configuration import (
+    InputConfig,
+    ForcingConfig,
+    valid_configs as mswm_valid_configs,
+)
+from mswm.utils import settings as mswm_settings
+
 from nwm_fcst_mgr.forecast import run_fcst
 
 print = functools.partial(print, flush=True)
@@ -17,11 +27,12 @@ print = functools.partial(print, flush=True)
 # )
 
 
+GAGE_ID = "01123000"
 FCST_RUN_NAME = "fcst_run1"
 TEST_FORMULATION_SUFFIX = "bmi"
 # TEST_FORMULATION_SUFFIX = "csv"
 
-TEST_DIR_BASE = f"/ngwpc/run_ngen/kge_dds/test_{TEST_FORMULATION_SUFFIX}/01123000"
+TEST_DIR_BASE = f"/ngwpc/run_ngen/kge_dds/test_{TEST_FORMULATION_SUFFIX}/{GAGE_ID}"
 TEST_DIR_INPUT = f"{TEST_DIR_BASE}/Input"
 TEST_DIR_OUTPUT = f"{TEST_DIR_BASE}/Output"
 TEST_NGEN_LOG_FILE = f"{TEST_DIR_BASE}/logs/ngen.log"
@@ -32,7 +43,7 @@ CALIB_CONFIG_CONFIG = f"/ngwpc/run_ngen/cold_start_workflow/input_calibration_{T
 
 ### Read by build_fcst_realization() for CS and for Forecast
 FORECAST_CONFIG_CONFIG = "/ngwpc/run_ngen/cold_start_workflow/input_forecast.config"
-FORECAST_CONFIG_YAML = f"{TEST_DIR_OUTPUT}/Validation_Run/01123000_config_valid_best.yaml"
+FORECAST_CONFIG_YAML = f"{TEST_DIR_OUTPUT}/Validation_Run/{GAGE_ID}_config_valid_best.yaml"
 
 
 REALIZATION_KWARGS__COLDSTART_AND_FORECAST = {
@@ -44,7 +55,7 @@ REALIZATION_KWARGS__COLDSTART_AND_FORECAST = {
 
 def assert_paths__core() -> None:
     file_paths = [
-        "/s3/ngwpc-hydrofabric/2.2/CONUS/01123000/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_01123000.gpkg",
+        f"/s3/ngwpc-hydrofabric/2.2/CONUS/{GAGE_ID}/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_{GAGE_ID}.gpkg",
         "/ngen-app/ngen/cmake_build/ngen",
         "/ngen-app/ngen/extern/sloth/cmake_build/libslothmodel.so",
         "/ngen-app/ngen/extern/cfe/cmake_build/libcfebmi.so",
@@ -83,7 +94,7 @@ def assert_paths__raw_config():
 def assert_paths_common_input():
     for fp in [
         f"{TEST_DIR_INPUT}/ngen",
-        f"{TEST_DIR_INPUT}/gauge_01123000.gpkg",
+        f"{TEST_DIR_INPUT}/gauge_{GAGE_ID}.gpkg",
     ]:
         if not os.path.isfile(fp):
             raise FileNotFoundError(fp)
@@ -133,6 +144,37 @@ def forecast__build() -> RealizationBuilder:
     rb_fcst.build_fcst_realization()
     if not os.path.isfile(rb_fcst.realization_file):
         raise FileNotFoundError(rb_fcst.realization_file)
+
+    print(f"\n##### vvv Config at Start vvv: \n{pprint.pformat(rb_fcst.input_configs)}\n##### ^^^ Config at Start ^^^")
+
+    # forecast_types = mswm_valid_configs  # Full list of supported types
+    forecast_types = [
+        "short_range",
+        "standard_ana",
+        "medium_range_blend",
+    ]
+
+    cycle_datetimes = [
+        datetime(year=2025, month=9, day=17, hour=0, minute=0, second=0),
+        datetime(year=2025, month=9, day=18, hour=0, minute=0, second=0),
+        datetime(year=2025, month=9, day=19, hour=0, minute=0, second=0),
+    ]
+
+    for fct in forecast_types:
+        for cdt in cycle_datetimes:
+            forcing_config = copy.deepcopy(rb_fcst.input_configs["Forcing"])
+            forcing_config["forcing_configuration"] = fct
+            forcing_config["cycle_datetime"] = cdt.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT)
+
+            rb_fcst.config_overrides = InputConfig(Forcing=ForcingConfig(**forcing_config))
+            rb_fcst.build_fcst_realization()
+
+            print(f"Config w/ overrides: forcing={fct}, cycle_datetime={cdt}: {pprint.pformat(rb_fcst.input_configs)}")
+
+    print(f"rb_fcst.realization_file = {rb_fcst.realization_file}")
+    if not os.path.isfile(rb_fcst.realization_file):
+        raise FileNotFoundError(rb_fcst.realization_file)
+
     return rb_fcst
 
 
@@ -163,8 +205,8 @@ def delete_files_to_force_esmf_and_netcdf_actions():
             print(f"Did not exist: {d}")
 
     files_to_delete = [
-        "/ngwpc/run_ngen/data/esmf_mesh/gauge_01123000_ESMF_Mesh.nc",
-        "/ngen-app/data/esmf_mesh/gauge_01123000_ESMF_Mesh.nc",
+        "/ngwpc/run_ngen/data/esmf_mesh/gauge_{GAGE_ID}_ESMF_Mesh.nc",
+        "/ngen-app/data/esmf_mesh/gauge_{GAGE_ID}_ESMF_Mesh.nc",
     ]
     for f in files_to_delete:
         if os.path.exists(f):
