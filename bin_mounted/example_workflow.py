@@ -205,8 +205,8 @@ def delete_files_to_force_esmf_and_netcdf_actions():
             print(f"Did not exist: {d}")
 
     files_to_delete = [
-        "/ngwpc/run_ngen/data/esmf_mesh/gauge_{GAGE_ID}_ESMF_Mesh.nc",
-        "/ngen-app/data/esmf_mesh/gauge_{GAGE_ID}_ESMF_Mesh.nc",
+        f"/ngwpc/run_ngen/data/esmf_mesh/gauge_{GAGE_ID}_ESMF_Mesh.nc",
+        f"/ngen-app/data/esmf_mesh/gauge_{GAGE_ID}_ESMF_Mesh.nc",
     ]
     for f in files_to_delete:
         if os.path.exists(f):
