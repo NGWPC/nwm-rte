@@ -16,15 +16,16 @@ NGEN_SOURCE_MODE="ghcr"
 ## This one is based on PR 68 https://github.com/NGWPC/ngen/pull/68: https://github.com/NGWPC/ngen/commit/891e15f1c4121bc1735709fb7782f3fcadf88c43
 # NGEN_BASE__REMOTE_GHCR_TAG="891e15f1c412"
 ## This one is based on PR 58: https://github.com/NGWPC/ngen/pull/58
-NGEN_BASE__REMOTE_GHCR_TAG="350dcd08a53e"
+# NGEN_BASE__REMOTE_GHCR_TAG="350dcd08a53e"
+NGEN_BASE__REMOTE_GHCR_TAG="pr-82-build"
 
 # NGEN_SOURCE_MODE="existing_local_tag"
-## Only used when ngen image source mode is "existing_local_tag". Choose any existing local image tag.
-# NGEN_BASE__EXISTING_LOCAL_TAG="ngen:build_from_remote"
+# Only used when ngen image source mode is "existing_local_tag". Choose any existing local image tag.
+# NGEN_BASE__EXISTING_LOCAL_TAG="ngen"
 
 # NGEN_SOURCE_MODE="build_from_remote"
 ## Only used when ngen source mode is "build_from_remote". Choose any GitHub tag (or branch name).
-# NGEN_BASE__REMOTE_REPO_TAG="development"
+# NGEN_BASE__REMOTE_REPO_TAG="idt-regionalization-workflow-eval-debug"
 # NGEN_BASE__REMOTE_REPO_TAG="philmiller-8862-finalize-forcings-engine"
 
 # NGEN_SOURCE_MODE="build_from_local"

@@ -39,7 +39,8 @@ elif [[ $NGEN_SOURCE_MODE == "existing_local_tag" ]]; then
 
 elif [[ $NGEN_SOURCE_MODE == "build_from_local" ]]; then
     NGEN_BASE_IMAGE="ngen:${NGEN_SOURCE_MODE}"
-    NGEN_SOURCE_LOCAL="${HOME}/ngwpc/ngen"
+    NGEN_SOURCE_LOCAL="${HOME}/repos/ngen"
+    # NGEN_SOURCE_LOCAL="${HOME}/ngwpc/ngen"
     ( cd ${NGEN_SOURCE_LOCAL} && sudo docker build -t ${NGEN_BASE_IMAGE} . )
 
 elif [[ $NGEN_SOURCE_MODE == "build_from_remote" ]]; then
