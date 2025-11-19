@@ -35,6 +35,9 @@ ARG PYTHON_VERSION_STR="python3.11"
 
 ENV PIP_NO_CACHE_DIR=1
 
+COPY nwm-rte/add_git_info.py .
+
+
 ### Activate the venv
 ENV PATH="${PYTHON_ENV}:${PATH}"
 RUN pip install --upgrade pip
@@ -158,6 +161,7 @@ RUN pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__DATA_ASSIM_ENGINE}@${REPO_TA
 #     pip install ./ngen-forcing && \
 #     rm -rf ./ngen-forcing
 
-# ## From local
-# # COPY "ngen-forcing/" "/tmp/ngen-forcing/"
-# # RUN pip install "/tmp/ngen-forcing" && rm -rf "/tmp/ngen-forcing/"
+## From local
+# COPY "ngen-forcing/" "/tmp/ngen-forcing/"
+# RUN python add_git_info.py --local_repo_path "/tmp/ngen-forcing" --output_dir "/ngen-app/" && \
+#     pip install "/tmp/ngen-forcing" && rm -rf "/tmp/ngen-forcing/"
