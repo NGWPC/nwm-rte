@@ -15,6 +15,7 @@ ARG REPO_TAG__REGION_MGR
 ARG REPO_TAG__VERF_MGR
 ARG REPO_TAG__EVAL_MGR
 ARG REPO_TAG__DATA_ASSIM_ENGINE
+ARG REPO_TAG__NGEN_FORCING
 
 ### Static args
 ARG PYTHON_ENV="/ngen-app/ngen-python/bin"
@@ -27,7 +28,10 @@ ARG REPO_NAME__REGION_MGR="nwm-region-mgr"
 ARG REPO_NAME__VERF_MGR="nwm-verf"
 ARG REPO_NAME__EVAL_MGR="nwm-eval-mgr"
 ARG REPO_NAME__DATA_ASSIM_ENGINE="data-assimilation-engine"
+ARG REPO_NAME__NGEN_FORCING="ngen-forcing"
+
 ARG MSWM_MODULE_PARAMETER_FILES="/ngen-app/${REPO_NAME__MSW_MGR}/src/mswm/module_parameter_files"
+
 ### For Python 3.10 base image (ngen ghcr ngen:latest as of 10/28/25)
 # ARG PYTHON_VERSION_STR="python3.10"
 ### For Python 3.11 base image (ngen development as of 10/28/25)
@@ -143,3 +147,14 @@ ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/pyt
 ## From GitHub
 # RUN pip install "data_assimilation_engine @ git+${GITHUB_ORG_URL}/${REPO_NAME__DATA_ASSIM_ENGINE}@${REPO_TAG__DATA_ASSIM_ENGINE}"
 # RUN pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__DATA_ASSIM_ENGINE}@${REPO_TAG__DATA_ASSIM_ENGINE}"
+
+
+##############################
+##### NGEN Forcing (overriding Python package that comes with ngen base image)
+
+# From GitHub
+RUN pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__NGEN_FORCING}@${REPO_TAG__NGEN_FORCING}"
+
+# ## From local
+# COPY "${REPO_NAME__NGEN_FORCING}/" "/tmp/${REPO_NAME__NGEN_FORCING}/"
+# RUN pip install "/tmp/${REPO_NAME__NGEN_FORCING}" && rm -rf "/tmp/${REPO_NAME__NGEN_FORCING}/"

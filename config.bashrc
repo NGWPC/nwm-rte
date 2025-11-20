@@ -93,6 +93,11 @@ COMPONENT__EVAL__REMOTE_REPO_TAG="development"
 COMPONENT__DATA_ASSIM_ENGINE__REMOTE_REPO_TAG="development"
 
 
+#### NGEN Forcing Python Package Override
+### Only used when sourcing NGEN forcing python package override from GitHub
+COMPONENT__NGEN_FORCING__REMOTE_REPO_TAG="development"
+
+
 ### Config template mounts from ngen-forcing repo
 ###   e.g. ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/
 MNT__NGEN_FORCING__HOST="${REPOS_COMMON_ROOT__HOST}/ngen-forcing"
