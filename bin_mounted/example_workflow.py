@@ -59,6 +59,19 @@ COLDSTART_END = COLDSTART_START + timedelta(days=2)
 FORECAST_INITIAL_CYCLE_DATETIME = COLDSTART_END
 
 
+DEFAULT_FORECAST_CONFIG = InputConfig(
+    Forcing=ForcingConfig(
+        forcing_provider=TEST_FORMULATION_SUFFIX,
+        forcing_dir=None,
+        forcing_template_dir="/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/",
+        root_dir="/ngen-app/data",
+        forcing_configuration="short_range",
+        cycle_datetime=FORECAST_INITIAL_CYCLE_DATETIME,
+        cold_start_datetime=None,
+    )
+)
+
+
 FORECAST_TYPE_2_DELTA_HOURS = {
     # "aorc": 1,  # AttributeError: 'RealizationBuilder' object has no attribute 'time_period'
     # "nwm": 1,  # AttributeError: 'RealizationBuilder' object has no attribute 'time_period'
@@ -264,7 +277,7 @@ def main():
     )
 
     for rb_fcst in generate_forecasts():
-        print(f'Running forecast realization: {rb_cs.input_configs["Forcing"]}')
+        print(f'Running forecast realization: {rb_fcst.input_configs["Forcing"]}')
         run_fcst(valid_yaml=FORECAST_CONFIG_YAML, real_path=str(rb_fcst.realization_file))
         if rb_fcst.input_configs["Forcing"]["forcing_configuration"] == "standard_ana":
             sss = SavedStartState_PseudoCode(
