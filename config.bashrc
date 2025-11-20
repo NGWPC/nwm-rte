@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -euo pipefail
-SHAPELY_UPGRADE_BRANCH="maxkipp-ngwpc-8941-upgrade-shapely-2"
 
 ### NO_CACHE: Passed to `docker build` call. Choose from: ["--no-cache", ""]. Has mild effect on RTE build speed when using pre-built base ngen image.
 NO_CACHE="--no-cache"
@@ -41,10 +40,6 @@ S3_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/s3"
 # NGEN_SOURCE_MODE="ghcr"
 ## Only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.
 # NGEN_BASE__REMOTE_GHCR_TAG="latest"
-## This one is based on PR 68 https://github.com/NGWPC/ngen/pull/68: https://github.com/NGWPC/ngen/commit/891e15f1c4121bc1735709fb7782f3fcadf88c43
-# NGEN_BASE__REMOTE_GHCR_TAG="891e15f1c412"
-## This one is based on PR 58: https://github.com/NGWPC/ngen/pull/58
-# NGEN_BASE__REMOTE_GHCR_TAG="350dcd08a53e"
 ## This one is based on PR 71: https://github.com/NGWPC/ngen/pull/71
 # NGEN_BASE__REMOTE_GHCR_TAG="df0d2034f3c0"
 
@@ -61,9 +56,7 @@ NGEN_SOURCE_MODE="build_from_local"
 
 ### Freeform name tag for image that is built in this process
 # TARGET_IMAGE_NAME="ngen_rte:`date '+%Y%m%d%H%M%S'`-${NGEN_SOURCE_MODE}"
-# TARGET_IMAGE_NAME="ngen_rte:${NGEN_SOURCE_MODE}"
-# TARGET_IMAGE_NAME="ngen_rte:build_from_local_ngen70_troute47_20251110"
-TARGET_IMAGE_NAME="ngen_rte:${SHAPELY_UPGRADE_BRANCH}"
+TARGET_IMAGE_NAME="ngen_rte:${NGEN_SOURCE_MODE}"
 
 
 ##### Package: Forecast Manager
@@ -71,43 +64,32 @@ TARGET_IMAGE_NAME="ngen_rte:${SHAPELY_UPGRADE_BRANCH}"
 # COMPONENT__FCST_MGR__SOURCE_MODE="remote"
 # COMPONENT__FCST_MGR__SOURCE_MODE="local"
 ### Only used when sourcing fcst mgr from GitHub
-# COMPONENT__FCST_MGR__REMOTE_REPO_TAG="development"
-COMPONENT__FCST_MGR__REMOTE_REPO_TAG="${SHAPELY_UPGRADE_BRANCH}"
+COMPONENT__FCST_MGR__REMOTE_REPO_TAG="development"
 
 ##### Package: Model Setup Workflow Manager
 ### Only used when sourcing mswm from GitHub
-# COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
-COMPONENT__MSW_MGR__REMOTE_REPO_TAG="${SHAPELY_UPGRADE_BRANCH}"
+COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
 
 ##### Package: Calibration Manager
 ### Only used when sourcing calibration manager from GitHub
-# COMPONENT__CAL_MGR__REMOTE_REPO_TAG="development"
-COMPONENT__CAL_MGR__REMOTE_REPO_TAG="${SHAPELY_UPGRADE_BRANCH}"
+COMPONENT__CAL_MGR__REMOTE_REPO_TAG="development"
 
 ##### Package: Region Manager
 ### Only used when sourcing region manager from GitHub
-### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
-# COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
-COMPONENT__REGION_MGR__REMOTE_REPO_TAG="${SHAPELY_UPGRADE_BRANCH}"
+COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
 
 ##### Package: Verification
 ### Only used when sourcing verification manager from GitHub
-### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
-# COMPONENT__VERF__REMOTE_REPO_TAG="development"
-COMPONENT__VERF__REMOTE_REPO_TAG="${SHAPELY_UPGRADE_BRANCH}"
+COMPONENT__VERF__REMOTE_REPO_TAG="development"
 
 #### Evaluation
 ### Only used when sourcing evaluation manager from GitHub
-### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
-# COMPONENT__EVAL__REMOTE_REPO_TAG="development"
-COMPONENT__EVAL__REMOTE_REPO_TAG="${SHAPELY_UPGRADE_BRANCH}"
+COMPONENT__EVAL__REMOTE_REPO_TAG="development"
 
 
 #### Data Assimilation Engine
 ### Only used when sourcing evaluation manager from GitHub
-### TODO this currently uses shapely 2. Need to either upgrade ngen's shapely, or downgrade this package's shapely to <2
-# COMPONENT__DATA_ASSIM_ENGINE__REMOTE_REPO_TAG="development"
-COMPONENT__DATA_ASSIM_ENGINE__REMOTE_REPO_TAG="${SHAPELY_UPGRADE_BRANCH}"
+COMPONENT__DATA_ASSIM_ENGINE__REMOTE_REPO_TAG="development"
 
 
 ### Config template mounts from ngen-forcing repo
