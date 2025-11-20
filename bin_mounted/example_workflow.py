@@ -66,7 +66,7 @@ DEFAULT_FORECAST_CONFIG = InputConfig(
         forcing_template_dir="/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/",
         root_dir="/ngen-app/data",
         forcing_configuration="short_range",
-        cycle_datetime=FORECAST_INITIAL_CYCLE_DATETIME,
+        cycle_datetime=FORECAST_INITIAL_CYCLE_DATETIME.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT),
         cold_start_datetime=None,
     )
 )
