@@ -10,6 +10,7 @@ import subprocess
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils.input_configuration import (
     InputConfig,
+    GeneralConfig,
     ForcingConfig,
     valid_configs as mswm_valid_configs,
 )
@@ -47,7 +48,7 @@ FORECAST_CONFIG_CONFIG = "/ngwpc/run_ngen/cold_start_workflow/input_forecast.con
 FORECAST_CONFIG_YAML = f"{TEST_DIR_OUTPUT}/Validation_Run/{GAGE_ID}_config_valid_best.yaml"
 
 
-REALIZATION_KWARGS__COLDSTART_AND_FORECAST = {
+REALIZATION_KWARGS__COLDSTART = {
     "input_path": FORECAST_CONFIG_CONFIG,
     "valid_yaml": FORECAST_CONFIG_YAML,
     "fcst_run_name": FCST_RUN_NAME,
@@ -70,6 +71,13 @@ DEFAULT_FORECAST_CONFIG = InputConfig(
         cold_start_datetime=None,
     )
 )
+
+REALIZATION_KWARGS__FORECAST = {
+    # "input_path": FORECAST_CONFIG_CONFIG,
+    "valid_yaml": FORECAST_CONFIG_YAML,
+    "fcst_run_name": FCST_RUN_NAME,
+    "config_overrides": DEFAULT_FORECAST_CONFIG,
+}
 
 
 FORECAST_TYPE_2_DELTA_HOURS = {
@@ -199,7 +207,7 @@ def delete_files_to_force_esmf_and_netcdf_actions():
 
 
 def build_coldstart_realization():
-    rb_cs = RealizationBuilder(**REALIZATION_KWARGS__COLDSTART_AND_FORECAST, use_cold_start=True)
+    rb_cs = RealizationBuilder(**REALIZATION_KWARGS__COLDSTART, use_cold_start=True)
     # This can be called before the overrides (InputConfig instance) is defined, to load the .conf file first without overrides.
     # Then overrides can be idiomatically defined by copying the valid config and replacing individual keys.
     # This can be skipped if defining overrides (InputConfig instance) from scratch without relying on anything from .conf.
@@ -228,7 +236,7 @@ def generate_forecasts():
             # TODO for subsequent runs, how to use the ANA results from `saved_start_states_pseudocode`?
             forecast_type_2_delta_hours = FORECAST_TYPE_2_DELTA_HOURS
 
-        rb_fcst = RealizationBuilder(**REALIZATION_KWARGS__COLDSTART_AND_FORECAST, use_cold_start=False)
+        rb_fcst = RealizationBuilder(**REALIZATION_KWARGS__FORECAST, use_cold_start=False)
         rb_fcst.load_config_apply_overrides()
         forcing_config = copy.deepcopy(rb_fcst.input_configs["Forcing"])
 
@@ -250,6 +258,9 @@ def generate_forecasts():
 
 
 def main():
+    # TODO pseudocode for now for states.
+    saved_start_states_pseudocode: list[SavedStartState_PseudoCode] = []
+
     assert_paths__core()
     assert_paths__raw_config()
     assert_paths_common_input()
@@ -261,9 +272,6 @@ def main():
 
     # delete_files_to_force_esmf_and_netcdf_actions()
     calibration__build_and_run()
-
-    # TODO pseudocode for now for states.
-    saved_start_states_pseudocode: list[SavedStartState_PseudoCode] = []
 
     rb_cs = build_coldstart_realization()
     print(f'Running coldstart realization: {rb_cs.input_configs["Forcing"]}')
