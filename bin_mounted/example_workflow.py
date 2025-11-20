@@ -246,7 +246,7 @@ def main():
     ### then remove this line so that the test calibration results remain available.
     # delete_test_output_dir()
 
-    delete_files_to_force_esmf_and_netcdf_actions()
+    # delete_files_to_force_esmf_and_netcdf_actions()
     calibration__build_and_run()
 
     # TODO pseudocode for now for states.
