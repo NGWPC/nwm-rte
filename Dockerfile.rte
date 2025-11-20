@@ -143,22 +143,3 @@ ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/pyt
 ## From GitHub
 # RUN pip install "data_assimilation_engine @ git+${GITHUB_ORG_URL}/${REPO_NAME__DATA_ASSIM_ENGINE}@${REPO_TAG__DATA_ASSIM_ENGINE}"
 # RUN pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__DATA_ASSIM_ENGINE}@${REPO_TAG__DATA_ASSIM_ENGINE}"
-
-
-# ##############################
-# ##### For testing shapely 2 upgrade, below re-installs ngen-forcing. Not to be used in production.
-
-# ## From GitHub
-# ##  For ngen-forcing, these methods of pip install directly from GitHub don't seem to (re)install the various packages within the repo properly, so use git clone for now
-# ##      RUN pip install "${GITHUB_ORG_URL}/ngen-forcing/archive/maxkipp-ngwpc-8941-upgrade-shapely-2.tar.gz"
-# ##      RUN pip install "git+${GITHUB_ORG_URL}/ngen-forcing@maxkipp-ngwpc-8941-upgrade-shapely-2"
-# RUN \
-#     mkdir -p /tmp && cd /tmp && \
-#     git clone --depth 1 --branch "maxkipp-ngwpc-8941-upgrade-shapely-2" "${GITHUB_ORG_URL}/ngen-forcing.git" && \
-#     pip install ./ngen-forcing && \
-#     rm -rf ./ngen-forcing
-
-## From local
-# COPY "ngen-forcing/" "/tmp/ngen-forcing/"
-# RUN python add_git_info.py --local_repo_path "/tmp/ngen-forcing" --output_dir "/ngen-app/" && \
-#     pip install "/tmp/ngen-forcing" && rm -rf "/tmp/ngen-forcing/"
