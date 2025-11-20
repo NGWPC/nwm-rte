@@ -1,5 +1,6 @@
 import copy
-from datetime import datetime
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 import functools
 import os
 import pprint
@@ -51,6 +52,43 @@ REALIZATION_KWARGS__COLDSTART_AND_FORECAST = {
     "valid_yaml": FORECAST_CONFIG_YAML,
     "fcst_run_name": FCST_RUN_NAME,
 }
+
+FORECAST_ROUNDS = 1
+COLDSTART_START = datetime(year=2025, month=9, day=15, hour=0, minute=0, second=0)
+COLDSTART_END = COLDSTART_START + timedelta(days=2)
+FORECAST_INITIAL_CYCLE_DATETIME = COLDSTART_END
+
+
+FORECAST_TYPE_2_DELTA_HOURS = {
+    # "aorc": 1,  # AttributeError: 'RealizationBuilder' object has no attribute 'time_period'
+    # "nwm": 1,  # AttributeError: 'RealizationBuilder' object has no attribute 'time_period'
+    # "standard_ana": 1,  # good default
+    # "standard_ana_alaska": 1,
+    # "standard_ana_hawaii": 1,
+    # "standard_ana_puertorico": 1,
+    # "extended_ana": 24,
+    # "extended_ana_alaska": 24,
+    "short_range": 1,  # good default
+    # "short_range_alaska": 1,
+    # "short_range_hawaii": 1,  # FileNotFoundError: Forcing template file does not exist: /ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/short_range_hawaii_config.yml
+    # "short_range_puertorico": 1,
+    # "short_range_extended_alaska": 6,
+    # "medium_range_blend": 6,  # good default
+    # "medium_range_blend_alaska": 6,
+    # "long_range_mem1": 6,
+    # "long_range_mem2": 6,
+    # "long_range_mem3": 6,
+    # "long_range_mem4": 6,
+}
+
+
+@dataclass
+class SavedStartState_PseudoCode:
+    """Pseudocode"""
+
+    forecast_type: str
+    cycle_datetime: datetime
+    realization_file: str
 
 
 def assert_paths__core() -> None:
@@ -118,75 +156,6 @@ def calibration__build_and_run() -> None:
     shutil.copyfile(TEST_NGEN_LOG_FILE, TEST_NGEN_LOG_FILE + ".calib.log")
 
 
-def coldstart__build() -> RealizationBuilder:
-    print("Building coldstart realization")
-    assert_paths_common_input()
-    rb_cs = RealizationBuilder(**REALIZATION_KWARGS__COLDSTART_AND_FORECAST, use_cold_start=True)
-    rb_cs.build_fcst_realization()
-    if not os.path.isfile(rb_cs.realization_file):
-        raise FileNotFoundError(rb_cs.realization_file)
-    return rb_cs
-
-
-def coldstart__run(rb_cs: RealizationBuilder) -> None:
-    print("Running coldstart")
-    run_fcst(
-        valid_yaml=FORECAST_CONFIG_YAML,
-        real_path=str(rb_cs.realization_file),
-    )
-    shutil.copyfile(TEST_NGEN_LOG_FILE, TEST_NGEN_LOG_FILE + ".coldstart.log")
-
-
-def forecast__build() -> RealizationBuilder:
-    print("Building forecast realization")
-    assert_paths_common_input()
-    rb_fcst = RealizationBuilder(**REALIZATION_KWARGS__COLDSTART_AND_FORECAST, use_cold_start=False)
-    rb_fcst.build_fcst_realization()
-    if not os.path.isfile(rb_fcst.realization_file):
-        raise FileNotFoundError(rb_fcst.realization_file)
-
-    print(f"\n##### vvv Config at Start vvv: \n{pprint.pformat(rb_fcst.input_configs)}\n##### ^^^ Config at Start ^^^")
-
-    # forecast_types = mswm_valid_configs  # Full list of supported types
-    forecast_types = [
-        "short_range",
-        "standard_ana",
-        "medium_range_blend",
-    ]
-
-    cycle_datetimes = [
-        datetime(year=2025, month=9, day=17, hour=0, minute=0, second=0),
-        datetime(year=2025, month=9, day=18, hour=0, minute=0, second=0),
-        datetime(year=2025, month=9, day=19, hour=0, minute=0, second=0),
-    ]
-
-    for fct in forecast_types:
-        for cdt in cycle_datetimes:
-            forcing_config = copy.deepcopy(rb_fcst.input_configs["Forcing"])
-            forcing_config["forcing_configuration"] = fct
-            forcing_config["cycle_datetime"] = cdt.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT)
-
-            rb_fcst.config_overrides = InputConfig(Forcing=ForcingConfig(**forcing_config))
-            rb_fcst.build_fcst_realization()
-
-            print(f"Config w/ overrides: forcing={fct}, cycle_datetime={cdt}: {pprint.pformat(rb_fcst.input_configs)}")
-
-    print(f"rb_fcst.realization_file = {rb_fcst.realization_file}")
-    if not os.path.isfile(rb_fcst.realization_file):
-        raise FileNotFoundError(rb_fcst.realization_file)
-
-    return rb_fcst
-
-
-def forecast__run(rb_fcst: RealizationBuilder) -> None:
-    print("Running forecast")
-    run_fcst(
-        valid_yaml=FORECAST_CONFIG_YAML,
-        real_path=str(rb_fcst.realization_file),
-    )
-    shutil.copyfile(TEST_NGEN_LOG_FILE, TEST_NGEN_LOG_FILE + ".forecast.log")
-
-
 def delete_test_output_dir():
     print(f"Deleting if exists: {TEST_DIR_OUTPUT}")
     try:
@@ -216,9 +185,61 @@ def delete_files_to_force_esmf_and_netcdf_actions():
             print(f"Did not exist: {f}")
 
 
+def build_coldstart_realization():
+    rb_cs = RealizationBuilder(**REALIZATION_KWARGS__COLDSTART_AND_FORECAST, use_cold_start=True)
+    # This can be called before the overrides (InputConfig instance) is defined, to load the .conf file first without overrides.
+    # Then overrides can be idiomatically defined by copying the valid config and replacing individual keys.
+    # This can be skipped if defining overrides (InputConfig instance) from scratch without relying on anything from .conf.
+    rb_cs.load_config_apply_overrides()
+
+    forcing_config = copy.deepcopy(rb_cs.input_configs["Forcing"])
+    cs_overrides_dict = {
+        "forcing_configuration": "short_range",
+        "cold_start_datetime": COLDSTART_START.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT),
+        "cycle_datetime": COLDSTART_END.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT),
+    }
+    forcing_config.update(cs_overrides_dict)
+    print(f"Building coldstart realization: {forcing_config}")
+    rb_cs.config_overrides = InputConfig(Forcing=ForcingConfig(**forcing_config))
+    rb_cs.build_fcst_realization()
+    print(f"Wrote: {rb_cs.realization_file}")
+    return rb_cs
+
+
+def generate_forecasts():
+    for i in range(FORECAST_ROUNDS):
+        if i == 0:
+            # TODO for first run, how to use the coldstart results from `saved_start_states_pseudocode`?
+            forecast_type_2_delta_hours = {fct: 0 for fct in FORECAST_TYPE_2_DELTA_HOURS}
+        else:
+            # TODO for subsequent runs, how to use the ANA results from `saved_start_states_pseudocode`?
+            forecast_type_2_delta_hours = FORECAST_TYPE_2_DELTA_HOURS
+
+        rb_fcst = RealizationBuilder(**REALIZATION_KWARGS__COLDSTART_AND_FORECAST, use_cold_start=False)
+        rb_fcst.load_config_apply_overrides()
+        forcing_config = copy.deepcopy(rb_fcst.input_configs["Forcing"])
+
+        for fct, delta_hours in forecast_type_2_delta_hours.items():
+            cycle_datetime = FORECAST_INITIAL_CYCLE_DATETIME + timedelta(hours=i * delta_hours)
+
+            fcst_overrides_dict = {
+                "forcing_configuration": fct,
+                "cold_start_datetime": None,
+                "cycle_datetime": cycle_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT),
+            }
+
+            forcing_config.update(fcst_overrides_dict)
+            print(f"\nRound {i} {fct}: building forecast realization: {forcing_config}")
+            rb_fcst.config_overrides = InputConfig(Forcing=ForcingConfig(**forcing_config))
+            rb_fcst.build_fcst_realization()
+            print(f"Wrote: {rb_fcst.realization_file}")
+            yield rb_fcst
+
+
 def main():
     assert_paths__core()
     assert_paths__raw_config()
+    assert_paths_common_input()
 
     ### NOTE this deletes the test output dir.
     ### If wanting to skip Calibration but still do CS and/or Forecast,
@@ -228,12 +249,32 @@ def main():
     delete_files_to_force_esmf_and_netcdf_actions()
     calibration__build_and_run()
 
-    rb_cs = coldstart__build()
-    rb_fcst = forecast__build()
+    # TODO pseudocode for now for states.
+    saved_start_states_pseudocode: list[SavedStartState_PseudoCode] = []
 
-    delete_files_to_force_esmf_and_netcdf_actions()
-    coldstart__run(rb_cs)
-    forecast__run(rb_fcst)
+    rb_cs = build_coldstart_realization()
+    print(f'Running coldstart realization: {rb_cs.input_configs["Forcing"]}')
+    run_fcst(valid_yaml=FORECAST_CONFIG_YAML, real_path=str(rb_cs.realization_file))
+    saved_start_states_pseudocode.append(
+        SavedStartState_PseudoCode(
+            forecast_type=rb_cs.input_configs["Forcing"]["forcing_configuration"],
+            cycle_datetime=COLDSTART_END,
+            realization_file=rb_cs.realization_file,
+        )
+    )
+
+    for rb_fcst in generate_forecasts():
+        print(f'Running forecast realization: {rb_cs.input_configs["Forcing"]}')
+        run_fcst(valid_yaml=FORECAST_CONFIG_YAML, real_path=str(rb_fcst.realization_file))
+        if rb_cs.input_configs["Forcing"]["forcing_configuration"] == "standard_ana":
+            sss = SavedStartState_PseudoCode(
+                forecast_type=rb_cs.input_configs["Forcing"]["forcing_configuration"],
+                cycle_datetime=rb_cs.input_configs["Forcing"]["cycle_datetime"].strptime(
+                    mswm_settings.DEFAULT_DATETIME_FORMAT
+                ),
+                realization_file=rb_fcst.realization_file,
+            )
+            saved_start_states_pseudocode.append(sss)
 
 
 if __name__ == "__main__":
