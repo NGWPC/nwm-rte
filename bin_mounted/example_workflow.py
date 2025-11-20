@@ -266,10 +266,10 @@ def main():
     for rb_fcst in generate_forecasts():
         print(f'Running forecast realization: {rb_cs.input_configs["Forcing"]}')
         run_fcst(valid_yaml=FORECAST_CONFIG_YAML, real_path=str(rb_fcst.realization_file))
-        if rb_cs.input_configs["Forcing"]["forcing_configuration"] == "standard_ana":
+        if rb_fcst.input_configs["Forcing"]["forcing_configuration"] == "standard_ana":
             sss = SavedStartState_PseudoCode(
-                forecast_type=rb_cs.input_configs["Forcing"]["forcing_configuration"],
-                cycle_datetime=rb_cs.input_configs["Forcing"]["cycle_datetime"].strptime(
+                forecast_type=rb_fcst.input_configs["Forcing"]["forcing_configuration"],
+                cycle_datetime=rb_fcst.input_configs["Forcing"]["cycle_datetime"].strptime(
                     mswm_settings.DEFAULT_DATETIME_FORMAT
                 ),
                 realization_file=rb_fcst.realization_file,
