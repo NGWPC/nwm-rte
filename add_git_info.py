@@ -12,7 +12,7 @@ GH_ORG = "NGWPC"
 
 def run(cmd: str, cwd: str) -> str:
     """Run a command and return stdout"""
-    print(f"Running command {repr(cmd)} from {repr(cwd)}")
+    print(f"From {repr(cwd)} running command: {repr(cmd)}")
     p = subprocess.run(cmd, cwd=cwd, shell=True, capture_output=True, text=True, check=False)
     try:
         p.check_returncode()
