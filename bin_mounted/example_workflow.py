@@ -1,3 +1,4 @@
+import argparse
 import copy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -6,6 +7,7 @@ import os
 import pprint
 import shutil
 import subprocess
+import typing
 
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils.input_configuration import (
@@ -14,9 +16,12 @@ from mswm.utils.input_configuration import (
     ForcingConfig,
     valid_configs as mswm_valid_configs,
 )
-from mswm.utils import settings as mswm_settings
+from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
 from nwm_fcst_mgr.forecast import run_fcst
+
+import utils_testing_setup
+from pseudocode import SavedState_Pseudo, StateManager_Pseudo
 
 print = functools.partial(print, flush=True)
 
@@ -48,12 +53,6 @@ FORECAST_CONFIG_CONFIG = "/ngwpc/run_ngen/cold_start_workflow/input_forecast.con
 FORECAST_CONFIG_YAML = f"{TEST_DIR_OUTPUT}/Validation_Run/{GAGE_ID}_config_valid_best.yaml"
 
 
-REALIZATION_KWARGS__COLDSTART = {
-    "input_path": FORECAST_CONFIG_CONFIG,
-    "valid_yaml": FORECAST_CONFIG_YAML,
-    "fcst_run_name": FCST_RUN_NAME,
-}
-
 FORECAST_ROUNDS = 1
 COLDSTART_START = datetime(year=2025, month=9, day=15, hour=0, minute=0, second=0)
 COLDSTART_END = COLDSTART_START + timedelta(days=2)
@@ -67,103 +66,56 @@ DEFAULT_FORECAST_CONFIG = InputConfig(
         forcing_template_dir="/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/",
         root_dir="/ngen-app/data",
         forcing_configuration="short_range",
-        cycle_datetime=FORECAST_INITIAL_CYCLE_DATETIME.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT),
+        cycle_datetime=FORECAST_INITIAL_CYCLE_DATETIME.strftime(DEFAULT_DATETIME_FORMAT),
         cold_start_datetime=None,
     )
 )
 
-REALIZATION_KWARGS__FORECAST = {
-    # "input_path": FORECAST_CONFIG_CONFIG,
+REALIZATION_KWARGS__COLDSTART = {
+    "input_path": FORECAST_CONFIG_CONFIG,  # From disk
     "valid_yaml": FORECAST_CONFIG_YAML,
     "fcst_run_name": FCST_RUN_NAME,
-    "config_overrides": DEFAULT_FORECAST_CONFIG,
 }
 
+REALIZATION_KWARGS__FORECAST = {
+    # "input_path": FORECAST_CONFIG_CONFIG,  # From disk
+    "valid_yaml": FORECAST_CONFIG_YAML,
+    "fcst_run_name": FCST_RUN_NAME,
+    "config_overrides": DEFAULT_FORECAST_CONFIG,  # From memory
+}
 
 FORECAST_TYPE_2_DELTA_HOURS = {
     # "aorc": 1,  # AttributeError: 'RealizationBuilder' object has no attribute 'time_period'
     # "nwm": 1,  # AttributeError: 'RealizationBuilder' object has no attribute 'time_period'
-    # "standard_ana": 1,  # good default
-    # "standard_ana_alaska": 1,
-    # "standard_ana_hawaii": 1,
-    # "standard_ana_puertorico": 1,
-    # "extended_ana": 24,
-    # "extended_ana_alaska": 24,
-    "short_range": 1,  # good default
-    # "short_range_alaska": 1,
+    "standard_ana": 1,
+    "standard_ana_alaska": 1,
+    "standard_ana_hawaii": 1,
+    "standard_ana_puertorico": 1,
+    "extended_ana": 24,
+    "extended_ana_alaska": 24,
+    "short_range": 1,
+    "short_range_alaska": 1,
     # "short_range_hawaii": 1,  # FileNotFoundError: Forcing template file does not exist: /ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/short_range_hawaii_config.yml
-    # "short_range_puertorico": 1,
-    # "short_range_extended_alaska": 6,
-    # "medium_range_blend": 6,  # good default
-    # "medium_range_blend_alaska": 6,
-    # "long_range_mem1": 6,
-    # "long_range_mem2": 6,
-    # "long_range_mem3": 6,
-    # "long_range_mem4": 6,
+    "short_range_puertorico": 1,
+    "short_range_extended_alaska": 6,
+    "medium_range_blend": 6,
+    "medium_range_blend_alaska": 6,
+    "long_range_mem1": 6,
+    "long_range_mem2": 6,
+    "long_range_mem3": 6,
+    "long_range_mem4": 6,
 }
-
-
-@dataclass
-class SavedStartState_PseudoCode:
-    """Pseudocode"""
-
-    forecast_type: str
-    cycle_datetime: datetime
-    realization_file: str
-
-
-def assert_paths__core() -> None:
-    file_paths = [
-        f"/s3/ngwpc-hydrofabric/2.2/CONUS/{GAGE_ID}/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_{GAGE_ID}.gpkg",
-        "/ngen-app/ngen/cmake_build/ngen",
-        "/ngen-app/ngen/extern/sloth/cmake_build/libslothmodel.so",
-        "/ngen-app/ngen/extern/cfe/cmake_build/libcfebmi.so",
-        "/ngen-app/ngen/extern/LASAM/cmake_build/liblasambmi.so",
-        "/ngen-app/ngen/extern/noah-owp-modular/cmake_build/libsurfacebmi.so",
-        "/ngen-app/ngen/extern/evapotranspiration/evapotranspiration/cmake_build/libpetbmi.so",
-        "/ngen-app/ngen/extern/sac-sma/cmake_build/libsacbmi.so",
-        "/ngen-app/ngen/extern/SoilFreezeThaw/cmake_build/libsftbmi.so",
-        "/ngen-app/ngen/extern/SoilMoistureProfiles/cmake_build/libsmpbmi.so",
-        "/ngen-app/ngen/extern/snow17/cmake_build/libsnow17bmi.so",
-        "/ngen-app/ngen/extern/topmodel/cmake_build/libtopmodelbmi.so",
-        "/ngen-app/ngen/extern/ueb-bmi/cmake_build/src/libbmiuebcxx.so",
-    ]
-    dir_paths = [
-        "/ngen-app",
-        "/ngen-app/data",
-        "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates",
-    ]
-    for fp in file_paths:
-        if not os.path.isfile(fp):
-            raise FileNotFoundError(fp)
-    for dp in dir_paths:
-        if not os.path.isdir(dp):
-            raise NotADirectoryError(fp)
-
-
-def assert_paths__raw_config():
-    for fp in [
-        CALIB_CONFIG_CONFIG,
-        FORECAST_CONFIG_CONFIG,
-    ]:
-        if not os.path.isfile(fp):
-            raise FileNotFoundError(fp)
-
-
-def assert_paths_common_input():
-    for fp in [
-        f"{TEST_DIR_INPUT}/ngen",
-        f"{TEST_DIR_INPUT}/gauge_{GAGE_ID}.gpkg",
-    ]:
-        if not os.path.isfile(fp):
-            raise FileNotFoundError(fp)
+FCST_TYPES__DEFAULT = ["short_range", "standard_ana", "medium_range_blend"]
+FCST_TYPES__ALL = list(FORECAST_TYPE_2_DELTA_HOURS)
 
 
 def calibration__build_and_run() -> None:
-    print("Building calibration realization")
+    """Build 1 calibration realization and run it."""
     rb_calib = RealizationBuilder(CALIB_CONFIG_CONFIG)
+    rb_calib.load_config_apply_overrides()
+    print(f"Building calibration realization: {rb_calib.input_configs_class}")
     rb_calib.build_calib_realization()
-    assert_paths_common_input()
+    utils_testing_setup.assert_paths__common_input(TEST_DIR_INPUT, GAGE_ID)
     if not os.path.isfile(rb_calib.calib_config_file):
         raise FileNotFoundError(rb_calib.calib_config_file)
     print("Running calibration")
@@ -174,129 +126,154 @@ def calibration__build_and_run() -> None:
     ]
     print(f"Running command args: {cmd}")
     subprocess.check_call(cmd)
-    shutil.copyfile(TEST_NGEN_LOG_FILE, TEST_NGEN_LOG_FILE + ".calib.log")
 
 
-def delete_test_output_dir():
-    print(f"Deleting if exists: {TEST_DIR_OUTPUT}")
-    try:
-        shutil.rmtree(TEST_DIR_OUTPUT)
-    except (FileNotFoundError, NotADirectoryError):
-        pass
-
-
-def delete_files_to_force_esmf_and_netcdf_actions():
-    dirs_to_delete = ["/ngwpc/run_ngen/data/scratch/NWM"]
-    for d in dirs_to_delete:
-        if os.path.exists(d):
-            print(f"Deleting: {d}")
-            shutil.rmtree(d)
-        else:
-            print(f"Did not exist: {d}")
-
-    files_to_delete = [
-        f"/ngwpc/run_ngen/data/esmf_mesh/gauge_{GAGE_ID}_ESMF_Mesh.nc",
-        f"/ngen-app/data/esmf_mesh/gauge_{GAGE_ID}_ESMF_Mesh.nc",
-    ]
-    for f in files_to_delete:
-        if os.path.exists(f):
-            print(f"Deleting: {f}")
-            os.remove(f)
-        else:
-            print(f"Did not exist: {f}")
-
-
-def build_coldstart_realization():
+def build_coldstart_realization() -> RealizationBuilder:
+    """Build 1 coldstart realization."""
     rb_cs = RealizationBuilder(**REALIZATION_KWARGS__COLDSTART, use_cold_start=True)
     # This can be called before the overrides (InputConfig instance) is defined, to load the .conf file first without overrides.
     # Then overrides can be idiomatically defined by copying the valid config and replacing individual keys.
     # This can be skipped if defining overrides (InputConfig instance) from scratch without relying on anything from .conf.
     rb_cs.load_config_apply_overrides()
 
-    forcing_config = copy.deepcopy(rb_cs.input_configs["Forcing"])
+    forcing_config_dict = copy.deepcopy(rb_cs.input_configs["Forcing"])
     cs_overrides_dict = {
         "forcing_configuration": "short_range",
-        "cold_start_datetime": COLDSTART_START.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT),
-        "cycle_datetime": COLDSTART_END.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT),
+        "cold_start_datetime": COLDSTART_START.strftime(DEFAULT_DATETIME_FORMAT),
+        "cycle_datetime": COLDSTART_END.strftime(DEFAULT_DATETIME_FORMAT),
     }
-    forcing_config.update(cs_overrides_dict)
-    print(f"Building coldstart realization: {forcing_config}")
-    rb_cs.config_overrides = InputConfig(Forcing=ForcingConfig(**forcing_config))
+    forcing_config_dict.update(cs_overrides_dict)
+    config_model = InputConfig(Forcing=ForcingConfig(**forcing_config_dict))
+    print(f"Building coldstart realization: {config_model}")
+    rb_cs.config_overrides = config_model
     rb_cs.build_fcst_realization()
     print(f"Wrote: {rb_cs.realization_file}")
     return rb_cs
 
 
-def generate_forecasts():
-    for i in range(FORECAST_ROUNDS):
-        if i == 0:
-            # TODO for first run, how to use the coldstart results from `saved_start_states_pseudocode`?
-            forecast_type_2_delta_hours = {fct: 0 for fct in FORECAST_TYPE_2_DELTA_HOURS}
-        else:
-            # TODO for subsequent runs, how to use the ANA results from `saved_start_states_pseudocode`?
-            forecast_type_2_delta_hours = FORECAST_TYPE_2_DELTA_HOURS
+def coldstart__build_and_run(state_manager: StateManager_Pseudo) -> None:
+    """Build 1 coldstart realization and run it."""
+    rb_cs = build_coldstart_realization()
+    print(f"Running coldstart realization: {rb_cs.input_configs_class.Forcing}")
+    run_fcst(valid_yaml=FORECAST_CONFIG_YAML, real_path=str(rb_cs.realization_file))
+    state_manager.add_saved_state(
+        SavedState_Pseudo(
+            dt=datetime.strptime(rb_cs.input_configs_class.Forcing.cycle_datetime, DEFAULT_DATETIME_FORMAT),
+            realization_file=rb_cs.realization_file,
+        )
+    )
 
+
+def generate_forecasts(fcst_types: list[str]) -> typing.Generator[RealizationBuilder, None, None]:
+    """Generator. Build a series of forecast realizations,
+    including multiple forcing configurations defined by `fcst_types` and multiple cycle datetimes defined by `FORECAST_ROUNDS`.
+    """
+    for i in range(FORECAST_ROUNDS):
+        # TODO apply coldstart state to first round, apply ANA state to subsequent rounds
         rb_fcst = RealizationBuilder(**REALIZATION_KWARGS__FORECAST, use_cold_start=False)
         rb_fcst.load_config_apply_overrides()
-        forcing_config = copy.deepcopy(rb_fcst.input_configs["Forcing"])
+        forcing_config_dict = copy.deepcopy(rb_fcst.input_configs["Forcing"])
 
-        for fct, delta_hours in forecast_type_2_delta_hours.items():
+        for fct in fcst_types:
+            delta_hours = FORECAST_TYPE_2_DELTA_HOURS[fct]
             cycle_datetime = FORECAST_INITIAL_CYCLE_DATETIME + timedelta(hours=i * delta_hours)
 
             fcst_overrides_dict = {
                 "forcing_configuration": fct,
                 "cold_start_datetime": None,
-                "cycle_datetime": cycle_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT),
+                "cycle_datetime": cycle_datetime.strftime(DEFAULT_DATETIME_FORMAT),
             }
 
-            forcing_config.update(fcst_overrides_dict)
-            print(f"\nRound {i} {fct}: building forecast realization: {forcing_config}")
-            rb_fcst.config_overrides = InputConfig(Forcing=ForcingConfig(**forcing_config))
+            forcing_config_dict.update(fcst_overrides_dict)
+            config_model = InputConfig(Forcing=ForcingConfig(**forcing_config_dict))
+            print(f"\nRound {i+1} {fct}: building forecast realization: {config_model}")
+            rb_fcst.config_overrides = config_model
             rb_fcst.build_fcst_realization()
             print(f"Wrote: {rb_fcst.realization_file}")
             yield rb_fcst
 
 
-def main():
-    # TODO pseudocode for now for states.
-    saved_start_states_pseudocode: list[SavedStartState_PseudoCode] = []
+def forecasts__build_and_run(state_manager: StateManager_Pseudo, fcst_types: list[str]) -> None:
+    """Build a series of forecast realizations and run them,
+    including multiple forcing configurations defined by `fcst_types` and multiple cycle datetimes defined by `FORECAST_ROUNDS`.
+    """
+    for rb_fcst in generate_forecasts(fcst_types):
+        print(f"Running forecast realization: {rb_fcst.input_configs_class.Forcing}")
+        run_fcst(valid_yaml=FORECAST_CONFIG_YAML, real_path=str(rb_fcst.realization_file))
+        if rb_fcst.input_configs_class.Forcing.forcing_configuration == "standard_ana":
+            state_manager.add_saved_state(
+                SavedState_Pseudo(
+                    dt=datetime.strptime(rb_fcst.input_configs_class.Forcing.cycle_datetime, DEFAULT_DATETIME_FORMAT),
+                    realization_file=rb_fcst.realization_file,
+                )
+            )
+        # return
 
-    assert_paths__core()
-    assert_paths__raw_config()
-    assert_paths_common_input()
+
+def main(
+    delete_scratch_and_mesh_first: bool,
+    skip_forecast: bool,
+    do_calibration: bool,
+    do_coldstart: bool,
+    do_all_forcing_configs: bool,
+):
+    if skip_forecast and do_all_forcing_configs:
+        raise ValueError(
+            f"Cannot use skip_forecast={skip_forecast} and do_all_forcing_configs={do_all_forcing_configs}"
+        )
+    utils_testing_setup.assert_paths__core(GAGE_ID)
+    utils_testing_setup.assert_paths__raw_config(CALIB_CONFIG_CONFIG, FORECAST_CONFIG_CONFIG)
+    utils_testing_setup.assert_paths__common_input(TEST_DIR_INPUT, GAGE_ID)
+
+    # TODO pseudocode for now for states.
+    state_manager = StateManager_Pseudo()
 
     ### NOTE this deletes the test output dir.
     ### If wanting to skip Calibration but still do CS and/or Forecast,
     ### then remove this line so that the test calibration results remain available.
-    # delete_test_output_dir()
+    # utils_testing_setup.delete_test_output_dir(TEST_DIR_OUTPUT)
 
-    # delete_files_to_force_esmf_and_netcdf_actions()
-    calibration__build_and_run()
+    if delete_scratch_and_mesh_first:
+        utils_testing_setup.delete_files_to_force_esmf_and_netcdf_actions(GAGE_ID)
 
-    rb_cs = build_coldstart_realization()
-    print(f'Running coldstart realization: {rb_cs.input_configs["Forcing"]}')
-    run_fcst(valid_yaml=FORECAST_CONFIG_YAML, real_path=str(rb_cs.realization_file))
-    saved_start_states_pseudocode.append(
-        SavedStartState_PseudoCode(
-            forecast_type=rb_cs.input_configs["Forcing"]["forcing_configuration"],
-            cycle_datetime=COLDSTART_END,
-            realization_file=rb_cs.realization_file,
-        )
-    )
+    if do_calibration:
+        calibration__build_and_run()
 
-    for rb_fcst in generate_forecasts():
-        print(f'Running forecast realization: {rb_fcst.input_configs["Forcing"]}')
-        run_fcst(valid_yaml=FORECAST_CONFIG_YAML, real_path=str(rb_fcst.realization_file))
-        if rb_fcst.input_configs["Forcing"]["forcing_configuration"] == "standard_ana":
-            sss = SavedStartState_PseudoCode(
-                forecast_type=rb_fcst.input_configs["Forcing"]["forcing_configuration"],
-                cycle_datetime=datetime.strptime(
-                    rb_fcst.input_configs["Forcing"]["cycle_datetime"], mswm_settings.DEFAULT_DATETIME_FORMAT
-                ),
-                realization_file=rb_fcst.realization_file,
-            )
-            saved_start_states_pseudocode.append(sss)
+    if do_coldstart:
+        coldstart__build_and_run(state_manager)
+
+    if not skip_forecast:
+        fcst_types = FCST_TYPES__ALL if do_all_forcing_configs else FCST_TYPES__DEFAULT
+        forecasts__build_and_run(state_manager, fcst_types)
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--delete_scratch_and_mesh_first",
+        action="store_true",
+        help="Delete some files before the runs, which forces ESMF and NetCDF actions to occur, for testing those.",
+    )
+    parser.add_argument(
+        "--skip_forecast",
+        action="store_true",
+        help=f"Skip building and running forecasts. Incompatible with --do_all_forcing_configs.",
+    )
+    parser.add_argument(
+        "--do_calibration",
+        action="store_true",
+        help="Build and run calibration before forecasts",
+    )
+    parser.add_argument(
+        "--do_coldstart",
+        action="store_true",
+        help="Build and run coldstart before forecasts",
+    )
+    parser.add_argument(
+        "--do_all_forcing_configs",
+        action="store_true",
+        help=f"Run all forcing configurations rather than the default shorter default list. Default list: {FCST_TYPES__DEFAULT}. Incompatible with --skip_forecast.",
+    )
+    args = parser.parse_args()
+    print(f"args: {args}")
+    main(**vars(args))
