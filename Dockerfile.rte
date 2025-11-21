@@ -5,7 +5,7 @@
 
 
 ARG NGEN_BASE_IMAGE="ghcr.io/ngwpc/ngen:latest"
-FROM $NGEN_BASE_IMAGE
+FROM $NGEN_BASE_IMAGE AS ngen_rte_base
 
 ### Additional user args, these have to be after the FROM
 ARG REPO_TAG__FCST_MGR
@@ -44,44 +44,41 @@ COPY nwm-rte/add_git_info.py .
 
 ### Activate the venv
 ENV PATH="${PYTHON_ENV}:${PATH}"
-RUN pip install --upgrade pip
+RUN python -m pip install --upgrade pip
 
 
 ##############################
 ##### Forecast Manager
 
 ## From GitHub
-RUN pip install "${GITHUB_ORG_URL}/${REPO_NAME__FCST_MGR}/archive/${REPO_TAG__FCST_MGR}.tar.gz"
+RUN python -m pip install "${GITHUB_ORG_URL}/${REPO_NAME__FCST_MGR}/archive/${REPO_TAG__FCST_MGR}.tar.gz"
 
 ## From local
 # COPY "${REPO_NAME__FCST_MGR}/" "/tmp/${REPO_NAME__FCST_MGR}/"
-# RUN pip install "/tmp/${REPO_NAME__FCST_MGR}" && rm -rf "/tmp/${REPO_NAME__FCST_MGR}"
-### NOTE the following alternate method of mounting the source code rather than temporarily copying it into the image
-### was not working 202151031 due to error: "Cannot update time stamp of directory 'python/nwm_fcst_mgr.egg-info'"
-### RUN --mount=type=bind,source=./${REPO_NAME__FCST_MGR},target=/tmp/${REPO_NAME__FCST_MGR} pip install "/tmp/${REPO_NAME__FCST_MGR}"
+# RUN python -m pip install "/tmp/${REPO_NAME__FCST_MGR}" && rm -rf "/tmp/${REPO_NAME__FCST_MGR}"
 
 
 ##############################
 ##### Model Setup Workflow Manager
 
 ## From GitHub
-RUN pip install "${GITHUB_ORG_URL}/${REPO_NAME__MSW_MGR}/archive/${REPO_TAG__MSW_MGR}.tar.gz"
+RUN python -m pip install "${GITHUB_ORG_URL}/${REPO_NAME__MSW_MGR}/archive/${REPO_TAG__MSW_MGR}.tar.gz"
 RUN mkdir -p `dirname ${MSWM_MODULE_PARAMETER_FILES}`
 
 ## From local
 # COPY "${REPO_NAME__MSW_MGR}/" "/tmp/${REPO_NAME__MSW_MGR}/"
-# RUN pip install "/tmp/${REPO_NAME__MSW_MGR}" && rm -rf "/tmp/${REPO_NAME__MSW_MGR}"
+# RUN python -m pip install "/tmp/${REPO_NAME__MSW_MGR}" && rm -rf "/tmp/${REPO_NAME__MSW_MGR}"
 
 ## Either way, do the symlink to module_parameter_files. TODO improve this
 RUN mkdir -p "`dirname ${MSWM_MODULE_PARAMETER_FILES}`" && ln -s "/ngen-app/ngen-python/lib/${PYTHON_VERSION_STR}/site-packages/mswm/module_parameter_files" "${MSWM_MODULE_PARAMETER_FILES}"
 
 
 ##############################
-#### Calibration Manager (TODO have executable py scripts come included with pip install)
+#### Calibration Manager (TODO have executable py scripts come included with python -m pip install)
 
 ## From GitHub
-RUN pip install "${GITHUB_ORG_URL}/${REPO_NAME__CAL_MGR}/archive/${REPO_TAG__CAL_MGR}.tar.gz#subdirectory=python/calib"
-RUN pip install "${GITHUB_ORG_URL}/${REPO_NAME__CAL_MGR}/archive/${REPO_TAG__CAL_MGR}.tar.gz#subdirectory=python/config"
+RUN python -m pip install "${GITHUB_ORG_URL}/${REPO_NAME__CAL_MGR}/archive/${REPO_TAG__CAL_MGR}.tar.gz#subdirectory=python/calib"
+RUN python -m pip install "${GITHUB_ORG_URL}/${REPO_NAME__CAL_MGR}/archive/${REPO_TAG__CAL_MGR}.tar.gz#subdirectory=python/config"
 ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/python/calibration.py" "/ngen-app/bin/"
 ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/python/validation.py" "/ngen-app/bin/"
 ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/python/validation_iteration.py" "/ngen-app/bin/"
@@ -89,8 +86,8 @@ ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/pyt
 ## From local
 # COPY "${REPO_NAME__CAL_MGR}/" "/tmp/${REPO_NAME__CAL_MGR}/"
 # RUN \
-#     pip install "/tmp/${REPO_NAME__CAL_MGR}/python/calib" && \
-#     pip install "/tmp/${REPO_NAME__CAL_MGR}/python/config" && \
+#     python -m pip install "/tmp/${REPO_NAME__CAL_MGR}/python/calib" && \
+#     python -m pip install "/tmp/${REPO_NAME__CAL_MGR}/python/config" && \
 #     rm -rf "/tmp/${REPO_NAME__CAL_MGR}/"
 # ADD "${REPO_NAME__CAL_MGR}/python/calibration.py" "/ngen-app/bin/"
 # ADD "${REPO_NAME__CAL_MGR}/python/validation.py" "/ngen-app/bin/"
@@ -101,60 +98,79 @@ ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/pyt
 #### Region Manager
 
 ## From GitHub
-# RUN pip install "nwm_region_mgr[parreg] @ git+${GITHUB_ORG_URL}/${REPO_NAME__REGION_MGR}@${REPO_TAG__REGION_MGR}"
+RUN python -m pip install "nwm_region_mgr[parreg] @ git+${GITHUB_ORG_URL}/${REPO_NAME__REGION_MGR}@${REPO_TAG__REGION_MGR}"
 
 ## From local
 # COPY "${REPO_NAME__REGION_MGR}/" "/tmp/${REPO_NAME__REGION_MGR}/"
-# RUN \
-#     pip install "/tmp/${REPO_NAME__REGION_MGR}[parreg]" && \
-#     rm -rf "/tmp/${REPO_NAME__REGION_MGR}/"
+# RUN python -m pip install "/tmp/${REPO_NAME__REGION_MGR}[parreg]" && rm -rf "/tmp/${REPO_NAME__REGION_MGR}/"
+
+##############################
+#### Data Assimilation Engine
+
+## From GitHub
+RUN python -m pip install "data_assimilation_engine @ git+${GITHUB_ORG_URL}/${REPO_NAME__DATA_ASSIM_ENGINE}@${REPO_TAG__DATA_ASSIM_ENGINE}"
+# RUN python -m pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__DATA_ASSIM_ENGINE}@${REPO_TAG__DATA_ASSIM_ENGINE}"
 
 
 ##############################
-#### Verification Manager
+##### NGEN Forcing (overriding Python package that comes with ngen base image)
 
-# Problem: dependency teehr (https://github.com/RTIInternational/teehr) calls for min version 1.6.5 for netCDF4. ngen-forcing throws segfaults at 1.6.4+
+## From GitHub
+RUN python -m pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__NGEN_FORCING}@${REPO_TAG__NGEN_FORCING}"
 
-### Solution A: Fork teehr and lower the netCDF4 version in the fork (here using local changes to simulate a fork)
-### To set this up (from ngwpc repo root):
-###     Run: git clone git@github.com:RTIInternational/teehr.git
-###     Run: ( cd teehr && git checkout v0.5.2 )
-###     Set local teehr's pyproject.toml with netcdf4 = "1.6.3"
-###     Set local nwm-verf's pyproject.toml with "teehr" (no specific version for teehr so it will accept the local teehr mod)
-# COPY "teehr/" "/tmp/teehr/"
-# RUN pip install "/tmp/teehr" && rm -rf "/tmp/teehr/"
+# ## From local
+# COPY "${REPO_NAME__NGEN_FORCING}/" "/tmp/${REPO_NAME__NGEN_FORCING}/"
+# RUN python -m pip install "/tmp/${REPO_NAME__NGEN_FORCING}" && rm -rf "/tmp/${REPO_NAME__NGEN_FORCING}/"
+
+
+
+##################################################
+############ BEGIN SECOND STAGE: Adding a separate Python venv for nwm.eval and nwm.verf
+
+FROM ngen_rte_base AS ngen_rte_eval_verf
+
+# Call modules like `python_eval_verf -m nwm.verf`
+ARG EVAL_VERF_PYTHON_ALIAS="python_eval_verf"
+ARG EVAL_VERF_VENV="/ngen-app/venvs/eval_verf"
+ARG EVAL_VERF_PYTHON_BIN_DIR="${EVAL_VERF_VENV}/bin"
+ARG EVAL_VERF_PYTHON_BIN_FILE="${EVAL_VERF_PYTHON_BIN_DIR}/python"
+
+# Make the venv
+RUN python -m venv "${EVAL_VERF_VENV}"
+# Add an alias for convenience
+RUN echo "alias ${EVAL_VERF_PYTHON_ALIAS}=\"${EVAL_VERF_PYTHON_BIN_FILE}\"" >> ~/.bashrc
+
+# Save the current PATH and PYTHONPATH
+ENV PATH_SAVED=${PATH}
+ENV PYTHONPATH_SAVED=${PYTHONPATH}
+# Adjust PATH and PYTHONPATH to give this environment precedent
+ENV PATH="${EVAL_VERF_PYTHON_BIN_DIR}:${PATH}"
+ENV PYTHONPATH="${EVAL_VERF_PYTHON_BIN_DIR}/lib/python3.11/site-packages"
+
+
+##############################
+#### Verification Manager (requires data-assimilation-engine)
+
+## From GitHub
+RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "nwm.verf @ git+${GITHUB_ORG_URL}/${REPO_NAME__VERF_MGR}@${REPO_TAG__VERF_MGR}"
+
+# ## From local
 # COPY "${REPO_NAME__VERF_MGR}/" "/tmp/${REPO_NAME__VERF_MGR}/"
-# RUN pip install "/tmp/${REPO_NAME__VERF_MGR}" && rm -rf "/tmp/${REPO_NAME__VERF_MGR}/"
-
-### Solution B: After installing RTIInternational/teehr (upstream), re-install netCDF4 version 1.6.3.  This may result in conflict messages when installing tehr itself.
-### To set this up:
-###     No action needed other than pointing to the right testing branch of nwm-verf
-# RUN pip install "nwm.verf @ git+${GITHUB_ORG_URL}/${REPO_NAME__VERF_MGR}@${REPO_TAG__VERF_MGR}"
-# RUN pip install netCDF4==1.6.3
+# RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "/tmp/${REPO_NAME__VERF_MGR}" && rm -rf "/tmp/${REPO_NAME__VERF_MGR}/"
 
 
 ##############################
 #### Evaluation Manager
 
 ## From GitHub
-# RUN pip install "nwm_eval @ git+${GITHUB_ORG_URL}/${REPO_NAME__EVAL_MGR}@${REPO_TAG__EVAL_MGR}"
-# RUN pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__EVAL_MGR}@${REPO_TAG__EVAL_MGR}"
+RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "nwm.eval @ git+${GITHUB_ORG_URL}/${REPO_NAME__EVAL_MGR}@${REPO_TAG__EVAL_MGR}"
+
+## From Local
+# COPY "${REPO_NAME__EVAL_MGR}/" "/tmp/${REPO_NAME__EVAL_MGR}/"
+# RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "/tmp/${REPO_NAME__EVAL_MGR}" && rm -rf "/tmp/${REPO_NAME__EVAL_MGR}/"
 
 
 ##############################
-#### Data Assimilation Engine
-
-## From GitHub
-# RUN pip install "data_assimilation_engine @ git+${GITHUB_ORG_URL}/${REPO_NAME__DATA_ASSIM_ENGINE}@${REPO_TAG__DATA_ASSIM_ENGINE}"
-# RUN pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__DATA_ASSIM_ENGINE}@${REPO_TAG__DATA_ASSIM_ENGINE}"
-
-
-##############################
-##### NGEN Forcing (overriding Python package that comes with ngen base image)
-
-# From GitHub
-RUN pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__NGEN_FORCING}@${REPO_TAG__NGEN_FORCING}"
-
-# ## From local
-# COPY "${REPO_NAME__NGEN_FORCING}/" "/tmp/${REPO_NAME__NGEN_FORCING}/"
-# RUN pip install "/tmp/${REPO_NAME__NGEN_FORCING}" && rm -rf "/tmp/${REPO_NAME__NGEN_FORCING}/"
+#### Clean up: reset PATH and PYTHONPATH
+ENV PATH=${PATH_SAVED}
+ENV PYTHONPATH=${PYTHONPATH_SAVED}

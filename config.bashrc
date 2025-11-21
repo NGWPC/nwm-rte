@@ -15,7 +15,7 @@ THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
 ###
 ###     What this variable is for:
 ###         ./setup_workspace.sh sets up this local directory by downloading data into it and cloning repos into it.
-###         ./ngen_rte_build.sh does not use this.
+###         ./ngen_rte_build.sh uses this to find ngen when NGEN_SOURCE_MODE == "build_from_local"
 ###         ./ngen_rte_run.sh mounts various subdirectories and files from this local directory, into the container, during runtime.
 ###
 ###     Choices for this variable:
