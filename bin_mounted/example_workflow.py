@@ -115,7 +115,6 @@ def calibration__build_and_run() -> None:
     rb_calib.load_config_apply_overrides()
     print(f"Building calibration realization: {rb_calib.input_configs_class}")
     rb_calib.build_calib_realization()
-    utils_testing_setup.assert_paths__common_input(TEST_DIR_INPUT, GAGE_ID)
     if not os.path.isfile(rb_calib.calib_config_file):
         raise FileNotFoundError(rb_calib.calib_config_file)
     print("Running calibration")
@@ -223,7 +222,6 @@ def main(
         )
     utils_testing_setup.assert_paths__core(GAGE_ID)
     utils_testing_setup.assert_paths__raw_config(CALIB_CONFIG_CONFIG, FORECAST_CONFIG_CONFIG)
-    utils_testing_setup.assert_paths__common_input(TEST_DIR_INPUT, GAGE_ID)
 
     # TODO pseudocode for now for states.
     state_manager = StateManager_Pseudo()

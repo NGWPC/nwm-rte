@@ -67,12 +67,3 @@ def assert_paths__raw_config(calib_config: str, forecast_config: str) -> None:
     ]:
         if not os.path.isfile(fp):
             raise FileNotFoundError(fp)
-
-
-def assert_paths__common_input(test_dir_input: str, gage_id: str) -> None:
-    for fp in [
-        f"{test_dir_input}/ngen",
-        f"{test_dir_input}/gauge_{gage_id}.gpkg",
-    ]:
-        if not os.path.isfile(fp):
-            raise FileNotFoundError(fp)
