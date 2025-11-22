@@ -32,6 +32,7 @@ elif [[ $NGEN_SOURCE_MODE == "existing_local_tag" ]]; then
 elif [[ $NGEN_SOURCE_MODE == "build_from_local" ]]; then
     NGEN_BASE_IMAGE="ngen:${NGEN_SOURCE_MODE}"
     NGEN_SOURCE_LOCAL="${REPOS_COMMON_ROOT__HOST}/ngen"
+    # ./ngen_update_submodules.sh "${NGEN_SOURCE_LOCAL}"
     ( cd ${NGEN_SOURCE_LOCAL} && sudo docker build -t ${NGEN_BASE_IMAGE} . )
 
 elif [[ $NGEN_SOURCE_MODE == "build_from_remote" ]]; then
@@ -51,6 +52,7 @@ elif [[ $NGEN_SOURCE_MODE == "build_from_remote" ]]; then
         info "Cloning branch ${NGEN_BASE__REMOTE_REPO_TAG} from ${NGEN_GIT_URL}"
         git clone --branch ${NGEN_BASE__REMOTE_REPO_TAG} --recurse-submodules "${NGEN_GIT_URL}" "${NGEN_SOURCE_LOCAL}"
     fi
+    # ./ngen_update_submodules.sh "${NGEN_SOURCE_LOCAL}"
     ( cd ${NGEN_SOURCE_LOCAL} && sudo docker build -t ${NGEN_BASE_IMAGE} . )
 
 else
