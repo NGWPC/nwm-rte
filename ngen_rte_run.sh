@@ -24,6 +24,7 @@ set -x
 
 source config.bashrc
 
+    # time sudo docker run --entrypoint python \
     # time sudo docker run --entrypoint /bin/sh -it \
 function docker_run {
     time sudo docker run --entrypoint python \
@@ -42,13 +43,16 @@ function docker_run {
         \
         --rm ${TARGET_IMAGE_NAME} $*
 }
+        # --rm ${TARGET_IMAGE_NAME}
+        # --rm ${TARGET_IMAGE_NAME} $*
 
+# docker_run
 docker_run "/ngen-app/bin/bin_mounted/example_workflow.py"
 # docker_run "/ngen-app/bin/bin_mounted/example_workflow.py --help"
+# docker_run "/ngen-app/bin/bin_mounted/example_workflow.py --do_calibration --do_coldstart
 # docker_run "/ngen-app/bin/bin_mounted/example_workflow.py --do_all_forcing_configs"
 # docker_run "/ngen-app/bin/bin_mounted/example_workflow.py --do_calibration --do_coldstart --do_all_forcing_configs"
 # docker_run "/ngen-app/bin/bin_mounted/example_workflow.py --do_calibration --skip_forecast"
 # docker_run "/ngen-app/bin/bin_mounted/example_workflow.py --do_coldstart --skip_forecast"
-# docker_run
 
 exit 0
