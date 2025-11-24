@@ -65,7 +65,7 @@ COMPONENT__CAL_MGR__REMOTE_REPO_TAG="development"
 # COMPONENT__REGION_MGR__SOURCE_MODE="remote"
 COMPONENT__REGION_MGR__SOURCE_MODE="local"
 ### Only used when sourcing region manager from GitHub
-COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
+COMPONENT__REGION_MGR__REMOTE_REPO_TAG="mdeshotel_NGWPC-7004"
 
 
 ### Only used when sourcing verification manager from GitHub
