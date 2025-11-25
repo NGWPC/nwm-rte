@@ -109,6 +109,7 @@ FORECAST_TYPE_2_DELTA_HOURS = {
     "long_range_mem4": 6,
 }
 FCST_TYPES__DEFAULT = ["short_range", "standard_ana", "medium_range_blend"]
+# FCST_TYPES__DEFAULT = ["short_range"]
 FCST_TYPES__ALL = list(FORECAST_TYPE_2_DELTA_HOURS)
 
 
@@ -245,7 +246,7 @@ def forecasts__build_and_run(
                     valid_yaml=FORECAST_CONFIG_YAML, real_path=str(rb_fcst.realization_file)
                 ) as fem:
                     fem.preprocess()
-                    fem.execute(wait=False)  # When wait=false,
+                    fem.execute(wait=False)  # When wait=false, user polling is required
                     wait_for_forcing_is_running(fem, start=time.perf_counter())
             except NgenIntentionallyStoppedError:
                 # Raised when stop flag is manually set, or when context manager ends before ngen finishes.
