@@ -115,8 +115,8 @@ RUN python -m pip install "data_assimilation_engine @ git+${GITHUB_ORG_URL}/${RE
 ##############################
 ##### NGEN Forcing (overriding Python package that comes with ngen base image)
 
-## From GitHub
-RUN python -m pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__NGEN_FORCING}@${REPO_TAG__NGEN_FORCING}"
+# ## From GitHub
+# RUN python -m pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__NGEN_FORCING}@${REPO_TAG__NGEN_FORCING}"
 
 # ## From local
 # COPY "${REPO_NAME__NGEN_FORCING}/" "/tmp/${REPO_NAME__NGEN_FORCING}/"
