@@ -7,6 +7,7 @@ import os
 import pprint
 import shutil
 import subprocess
+import time
 import typing
 
 from mswm.build_inputs import RealizationBuilder
@@ -18,7 +19,8 @@ from mswm.utils.input_configuration import (
 )
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
-from nwm_fcst_mgr.forecast import run_fcst
+from nwm_fcst_mgr.forecast import run_fcst, ForecastExecutionManager, RunStatus
+from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
 
 import utils_testing_setup
 from pseudocode import SavedState_Pseudo, StateManager_Pseudo
@@ -43,6 +45,7 @@ TEST_DIR_BASE = f"/ngwpc/run_ngen/kge_dds/test_{TEST_FORMULATION_SUFFIX}/{GAGE_I
 TEST_DIR_INPUT = f"{TEST_DIR_BASE}/Input"
 TEST_DIR_OUTPUT = f"{TEST_DIR_BASE}/Output"
 TEST_NGEN_LOG_FILE = f"{TEST_DIR_BASE}/logs/ngen.log"
+TEST_NGEN_FORECAST_LOG_FILE = f"{TEST_DIR_OUTPUT}/Forecast_Run/{FCST_RUN_NAME}/logs/ngen.log"
 
 ### Read by build_calib_realization()
 CALIB_CONFIG_CONFIG = f"/ngwpc/run_ngen/cold_start_workflow/input_calibration_{TEST_FORMULATION_SUFFIX}.config"
@@ -192,13 +195,65 @@ def generate_forecasts(fcst_types: list[str]) -> typing.Generator[RealizationBui
             yield rb_fcst
 
 
-def forecasts__build_and_run(state_manager: StateManager_Pseudo, fcst_types: list[str]) -> None:
+def infer_from_log__forcing_is_running(ngen_log_path: str) -> bool:
+    """Read the log file and look for sentinel messages.
+    If they exist, assume the forcing is running successfully and return True."""
+    if os.path.exists(ngen_log_path):
+        print(f"Reading: {ngen_log_path}")
+        with open(ngen_log_path, "r") as f:
+            log_content = f.read()
+    else:
+        print(f"Does not exist yet: {ngen_log_path}")
+        return False
+    if (
+        log_content.lower().count("processing forecast cycle") > 1
+        and log_content.lower().count("writing output forcing file for timestamp") > 0
+    ):
+        return True
+    else:
+        return False
+
+
+def wait_for_forcing_is_running(fem: ForecastExecutionManager, start: float):
+    poll_freq_seconds = 10
+    print(f"Polling ngen process every {poll_freq_seconds} seconds...")
+    while True:
+        duration_sec = time.perf_counter() - start
+        fem.poll_ngen_flush_log()
+        if duration_sec > 10 and infer_from_log__forcing_is_running(TEST_NGEN_FORECAST_LOG_FILE):
+            print(f"After {duration_sec:.1f} seconds, ngen log indicates forcing is running successfully")
+            break
+        if fem.status == RunStatus.EXECUTION_SUCCESS:
+            print(f"After {duration_sec:.1f} seconds, ngen finished running")
+            break
+        print(f"ngen has been running for {duration_sec:.1f} seconds...")
+        # fem.schedule_ngen_stoppage()
+        time.sleep(poll_freq_seconds)
+
+
+def forecasts__build_and_run(
+    state_manager: StateManager_Pseudo, fcst_types: list[str], quit_forecast_after_forcing_running: bool
+) -> None:
     """Build a series of forecast realizations and run them,
     including multiple forcing configurations defined by `fcst_types` and multiple cycle datetimes defined by `FORECAST_ROUNDS`.
     """
     for rb_fcst in generate_forecasts(fcst_types):
         print(f"Running forecast realization: {rb_fcst.input_configs_class.Forcing}")
-        run_fcst(valid_yaml=FORECAST_CONFIG_YAML, real_path=str(rb_fcst.realization_file))
+        if quit_forecast_after_forcing_running:
+            try:
+                with ForecastExecutionManager(
+                    valid_yaml=FORECAST_CONFIG_YAML, real_path=str(rb_fcst.realization_file)
+                ) as fem:
+                    fem.preprocess()
+                    fem.execute(wait=False)  # When wait=false,
+                    wait_for_forcing_is_running(fem, start=time.perf_counter())
+            except NgenIntentionallyStoppedError:
+                # Raised when stop flag is manually set, or when context manager ends before ngen finishes.
+                # The latter is happening intentionally here.
+                pass
+        else:
+            run_fcst(valid_yaml=FORECAST_CONFIG_YAML, real_path=str(rb_fcst.realization_file))
+
         if rb_fcst.input_configs_class.Forcing.forcing_configuration == "standard_ana":
             state_manager.add_saved_state(
                 SavedState_Pseudo(
@@ -212,6 +267,7 @@ def forecasts__build_and_run(state_manager: StateManager_Pseudo, fcst_types: lis
 def main(
     delete_scratch_and_mesh_first: bool,
     skip_forecast: bool,
+    quit_forecast_after_forcing_running: bool,
     do_calibration: bool,
     do_coldstart: bool,
     do_all_forcing_configs: bool,
@@ -242,7 +298,7 @@ def main(
 
     if not skip_forecast:
         fcst_types = FCST_TYPES__ALL if do_all_forcing_configs else FCST_TYPES__DEFAULT
-        forecasts__build_and_run(state_manager, fcst_types)
+        forecasts__build_and_run(state_manager, fcst_types, quit_forecast_after_forcing_running)
 
 
 if __name__ == "__main__":
@@ -256,6 +312,11 @@ if __name__ == "__main__":
         "--skip_forecast",
         action="store_true",
         help=f"Skip building and running forecasts. Incompatible with --do_all_forcing_configs.",
+    )
+    parser.add_argument(
+        "--quit_forecast_after_forcing_running",
+        action="store_true",
+        help="Instead of waiting for the forecast to finish, quit after the ngen log file indicates that forcing is running successfully.",
     )
     parser.add_argument(
         "--do_calibration",
