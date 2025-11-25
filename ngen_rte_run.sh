@@ -49,9 +49,12 @@ function docker_run {
 # docker_run
 docker_run "/ngen-app/bin/bin_mounted/example_workflow.py"
 # docker_run "/ngen-app/bin/bin_mounted/example_workflow.py" --quit_forecast_after_forcing_running
+# docker_run "/ngen-app/bin/bin_mounted/example_workflow.py" --quit_forecast_after_duration 10
 # docker_run "/ngen-app/bin/bin_mounted/example_workflow.py" --help
 # docker_run "/ngen-app/bin/bin_mounted/example_workflow.py" --do_calibration --do_coldstart
 # docker_run "/ngen-app/bin/bin_mounted/example_workflow.py" --do_all_forcing_configs
+# docker_run "/ngen-app/bin/bin_mounted/example_workflow.py" --do_all_forcing_configs --quit_forecast_after_forcing_running
+# docker_run "/ngen-app/bin/bin_mounted/example_workflow.py" --do_all_forcing_configs --quit_forecast_after_duration 10
 # docker_run "/ngen-app/bin/bin_mounted/example_workflow.py" --do_calibration --do_coldstart --do_all_forcing_configs
 # docker_run "/ngen-app/bin/bin_mounted/example_workflow.py" --do_calibration --skip_forecast
 # docker_run "/ngen-app/bin/bin_mounted/example_workflow.py" --do_coldstart --skip_forecast

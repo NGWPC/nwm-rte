@@ -23,6 +23,7 @@ from nwm_fcst_mgr.forecast import run_fcst, ForecastExecutionManager, RunStatus
 from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
 
 import utils_testing_setup
+# from test_manager import ForecastExecutionTestResult
 from pseudocode import SavedState_Pseudo, StateManager_Pseudo
 
 print = functools.partial(print, flush=True)
@@ -189,7 +190,7 @@ def generate_forecasts(fcst_types: list[str]) -> typing.Generator[RealizationBui
 
             forcing_config_dict.update(fcst_overrides_dict)
             config_model = InputConfig(Forcing=ForcingConfig(**forcing_config_dict))
-            print(f"\nRound {i+1} {fct}: building forecast realization: {config_model}")
+            print(f"\n##########\nRound {i+1} {fct}: building forecast realization: {config_model}")
             rb_fcst.config_overrides = config_model
             rb_fcst.build_fcst_realization()
             print(f"Wrote: {rb_fcst.realization_file}")
@@ -215,7 +216,8 @@ def infer_from_log__forcing_is_running(ngen_log_path: str) -> bool:
         return False
 
 
-def wait_for_forcing_is_running(fem: ForecastExecutionManager, start: float):
+def wait_for_forcing_is_running(fem: ForecastExecutionManager):
+    start = time.perf_counter()
     poll_freq_seconds = 10
     print(f"Polling ngen process every {poll_freq_seconds} seconds...")
     while True:
@@ -224,7 +226,7 @@ def wait_for_forcing_is_running(fem: ForecastExecutionManager, start: float):
         if duration_sec > 10 and infer_from_log__forcing_is_running(TEST_NGEN_FORECAST_LOG_FILE):
             print(f"After {duration_sec:.1f} seconds, ngen log indicates forcing is running successfully")
             break
-        if fem.status == RunStatus.EXECUTION_SUCCESS:
+        if fem._status == RunStatus.EXECUTION_SUCCESS:
             print(f"After {duration_sec:.1f} seconds, ngen finished running")
             break
         print(f"ngen has been running for {duration_sec:.1f} seconds...")
@@ -232,22 +234,54 @@ def wait_for_forcing_is_running(fem: ForecastExecutionManager, start: float):
         time.sleep(poll_freq_seconds)
 
 
+def wait_for_duration(fem: ForecastExecutionManager, wait_duration_sec: float):
+    start = time.perf_counter()
+    poll_freq_seconds = 2
+    print(f"Polling ngen process every {poll_freq_seconds} seconds up to {wait_duration_sec} sec total duration...")
+    while True:
+        fem.poll_ngen_flush_log()
+        duration_sec = time.perf_counter() - start
+        if duration_sec > wait_duration_sec:
+            print(f"After {duration_sec:.1f} seconds, quitting ngen intentionally")
+            break
+        if fem._status == RunStatus.EXECUTION_SUCCESS:
+            print(f"After {duration_sec:.1f} seconds, ngen finished running")
+            break
+        # print(f"ngen has been running for {duration_sec:.1f} seconds...")
+        # fem.schedule_ngen_stoppage()
+        time.sleep(poll_freq_seconds)
+
+
 def forecasts__build_and_run(
-    state_manager: StateManager_Pseudo, fcst_types: list[str], quit_forecast_after_forcing_running: bool
+    state_manager: StateManager_Pseudo,
+    fcst_types: list[str],
+    quit_forecast_after_forcing_running: bool,
+    quit_forecast_after_duration: float | None,
 ) -> None:
     """Build a series of forecast realizations and run them,
     including multiple forcing configurations defined by `fcst_types` and multiple cycle datetimes defined by `FORECAST_ROUNDS`.
     """
+    if quit_forecast_after_forcing_running:
+        assert quit_forecast_after_duration is None
+        async_waiter = functools.partial(wait_for_forcing_is_running)
+
+    elif quit_forecast_after_duration is not None:
+        assert not quit_forecast_after_forcing_running
+        async_waiter = functools.partial(wait_for_duration, wait_duration_sec=quit_forecast_after_duration)
+
+    else:
+        async_waiter = None
+
     for rb_fcst in generate_forecasts(fcst_types):
         print(f"Running forecast realization: {rb_fcst.input_configs_class.Forcing}")
-        if quit_forecast_after_forcing_running:
+        if async_waiter:
             try:
                 with ForecastExecutionManager(
                     valid_yaml=FORECAST_CONFIG_YAML, real_path=str(rb_fcst.realization_file)
                 ) as fem:
                     fem.preprocess()
                     fem.execute(wait=False)  # When wait=false, user polling is required
-                    wait_for_forcing_is_running(fem, start=time.perf_counter())
+                    async_waiter(fem=fem)
             except NgenIntentionallyStoppedError:
                 # Raised when stop flag is manually set, or when context manager ends before ngen finishes.
                 # The latter is happening intentionally here.
@@ -269,6 +303,7 @@ def main(
     delete_scratch_and_mesh_first: bool,
     skip_forecast: bool,
     quit_forecast_after_forcing_running: bool,
+    quit_forecast_after_duration: float | None,
     do_calibration: bool,
     do_coldstart: bool,
     do_all_forcing_configs: bool,
@@ -299,7 +334,12 @@ def main(
 
     if not skip_forecast:
         fcst_types = FCST_TYPES__ALL if do_all_forcing_configs else FCST_TYPES__DEFAULT
-        forecasts__build_and_run(state_manager, fcst_types, quit_forecast_after_forcing_running)
+        forecasts__build_and_run(
+            state_manager,
+            fcst_types,
+            quit_forecast_after_forcing_running,
+            quit_forecast_after_duration,
+        )
 
 
 if __name__ == "__main__":
@@ -317,7 +357,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--quit_forecast_after_forcing_running",
         action="store_true",
-        help="Instead of waiting for the forecast to finish, quit after the ngen log file indicates that forcing is running successfully.",
+        help="Instead of waiting for each forecast to finish, quit after the ngen log file indicates that forcing is running successfully.",
+    )
+    parser.add_argument(
+        "--quit_forecast_after_duration",
+        default=None,
+        type=float,
+        help="Instead of waiting for each forecast to finish, quit after the specified elapsed processing duration in seconds.",
     )
     parser.add_argument(
         "--do_calibration",
