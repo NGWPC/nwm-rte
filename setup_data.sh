@@ -21,7 +21,7 @@ DATA__PARAMETERS__S3_SOURCE="s3://ngwpc-dev/jeff.wade/rte_test_inputs"
 DATA__PARAMETERS__HOST="${RUN_NGEN_ROOT__HOST}/data"
 
 DATA__GEO_EM_CONUS_NC__S3_SOURCE="s3://ngwpc-dev/kyle.larkin/esmf/geo_em_CONUS.nc"
-DATA__GEO_EM_CONUS_NC__HOST="${RUN_NGEN_ROOT__HOST}/data/geo_em_CONUS.nc"
+DATA__GEO_EM_CONUS_NC__HOST="${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/geo_em_CONUS.nc"
 
 TEST_RUN_CONFIG__CALIBRATION__SOURCE="s3://ngwpc-dev/max.kipp/run_ngen/cold_start_workflow/input_calibration_bmi.config"
 TEST_RUN_CONFIG__FORECAST__SOURCE="s3://ngwpc-dev/max.kipp/run_ngen/cold_start_workflow/input_forecast.config"

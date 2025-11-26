@@ -76,6 +76,8 @@ time ./ngen_rte_build.sh
 ```shell
 # This starts an ephemeral container of the ngen RTE image and runs an example workflow script (runs forecast).
 # Be ready to supply sudo password if prompted.
+# See CLI args in the example workflow script for details on behavior.
+# Different ways of calling the example workflow script are provided as commented-out lines near the bottom of ngen_rte_run.sh
 time ./ngen_rte_run.sh
 ```
 

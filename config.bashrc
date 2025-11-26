@@ -37,9 +37,9 @@ S3_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/s3"
 ### NGEN_SOURCE_MODE:
 ###     Choose from: ["ghcr", "existing_local_tag", "build_from_local", "build_from_remote"]
 
-# NGEN_SOURCE_MODE="ghcr"
+NGEN_SOURCE_MODE="ghcr"
 ## Only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.
-# NGEN_BASE__REMOTE_GHCR_TAG="latest"
+NGEN_BASE__REMOTE_GHCR_TAG="latest"
 ## This one is based on PR 71: https://github.com/NGWPC/ngen/pull/71
 # NGEN_BASE__REMOTE_GHCR_TAG="df0d2034f3c0"
 
@@ -51,7 +51,7 @@ S3_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/s3"
 ## Only used when ngen source mode is "build_from_remote". Choose any GitHub tag (or branch name).
 # NGEN_BASE__REMOTE_REPO_TAG="development"
 
-NGEN_SOURCE_MODE="build_from_local"
+# NGEN_SOURCE_MODE="build_from_local"
 
 
 ### Freeform name tag for image that is built in this process
@@ -64,7 +64,8 @@ TARGET_IMAGE_NAME="ngen_rte:${NGEN_SOURCE_MODE}"
 # COMPONENT__FCST_MGR__SOURCE_MODE="remote"
 # COMPONENT__FCST_MGR__SOURCE_MODE="local"
 ### Only used when sourcing fcst mgr from GitHub
-COMPONENT__FCST_MGR__REMOTE_REPO_TAG="development"
+# COMPONENT__FCST_MGR__REMOTE_REPO_TAG="development"
+COMPONENT__FCST_MGR__REMOTE_REPO_TAG="maxkipp-ngwpc-9004-workflow-automation"
 
 ##### Package: Model Setup Workflow Manager
 ### Only used when sourcing mswm from GitHub
