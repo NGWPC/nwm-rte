@@ -1,14 +1,13 @@
 import argparse
 import copy
-from dataclasses import dataclass
 from datetime import datetime, timedelta
 import functools
+import json
 import os
-import pprint
-import shutil
 import subprocess
-import time
 import typing
+
+from pydantic.json import pydantic_encoder
 
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils.input_configuration import (
@@ -19,14 +18,14 @@ from mswm.utils.input_configuration import (
 )
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
-from nwm_fcst_mgr.forecast import run_fcst, ForecastExecutionManager, RunStatus
-from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
+from nwm_fcst_mgr.forecast import run_fcst
 
 import utils_testing_setup
-# from test_manager import ForecastExecutionTestResult
+from execution_tests import ForecastExecutionTest
 from pseudocode import SavedState_Pseudo, StateManager_Pseudo
 
 print = functools.partial(print, flush=True)
+
 
 # import logging
 # import sys
@@ -197,97 +196,27 @@ def generate_forecasts(fcst_types: list[str]) -> typing.Generator[RealizationBui
             yield rb_fcst
 
 
-def infer_from_log__forcing_is_running(ngen_log_path: str) -> bool:
-    """Read the log file and look for sentinel messages.
-    If they exist, assume the forcing is running successfully and return True."""
-    if os.path.exists(ngen_log_path):
-        print(f"Reading: {ngen_log_path}")
-        with open(ngen_log_path, "r") as f:
-            log_content = f.read()
-    else:
-        print(f"Does not exist yet: {ngen_log_path}")
-        return False
-    if (
-        log_content.lower().count("processing forecast cycle") > 1
-        and log_content.lower().count("writing output forcing file for timestamp") > 0
-    ):
-        return True
-    else:
-        return False
-
-
-def wait_for_forcing_is_running(fem: ForecastExecutionManager):
-    start = time.perf_counter()
-    poll_freq_seconds = 10
-    print(f"Polling ngen process every {poll_freq_seconds} seconds...")
-    while True:
-        duration_sec = time.perf_counter() - start
-        fem.poll_ngen_flush_log()
-        if duration_sec > 10 and infer_from_log__forcing_is_running(TEST_NGEN_FORECAST_LOG_FILE):
-            print(f"After {duration_sec:.1f} seconds, ngen log indicates forcing is running successfully")
-            break
-        if fem._status == RunStatus.EXECUTION_SUCCESS:
-            print(f"After {duration_sec:.1f} seconds, ngen finished running")
-            break
-        print(f"ngen has been running for {duration_sec:.1f} seconds...")
-        # fem.schedule_ngen_stoppage()
-        time.sleep(poll_freq_seconds)
-
-
-def wait_for_duration(fem: ForecastExecutionManager, wait_duration_sec: float):
-    start = time.perf_counter()
-    poll_freq_seconds = 2
-    print(f"Polling ngen process every {poll_freq_seconds} seconds up to {wait_duration_sec} sec total duration...")
-    while True:
-        fem.poll_ngen_flush_log()
-        duration_sec = time.perf_counter() - start
-        if duration_sec > wait_duration_sec:
-            print(f"After {duration_sec:.1f} seconds, quitting ngen intentionally")
-            break
-        if fem._status == RunStatus.EXECUTION_SUCCESS:
-            print(f"After {duration_sec:.1f} seconds, ngen finished running")
-            break
-        # print(f"ngen has been running for {duration_sec:.1f} seconds...")
-        # fem.schedule_ngen_stoppage()
-        time.sleep(poll_freq_seconds)
-
-
 def forecasts__build_and_run(
     state_manager: StateManager_Pseudo,
     fcst_types: list[str],
     quit_forecast_after_forcing_running: bool,
     quit_forecast_after_duration: float | None,
-) -> None:
-    """Build a series of forecast realizations and run them,
-    including multiple forcing configurations defined by `fcst_types` and multiple cycle datetimes defined by `FORECAST_ROUNDS`.
+) -> list[ForecastExecutionTest]:
+    """Build a series of forecast realizations and run them inside ForecastExecutionTest.
+    Include multiple forcing configurations defined by `fcst_types` and multiple cycle datetimes defined by `FORECAST_ROUNDS`.
+    Return a list of completed (passed or failed) instances of ForecastExecutionTest.
     """
-    if quit_forecast_after_forcing_running:
-        assert quit_forecast_after_duration is None
-        async_waiter = functools.partial(wait_for_forcing_is_running)
 
-    elif quit_forecast_after_duration is not None:
-        assert not quit_forecast_after_forcing_running
-        async_waiter = functools.partial(wait_for_duration, wait_duration_sec=quit_forecast_after_duration)
-
-    else:
-        async_waiter = None
+    forecast_tests: list[ForecastExecutionTest] = []
 
     for rb_fcst in generate_forecasts(fcst_types):
         print(f"Running forecast realization: {rb_fcst.input_configs_class.Forcing}")
-        if async_waiter:
-            try:
-                with ForecastExecutionManager(
-                    valid_yaml=FORECAST_CONFIG_YAML, real_path=str(rb_fcst.realization_file)
-                ) as fem:
-                    fem.preprocess()
-                    fem.execute(wait=False)  # When wait=false, user polling is required
-                    async_waiter(fem=fem)
-            except NgenIntentionallyStoppedError:
-                # Raised when stop flag is manually set, or when context manager ends before ngen finishes.
-                # The latter is happening intentionally here.
-                pass
-        else:
-            run_fcst(valid_yaml=FORECAST_CONFIG_YAML, real_path=str(rb_fcst.realization_file))
+        test = ForecastExecutionTest(rb=rb_fcst, ngen_log_path=TEST_NGEN_FORECAST_LOG_FILE)
+        test.execute_forecast(
+            quit_forecast_after_forcing_running=quit_forecast_after_forcing_running,
+            quit_forecast_after_duration=quit_forecast_after_duration,
+        )
+        forecast_tests.append(test)
 
         if rb_fcst.input_configs_class.Forcing.forcing_configuration == "standard_ana":
             state_manager.add_saved_state(
@@ -296,7 +225,8 @@ def forecasts__build_and_run(
                     realization_file=rb_fcst.realization_file,
                 )
             )
-        # return
+
+    return forecast_tests
 
 
 def main(
@@ -327,19 +257,30 @@ def main(
         utils_testing_setup.delete_files_to_force_esmf_and_netcdf_actions(GAGE_ID)
 
     if do_calibration:
+        # TODO implement test framework similar to forecast
         calibration__build_and_run()
 
     if do_coldstart:
+        # TODO implement test framework similar to forecast
         coldstart__build_and_run(state_manager)
 
     if not skip_forecast:
         fcst_types = FCST_TYPES__ALL if do_all_forcing_configs else FCST_TYPES__DEFAULT
-        forecasts__build_and_run(
+        forecast_tests = forecasts__build_and_run(
             state_manager,
             fcst_types,
             quit_forecast_after_forcing_running,
             quit_forecast_after_duration,
         )
+        count_passed = sum(1 for t in forecast_tests if t.test_passed)
+        count_failed = sum(1 for t in forecast_tests if not t.test_passed)
+        test_results_file = os.path.join(os.path.dirname(__file__), "forecast_tests_results.json")
+        count_msg = f"Forecast tests: {count_passed} passed, {count_failed} failed"
+        print(f"{count_msg}. Writing details to: {test_results_file}")
+        with open(test_results_file, "w") as f:
+            f.write(json.dumps(forecast_tests, indent=2, default=pydantic_encoder))
+        if count_failed:
+            raise ValueError(count_msg)
 
 
 if __name__ == "__main__":
