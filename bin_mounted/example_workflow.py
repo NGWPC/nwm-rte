@@ -21,7 +21,11 @@ from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 from nwm_fcst_mgr.forecast import run_fcst
 
 import utils_testing_setup
-from execution_tests import ForecastExecutionTest
+from execution_tests import (
+    ForecastTestManager,
+    get_test_configs__forecast,
+    FORCING_CONFIGURATION_TYPES__DEFAULT,
+)
 from pseudocode import SavedState_Pseudo, StateManager_Pseudo
 
 print = functools.partial(print, flush=True)
@@ -80,38 +84,6 @@ REALIZATION_KWARGS__COLDSTART = {
     "fcst_run_name": FCST_RUN_NAME,
 }
 
-REALIZATION_KWARGS__FORECAST = {
-    # "input_path": FORECAST_CONFIG_CONFIG,  # From disk
-    "valid_yaml": FORECAST_CONFIG_YAML,
-    "fcst_run_name": FCST_RUN_NAME,
-    "config_overrides": DEFAULT_FORECAST_CONFIG,  # From memory
-}
-
-FORECAST_TYPE_2_DELTA_HOURS = {
-    # "aorc": 1,  # AttributeError: 'RealizationBuilder' object has no attribute 'time_period'
-    # "nwm": 1,  # AttributeError: 'RealizationBuilder' object has no attribute 'time_period'
-    "standard_ana": 1,
-    "standard_ana_alaska": 1,
-    "standard_ana_hawaii": 1,
-    "standard_ana_puertorico": 1,
-    "extended_ana": 24,
-    "extended_ana_alaska": 24,
-    "short_range": 1,
-    "short_range_alaska": 1,
-    # "short_range_hawaii": 1,  # FileNotFoundError: Forcing template file does not exist: /ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/short_range_hawaii_config.yml
-    "short_range_puertorico": 1,
-    "short_range_extended_alaska": 6,
-    "medium_range_blend": 6,
-    "medium_range_blend_alaska": 6,
-    "long_range_mem1": 6,
-    "long_range_mem2": 6,
-    "long_range_mem3": 6,
-    "long_range_mem4": 6,
-}
-FCST_TYPES__DEFAULT = ["short_range", "standard_ana", "medium_range_blend"]
-# FCST_TYPES__DEFAULT = ["short_range"]
-FCST_TYPES__ALL = list(FORECAST_TYPE_2_DELTA_HOURS)
-
 
 def calibration__build_and_run() -> None:
     """Build 1 calibration realization and run it."""
@@ -167,66 +139,52 @@ def coldstart__build_and_run(state_manager: StateManager_Pseudo) -> None:
     )
 
 
-def generate_forecasts(fcst_types: list[str]) -> typing.Generator[RealizationBuilder, None, None]:
-    """Generator. Build a series of forecast realizations,
-    including multiple forcing configurations defined by `fcst_types` and multiple cycle datetimes defined by `FORECAST_ROUNDS`.
-    """
-    for i in range(FORECAST_ROUNDS):
-        # TODO apply coldstart state to first round, apply ANA state to subsequent rounds
-        rb_fcst = RealizationBuilder(**REALIZATION_KWARGS__FORECAST, use_cold_start=False)
-        rb_fcst.load_config_apply_overrides()
-        forcing_config_dict = copy.deepcopy(rb_fcst.input_configs["Forcing"])
-
-        for fct in fcst_types:
-            delta_hours = FORECAST_TYPE_2_DELTA_HOURS[fct]
-            cycle_datetime = FORECAST_INITIAL_CYCLE_DATETIME + timedelta(hours=i * delta_hours)
-
-            fcst_overrides_dict = {
-                "forcing_configuration": fct,
-                "cold_start_datetime": None,
-                "cycle_datetime": cycle_datetime.strftime(DEFAULT_DATETIME_FORMAT),
-            }
-
-            forcing_config_dict.update(fcst_overrides_dict)
-            config_model = InputConfig(Forcing=ForcingConfig(**forcing_config_dict))
-            print(f"\n##########\nRound {i+1} {fct}: building forecast realization: {config_model}")
-            rb_fcst.config_overrides = config_model
-            rb_fcst.build_fcst_realization()
-            print(f"Wrote: {rb_fcst.realization_file}")
-            yield rb_fcst
-
-
 def forecasts__build_and_run(
     state_manager: StateManager_Pseudo,
-    fcst_types: list[str],
+    do_all_forcing_configs: bool,
     quit_forecast_after_forcing_running: bool,
     quit_forecast_after_duration: float | None,
-) -> list[ForecastExecutionTest]:
-    """Build a series of forecast realizations and run them inside ForecastExecutionTest.
-    Include multiple forcing configurations defined by `fcst_types` and multiple cycle datetimes defined by `FORECAST_ROUNDS`.
-    Return a list of completed (passed or failed) instances of ForecastExecutionTest.
+) -> list[ForecastTestManager]:
+    """
+    Using ForecastTestManager, build and execute a list of forecast realizations.
+    Return a list of instances of ForecastTestManager after attempting build + execute on each.
     """
 
-    forecast_tests: list[ForecastExecutionTest] = []
+    fcst_test_cases: list[ForecastTestManager] = []
 
-    for rb_fcst in generate_forecasts(fcst_types):
-        print(f"Running forecast realization: {rb_fcst.input_configs_class.Forcing}")
-        test = ForecastExecutionTest(rb=rb_fcst, ngen_log_path=TEST_NGEN_FORECAST_LOG_FILE)
-        test.execute_forecast(
-            quit_forecast_after_forcing_running=quit_forecast_after_forcing_running,
-            quit_forecast_after_duration=quit_forecast_after_duration,
-        )
-        forecast_tests.append(test)
+    for config_overrides in get_test_configs__forecast(do_all_forcing_configs):
+        fc = config_overrides.Forcing.forcing_configuration
+        rb_kwargs = {
+            # "input_path": FORECAST_CONFIG_CONFIG,
+            "valid_yaml": FORECAST_CONFIG_YAML,
+            "fcst_run_name": FCST_RUN_NAME,
+            "config_overrides": config_overrides,
+        }
+        print(f"\n\n##########\n### {fc}: setting up test with rb_kwargs = {rb_kwargs}")
+        t = ForecastTestManager(rb_kwargs=rb_kwargs, ngen_log_path=TEST_NGEN_FORECAST_LOG_FILE)
+        fcst_test_cases.append(t)
 
-        if rb_fcst.input_configs_class.Forcing.forcing_configuration == "standard_ana":
+        # Build the realization, trapping exceptions into class attrs
+        print(f"### {fc}: building realization")
+        t.make_realization_builder__build_realization()
+
+        if t.test_realization_builder_passed:
+            # Execute the realization via ngen, trapping exceptions and logs into class attrs
+            print(f"### {fc}: executing realization via ngen")
+            t.execute_forecast(
+                quit_forecast_after_forcing_running=quit_forecast_after_forcing_running,
+                quit_forecast_after_duration=quit_forecast_after_duration,
+            )
+
+        if t.rb.input_configs_class.Forcing.forcing_configuration == "standard_ana":
             state_manager.add_saved_state(
                 SavedState_Pseudo(
-                    dt=datetime.strptime(rb_fcst.input_configs_class.Forcing.cycle_datetime, DEFAULT_DATETIME_FORMAT),
-                    realization_file=rb_fcst.realization_file,
+                    dt=datetime.strptime(t.rb.input_configs_class.Forcing.cycle_datetime, DEFAULT_DATETIME_FORMAT),
+                    realization_file=t.rb.realization_file,
                 )
             )
 
-    return forecast_tests
+    return fcst_test_cases
 
 
 def main(
@@ -265,22 +223,25 @@ def main(
         coldstart__build_and_run(state_manager)
 
     if not skip_forecast:
-        fcst_types = FCST_TYPES__ALL if do_all_forcing_configs else FCST_TYPES__DEFAULT
-        forecast_tests = forecasts__build_and_run(
+        fcst_test_cases = forecasts__build_and_run(
             state_manager,
-            fcst_types,
+            do_all_forcing_configs,
             quit_forecast_after_forcing_running,
             quit_forecast_after_duration,
         )
-        count_passed = sum(1 for t in forecast_tests if t.test_passed)
-        count_failed = sum(1 for t in forecast_tests if not t.test_passed)
+        test_results_sums = {
+            "builds_passed": sum(1 for t in fcst_test_cases if t.test_realization_builder_passed),
+            "builds_failed": sum(1 for t in fcst_test_cases if not t.test_realization_builder_passed),
+            "executions_passed": sum(1 for t in fcst_test_cases if t.test_forecast_execution_passed),
+            "executions_failed": sum(1 for t in fcst_test_cases if not t.test_forecast_execution_passed),
+        }
         test_results_file = os.path.join(os.path.dirname(__file__), "forecast_tests_results.json")
-        count_msg = f"Forecast tests: {count_passed} passed, {count_failed} failed"
-        print(f"{count_msg}. Writing details to: {test_results_file}")
+        msg = f"\n\n###### FORECAST TEST RESULTS ######\nWriting to: {test_results_file}\n{json.dumps(test_results_sums, indent=2)}"
+        print(msg)
         with open(test_results_file, "w") as f:
-            f.write(json.dumps(forecast_tests, indent=2, default=pydantic_encoder))
-        if count_failed:
-            raise ValueError(count_msg)
+            f.write(json.dumps(fcst_test_cases, indent=2, default=pydantic_encoder))
+        if test_results_sums["builds_failed"] or test_results_sums["executions_failed"]:
+            raise RuntimeError(test_results_sums)
 
 
 if __name__ == "__main__":
@@ -319,7 +280,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--do_all_forcing_configs",
         action="store_true",
-        help=f"Run all forcing configurations rather than the default shorter default list. Default list: {FCST_TYPES__DEFAULT}. Incompatible with --skip_forecast.",
+        help=f"Run all forcing configurations rather than the default shorter default list. Default list: {FORCING_CONFIGURATION_TYPES__DEFAULT}. Incompatible with --skip_forecast.",
     )
     args = parser.parse_args()
     print(f"args: {args}")
