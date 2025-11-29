@@ -109,9 +109,13 @@ class ForecastTestManager(BaseModel):
     # Log created by ngen itself
     ngen_log_path: str
     ngen_log_content: str = Field(init=False, default=None)
+    ngen_log_severe_lines: list[str] = Field(init=False, default=[])
+    ngen_log_fatal_lines: list[str] = Field(init=False, default=[])
     # Log created by ForecastExecutionManager, e.g. ".../ngen_stdout_stderr.log"
     exe_output_log_path: str = Field(init=False, default=None)
     exe_output_log_content: str = Field(init=False, default=None)
+    exe_output_log_severe_lines: list[str] = Field(init=False, default=[])
+    exe_output_log_fatal_lines: list[str] = Field(init=False, default=[])
 
     def make_realization_builder__build_realization(self) -> None:
         """Instantiate the RealizationBuilder class and build the realization."""
@@ -163,10 +167,11 @@ class ForecastTestManager(BaseModel):
             ) as self.fcst_exe_mgr:
                 self.fcst_exe_mgr.preprocess()
                 if async_waiter:
-                    self.fcst_exe_mgr.execute(wait=False)  # When wait=false, user polling is required
+                    # When wait=false, user polling is required
+                    self.fcst_exe_mgr.execute(wait=False, log_file_open_mode="w")
                     async_waiter()
                 else:
-                    self.fcst_exe_mgr.execute(wait=True)
+                    self.fcst_exe_mgr.execute(wait=True, log_file_open_mode="w")
         except KeyboardInterrupt as e:
             print(f"Caught KeyboardInterrupt in main thread. Reraising.")
             raise e
@@ -188,22 +193,36 @@ class ForecastTestManager(BaseModel):
         self.read_logs()
 
         if self.test_forecast_execution_exception is None:
-            self.test_forecast_execution_passed = True
             self.test_forecast_execution_exception_type = None
             self.test_forecast_execution_exception_msg = None
+            if (not self.exe_output_log_fatal_lines) and (not self.ngen_log_fatal_lines):
+                self.test_forecast_execution_passed = True
+            else:
+                self.test_forecast_execution_passed = False
         else:
-            self.test_forecast_execution_passed = False
             self.test_forecast_execution_exception_type = str(type(self.test_forecast_execution_exception))
             self.test_forecast_execution_exception_msg = str(self.test_forecast_execution_exception)
+            self.test_forecast_execution_passed = False
 
     def read_logs(self) -> None:
+        fatal = "FATAL"
+        severe = "SEVERE"
+
         print(f"Reading: {self.exe_output_log_path}")
         with open(self.exe_output_log_path, "r") as f:
             self.exe_output_log_content = f.read()
+        self.exe_output_log_severe_lines.extend([l for l in self.exe_output_log_content.splitlines() if severe in l])
+        print(f"{len(self.exe_output_log_severe_lines)} {severe} lines in: {self.exe_output_log_path}")
+        self.exe_output_log_fatal_lines.extend([l for l in self.exe_output_log_content.splitlines() if fatal in l])
+        print(f"{len(self.exe_output_log_fatal_lines)} {fatal} lines in: {self.exe_output_log_path}")
 
         print(f"Reading: {self.ngen_log_path}")
         with open(self.ngen_log_path, "r") as f:
             self.ngen_log_content = f.read()
+        self.ngen_log_severe_lines.extend([l for l in self.ngen_log_content.splitlines() if severe in l])
+        print(f"{len(self.ngen_log_severe_lines)} {severe} lines in: {self.ngen_log_path}")
+        self.ngen_log_fatal_lines.extend([l for l in self.ngen_log_content.splitlines() if fatal in l])
+        print(f"{len(self.ngen_log_fatal_lines)} {fatal} lines in: {self.ngen_log_path}")
 
     def wait_for_duration(self, wait_duration_sec: float):
         start = time.perf_counter()
