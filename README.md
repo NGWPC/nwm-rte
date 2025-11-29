@@ -10,7 +10,7 @@ A configurable `docker build` and `docker run` sequence for headless end-to-end 
 
 [ngen_rte_build.sh](ngen_rte_build.sh) sources configuration from [config.bashrc](config.bashrc), then builds an image using [Dockerfile.rte](Dockerfile.rte).
 
-[ngen_rte_run.sh](ngen_rte_run.sh) uses `docker run` to start an ephemeral container of the new image with various host disk mounts applied, and runs a Python script in that container.  By default it runs [example_workflow.py](bin_mounted/example_workflow.py).  Some data is mounted from cloned repos.  Other data is mounted from non-repo locations.
+[ngen_rte_run.sh](ngen_rte_run.sh) uses `docker run` to start an ephemeral container of the new image with various host disk mounts applied, and runs a Python script in that container.  By default it runs [run_tests.py](bin_mounted/run_tests.py).  Some data is mounted from cloned repos.  Other data is mounted from non-repo locations.
 
 ## Configuration Options
 
