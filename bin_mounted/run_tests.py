@@ -14,7 +14,6 @@ from mswm.utils.input_configuration import (
     InputConfig,
     GeneralConfig,
     ForcingConfig,
-    valid_configs as mswm_valid_configs,
 )
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
@@ -26,7 +25,17 @@ from execution_tests import (
     ForecastTest,
     TestsManager,
     get_test_configs__forecast,
-    FORCING_CONFIGURATION_TYPES__DEFAULT,
+    FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT,
+    GAGE_ID,
+    FORCING_PROVIDER,
+    FORECAST_RUN_NAME,
+    FORMULATION_NAME,
+    DEFAULT_MAIN_DIR,
+    CALIB_OBJECTIVE_FUNCTION,
+    CALIB_OPTIMIZATION_ALGO,
+    DT_START_FORECAST,
+    DT_START_COLDSTART,
+    DT_END_COLDSTART,
 )
 from pseudocode import SavedState_Pseudo, StateManager_Pseudo
 
@@ -42,48 +51,37 @@ print = functools.partial(print, flush=True)
 # )
 
 
-GAGE_ID = "01123000"
-FCST_RUN_NAME = "fcst_run1"
-TEST_FORMULATION_SUFFIX = "bmi"
-# TEST_FORMULATION_SUFFIX = "csv"
-
-TEST_DIR_BASE = f"/ngwpc/run_ngen/kge_dds/test_{TEST_FORMULATION_SUFFIX}/{GAGE_ID}"
-TEST_DIR_INPUT = f"{TEST_DIR_BASE}/Input"
+TEST_DIR_BASE = f"{DEFAULT_MAIN_DIR}/{CALIB_OBJECTIVE_FUNCTION}_{CALIB_OPTIMIZATION_ALGO}/{FORMULATION_NAME}/{GAGE_ID}"
+# TEST_DIR_INPUT = f"{TEST_DIR_BASE}/Input"
 TEST_DIR_OUTPUT = f"{TEST_DIR_BASE}/Output"
-TEST_NGEN_LOG_FILE = f"{TEST_DIR_BASE}/logs/ngen.log"
-TEST_NGEN_FORECAST_LOG_FILE = f"{TEST_DIR_OUTPUT}/Forecast_Run/{FCST_RUN_NAME}/logs/ngen.log"
+# TEST_NGEN_LOG_FILE = f"{TEST_DIR_BASE}/logs/ngen.log"
+TEST_NGEN_FORECAST_LOG_FILE = f"{TEST_DIR_OUTPUT}/Forecast_Run/{FORECAST_RUN_NAME}/logs/ngen.log"
 
 ### Read by build_calib_realization()
-CALIB_CONFIG_CONFIG = f"/ngwpc/run_ngen/cold_start_workflow/input_calibration_{TEST_FORMULATION_SUFFIX}.config"
-# CALIB_CONFIG_CONFIG = f"/ngwpc/run_ngen/cold_start_workflow/input_calibration_{TEST_FORMULATION_SUFFIX}_short.config"
+CALIB_CONFIG_CONFIG = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_calibration_{FORCING_PROVIDER}.config"
+# CALIB_CONFIG_CONFIG = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_calibration_{FORCING_PROVIDER}_short.config"
 
 ### Read by build_fcst_realization() for CS and for Forecast
-FORECAST_CONFIG_CONFIG = "/ngwpc/run_ngen/cold_start_workflow/input_forecast.config"
-FORECAST_CONFIG_YAML = f"{TEST_DIR_OUTPUT}/Validation_Run/{GAGE_ID}_config_valid_best.yaml"
-
-
-FORECAST_ROUNDS = 1
-COLDSTART_START = datetime(year=2025, month=9, day=15, hour=0, minute=0, second=0)
-COLDSTART_END = COLDSTART_START + timedelta(days=2)
-FORECAST_INITIAL_CYCLE_DATETIME = COLDSTART_END
+FORECAST_CONFIG = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_forecast.config"
+FORECAST_VALID_YAML = f"{TEST_DIR_OUTPUT}/Validation_Run/{GAGE_ID}_config_valid_best.yaml"
 
 
 DEFAULT_FORECAST_CONFIG = InputConfig(
     Forcing=ForcingConfig(
-        forcing_provider=TEST_FORMULATION_SUFFIX,
+        forcing_provider=FORCING_PROVIDER,
         forcing_dir=None,
         forcing_template_dir="/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/",
         root_dir="/ngen-app/data",
         forcing_configuration="short_range",
-        cycle_datetime=FORECAST_INITIAL_CYCLE_DATETIME.strftime(DEFAULT_DATETIME_FORMAT),
+        cycle_datetime=DT_START_FORECAST.strftime(DEFAULT_DATETIME_FORMAT),
         cold_start_datetime=None,
     )
 )
 
 REALIZATION_KWARGS__COLDSTART = {
-    "input_path": FORECAST_CONFIG_CONFIG,  # From disk
-    "valid_yaml": FORECAST_CONFIG_YAML,
-    "fcst_run_name": FCST_RUN_NAME,
+    "input_path": FORECAST_CONFIG,  # From disk
+    "valid_yaml": FORECAST_VALID_YAML,
+    "fcst_run_name": FORECAST_RUN_NAME,
 }
 
 
@@ -116,8 +114,8 @@ def build_coldstart_realization() -> RealizationBuilder:
     forcing_config_dict = copy.deepcopy(rb_cs.input_configs["Forcing"])
     cs_overrides_dict = {
         "forcing_configuration": "short_range",
-        "cold_start_datetime": COLDSTART_START.strftime(DEFAULT_DATETIME_FORMAT),
-        "cycle_datetime": COLDSTART_END.strftime(DEFAULT_DATETIME_FORMAT),
+        "cold_start_datetime": DT_START_COLDSTART.strftime(DEFAULT_DATETIME_FORMAT),
+        "cycle_datetime": DT_END_COLDSTART.strftime(DEFAULT_DATETIME_FORMAT),
     }
     forcing_config_dict.update(cs_overrides_dict)
     config_model = InputConfig(Forcing=ForcingConfig(**forcing_config_dict))
@@ -132,7 +130,7 @@ def coldstart__build_and_run(state_manager: StateManager_Pseudo) -> None:
     """Build 1 coldstart realization and run it."""
     rb_cs = build_coldstart_realization()
     print(f"Running coldstart realization: {rb_cs.input_configs_class.Forcing}")
-    run_fcst(valid_yaml=FORECAST_CONFIG_YAML, real_path=str(rb_cs.realization_file))
+    run_fcst(valid_yaml=FORECAST_VALID_YAML, real_path=str(rb_cs.realization_file))
     state_manager.add_saved_state(
         SavedState_Pseudo(
             dt=datetime.strptime(rb_cs.input_configs_class.Forcing.cycle_datetime, DEFAULT_DATETIME_FORMAT),
@@ -156,9 +154,9 @@ def forecasts__build_and_run(
     for config_overrides in get_test_configs__forecast(do_all_forcing_configs):
         fc = config_overrides.Forcing.forcing_configuration
         rb_kwargs = {
-            # "input_path": FORECAST_CONFIG_CONFIG,
-            "valid_yaml": FORECAST_CONFIG_YAML,
-            "fcst_run_name": FCST_RUN_NAME,
+            # "input_path": FORECAST_CONFIG,
+            "valid_yaml": FORECAST_VALID_YAML,
+            "fcst_run_name": FORECAST_RUN_NAME,
             "config_overrides": config_overrides,
         }
         print(f"\n\n##########\n### {fc}: setting up test with rb_kwargs = {rb_kwargs}")
@@ -201,7 +199,7 @@ def main(
             f"Cannot use skip_forecast={skip_forecast} and do_all_forcing_configs={do_all_forcing_configs}"
         )
     utils_testing_setup.assert_paths__core(GAGE_ID)
-    utils_testing_setup.assert_paths__raw_config(CALIB_CONFIG_CONFIG, FORECAST_CONFIG_CONFIG)
+    utils_testing_setup.assert_paths__raw_config(CALIB_CONFIG_CONFIG, FORECAST_CONFIG)
 
     # TODO pseudocode for now for states.
     state_manager = StateManager_Pseudo()
@@ -277,7 +275,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--do_all_forcing_configs",
         action="store_true",
-        help=f"Run all forcing configurations rather than the default shorter default list. Default list: {FORCING_CONFIGURATION_TYPES__DEFAULT}. Incompatible with --skip_forecast.",
+        help=f"Run all forcing configurations rather than the default shorter default list. Default list: {FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT}. Incompatible with --skip_forecast.",
     )
     args = parser.parse_args()
     print(f"args: {args}")

@@ -3,6 +3,7 @@ from enum import StrEnum
 import functools
 import os
 import time
+import traceback
 from typing import Any, Dict
 
 from pydantic import BaseModel, Field, ConfigDict, validate_call
@@ -18,19 +19,39 @@ from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
 print = functools.partial(print, flush=True)
 
 
-FORMULATION = "bmi"
+### .config section [Forcing]
+FORECAST_RUN_NAME = "fcst_run1"
+# FORCING_PROVIDER = "csv"
+FORCING_PROVIDER = "bmi"
+FORCING_DIR = None
+FORCING_TEMPLATE_DIR = "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
+FORCING_ROOT_DIR = "/ngen-app/data"
+DT_START_FORECAST = datetime(year=2025, month=9, day=15, hour=0, minute=0, second=0)
+DT_START_COLDSTART = DT_START_FORECAST - timedelta(days=2)
+DT_END_COLDSTART = DT_START_FORECAST
 
-FORECAST_START = datetime(year=2025, month=9, day=15, hour=0, minute=0, second=0)
-COLDSTART_END = FORECAST_START
-COLDSTART_START = COLDSTART_END - timedelta(days=2)
+
+### .config section [General]
+GAGE_ID = "01123000"
+MODELS = "noah-owp-modular,cfe-s"
+# MODELS="noah-owp-modular,topmodel"
+DEFAULT_MAIN_DIR = "/ngwpc/run_ngen"
+FORMULATION_NAME = f"test_{FORCING_PROVIDER}"
 
 
-FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range", "standard_ana", "medium_range_blend"]
-# FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range", "aorc", "extended_ana_alaska"]
+### .config section [Calibration]
+CALIB_OBJECTIVE_FUNCTION = "kge"
+CALIB_OPTIMIZATION_ALGO = "dds"
+DT_START_CALIB = datetime(year=2015, month=10, day=1, hour=0, minute=0, second=0)
+DT_END_CALIB = DT_START_CALIB + timedelta(hours=47)
 
-FORCING_CONFIGURATION_TYPES__ALL = [
-    "aorc",
-    "nwm",
+
+### Test settings
+### See this for full list of forcing configuration types: mswm.utils.input_configuration.mswm_valid_configs
+FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range", "standard_ana", "medium_range_blend"]
+FORECAST_FORCING_CONFIGURATION_TYPES__ALL = [
+    # "aorc",   # Calibration only
+    # "nwm",    # Calibration only
     "standard_ana",
     "standard_ana_alaska",
     "standard_ana_hawaii",
@@ -49,28 +70,34 @@ FORCING_CONFIGURATION_TYPES__ALL = [
     "long_range_mem3",
     "long_range_mem4",
 ]
+CALIB_FORCING_CONFIGURATION_TYPES = [
+    "aorc",
+    "nwm",
+]
 
 
 def get_test_configs__forecast(do_all_forcing_configs: bool) -> list[InputConfig]:
-    if do_all_forcing_configs:
-        forcing_config_types = FORCING_CONFIGURATION_TYPES__ALL
-    else:
-        forcing_config_types = FORCING_CONFIGURATION_TYPES__DEFAULT
+    # TODO add coldstart option here
+    configs: list[InputConfig] = []
 
-    configs = [
-        InputConfig(
-            Forcing=ForcingConfig(
-                forcing_provider=FORMULATION,
-                forcing_dir=None,
-                forcing_template_dir="/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/",
-                root_dir="/ngen-app/data",
-                forcing_configuration=fct,
-                cycle_datetime=FORECAST_START.strftime(DEFAULT_DATETIME_FORMAT),
-                cold_start_datetime=None,
-            )
+    if do_all_forcing_configs:
+        forcing_config_types = FORECAST_FORCING_CONFIGURATION_TYPES__ALL
+    else:
+        forcing_config_types = FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT
+
+    for fct in forcing_config_types:
+        general = None
+        forcing = ForcingConfig(
+            forcing_provider=FORCING_PROVIDER,
+            forcing_dir=FORCING_DIR,
+            forcing_template_dir=FORCING_TEMPLATE_DIR,
+            root_dir=FORCING_ROOT_DIR,
+            forcing_configuration=fct,
+            cycle_datetime=DT_START_FORECAST.strftime(DEFAULT_DATETIME_FORMAT),
+            cold_start_datetime=None,
         )
-        for fct in forcing_config_types
-    ]
+
+        configs.append(InputConfig(General=general, Forcing=forcing))
 
     return configs
 
@@ -101,29 +128,33 @@ class ForecastTest(BaseModel):
     ### Excluded attributes
     rb: RealizationBuilder = Field(exclude=True, init=False, default=None)
     fcst_exe_mgr: ForecastExecutionManager = Field(exclude=True, init=False, default=None)
-    fcst_exe_exception: Exception | None = Field(exclude=True, init=False, default=None)
-    rb_exception: Exception | None = Field(exclude=True, init=False, default=None)
+    fcst_exe_excep: Exception | None = Field(exclude=True, init=False, default=None)
+    rb_excep: Exception | None = Field(exclude=True, init=False, default=None)
 
     ##########
     ### Included attributes
     # Test results and exceptions
     rb_stat: TestStat = Field(init=False, default=TestStat.NOSTATUS)
-    rb_exception_type: str = Field(init=False, default=None)
-    rb_exception_msg: str = Field(init=False, default=None)
+    rb_excep_type: str = Field(init=False, default=None)
+    rb_excep_msg: str = Field(init=False, default=None)
+    rb_excep_tb: list[str] = Field(init=False, default=[])  # Traceback lines
     fcst_exe_stat: TestStat = Field(init=False, default=TestStat.NOSTATUS)
-    fcst_exe_exception_type: str = Field(init=False, default=None)
-    fcst_exe_exception_msg: str = Field(init=False, default=None)
+    fcst_exe_excep_type: str = Field(init=False, default=None)
+    fcst_exe_excep_msg: str = Field(init=False, default=None)
+    fcst_exe_excep_tb: list[str] = Field(init=False, default=[])  # Traceback lines
     # Config kwargs
     rb_kwargs: dict
     # Log created by ngen itself
     ngen_log_path: str
     ngen_log_content: str = Field(init=False, default=None)
     ngen_log_severe_lines: list[str] = Field(init=False, default=[])
+    ngen_log_critical_lines: list[str] = Field(init=False, default=[])
     ngen_log_fatal_lines: list[str] = Field(init=False, default=[])
     # Log created by ForecastExecutionManager, e.g. ".../ngen_stdout_stderr.log"
     exe_output_log_path: str = Field(init=False, default=None)
     exe_output_log_content: str = Field(init=False, default=None)
     exe_output_log_severe_lines: list[str] = Field(init=False, default=[])
+    exe_output_log_critical_lines: list[str] = Field(init=False, default=[])
     exe_output_log_fatal_lines: list[str] = Field(init=False, default=[])
 
     def make_realization_builder__build_realization(self) -> None:
@@ -131,22 +162,25 @@ class ForecastTest(BaseModel):
         try:
             self.rb = RealizationBuilder(**self.rb_kwargs)
             self.rb.build_fcst_realization()
+            # self.rb.build_default_realization()
         except Exception as e:
             print(
                 f"Caught unexpected exception in main thread while building realization: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
             )
-            self.rb_exception = e
+            self.rb_excep = e
+            self.rb_excep_tb = traceback.format_exc().splitlines()
         else:
-            self.rb_exception = None
+            self.rb_excep = None
+            self.rb_excep_tb = []
 
-        if self.rb_exception is None:
+        if self.rb_excep is None:
             self.rb_stat = TestStat.PASS
-            self.rb_exception_type = None
-            self.rb_exception_msg = None
+            self.rb_excep_type = None
+            self.rb_excep_msg = None
         else:
             self.rb_stat = TestStat.FAIL
-            self.rb_exception_type = str(type(self.rb_exception))
-            self.rb_exception_msg = str(self.rb_exception)
+            self.rb_excep_type = str(type(self.rb_excep))
+            self.rb_excep_msg = str(self.rb_excep)
             # Also set forecast execution to fail, since it can't run if realization failed to build
             self.fcst_exe_stat = TestStat.FAIL
 
@@ -188,48 +222,64 @@ class ForecastTest(BaseModel):
             # Raised when stop flag is manually set, or when context manager ends before ngen finishes.
             # The latter is happening intentionally here under certain types of tests.
             print(f"Caught NgenIntentionallyStoppedError in main thread. Not reraising.")
-            fcst_exe_exception = None
+            fcst_exe_excep = None
         except Exception as e:
             print(
                 f"Caught unexpected exception in main thread while executing forecast: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
             )
-            fcst_exe_exception = e
+            fcst_exe_excep = e
+            self.fcst_exe_excep_tb = traceback.format_exc().splitlines()
         else:
-            fcst_exe_exception = None
-        self.fcst_exe_exception = fcst_exe_exception
+            fcst_exe_excep = None
+            self.fcst_exe_excep_tb = []
+
+        self.fcst_exe_excep = fcst_exe_excep
 
         self.exe_output_log_path = self.fcst_exe_mgr.log_handle.name
         self.read_logs()
 
-        if self.fcst_exe_exception is None:
-            self.fcst_exe_exception_type = None
-            self.fcst_exe_exception_msg = None
+        if self.fcst_exe_excep is None:
+            self.fcst_exe_excep_type = None
+            self.fcst_exe_excep_msg = None
             if (not self.exe_output_log_fatal_lines) and (not self.ngen_log_fatal_lines):
                 self.fcst_exe_stat = TestStat.PASS
             else:
                 self.fcst_exe_stat = TestStat.FAIL
         else:
-            self.fcst_exe_exception_type = str(type(self.fcst_exe_exception))
-            self.fcst_exe_exception_msg = str(self.fcst_exe_exception)
+            self.fcst_exe_excep_type = str(type(self.fcst_exe_excep))
+            self.fcst_exe_excep_msg = str(self.fcst_exe_excep)
             self.fcst_exe_stat = TestStat.FAIL
 
     def read_logs(self) -> None:
-        fatal = "FATAL"
         severe = "SEVERE"
+        critical = "CRITICAL"
+        fatal = "FATAL"
 
         print(f"Reading: {self.exe_output_log_path}")
         with open(self.exe_output_log_path, "r") as f:
             self.exe_output_log_content = f.read()
+
         self.exe_output_log_severe_lines.extend([l for l in self.exe_output_log_content.splitlines() if severe in l])
         print(f"{len(self.exe_output_log_severe_lines)} {severe} lines in: {self.exe_output_log_path}")
+
+        self.exe_output_log_critical_lines.extend(
+            [l for l in self.exe_output_log_content.splitlines() if critical in l]
+        )
+        print(f"{len(self.exe_output_log_critical_lines)} {critical} lines in: {self.exe_output_log_path}")
+
         self.exe_output_log_fatal_lines.extend([l for l in self.exe_output_log_content.splitlines() if fatal in l])
         print(f"{len(self.exe_output_log_fatal_lines)} {fatal} lines in: {self.exe_output_log_path}")
 
         print(f"Reading: {self.ngen_log_path}")
         with open(self.ngen_log_path, "r") as f:
             self.ngen_log_content = f.read()
+
         self.ngen_log_severe_lines.extend([l for l in self.ngen_log_content.splitlines() if severe in l])
         print(f"{len(self.ngen_log_severe_lines)} {severe} lines in: {self.ngen_log_path}")
+
+        self.ngen_log_critical_lines.extend([l for l in self.ngen_log_content.splitlines() if critical in l])
+        print(f"{len(self.ngen_log_critical_lines)} {critical} lines in: {self.ngen_log_path}")
+
         self.ngen_log_fatal_lines.extend([l for l in self.ngen_log_content.splitlines() if fatal in l])
         print(f"{len(self.ngen_log_fatal_lines)} {fatal} lines in: {self.ngen_log_path}")
 
@@ -275,6 +325,7 @@ class ForecastTest(BaseModel):
         else:
             print(f"Does not exist yet: {self.ngen_log_path}")
             return False
+        # TODO improve this and confirm that it works for types other than short_range
         if (
             log_content.lower().count("processing forecast cycle") > 1
             and log_content.lower().count("writing output forcing file for timestamp") > 0
