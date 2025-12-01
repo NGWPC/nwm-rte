@@ -22,7 +22,9 @@ from nwm_fcst_mgr.forecast import run_fcst
 
 import utils_testing_setup
 from execution_tests import (
-    ForecastTestManager,
+    TestStat,
+    ForecastTest,
+    TestsManager,
     get_test_configs__forecast,
     FORCING_CONFIGURATION_TYPES__DEFAULT,
 )
@@ -140,17 +142,16 @@ def coldstart__build_and_run(state_manager: StateManager_Pseudo) -> None:
 
 
 def forecasts__build_and_run(
+    test_manager: TestsManager,
     state_manager: StateManager_Pseudo,
     do_all_forcing_configs: bool,
     quit_forecast_after_forcing_running: bool,
     quit_forecast_after_duration: float | None,
-) -> list[ForecastTestManager]:
+) -> None:
     """
-    Using ForecastTestManager, build and execute a list of forecast realizations.
-    Return a list of instances of ForecastTestManager after attempting build + execute on each.
+    Using ForecastTest, build and execute a list of forecast realizations.
+    test_manager is modified in-place, so some test results may be available if this function is interrupted.
     """
-
-    fcst_test_cases: list[ForecastTestManager] = []
 
     for config_overrides in get_test_configs__forecast(do_all_forcing_configs):
         fc = config_overrides.Forcing.forcing_configuration
@@ -161,14 +162,13 @@ def forecasts__build_and_run(
             "config_overrides": config_overrides,
         }
         print(f"\n\n##########\n### {fc}: setting up test with rb_kwargs = {rb_kwargs}")
-        t = ForecastTestManager(rb_kwargs=rb_kwargs, ngen_log_path=TEST_NGEN_FORECAST_LOG_FILE)
-        fcst_test_cases.append(t)
+        t = ForecastTest(rb_kwargs=rb_kwargs, ngen_log_path=TEST_NGEN_FORECAST_LOG_FILE)
 
         # Build the realization, trapping exceptions into class attrs
         print(f"### {fc}: building realization")
         t.make_realization_builder__build_realization()
 
-        if t.test_realization_builder_passed:
+        if t.rb_stat == TestStat.PASS:
             # Execute the realization via ngen, trapping exceptions and logs into class attrs
             print(f"### {fc}: executing realization via ngen")
             t.execute_forecast(
@@ -184,7 +184,7 @@ def forecasts__build_and_run(
                 )
             )
 
-    return fcst_test_cases
+        test_manager.add_forecast_test(t)
 
 
 def main(
@@ -205,6 +205,7 @@ def main(
 
     # TODO pseudocode for now for states.
     state_manager = StateManager_Pseudo()
+    tests_manager = TestsManager()
 
     ### NOTE this deletes the test output dir.
     ### If wanting to skip Calibration but still do CS and/or Forecast,
@@ -223,25 +224,21 @@ def main(
         coldstart__build_and_run(state_manager)
 
     if not skip_forecast:
-        fcst_test_cases = forecasts__build_and_run(
+        forecasts__build_and_run(
+            tests_manager,
             state_manager,
             do_all_forcing_configs,
             quit_forecast_after_forcing_running,
             quit_forecast_after_duration,
         )
-        test_results_sums = {
-            "builds_passed": sum(1 for t in fcst_test_cases if t.test_realization_builder_passed),
-            "builds_failed": sum(1 for t in fcst_test_cases if not t.test_realization_builder_passed),
-            "executions_passed": sum(1 for t in fcst_test_cases if t.test_forecast_execution_passed),
-            "executions_failed": sum(1 for t in fcst_test_cases if not t.test_forecast_execution_passed),
-        }
+        status_sums = tests_manager.fcst_stat_sums
         test_results_file = os.path.join(os.path.dirname(__file__), "forecast_tests_results.json")
-        msg = f"\n\n###### FORECAST TEST RESULTS ######\nWriting to: {test_results_file}\n{json.dumps(test_results_sums, indent=2)}"
+        msg = f"\n\n###### FORECAST TEST RESULTS ######\nWriting to: {test_results_file}\n{json.dumps(tests_manager.fcst_stat_sums, indent=2, default=pydantic_encoder)}"
         print(msg)
         with open(test_results_file, "w") as f:
-            f.write(json.dumps(fcst_test_cases, indent=2, default=pydantic_encoder))
-        if test_results_sums["builds_failed"] or test_results_sums["executions_failed"]:
-            raise RuntimeError(test_results_sums)
+            f.write(json.dumps(tests_manager.forecast_tests, indent=2, default=pydantic_encoder))
+        if status_sums.any_failed:
+            raise RuntimeError(status_sums)
 
 
 if __name__ == "__main__":

@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
+from enum import StrEnum
 import functools
 import os
 import time
 from typing import Any, Dict
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, validate_call
 
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils.input_configuration import InputConfig, GeneralConfig, ForcingConfig
@@ -25,6 +26,7 @@ COLDSTART_START = COLDSTART_END - timedelta(days=2)
 
 
 FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range", "standard_ana", "medium_range_blend"]
+# FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range", "aorc", "extended_ana_alaska"]
 
 FORCING_CONFIGURATION_TYPES__ALL = [
     "aorc",
@@ -73,7 +75,14 @@ def get_test_configs__forecast(do_all_forcing_configs: bool) -> list[InputConfig
     return configs
 
 
-class ForecastTestManager(BaseModel):
+class TestStat(StrEnum):
+    NOSTATUS = "NOSTATUS"
+    PASS = "PASS"
+    FAIL = "FAIL"
+    SKIP = "SKIP"
+
+
+class ForecastTest(BaseModel):
     """
     Required attributes:
         rb_kwargs: dict
@@ -92,18 +101,18 @@ class ForecastTestManager(BaseModel):
     ### Excluded attributes
     rb: RealizationBuilder = Field(exclude=True, init=False, default=None)
     fcst_exe_mgr: ForecastExecutionManager = Field(exclude=True, init=False, default=None)
-    test_forecast_execution_exception: Exception | None = Field(exclude=True, init=False, default=None)
-    test_realization_builder_exception: Exception | None = Field(exclude=True, init=False, default=None)
+    fcst_exe_exception: Exception | None = Field(exclude=True, init=False, default=None)
+    rb_exception: Exception | None = Field(exclude=True, init=False, default=None)
 
     ##########
     ### Included attributes
     # Test results and exceptions
-    test_realization_builder_passed: bool = Field(init=False, default=False)
-    test_forecast_execution_passed: bool = Field(init=False, default=False)
-    test_realization_builder_exception_type: str = Field(init=False, default=None)
-    test_realization_builder_exception_msg: str = Field(init=False, default=None)
-    test_forecast_execution_exception_type: str = Field(init=False, default=None)
-    test_forecast_execution_exception_msg: str = Field(init=False, default=None)
+    rb_stat: TestStat = Field(init=False, default=TestStat.NOSTATUS)
+    rb_exception_type: str = Field(init=False, default=None)
+    rb_exception_msg: str = Field(init=False, default=None)
+    fcst_exe_stat: TestStat = Field(init=False, default=TestStat.NOSTATUS)
+    fcst_exe_exception_type: str = Field(init=False, default=None)
+    fcst_exe_exception_msg: str = Field(init=False, default=None)
     # Config kwargs
     rb_kwargs: dict
     # Log created by ngen itself
@@ -126,28 +135,28 @@ class ForecastTestManager(BaseModel):
             print(
                 f"Caught unexpected exception in main thread while building realization: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
             )
-            self.test_realization_builder_exception = e
+            self.rb_exception = e
         else:
-            self.test_realization_builder_exception = None
+            self.rb_exception = None
 
-        if self.test_realization_builder_exception is None:
-            self.test_realization_builder_passed = True
-            self.test_realization_builder_exception_type = None
-            self.test_realization_builder_exception_msg = None
+        if self.rb_exception is None:
+            self.rb_stat = TestStat.PASS
+            self.rb_exception_type = None
+            self.rb_exception_msg = None
         else:
-            self.test_realization_builder_passed = False
-            self.test_realization_builder_exception_type = str(type(self.test_realization_builder_exception))
-            self.test_realization_builder_exception_msg = str(self.test_realization_builder_exception)
+            self.rb_stat = TestStat.FAIL
+            self.rb_exception_type = str(type(self.rb_exception))
+            self.rb_exception_msg = str(self.rb_exception)
+            # Also set forecast execution to fail, since it can't run if realization failed to build
+            self.fcst_exe_stat = TestStat.FAIL
 
     def execute_forecast(
         self,
         quit_forecast_after_forcing_running: bool,
         quit_forecast_after_duration: bool,
     ) -> None:
-        if not self.test_realization_builder_passed:
-            raise RuntimeError(
-                f"Cannot run forecast when realization did not build (self.test_realization_builder_passed == {self.test_realization_builder_passed})"
-            )
+        if self.rb_stat != TestStat.PASS:
+            raise RuntimeError(f"Cannot run forecast when realization did not build (self.rb_stat: {self.rb_stat})")
 
         if quit_forecast_after_forcing_running:
             assert quit_forecast_after_duration is None
@@ -179,30 +188,30 @@ class ForecastTestManager(BaseModel):
             # Raised when stop flag is manually set, or when context manager ends before ngen finishes.
             # The latter is happening intentionally here under certain types of tests.
             print(f"Caught NgenIntentionallyStoppedError in main thread. Not reraising.")
-            test_forecast_execution_exception = None
+            fcst_exe_exception = None
         except Exception as e:
             print(
                 f"Caught unexpected exception in main thread while executing forecast: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
             )
-            test_forecast_execution_exception = e
+            fcst_exe_exception = e
         else:
-            test_forecast_execution_exception = None
-        self.test_forecast_execution_exception = test_forecast_execution_exception
+            fcst_exe_exception = None
+        self.fcst_exe_exception = fcst_exe_exception
 
         self.exe_output_log_path = self.fcst_exe_mgr.log_handle.name
         self.read_logs()
 
-        if self.test_forecast_execution_exception is None:
-            self.test_forecast_execution_exception_type = None
-            self.test_forecast_execution_exception_msg = None
+        if self.fcst_exe_exception is None:
+            self.fcst_exe_exception_type = None
+            self.fcst_exe_exception_msg = None
             if (not self.exe_output_log_fatal_lines) and (not self.ngen_log_fatal_lines):
-                self.test_forecast_execution_passed = True
+                self.fcst_exe_stat = TestStat.PASS
             else:
-                self.test_forecast_execution_passed = False
+                self.fcst_exe_stat = TestStat.FAIL
         else:
-            self.test_forecast_execution_exception_type = str(type(self.test_forecast_execution_exception))
-            self.test_forecast_execution_exception_msg = str(self.test_forecast_execution_exception)
-            self.test_forecast_execution_passed = False
+            self.fcst_exe_exception_type = str(type(self.fcst_exe_exception))
+            self.fcst_exe_exception_msg = str(self.fcst_exe_exception)
+            self.fcst_exe_stat = TestStat.FAIL
 
     def read_logs(self) -> None:
         fatal = "FATAL"
@@ -273,3 +282,36 @@ class ForecastTestManager(BaseModel):
             return True
         else:
             return False
+
+
+class TestResultsSums(BaseModel):
+    rb_statcount: dict[str, int]  # Status counts for RealizationBuilder events
+    fcst_exe_statcount: dict[str, int]  # Status counts for forecast execution events
+    any_failed: bool = Field(init=False, default=None)
+
+    def model_post_init(self, __context) -> None:
+        self.any_failed = (
+            True if (self.rb_statcount[TestStat.FAIL] or self.fcst_exe_statcount[TestStat.FAIL]) else False
+        )
+
+
+class TestsManager(BaseModel):
+    forecast_tests: list[ForecastTest] = Field(init=False, default=[])
+
+    @validate_call
+    def add_forecast_test(self, t: ForecastTest) -> None:
+        self.forecast_tests.append(t)
+
+    @property
+    def fcst_stat_sums(self) -> TestResultsSums:
+        # Initialize these to 0 count for each status option, then increment based on result from tests.
+        rb_statcount = {status: 0 for status in TestStat}
+        fcst_exe_statcount = {status: 0 for status in TestStat}
+        for t in self.forecast_tests:
+            rb_statcount[t.rb_stat] += 1
+            fcst_exe_statcount[t.fcst_exe_stat] += 1
+
+        return TestResultsSums(
+            rb_statcount=rb_statcount,
+            fcst_exe_statcount=fcst_exe_statcount,
+        )
