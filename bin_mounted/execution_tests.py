@@ -88,8 +88,7 @@ FORECAST_FORCING_CONFIGURATION_TYPES__ALL = [
 ]
 CALIB_FORCING_CONFIGURATION_TYPES = [
     "nwm",
-    # "aorc",
-    # "standard_ana",
+    "aorc",
 ]
 
 
