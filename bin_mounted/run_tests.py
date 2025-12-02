@@ -110,7 +110,7 @@ def calibrations__build_and_run(test_manager: TestsManager) -> None:
         fc = config_overrides.Forcing.forcing_configuration
         rb_kwargs = {"config_overrides": config_overrides}
         print(f"\n\n##########\n### Calibration: {fc}: setting up test with rb_kwargs = {rb_kwargs}")
-        t = ForecastTest(rb_kwargs=rb_kwargs, ngen_log=LogParser(path=TEST_NGEN_FORECAST_LOG_FILE))
+        t = ForecastTest(rb_kwargs=rb_kwargs)
 
         # Build the realization, trapping exceptions into class attrs
         print(f"### {fc}: building realization")
@@ -174,7 +174,9 @@ def forecasts__build_and_run(
     test_configs = get_test_configs__forecast(do_all_forcing_configs)
     for tc in test_configs:
         if quit_forecast_after_forcing_running and tc.Forcing.forcing_configuration != "short_range":
-            raise NotImplementedError(f"quit_forecast_after_forcing_running not yet tested for forcing_configuration = {repr(tc.Forcing.forcing_configuration)}")
+            raise NotImplementedError(
+                f"quit_forecast_after_forcing_running not yet tested for forcing_configuration = {repr(tc.Forcing.forcing_configuration)}"
+            )
 
     for config_overrides in test_configs:
         fc = config_overrides.Forcing.forcing_configuration
