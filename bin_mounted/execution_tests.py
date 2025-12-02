@@ -259,12 +259,18 @@ class ForecastTest(BaseModel):
     fcst_exe_excep_tb: list[str] = Field(init=False, default=[])  # Traceback lines
     # Config kwargs
     rb_kwargs: dict
-    # Log created by ngen itself
-    ngen_log: LogParser
-    # Log created by ForecastExecutionManager, e.g. ".../ngen_stdout_stderr.log"
+    # Log created by ngen itself. Must be provided for forecast mode.  TODO glean this from rb.
+    #   e.g. for forecast: ".../Output/Forecast_Run/fcst_run1/logs/ngen.log"
+    #   TODO need to implement for calibration.
+    ngen_log: LogParser = Field(init=False, default=None)
+    # Log containing stdout+stderr stream of the subprocess call to ngen (ngen's terminal output).
+    #   e.g. for forecast (from ForecastExecutionManager): ".../Output/Forecast_Run/fcst_run1/ngen_stdout_stderr.log"
+    #   e.g. for calibration (from calibration.py): ".../Output/Calibration_Run/ngen_0pif3ish_worker/ngen_stdout_stderr.log"
+    #   TODO need to implement for calibration. Read calib_log content to determine this path, since it shows the (randomized) name of the worker.
     exe_log: LogParser = Field(init=False, default=None)
-    # Log created by calibration.py
+    # Log created by calibration.py (can specify as CLI arg during call to calibration.py)
     calib_log: LogParser = Field(init=False, default=None)
+    # Stderr lines of the subprocess call to calibration.py.
     calib_proc_stderr: list[str] = Field(init=False, default=[])
 
     def make_realization_builder__build_realization(self, method: str) -> None:
