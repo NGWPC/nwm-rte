@@ -171,8 +171,12 @@ def forecasts__build_and_run(
     Using ForecastTest, build and execute a list of forecast realizations.
     test_manager is modified in-place, so some test results may be available if this function is interrupted.
     """
+    test_configs = get_test_configs__forecast(do_all_forcing_configs)
+    for tc in test_configs:
+        if quit_forecast_after_forcing_running and tc.Forcing.forcing_configuration != "short_range":
+            raise NotImplementedError(f"quit_forecast_after_forcing_running not yet tested for forcing_configuration = {repr(tc.Forcing.forcing_configuration)}")
 
-    for config_overrides in get_test_configs__forecast(do_all_forcing_configs):
+    for config_overrides in test_configs:
         fc = config_overrides.Forcing.forcing_configuration
         rb_kwargs = {
             # "input_path": FORECAST_CONFIG_FILE,
