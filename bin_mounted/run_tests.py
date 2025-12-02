@@ -89,23 +89,6 @@ REALIZATION_KWARGS__COLDSTART = {
 
 def calibrations__build_and_run(test_manager: TestsManager) -> None:
     """Build calibration realizations and run them as tests."""
-
-    # """Build 1 calibration realization and run it."""
-    # rb_calib = RealizationBuilder(CALIB_CONFIG_FILE)
-    # rb_calib.load_config_apply_overrides()
-    # print(f"Building calibration realization: {rb_calib.input_configs_class}")
-    # rb_calib.build_calib_realization()
-    # if not os.path.isfile(rb_calib.calib_config_file):
-    #     raise FileNotFoundError(rb_calib.calib_config_file)
-    # print("Running calibration")
-    # cmd = [
-    #     "python",
-    #     "/ngen-app/bin/calibration.py",
-    #     str(rb_calib.calib_config_file),
-    # ]
-    # print(f"Running command args: {cmd}")
-    # subprocess.check_call(cmd)
-
     for config_overrides in get_test_configs__calibration():
         fc = config_overrides.Forcing.forcing_configuration
         rb_kwargs = {"config_overrides": config_overrides}
@@ -202,13 +185,13 @@ def forecasts__build_and_run(
                 quit_forecast_after_duration=quit_forecast_after_duration,
             )
 
-        if t.rb.input_configs_class.Forcing.forcing_configuration == "standard_ana":
-            state_manager.add_saved_state(
-                SavedState_Pseudo(
-                    dt=datetime.strptime(t.rb.input_configs_class.Forcing.cycle_datetime, DEFAULT_DATETIME_FORMAT),
-                    realization_file=t.rb.realization_file,
+            if t.rb.input_configs_class.Forcing.forcing_configuration == "standard_ana":
+                state_manager.add_saved_state(
+                    SavedState_Pseudo(
+                        dt=datetime.strptime(t.rb.input_configs_class.Forcing.cycle_datetime, DEFAULT_DATETIME_FORMAT),
+                        realization_file=t.rb.realization_file,
+                    )
                 )
-            )
 
         test_manager.add_forecast_test(t)
 
