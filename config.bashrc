@@ -3,8 +3,8 @@
 set -euo pipefail
 
 ### NO_CACHE: Passed to `docker build` call. Choose from: ["--no-cache", ""]. Has mild effect on RTE build speed when using pre-built base ngen image.
-NO_CACHE="--no-cache"
-# NO_CACHE=""
+# NO_CACHE="--no-cache"
+NO_CACHE=""
 
 
 # If you use this for REPOS_COMMON_ROOT__HOST, then the other repos are assumed to be siblings of this repo
@@ -39,9 +39,10 @@ S3_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/s3"
 
 NGEN_SOURCE_MODE="ghcr"
 ## Only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.
-NGEN_BASE__REMOTE_GHCR_TAG="latest"
+# NGEN_BASE__REMOTE_GHCR_TAG="latest"
 ## This one is based on PR 71: https://github.com/NGWPC/ngen/pull/71
 # NGEN_BASE__REMOTE_GHCR_TAG="df0d2034f3c0"
+NGEN_BASE__REMOTE_GHCR_TAG="pr-84-build"
 
 # NGEN_SOURCE_MODE="existing_local_tag"
 ## Only used when ngen image source mode is "existing_local_tag". Choose any existing local image tag.
@@ -74,7 +75,7 @@ COMPONENT__MSW_MGR__REMOTE_REPO_TAG="maxkipp-ngwpc-9004-workflow-automation"
 
 ##### Package: Calibration Manager
 ### Only used when sourcing calibration manager from GitHub
-COMPONENT__CAL_MGR__REMOTE_REPO_TAG="development"
+COMPONENT__CAL_MGR__REMOTE_REPO_TAG="maxkipp-ngwpc-9054-workflow-automation"
 
 ##### Package: Region Manager
 ### Only used when sourcing region manager from GitHub

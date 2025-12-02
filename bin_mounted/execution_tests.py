@@ -1,15 +1,18 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import StrEnum
 import functools
+import json
 import os
+import subprocess
 import time
 import traceback
 from typing import Any, Dict
 
 from pydantic import BaseModel, Field, ConfigDict, validate_call
+from pydantic.json import pydantic_encoder
 
 from mswm.build_inputs import RealizationBuilder
-from mswm.utils.input_configuration import InputConfig, GeneralConfig, ForcingConfig
+from mswm.utils.input_configuration import InputConfig, GeneralConfig, CalibConfig, ForcingConfig, DataFileConfig
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
 from nwm_fcst_mgr.forecast import ForecastExecutionManager, RunStatus
@@ -21,9 +24,13 @@ print = functools.partial(print, flush=True)
 
 ### .config section [Forcing]
 FORECAST_RUN_NAME = "fcst_run1"
+
 # FORCING_PROVIDER = "csv"
+# FORCING_DIR =
+
 FORCING_PROVIDER = "bmi"
-FORCING_DIR = None
+FORCING_DIR = None  # None when provider is bmi
+
 FORCING_TEMPLATE_DIR = "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
 FORCING_ROOT_DIR = "/ngen-app/data"
 DT_START_FORECAST = datetime(year=2025, month=9, day=15, hour=0, minute=0, second=0)
@@ -42,8 +49,17 @@ FORMULATION_NAME = f"test_{FORCING_PROVIDER}"
 ### .config section [Calibration]
 CALIB_OBJECTIVE_FUNCTION = "kge"
 CALIB_OPTIMIZATION_ALGO = "dds"
+CALIB_PARAMETERS_DIR = "/ngwpc/run_ngen/data/calib_params_tab_delimited"
+CALIB_ITER_START = 0
+CALIB_ITER_COUNT = 2
+CALIB_SAVE_PLOT_ITER_FREQ = 1
 DT_START_CALIB = datetime(year=2015, month=10, day=1, hour=0, minute=0, second=0)
 DT_END_CALIB = DT_START_CALIB + timedelta(hours=47)
+
+### .config section [DataFile]
+MODULE_PARAMETER_FILES_DIR = "/ngen-app/nwm-msw-mgr/src/mswm/module_parameter_files"
+NGEN_DIR = "/ngen-app/ngen"
+HYDROFABRIC_DIR = "/s3/ngwpc-hydrofabric"
 
 
 ### Test settings
@@ -71,9 +87,82 @@ FORECAST_FORCING_CONFIGURATION_TYPES__ALL = [
     "long_range_mem4",
 ]
 CALIB_FORCING_CONFIGURATION_TYPES = [
-    "aorc",
     "nwm",
+    # "aorc",
+    # "standard_ana",
 ]
+
+
+def get_test_configs__calibration() -> list[InputConfig]:
+    configs: list[InputConfig] = []
+
+    forcing_config_types = CALIB_FORCING_CONFIGURATION_TYPES
+    str_calib_start = DT_START_CALIB.strftime(DEFAULT_DATETIME_FORMAT)
+    str_calib_end = DT_END_CALIB.strftime(DEFAULT_DATETIME_FORMAT)
+
+    for fct in forcing_config_types:
+        general = GeneralConfig(
+            basin=GAGE_ID,
+            run_type="calibration",
+            models=MODELS,
+            formulation=FORMULATION_NAME,
+            main_dir=DEFAULT_MAIN_DIR,
+            start_period=str_calib_start,
+            end_period=str_calib_end,
+        )
+        calibration = CalibConfig(
+            optimization_algorithm=CALIB_OPTIMIZATION_ALGO,
+            objective_function=CALIB_OBJECTIVE_FUNCTION,
+            start_iteration=CALIB_ITER_START,
+            number_iteration=CALIB_ITER_COUNT,
+            calib_start_period=str_calib_start,
+            calib_end_period=str_calib_end,
+            calib_eval_start_period=str_calib_start,
+            calib_eval_end_period=str_calib_end,
+            valid_start_period=str_calib_start,
+            valid_end_period=str_calib_end,
+            valid_eval_start_period=str_calib_start,
+            valid_eval_end_period=str_calib_end,
+            full_eval_start_period=str_calib_start,
+            full_eval_end_period=str_calib_end,
+            save_plot_iter_freq=CALIB_SAVE_PLOT_ITER_FREQ,
+            ngen_cerf=False,
+            calib_parameter_file=CALIB_PARAMETERS_DIR,
+        )
+        forcing = ForcingConfig(
+            forcing_provider=FORCING_PROVIDER,
+            forcing_dir=FORCING_DIR,
+            forcing_template_dir=FORCING_TEMPLATE_DIR,
+            root_dir=FORCING_ROOT_DIR,
+            forcing_configuration=fct,
+            cycle_datetime=DT_START_FORECAST.strftime(DEFAULT_DATETIME_FORMAT),
+            cold_start_datetime=None,
+        )
+        datafile = DataFileConfig(
+            hydrofab_file=f"{HYDROFABRIC_DIR}/2.2/CONUS/{GAGE_ID}/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_{GAGE_ID}.gpkg",
+            noah_parameter_dir=f"{MODULE_PARAMETER_FILES_DIR}/noah-owp-modular",
+            ueb_parameter_dir=f"{MODULE_PARAMETER_FILES_DIR}/ueb",
+            lasam_parameter_dir=f"{MODULE_PARAMETER_FILES_DIR}/lasam",
+            lstm_parameter_dir=f"{MODULE_PARAMETER_FILES_DIR}/lstm",
+            sac_parameter_dir=HYDROFABRIC_DIR,
+            snow_17_parameter_dir=HYDROFABRIC_DIR,
+            attributes_file="/ngwpc/run_ngen/data/conus_model_attributes.parquet",
+            ngen_exe_file=f"{NGEN_DIR}/cmake_build/ngen",
+            sloth_lib=f"{NGEN_DIR}/extern/sloth/cmake_build/libslothmodel.so",
+            cfe_lib=f"{NGEN_DIR}/extern/cfe/cmake_build/libcfebmi.so",
+            lasam_lib=f"{NGEN_DIR}/extern/LASAM/cmake_build/liblasambmi.so",
+            noah_owp_modular_lib=f"{NGEN_DIR}/extern/noah-owp-modular/cmake_build/libsurfacebmi.so",
+            pet_lib=f"{NGEN_DIR}/extern/evapotranspiration/evapotranspiration/cmake_build/libpetbmi.so",
+            sac_sma_lib=f"{NGEN_DIR}/extern/sac-sma/cmake_build/libsacbmi.so",
+            sft_lib=f"{NGEN_DIR}/extern/SoilFreezeThaw/cmake_build/libsftbmi.so",
+            smp_lib=f"{NGEN_DIR}/extern/SoilMoistureProfiles/cmake_build/libsmpbmi.so",
+            snow_17_lib=f"{NGEN_DIR}/extern/snow17/cmake_build/libsnow17bmi.so",
+            topmodel_lib=f"{NGEN_DIR}/extern/topmodel/cmake_build/libtopmodelbmi.so",
+            ueb_lib=f"{NGEN_DIR}/extern/ueb-bmi/cmake_build/src/libbmiuebcxx.so",
+        )
+        configs.append(InputConfig(General=general, Calibration=calibration, Forcing=forcing, DataFile=datafile))
+
+    return configs
 
 
 def get_test_configs__forecast(do_all_forcing_configs: bool) -> list[InputConfig]:
@@ -109,15 +198,42 @@ class TestStat(StrEnum):
     SKIP = "SKIP"
 
 
+class LogParser(BaseModel):
+    path: str
+    # Don't include the entire file content when dumping this model
+    content: str = Field(exclude=True, init=False, default=None)
+    first_lines: list[str] = Field(init=False, default=None)
+    last_lines: list[str] = Field(init=False, default=None)
+    severe_lines: list[str] = Field(init=False, default=None)
+    critical_lines: list[str] = Field(init=False, default=None)
+    fatal_lines: list[str] = Field(init=False, default=None)
+
+    def read_and_parse(self) -> None:
+        severe = "SEVERE"
+        critical = "CRITICAL"
+        fatal = "FATAL"
+
+        print(f"Reading: {self.path}")
+        with open(self.path, "r") as f:
+            self.content = f.read()
+
+        lines = self.content.splitlines()
+        self.first_lines = lines[:10]
+        self.last_lines = lines[-10:]
+        self.severe_lines = [l for l in lines if severe in l]
+        self.critical_lines = [l for l in lines if critical in l]
+        self.fatal_lines = [l for l in lines if fatal in l]
+
+
 class ForecastTest(BaseModel):
     """
     Required attributes:
         rb_kwargs: dict
-        ngen_log_path: str
+        ngen_log: LogParser
 
     # TODO also catch exceptions that happen during ForecastExecutionManager.preprocess
-    # TODO is `ngen_log_path` different for standard_ana than for short_range?
-    # TODO glean `ngen_log_path` from self.rb
+    # TODO is `ngen_log` different for standard_ana than for short_range?
+    # TODO glean `ngen_log` from self.rb
     """
 
     ##########
@@ -145,27 +261,23 @@ class ForecastTest(BaseModel):
     # Config kwargs
     rb_kwargs: dict
     # Log created by ngen itself
-    ngen_log_path: str
-    ngen_log_content: str = Field(init=False, default=None)
-    ngen_log_severe_lines: list[str] = Field(init=False, default=[])
-    ngen_log_critical_lines: list[str] = Field(init=False, default=[])
-    ngen_log_fatal_lines: list[str] = Field(init=False, default=[])
+    ngen_log: LogParser
     # Log created by ForecastExecutionManager, e.g. ".../ngen_stdout_stderr.log"
-    exe_output_log_path: str = Field(init=False, default=None)
-    exe_output_log_content: str = Field(init=False, default=None)
-    exe_output_log_severe_lines: list[str] = Field(init=False, default=[])
-    exe_output_log_critical_lines: list[str] = Field(init=False, default=[])
-    exe_output_log_fatal_lines: list[str] = Field(init=False, default=[])
+    exe_log: LogParser = Field(init=False, default=None)
+    # Log created by calibration.py
+    calib_log: LogParser = Field(init=False, default=None)
+    calib_proc_stderr: list[str] = Field(init=False, default=[])
 
-    def make_realization_builder__build_realization(self) -> None:
-        """Instantiate the RealizationBuilder class and build the realization."""
+    def make_realization_builder__build_realization(self, method: str) -> None:
+        """Instantiate the RealizationBuilder class and build the realization.
+        build_method_name must be a valid method of RealizationBuilder, e.g. 'build_fcst_realization' or 'build_calibration_realization'.
+        """
         try:
             self.rb = RealizationBuilder(**self.rb_kwargs)
-            self.rb.build_fcst_realization()
-            # self.rb.build_default_realization()
+            getattr(self.rb, method)()
         except Exception as e:
             print(
-                f"Caught unexpected exception in main thread while building realization: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
+                f"Caught unexpected exception in main thread while instantiating RealizationBuilder or calling method {method}: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
             )
             self.rb_excep = e
             self.rb_excep_tb = traceback.format_exc().splitlines()
@@ -183,6 +295,42 @@ class ForecastTest(BaseModel):
             self.rb_excep_msg = str(self.rb_excep)
             # Also set forecast execution to fail, since it can't run if realization failed to build
             self.fcst_exe_stat = TestStat.FAIL
+
+    def execute_calibration(self) -> None:
+        if self.rb_stat != TestStat.PASS:
+            raise RuntimeError(f"Cannot run calibration when realization did not build (self.rb_stat: {self.rb_stat})")
+
+        current_time = datetime.now(timezone.utc).strftime(r"%Y%m%d_%H%M%S")
+        calib_log_path_overwrite = os.path.join(self.rb.work_dir, "logs", f"calibration_{current_time}.log")
+        self.calib_log = LogParser(path=calib_log_path_overwrite)
+
+        print(f"Running calibration, will log to: {repr(self.calib_log.path)}")
+        cmd = [
+            "python",
+            "/ngen-app/bin/calibration.py",
+            str(self.rb.calib_config_file),
+            "--log_path_overwrite",
+            self.calib_log.path,
+        ]
+        print(f"Running command args: {cmd}")
+        proc = subprocess.run(cmd, check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            proc.check_returncode()
+        except Exception as e:
+            print(
+                f"Caught unexpected exception in main thread while executing calibration: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
+            )
+            self.fcst_exe_stat = TestStat.FAIL
+            self.fcst_exe_excep = e
+            self.fcst_exe_excep_tb = traceback.format_exc().splitlines()
+        else:
+            self.fcst_exe_stat = TestStat.PASS
+            self.fcst_exe_excep = None
+            self.fcst_exe_excep_tb = []
+        finally:
+            self.calib_proc_stderr = proc.stderr.splitlines()
+            if os.path.exists(self.calib_log.path):
+                self.calib_log.read_and_parse()
 
     def execute_forecast(
         self,
@@ -235,13 +383,13 @@ class ForecastTest(BaseModel):
 
         self.fcst_exe_excep = fcst_exe_excep
 
-        self.exe_output_log_path = self.fcst_exe_mgr.log_handle.name
+        self.exe_log = LogParser(path=self.fcst_exe_mgr.log_handle.name)
         self.read_logs()
 
         if self.fcst_exe_excep is None:
             self.fcst_exe_excep_type = None
             self.fcst_exe_excep_msg = None
-            if (not self.exe_output_log_fatal_lines) and (not self.ngen_log_fatal_lines):
+            if (not self.exe_log.fatal_lines) and (not self.ngen_log.fatal_lines):
                 self.fcst_exe_stat = TestStat.PASS
             else:
                 self.fcst_exe_stat = TestStat.FAIL
@@ -251,37 +399,8 @@ class ForecastTest(BaseModel):
             self.fcst_exe_stat = TestStat.FAIL
 
     def read_logs(self) -> None:
-        severe = "SEVERE"
-        critical = "CRITICAL"
-        fatal = "FATAL"
-
-        print(f"Reading: {self.exe_output_log_path}")
-        with open(self.exe_output_log_path, "r") as f:
-            self.exe_output_log_content = f.read()
-
-        self.exe_output_log_severe_lines.extend([l for l in self.exe_output_log_content.splitlines() if severe in l])
-        print(f"{len(self.exe_output_log_severe_lines)} {severe} lines in: {self.exe_output_log_path}")
-
-        self.exe_output_log_critical_lines.extend(
-            [l for l in self.exe_output_log_content.splitlines() if critical in l]
-        )
-        print(f"{len(self.exe_output_log_critical_lines)} {critical} lines in: {self.exe_output_log_path}")
-
-        self.exe_output_log_fatal_lines.extend([l for l in self.exe_output_log_content.splitlines() if fatal in l])
-        print(f"{len(self.exe_output_log_fatal_lines)} {fatal} lines in: {self.exe_output_log_path}")
-
-        print(f"Reading: {self.ngen_log_path}")
-        with open(self.ngen_log_path, "r") as f:
-            self.ngen_log_content = f.read()
-
-        self.ngen_log_severe_lines.extend([l for l in self.ngen_log_content.splitlines() if severe in l])
-        print(f"{len(self.ngen_log_severe_lines)} {severe} lines in: {self.ngen_log_path}")
-
-        self.ngen_log_critical_lines.extend([l for l in self.ngen_log_content.splitlines() if critical in l])
-        print(f"{len(self.ngen_log_critical_lines)} {critical} lines in: {self.ngen_log_path}")
-
-        self.ngen_log_fatal_lines.extend([l for l in self.ngen_log_content.splitlines() if fatal in l])
-        print(f"{len(self.ngen_log_fatal_lines)} {fatal} lines in: {self.ngen_log_path}")
+        self.exe_log.read_and_parse()
+        self.ngen_log.read_and_parse()
 
     def wait_for_duration(self, wait_duration_sec: float):
         start = time.perf_counter()
@@ -318,17 +437,15 @@ class ForecastTest(BaseModel):
     def infer_from_log__forcing_is_running(self) -> bool:
         """Read the log file and look for sentinel messages.
         If they exist, assume the forcing is running successfully and return True."""
-        if os.path.exists(self.ngen_log_path):
-            print(f"Reading: {self.ngen_log_path}")
-            with open(self.ngen_log_path, "r") as f:
-                log_content = f.read()
+        if os.path.exists(self.ngen_log.path):
+            self.ngen_log.read_and_parse()
         else:
-            print(f"Does not exist yet: {self.ngen_log_path}")
+            print(f"Does not exist yet: {self.ngen_log.path}")
             return False
         # TODO improve this and confirm that it works for types other than short_range
         if (
-            log_content.lower().count("processing forecast cycle") > 1
-            and log_content.lower().count("writing output forcing file for timestamp") > 0
+            self.ngen_log.content.lower().count("processing forecast cycle") > 1
+            and self.ngen_log.content.lower().count("writing output forcing file for timestamp") > 0
         ):
             return True
         else:
@@ -366,3 +483,12 @@ class TestsManager(BaseModel):
             rb_statcount=rb_statcount,
             fcst_exe_statcount=fcst_exe_statcount,
         )
+
+    def evaluate_test_results(self) -> None:
+        test_results_file = os.path.join(os.path.dirname(__file__), "forecast_tests_results.json")
+        msg = f"\n\n###### FORECAST TEST RESULTS ######\nWriting to: {test_results_file}\n{json.dumps(self.fcst_stat_sums, indent=2, default=pydantic_encoder)}"
+        print(msg)
+        with open(test_results_file, "w") as f:
+            f.write(json.dumps(self.forecast_tests, indent=2, default=pydantic_encoder))
+        if self.fcst_stat_sums.any_failed:
+            raise RuntimeError(self.fcst_stat_sums)

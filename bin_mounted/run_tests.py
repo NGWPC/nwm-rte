@@ -22,9 +22,11 @@ from nwm_fcst_mgr.forecast import run_fcst
 import utils_testing_setup
 from execution_tests import (
     TestStat,
+    LogParser,
     ForecastTest,
     TestsManager,
     get_test_configs__forecast,
+    get_test_configs__calibration,
     FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT,
     GAGE_ID,
     FORCING_PROVIDER,
@@ -58,11 +60,11 @@ TEST_DIR_OUTPUT = f"{TEST_DIR_BASE}/Output"
 TEST_NGEN_FORECAST_LOG_FILE = f"{TEST_DIR_OUTPUT}/Forecast_Run/{FORECAST_RUN_NAME}/logs/ngen.log"
 
 ### Read by build_calib_realization()
-CALIB_CONFIG_CONFIG = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_calibration_{FORCING_PROVIDER}.config"
-# CALIB_CONFIG_CONFIG = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_calibration_{FORCING_PROVIDER}_short.config"
+CALIB_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_calibration_{FORCING_PROVIDER}.config"
+# CALIB_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_calibration_{FORCING_PROVIDER}_short.config"
 
 ### Read by build_fcst_realization() for CS and for Forecast
-FORECAST_CONFIG = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_forecast.config"
+FORECAST_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_forecast.config"
 FORECAST_VALID_YAML = f"{TEST_DIR_OUTPUT}/Validation_Run/{GAGE_ID}_config_valid_best.yaml"
 
 
@@ -79,28 +81,47 @@ DEFAULT_FORECAST_CONFIG = InputConfig(
 )
 
 REALIZATION_KWARGS__COLDSTART = {
-    "input_path": FORECAST_CONFIG,  # From disk
+    "input_path": FORECAST_CONFIG_FILE,  # From disk
     "valid_yaml": FORECAST_VALID_YAML,
     "fcst_run_name": FORECAST_RUN_NAME,
 }
 
 
-def calibration__build_and_run() -> None:
-    """Build 1 calibration realization and run it."""
-    rb_calib = RealizationBuilder(CALIB_CONFIG_CONFIG)
-    rb_calib.load_config_apply_overrides()
-    print(f"Building calibration realization: {rb_calib.input_configs_class}")
-    rb_calib.build_calib_realization()
-    if not os.path.isfile(rb_calib.calib_config_file):
-        raise FileNotFoundError(rb_calib.calib_config_file)
-    print("Running calibration")
-    cmd = [
-        "python",
-        "/ngen-app/bin/calibration.py",
-        str(rb_calib.calib_config_file),
-    ]
-    print(f"Running command args: {cmd}")
-    subprocess.check_call(cmd)
+def calibrations__build_and_run(test_manager: TestsManager) -> None:
+    """Build calibration realizations and run them as tests."""
+
+    # """Build 1 calibration realization and run it."""
+    # rb_calib = RealizationBuilder(CALIB_CONFIG_FILE)
+    # rb_calib.load_config_apply_overrides()
+    # print(f"Building calibration realization: {rb_calib.input_configs_class}")
+    # rb_calib.build_calib_realization()
+    # if not os.path.isfile(rb_calib.calib_config_file):
+    #     raise FileNotFoundError(rb_calib.calib_config_file)
+    # print("Running calibration")
+    # cmd = [
+    #     "python",
+    #     "/ngen-app/bin/calibration.py",
+    #     str(rb_calib.calib_config_file),
+    # ]
+    # print(f"Running command args: {cmd}")
+    # subprocess.check_call(cmd)
+
+    for config_overrides in get_test_configs__calibration():
+        fc = config_overrides.Forcing.forcing_configuration
+        rb_kwargs = {"config_overrides": config_overrides}
+        print(f"\n\n##########\n### Calibration: {fc}: setting up test with rb_kwargs = {rb_kwargs}")
+        t = ForecastTest(rb_kwargs=rb_kwargs, ngen_log=LogParser(path=TEST_NGEN_FORECAST_LOG_FILE))
+
+        # Build the realization, trapping exceptions into class attrs
+        print(f"### {fc}: building realization")
+        t.make_realization_builder__build_realization(method="build_calib_realization")
+
+        if t.rb_stat == TestStat.PASS:
+            # Execute the realization via ngen, trapping exceptions and logs into class attrs
+            print(f"### {fc}: executing calibration realization")
+            t.execute_calibration()
+
+        test_manager.add_forecast_test(t)
 
 
 def build_coldstart_realization() -> RealizationBuilder:
@@ -154,17 +175,18 @@ def forecasts__build_and_run(
     for config_overrides in get_test_configs__forecast(do_all_forcing_configs):
         fc = config_overrides.Forcing.forcing_configuration
         rb_kwargs = {
-            # "input_path": FORECAST_CONFIG,
+            # "input_path": FORECAST_CONFIG_FILE,
             "valid_yaml": FORECAST_VALID_YAML,
             "fcst_run_name": FORECAST_RUN_NAME,
             "config_overrides": config_overrides,
         }
         print(f"\n\n##########\n### {fc}: setting up test with rb_kwargs = {rb_kwargs}")
-        t = ForecastTest(rb_kwargs=rb_kwargs, ngen_log_path=TEST_NGEN_FORECAST_LOG_FILE)
+
+        t = ForecastTest(rb_kwargs=rb_kwargs, ngen_log=LogParser(path=TEST_NGEN_FORECAST_LOG_FILE))
 
         # Build the realization, trapping exceptions into class attrs
         print(f"### {fc}: building realization")
-        t.make_realization_builder__build_realization()
+        t.make_realization_builder__build_realization(method="build_fcst_realization")
 
         if t.rb_stat == TestStat.PASS:
             # Execute the realization via ngen, trapping exceptions and logs into class attrs
@@ -199,7 +221,7 @@ def main(
             f"Cannot use skip_forecast={skip_forecast} and do_all_forcing_configs={do_all_forcing_configs}"
         )
     utils_testing_setup.assert_paths__core(GAGE_ID)
-    utils_testing_setup.assert_paths__raw_config(CALIB_CONFIG_CONFIG, FORECAST_CONFIG)
+    utils_testing_setup.assert_paths__raw_config(CALIB_CONFIG_FILE, FORECAST_CONFIG_FILE)
 
     # TODO pseudocode for now for states.
     state_manager = StateManager_Pseudo()
@@ -214,8 +236,7 @@ def main(
         utils_testing_setup.delete_files_to_force_esmf_and_netcdf_actions(GAGE_ID)
 
     if do_calibration:
-        # TODO implement test framework similar to forecast
-        calibration__build_and_run()
+        calibrations__build_and_run(tests_manager)
 
     if do_coldstart:
         # TODO implement test framework similar to forecast
@@ -229,14 +250,8 @@ def main(
             quit_forecast_after_forcing_running,
             quit_forecast_after_duration,
         )
-        status_sums = tests_manager.fcst_stat_sums
-        test_results_file = os.path.join(os.path.dirname(__file__), "forecast_tests_results.json")
-        msg = f"\n\n###### FORECAST TEST RESULTS ######\nWriting to: {test_results_file}\n{json.dumps(tests_manager.fcst_stat_sums, indent=2, default=pydantic_encoder)}"
-        print(msg)
-        with open(test_results_file, "w") as f:
-            f.write(json.dumps(tests_manager.forecast_tests, indent=2, default=pydantic_encoder))
-        if status_sums.any_failed:
-            raise RuntimeError(status_sums)
+
+    tests_manager.evaluate_test_results()
 
 
 if __name__ == "__main__":
