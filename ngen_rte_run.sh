@@ -40,7 +40,7 @@ function docker_run {
         -v "${RUN_NGEN_ROOT__HOST}/data/scratch:/ngen-app/data/scratch" \
         -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
         -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
-        \  # Mounts for region manager tests below
+        \
         -v "${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr:/ngen-app/nwm-region-mgr" \
         -v "${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr/sample_files:/sample_files" \
         -v "${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr/data:/data" \
