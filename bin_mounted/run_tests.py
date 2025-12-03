@@ -1,23 +1,8 @@
 import argparse
-import copy
-from datetime import datetime, timedelta
+from datetime import datetime
 import functools
-import json
-import os
-import subprocess
-import typing
 
-from pydantic.json import pydantic_encoder
-
-from mswm.build_inputs import RealizationBuilder
-from mswm.utils.input_configuration import (
-    InputConfig,
-    GeneralConfig,
-    ForcingConfig,
-)
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
-
-from nwm_fcst_mgr.forecast import run_fcst
 
 import utils_testing_setup
 from execution_tests import (
@@ -35,22 +20,10 @@ from execution_tests import (
     DEFAULT_MAIN_DIR,
     CALIB_OBJECTIVE_FUNCTION,
     CALIB_OPTIMIZATION_ALGO,
-    DT_START_FORECAST,
-    DT_START_COLDSTART,
-    DT_END_COLDSTART,
 )
 from pseudocode import SavedState_Pseudo, StateManager_Pseudo
 
 print = functools.partial(print, flush=True)
-
-
-# import logging
-# import sys
-# logging.basicConfig(
-#     level=logging.INFO,
-#     handler=logging.StreamHandler(sys.stdout),
-#     format="%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(message)s",
-# )
 
 
 TEST_DIR_BASE = f"{DEFAULT_MAIN_DIR}/{CALIB_OBJECTIVE_FUNCTION}_{CALIB_OPTIMIZATION_ALGO}/{FORMULATION_NAME}/{GAGE_ID}"
@@ -60,31 +33,12 @@ TEST_DIR_OUTPUT = f"{TEST_DIR_BASE}/Output"
 TEST_NGEN_FORECAST_LOG_FILE = f"{TEST_DIR_OUTPUT}/Forecast_Run/{FORECAST_RUN_NAME}/logs/ngen.log"
 
 ### Read by build_calib_realization()
-CALIB_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_calibration_{FORCING_PROVIDER}.config"
+# CALIB_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_calibration_{FORCING_PROVIDER}.config"
 # CALIB_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_calibration_{FORCING_PROVIDER}_short.config"
 
 ### Read by build_fcst_realization() for CS and for Forecast
-FORECAST_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_forecast.config"
+# FORECAST_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_forecast.config"
 FORECAST_VALID_YAML = f"{TEST_DIR_OUTPUT}/Validation_Run/{GAGE_ID}_config_valid_best.yaml"
-
-
-DEFAULT_FORECAST_CONFIG = InputConfig(
-    Forcing=ForcingConfig(
-        forcing_provider=FORCING_PROVIDER,
-        forcing_dir=None,
-        forcing_template_dir="/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/",
-        root_dir="/ngen-app/data",
-        forcing_configuration="short_range",
-        cycle_datetime=DT_START_FORECAST.strftime(DEFAULT_DATETIME_FORMAT),
-        cold_start_datetime=None,
-    )
-)
-
-REALIZATION_KWARGS__COLDSTART = {
-    "input_path": FORECAST_CONFIG_FILE,  # From disk
-    "valid_yaml": FORECAST_VALID_YAML,
-    "fcst_run_name": FORECAST_RUN_NAME,
-}
 
 
 def calibrations__build_and_run(test_manager: TestsManager) -> None:
@@ -97,7 +51,7 @@ def calibrations__build_and_run(test_manager: TestsManager) -> None:
 
         # Build the realization, trapping exceptions into class attrs
         print(f"### {fc}: building realization")
-        t.make_realization_builder__build_realization(method="build_calib_realization")
+        t.make_realization_builder__build_realization(build_method="build_calib_realization")
 
         if t.rb_stat == TestStat.PASS:
             # Execute the realization via ngen, trapping exceptions and logs into class attrs
@@ -107,54 +61,19 @@ def calibrations__build_and_run(test_manager: TestsManager) -> None:
         test_manager.add_forecast_test(t)
 
 
-def build_coldstart_realization() -> RealizationBuilder:
-    """Build 1 coldstart realization."""
-    rb_cs = RealizationBuilder(**REALIZATION_KWARGS__COLDSTART, use_cold_start=True)
-    # This can be called before the overrides (InputConfig instance) is defined, to load the .conf file first without overrides.
-    # Then overrides can be idiomatically defined by copying the valid config and replacing individual keys.
-    # This can be skipped if defining overrides (InputConfig instance) from scratch without relying on anything from .conf.
-    rb_cs.load_config_apply_overrides()
-
-    forcing_config_dict = copy.deepcopy(rb_cs.input_configs["Forcing"])
-    cs_overrides_dict = {
-        "forcing_configuration": "short_range",
-        "cold_start_datetime": DT_START_COLDSTART.strftime(DEFAULT_DATETIME_FORMAT),
-        "cycle_datetime": DT_END_COLDSTART.strftime(DEFAULT_DATETIME_FORMAT),
-    }
-    forcing_config_dict.update(cs_overrides_dict)
-    config_model = InputConfig(Forcing=ForcingConfig(**forcing_config_dict))
-    print(f"Building coldstart realization: {config_model}")
-    rb_cs.config_overrides = config_model
-    rb_cs.build_fcst_realization()
-    print(f"Wrote: {rb_cs.realization_file}")
-    return rb_cs
-
-
-def coldstart__build_and_run(state_manager: StateManager_Pseudo) -> None:
-    """Build 1 coldstart realization and run it."""
-    rb_cs = build_coldstart_realization()
-    print(f"Running coldstart realization: {rb_cs.input_configs_class.Forcing}")
-    run_fcst(valid_yaml=FORECAST_VALID_YAML, real_path=str(rb_cs.realization_file))
-    state_manager.add_saved_state(
-        SavedState_Pseudo(
-            dt=datetime.strptime(rb_cs.input_configs_class.Forcing.cycle_datetime, DEFAULT_DATETIME_FORMAT),
-            realization_file=rb_cs.realization_file,
-        )
-    )
-
-
 def forecasts__build_and_run(
     test_manager: TestsManager,
     state_manager: StateManager_Pseudo,
     do_all_forcing_configs: bool,
     quit_forecast_after_forcing_running: bool,
     quit_forecast_after_duration: float | None,
+    do_coldstart: bool,
 ) -> None:
     """
     Using ForecastTest, build and execute a list of forecast realizations.
     test_manager is modified in-place, so some test results may be available if this function is interrupted.
     """
-    test_configs = get_test_configs__forecast(do_all_forcing_configs)
+    test_configs = get_test_configs__forecast(do_all_forcing_configs, do_coldstart)
     for tc in test_configs:
         if quit_forecast_after_forcing_running and tc.Forcing.forcing_configuration != "short_range":
             raise NotImplementedError(
@@ -168,6 +87,7 @@ def forecasts__build_and_run(
             "valid_yaml": FORECAST_VALID_YAML,
             "fcst_run_name": FORECAST_RUN_NAME,
             "config_overrides": config_overrides,
+            "use_cold_start": do_coldstart,
         }
         print(f"\n\n##########\n### {fc}: setting up test with rb_kwargs = {rb_kwargs}")
 
@@ -175,7 +95,7 @@ def forecasts__build_and_run(
 
         # Build the realization, trapping exceptions into class attrs
         print(f"### {fc}: building realization")
-        t.make_realization_builder__build_realization(method="build_fcst_realization")
+        t.make_realization_builder__build_realization(build_method="build_fcst_realization")
 
         if t.rb_stat == TestStat.PASS:
             # Execute the realization via ngen, trapping exceptions and logs into class attrs
@@ -202,15 +122,19 @@ def main(
     quit_forecast_after_forcing_running: bool,
     quit_forecast_after_duration: float | None,
     do_calibration: bool,
-    do_coldstart: bool,
     do_all_forcing_configs: bool,
+    do_coldstart: bool,
 ):
-    if skip_forecast and do_all_forcing_configs:
-        raise ValueError(
-            f"Cannot use skip_forecast={skip_forecast} and do_all_forcing_configs={do_all_forcing_configs}"
-        )
+    if skip_forecast:
+        if do_all_forcing_configs:
+            raise ValueError(
+                f"Cannot use skip_forecast={skip_forecast} and do_all_forcing_configs={do_all_forcing_configs}"
+            )
+        if do_coldstart:
+            raise ValueError(f"Cannot use skip_forecast={skip_forecast} and do_coldstart={do_coldstart}")
+
     utils_testing_setup.assert_paths__core(GAGE_ID)
-    utils_testing_setup.assert_paths__raw_config(CALIB_CONFIG_FILE, FORECAST_CONFIG_FILE)
+    # utils_testing_setup.assert_paths__raw_config(CALIB_CONFIG_FILE, FORECAST_CONFIG_FILE)
 
     # TODO pseudocode for now for states.
     state_manager = StateManager_Pseudo()
@@ -227,10 +151,6 @@ def main(
     if do_calibration:
         calibrations__build_and_run(tests_manager)
 
-    if do_coldstart:
-        # TODO implement test framework similar to forecast
-        coldstart__build_and_run(state_manager)
-
     if not skip_forecast:
         forecasts__build_and_run(
             tests_manager,
@@ -238,6 +158,7 @@ def main(
             do_all_forcing_configs,
             quit_forecast_after_forcing_running,
             quit_forecast_after_duration,
+            do_coldstart,
         )
 
     tests_manager.evaluate_test_results()
@@ -253,7 +174,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--skip_forecast",
         action="store_true",
-        help=f"Skip building and running forecasts. Incompatible with --do_all_forcing_configs.",
+        help=f"Skip building and running forecasts. Incompatible with --do_all_forcing_configs and --do_coldstart",
     )
     parser.add_argument(
         "--quit_forecast_after_forcing_running",
@@ -272,14 +193,14 @@ if __name__ == "__main__":
         help="Build and run calibration before forecasts",
     )
     parser.add_argument(
-        "--do_coldstart",
-        action="store_true",
-        help="Build and run coldstart before forecasts",
-    )
-    parser.add_argument(
         "--do_all_forcing_configs",
         action="store_true",
         help=f"Run all forcing configurations rather than the default shorter default list. Default list: {FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT}. Incompatible with --skip_forecast.",
+    )
+    parser.add_argument(
+        "--do_coldstart",
+        action="store_true",
+        help="Causes use_cold_start to be True for all forecasts",
     )
     args = parser.parse_args()
     print(f"args: {args}")

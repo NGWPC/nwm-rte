@@ -164,9 +164,15 @@ def get_test_configs__calibration() -> list[InputConfig]:
     return configs
 
 
-def get_test_configs__forecast(do_all_forcing_configs: bool) -> list[InputConfig]:
-    # TODO add coldstart option here
+def get_test_configs__forecast(do_all_forcing_configs: bool, use_cold_start: bool = False) -> list[InputConfig]:
     configs: list[InputConfig] = []
+
+    if use_cold_start:
+        cold_start_datetime = DT_START_COLDSTART.strftime(DEFAULT_DATETIME_FORMAT)
+        cycle_datetime = DT_END_COLDSTART.strftime(DEFAULT_DATETIME_FORMAT)
+    else:
+        cold_start_datetime = None
+        cycle_datetime = DT_START_FORECAST.strftime(DEFAULT_DATETIME_FORMAT)
 
     if do_all_forcing_configs:
         forcing_config_types = FORECAST_FORCING_CONFIGURATION_TYPES__ALL
@@ -181,8 +187,8 @@ def get_test_configs__forecast(do_all_forcing_configs: bool) -> list[InputConfig
             forcing_template_dir=FORCING_TEMPLATE_DIR,
             root_dir=FORCING_ROOT_DIR,
             forcing_configuration=fct,
-            cycle_datetime=DT_START_FORECAST.strftime(DEFAULT_DATETIME_FORMAT),
-            cold_start_datetime=None,
+            cycle_datetime=cycle_datetime,
+            cold_start_datetime=cold_start_datetime,
         )
 
         configs.append(InputConfig(General=general, Forcing=forcing))
@@ -228,7 +234,6 @@ class ForecastTest(BaseModel):
     """
     Required attributes:
         rb_kwargs: dict
-        ngen_log: LogParser
 
     # TODO also catch exceptions that happen during ForecastExecutionManager.preprocess
     # TODO is `ngen_log` different for standard_ana than for short_range?
@@ -273,16 +278,16 @@ class ForecastTest(BaseModel):
     # Stderr lines of the subprocess call to calibration.py.
     calib_proc_stderr: list[str] = Field(init=False, default=[])
 
-    def make_realization_builder__build_realization(self, method: str) -> None:
+    def make_realization_builder__build_realization(self, build_method: str) -> None:
         """Instantiate the RealizationBuilder class and build the realization.
-        build_method_name must be a valid method of RealizationBuilder, e.g. 'build_fcst_realization' or 'build_calibration_realization'.
+        build_method must be a valid build_method of RealizationBuilder, e.g. 'build_fcst_realization' or 'build_calibration_realization'.
         """
         try:
             self.rb = RealizationBuilder(**self.rb_kwargs)
-            getattr(self.rb, method)()
+            getattr(self.rb, build_method)()
         except Exception as e:
             print(
-                f"Caught unexpected exception in main thread while instantiating RealizationBuilder or calling method {method}: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
+                f"Caught unexpected exception in main thread while instantiating RealizationBuilder or calling method {repr(build_method)}: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
             )
             self.rb_excep = e
             self.rb_excep_tb = traceback.format_exc().splitlines()
