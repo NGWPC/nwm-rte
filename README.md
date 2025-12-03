@@ -74,10 +74,11 @@ time ./ngen_rte_build.sh
 6. Run an example workflow
 
 ```shell
-# This starts an ephemeral container of the ngen RTE image and runs an example workflow script (runs forecast).
+# This starts an ephemeral container of the ngen RTE image and runs a test workflow script (runs calibrations and forecasts).
 # Be ready to supply sudo password if prompted.
-# See CLI args in the example workflow script for details on behavior.
+# See CLI args in the example workflow script for details on behavior, and alternate test modes.
 # Different ways of calling the example workflow script are provided as commented-out lines near the bottom of ngen_rte_run.sh
+# After setting up RTE, the first run must be a calibration, to produce some files that are used by forecasts. After the first calibration run, subsequent forecasts can be ran without needing to re-run calibration.
 time ./ngen_rte_run.sh
 ```
 
