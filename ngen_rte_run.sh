@@ -40,6 +40,10 @@ function docker_run {
         -v "${RUN_NGEN_ROOT__HOST}/data/scratch:/ngen-app/data/scratch" \
         -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
         -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
+        \  # Mounts for region manager tests below
+        -v "${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr:/ngen-app/nwm-region-mgr" \
+        -v "${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr/sample_files:/sample_files" \
+        -v "${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr/data:/data" \
         \
         --rm ${TARGET_IMAGE_NAME} $*
 }
@@ -47,8 +51,15 @@ function docker_run {
         # --rm ${TARGET_IMAGE_NAME} $*
 
 # docker_run
-docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
+docker_run "/ngen-app/bin/bin_mounted/run_regionalization.py" --help
+# docker_run "/ngen-app/bin/bin_mounted/run_regionalization.py" --parreg
+# docker_run "/ngen-app/bin/bin_mounted/run_regionalization.py" --formreg
+# docker_run "/ngen-app/bin/bin_mounted/run_regionalization.py" --ngen
+# docker_run "/ngen-app/bin/bin_mounted/run_regionalization.py" --eval
+
+# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py"
+# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --delete_scratch_and_mesh_first
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_coldstart
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_forcing_running
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_duration 15

@@ -40,7 +40,9 @@ S3_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/s3"
 NGEN_SOURCE_MODE="ghcr"
 ## Only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.
 # NGEN_BASE__REMOTE_GHCR_TAG="latest"
-NGEN_BASE__REMOTE_GHCR_TAG="d4747379b977"
+# NGEN_BASE__REMOTE_GHCR_TAG="d4747379b977"
+# NGEN_BASE__REMOTE_GHCR_TAG="e407705f7c1f"
+NGEN_BASE__REMOTE_GHCR_TAG="pr-82-build"
 
 # NGEN_SOURCE_MODE="existing_local_tag"
 ## Only used when ngen image source mode is "existing_local_tag". Choose any existing local image tag.
@@ -69,7 +71,7 @@ COMPONENT__FCST_MGR__REMOTE_REPO_TAG="development"
 ##### Package: Model Setup Workflow Manager
 ### Only used when sourcing mswm from GitHub
 # COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
-COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
+COMPONENT__MSW_MGR__REMOTE_REPO_TAG="idt-remove-ueb-start-advance"
 
 ##### Package: Calibration Manager
 ### Only used when sourcing calibration manager from GitHub
@@ -78,6 +80,7 @@ COMPONENT__CAL_MGR__REMOTE_REPO_TAG="maxkipp-ngwpc-9054-workflow-automation"
 ##### Package: Region Manager
 ### Only used when sourcing region manager from GitHub
 COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
+# COMPONENT__REGION_MGR__REMOTE_REPO_TAG="yliu_test_old_image"
 
 ##### Package: Verification
 ### Only used when sourcing verification manager from GitHub
