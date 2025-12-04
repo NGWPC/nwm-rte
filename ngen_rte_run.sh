@@ -24,6 +24,10 @@ set -x
 
 source config.bashrc
 
+# Default to fcst_run1
+fcst_run_name=${1:-"fcst_run1"}
+
+
     # time sudo docker run --entrypoint python \
     # time sudo docker run --entrypoint /bin/sh -it \
 function docker_run {
@@ -41,15 +45,14 @@ function docker_run {
         -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
         -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
         \
-        --rm ${TARGET_IMAGE_NAME} $*
+        --rm ${TARGET_IMAGE_NAME} $* --fcst_run_name ${fcst_run_name}
 }
         # --rm ${TARGET_IMAGE_NAME}
-        # --rm ${TARGET_IMAGE_NAME} $*
+        # --rm ${TARGET_IMAGE_NAME} $* --fcst_run_name ${fcst_run_name}
 
 # docker_run
 docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py"
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --fcst_run_name fcst_run2
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_coldstart
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_forcing_running
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_duration 15

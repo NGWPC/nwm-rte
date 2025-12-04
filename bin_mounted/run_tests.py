@@ -129,6 +129,8 @@ def main(
     do_coldstart: bool,
     fcst_run_name: str,
 ):
+    if not fcst_run_name.strip():
+        raise ValueError(f"Empty fcst_run_name: {repr(fcst_run_name)}")
     if skip_forecast:
         if do_all_forcing_configs:
             raise ValueError(
