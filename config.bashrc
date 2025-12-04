@@ -42,7 +42,8 @@ NGEN_SOURCE_MODE="ghcr"
 # NGEN_BASE__REMOTE_GHCR_TAG="latest"
 # NGEN_BASE__REMOTE_GHCR_TAG="d4747379b977"
 # NGEN_BASE__REMOTE_GHCR_TAG="e407705f7c1f"
-NGEN_BASE__REMOTE_GHCR_TAG="pr-82-build"
+# NGEN_BASE__REMOTE_GHCR_TAG="pr-82-build"
+NGEN_BASE__REMOTE_GHCR_TAG="pr-91-build"
 
 # NGEN_SOURCE_MODE="existing_local_tag"
 ## Only used when ngen image source mode is "existing_local_tag". Choose any existing local image tag.
