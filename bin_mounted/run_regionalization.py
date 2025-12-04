@@ -4,8 +4,6 @@ import os
 import subprocess
 import sys
 
-from pydantic import validate_call
-
 
 print = functools.partial(print, flush=True)
 
@@ -14,9 +12,9 @@ EVAL_VERF_PYTHON_BINARY = "/ngen-app/venvs/eval_verf/bin/python"
 
 REG_REPO_ROOT = "/ngen-app/nwm-region-mgr"
 REG_SAMPLE_CONFIGS = f"{REG_REPO_ROOT}/sample_files/configs"
+VERF_DATA = "/ngen-app/nwm-verf/data"
 
 
-@validate_call
 def run_cmd(cmd: list[str], check: bool = True, cwd: str = None, shell: bool = False):
     if shell:
         cmd = " ".join(cmd)
@@ -55,7 +53,7 @@ def main(parreg: bool, formreg: bool, ngen: bool, run_eval: bool):
             "--config_ngen",
             f"{REG_SAMPLE_CONFIGS}/config_ngen.yaml",
         ]
-        # TODO remove the ulimit settings after ngen #90 has been merged
+        # TODO remove the ulimit settings eventually when not needed
         ulimit_extras = ["ulimit", "-n", "60000", "&&"]
         cmd = ulimit_extras + cmd
         run_cmd(
@@ -73,7 +71,6 @@ def main(parreg: bool, formreg: bool, ngen: bool, run_eval: bool):
                 "nwm.verf",
                 f"{REG_SAMPLE_CONFIGS}/config_eval.yaml",
             ],
-            cwd=REG_REPO_ROOT,
             shell=True,
         )
 
@@ -90,5 +87,6 @@ if __name__ == "__main__":
 
     assert os.path.exists(REG_REPO_ROOT)
     assert os.path.exists(REG_SAMPLE_CONFIGS)
+    assert os.path.exists(VERF_DATA)
 
     main(**vars(args))
