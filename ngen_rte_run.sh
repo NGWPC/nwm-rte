@@ -44,6 +44,7 @@ function docker_run {
         -v "${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr:/ngen-app/nwm-region-mgr" \
         -v "${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr/sample_files:/sample_files" \
         -v "${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr/data:/data" \
+        -v "${REPOS_COMMON_ROOT__HOST}/nwm-verf/data:/ngen-app/nwm-verf/data" \
         \
         --rm ${TARGET_IMAGE_NAME} $*
 }
