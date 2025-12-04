@@ -23,7 +23,7 @@ print = functools.partial(print, flush=True)
 
 
 ### .config section [Forcing]
-FORECAST_RUN_NAME = "fcst_run1"
+DEFAULT_FORECAST_RUN_NAME = "fcst_run1"
 
 # FORCING_PROVIDER = "csv"
 # FORCING_DIR =

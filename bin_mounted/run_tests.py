@@ -15,7 +15,7 @@ from execution_tests import (
     FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT,
     GAGE_ID,
     FORCING_PROVIDER,
-    FORECAST_RUN_NAME,
+    DEFAULT_FORECAST_RUN_NAME,
     FORMULATION_NAME,
     DEFAULT_MAIN_DIR,
     CALIB_OBJECTIVE_FUNCTION,
@@ -30,7 +30,6 @@ TEST_DIR_BASE = f"{DEFAULT_MAIN_DIR}/{CALIB_OBJECTIVE_FUNCTION}_{CALIB_OPTIMIZAT
 # TEST_DIR_INPUT = f"{TEST_DIR_BASE}/Input"
 TEST_DIR_OUTPUT = f"{TEST_DIR_BASE}/Output"
 # TEST_NGEN_LOG_FILE = f"{TEST_DIR_BASE}/logs/ngen.log"
-TEST_NGEN_FORECAST_LOG_FILE = f"{TEST_DIR_OUTPUT}/Forecast_Run/{FORECAST_RUN_NAME}/logs/ngen.log"
 
 ### Read by build_calib_realization()
 # CALIB_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_calibration_{FORCING_PROVIDER}.config"
@@ -68,6 +67,7 @@ def forecasts__build_and_run(
     quit_forecast_after_forcing_running: bool,
     quit_forecast_after_duration: float | None,
     do_coldstart: bool,
+    fcst_run_name: str,
 ) -> None:
     """
     Using ForecastTest, build and execute a list of forecast realizations.
@@ -85,13 +85,16 @@ def forecasts__build_and_run(
         rb_kwargs = {
             # "input_path": FORECAST_CONFIG_FILE,
             "valid_yaml": FORECAST_VALID_YAML,
-            "fcst_run_name": FORECAST_RUN_NAME,
+            "fcst_run_name": fcst_run_name,
             "config_overrides": config_overrides,
             "use_cold_start": do_coldstart,
         }
         print(f"\n\n##########\n### {fc}: setting up test with rb_kwargs = {rb_kwargs}")
 
-        t = ForecastTest(rb_kwargs=rb_kwargs, ngen_log=LogParser(path=TEST_NGEN_FORECAST_LOG_FILE))
+        t = ForecastTest(
+            rb_kwargs=rb_kwargs,
+            ngen_log=LogParser(path=f"{TEST_DIR_OUTPUT}/Forecast_Run/{fcst_run_name}/logs/ngen.log"),
+        )
 
         # Build the realization, trapping exceptions into class attrs
         print(f"### {fc}: building realization")
@@ -124,6 +127,7 @@ def main(
     do_calibration: bool,
     do_all_forcing_configs: bool,
     do_coldstart: bool,
+    fcst_run_name: str,
 ):
     if skip_forecast:
         if do_all_forcing_configs:
@@ -159,6 +163,7 @@ def main(
             quit_forecast_after_forcing_running,
             quit_forecast_after_duration,
             do_coldstart,
+            fcst_run_name,
         )
 
     tests_manager.evaluate_test_results()
@@ -201,6 +206,12 @@ if __name__ == "__main__":
         "--do_coldstart",
         action="store_true",
         help="Causes use_cold_start to be True for all forecasts",
+    )
+    parser.add_argument(
+        "--fcst_run_name",
+        type=str,
+        default=DEFAULT_FORECAST_RUN_NAME,
+        help=f"Replaces default value for fcst_run_name ({repr(DEFAULT_FORECAST_RUN_NAME)})",
     )
     args = parser.parse_args()
     print(f"args: {args}")

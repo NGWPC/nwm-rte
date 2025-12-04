@@ -49,6 +49,7 @@ function docker_run {
 # docker_run
 docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py"
+# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --fcst_run_name fcst_run2
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_coldstart
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_forcing_running
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_duration 15
