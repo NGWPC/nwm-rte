@@ -45,10 +45,10 @@ function docker_run {
         -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
         -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
         \
-        --rm ${TARGET_IMAGE_NAME} $* --fcst_run_name "${fcst_run_name}"
+        --rm ${TARGET_IMAGE_NAME} "$@" --fcst_run_name "${fcst_run_name}"
 }
         # --rm ${TARGET_IMAGE_NAME}
-        # --rm ${TARGET_IMAGE_NAME} $* --fcst_run_name "${fcst_run_name}"
+        # --rm ${TARGET_IMAGE_NAME} "$@" --fcst_run_name "${fcst_run_name}"
 
 # docker_run
 docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
