@@ -20,6 +20,8 @@ from execution_tests import (
     DEFAULT_MAIN_DIR,
     CALIB_OBJECTIVE_FUNCTION,
     CALIB_OPTIMIZATION_ALGO,
+    DEFAULT_NPROCS,
+    make_parallel_config,
 )
 from pseudocode import SavedState_Pseudo, StateManager_Pseudo
 
@@ -40,9 +42,9 @@ TEST_DIR_OUTPUT = f"{TEST_DIR_BASE}/Output"
 FORECAST_VALID_YAML = f"{TEST_DIR_OUTPUT}/Validation_Run/{GAGE_ID}_config_valid_best.yaml"
 
 
-def calibrations__build_and_run(test_manager: TestsManager) -> None:
+def calibrations__build_and_run(test_manager: TestsManager, nprocs: int) -> None:
     """Build calibration realizations and run them as tests."""
-    for config_overrides in get_test_configs__calibration():
+    for config_overrides in get_test_configs__calibration(nprocs=nprocs):
         fc = config_overrides.Forcing.forcing_configuration
         rb_kwargs = {"config_overrides": config_overrides}
         print(f"\n\n##########\n### Calibration: {fc}: setting up test with rb_kwargs = {rb_kwargs}")
@@ -68,6 +70,7 @@ def forecasts__build_and_run(
     quit_forecast_after_duration: float | None,
     do_coldstart: bool,
     fcst_run_name: str,
+    # nprocs: int,
 ) -> None:
     """
     Using ForecastTest, build and execute a list of forecast realizations.
@@ -128,6 +131,7 @@ def main(
     do_all_forcing_configs: bool,
     do_coldstart: bool,
     fcst_run_name: str,
+    nprocs: int,
 ):
     if not fcst_run_name.strip():
         raise ValueError(f"Empty fcst_run_name: {repr(fcst_run_name)}")
@@ -155,7 +159,7 @@ def main(
         utils_testing_setup.delete_files_to_force_esmf_and_netcdf_actions(GAGE_ID)
 
     if do_calibration:
-        calibrations__build_and_run(tests_manager)
+        calibrations__build_and_run(tests_manager, nprocs)
 
     if not skip_forecast:
         forecasts__build_and_run(
@@ -166,6 +170,7 @@ def main(
             quit_forecast_after_duration,
             do_coldstart,
             fcst_run_name,
+            # nprocs,
         )
 
     tests_manager.evaluate_test_results()
@@ -214,6 +219,16 @@ if __name__ == "__main__":
         type=str,
         default=DEFAULT_FORECAST_RUN_NAME,
         help=f"Replaces default value for fcst_run_name ({repr(DEFAULT_FORECAST_RUN_NAME)})",
+    )
+    parser.add_argument(
+        "--nprocs",
+        type=int,
+        default=DEFAULT_NPROCS,
+        help=f"""
+Currently only affects Calibration. Replaces default value for nprocs ({repr(DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance.
+When nprocs is 1, Calibration's ParallelConfig is: {make_parallel_config(nprocs=1)}.
+When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(nprocs=2)}
+""",
     )
     args = parser.parse_args()
     print(f"args: {args}")

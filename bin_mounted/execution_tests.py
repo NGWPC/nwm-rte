@@ -12,7 +12,14 @@ from pydantic import BaseModel, Field, ConfigDict, validate_call
 from pydantic.json import pydantic_encoder
 
 from mswm.build_inputs import RealizationBuilder
-from mswm.utils.input_configuration import InputConfig, GeneralConfig, CalibConfig, ForcingConfig, DataFileConfig
+from mswm.utils.input_configuration import (
+    InputConfig,
+    GeneralConfig,
+    CalibConfig,
+    ForcingConfig,
+    DataFileConfig,
+    ParallelConfig,
+)
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
 from nwm_fcst_mgr.forecast import ForecastExecutionManager, RunStatus
@@ -62,9 +69,14 @@ NGEN_DIR = "/ngen-app/ngen"
 HYDROFABRIC_DIR = "/s3/ngwpc-hydrofabric"
 
 
+### .config section [Parallel]
+DEFAULT_NPROCS = 1
+
+
 ### Test settings
 ### See this for full list of forcing configuration types: mswm.utils.input_configuration.mswm_valid_configs
 FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range", "standard_ana", "medium_range_blend"]
+# FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range"]
 FORECAST_FORCING_CONFIGURATION_TYPES__ALL = [
     # "aorc",   # Calibration only
     # "nwm",    # Calibration only
@@ -92,7 +104,19 @@ CALIB_FORCING_CONFIGURATION_TYPES = [
 ]
 
 
-def get_test_configs__calibration() -> list[InputConfig]:
+def make_parallel_config(nprocs: int) -> ParallelConfig:
+    if nprocs and nprocs > 1:
+        parallel = ParallelConfig(
+            parallel_ngen_exe="/ngen-app/ngen/cmake_build/ngen",
+            partition_generator_exe="/ngen-app/ngen/cmake_build/partitionGenerator",
+            nprocs=nprocs,
+        )
+    else:
+        parallel = ParallelConfig(nprocs=nprocs)
+    return parallel
+
+
+def get_test_configs__calibration(nprocs: int = DEFAULT_NPROCS) -> list[InputConfig]:
     configs: list[InputConfig] = []
 
     forcing_config_types = CALIB_FORCING_CONFIGURATION_TYPES
@@ -159,12 +183,19 @@ def get_test_configs__calibration() -> list[InputConfig]:
             topmodel_lib=f"{NGEN_DIR}/extern/topmodel/cmake_build/libtopmodelbmi.so",
             ueb_lib=f"{NGEN_DIR}/extern/ueb-bmi/cmake_build/src/libbmiuebcxx.so",
         )
-        configs.append(InputConfig(General=general, Calibration=calibration, Forcing=forcing, DataFile=datafile))
+        parallel = make_parallel_config(nprocs)
+        configs.append(
+            InputConfig(General=general, Calibration=calibration, Forcing=forcing, DataFile=datafile, Parallel=parallel)
+        )
 
     return configs
 
 
-def get_test_configs__forecast(do_all_forcing_configs: bool, use_cold_start: bool = False) -> list[InputConfig]:
+def get_test_configs__forecast(
+    do_all_forcing_configs: bool,
+    use_cold_start: bool = False,
+    # nprocs: int = DEFAULT_NPROCS,
+) -> list[InputConfig]:
     configs: list[InputConfig] = []
 
     if use_cold_start:
@@ -190,8 +221,9 @@ def get_test_configs__forecast(do_all_forcing_configs: bool, use_cold_start: boo
             cycle_datetime=cycle_datetime,
             cold_start_datetime=cold_start_datetime,
         )
-
-        configs.append(InputConfig(General=general, Forcing=forcing))
+        # parallel = make_parallel_config(nprocs)  # TODO adjust forecast manager to use this
+        parallel = None
+        configs.append(InputConfig(General=general, Forcing=forcing, Parallel=parallel))
 
     return configs
 
