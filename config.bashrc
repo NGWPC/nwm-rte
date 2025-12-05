@@ -69,7 +69,7 @@ COMPONENT__FCST_MGR__REMOTE_REPO_TAG="development"
 ##### Package: Model Setup Workflow Manager
 ### Only used when sourcing mswm from GitHub
 # COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
-COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
+COMPONENT__MSW_MGR__REMOTE_REPO_TAG="maxkipp-ngwpc-9054-workflow-automation"
 
 ##### Package: Calibration Manager
 ### Only used when sourcing calibration manager from GitHub

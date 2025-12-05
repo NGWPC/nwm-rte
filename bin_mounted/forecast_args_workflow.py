@@ -22,6 +22,8 @@ from mswm.utils import settings as mswm_settings
 
 from nwm_fcst_mgr.forecast import run_fcst
 
+from execution_tests import DEFAULT_NPROCS, DEFAULT_FORECAST_RUN_NAME, make_parallel_config
+
 print = functools.partial(print, flush=True)
 
 # import logging
@@ -46,6 +48,7 @@ class ForecastVars:
     coldstart_end: Optional[str]
     forecast_initial_cycle_datetime: Optional[str]
     forcing_configuration: Optional[str] = None
+    nprocs: Optional[int] = DEFAULT_NPROCS
 
     # Derived paths (not passed to __init__)
     run_dir_base: str = field(init=False)
@@ -86,7 +89,7 @@ def set_vars(options) -> ForecastVars:
     """
     return ForecastVars(
         gage_id=options.gage or "01123000",
-        fcst_run_name="fcst_run1",
+        fcst_run_name=options.fcst_run_name,
         formulation_suffix=options.forcing_provider or "bmi",
         coldstart_start=options.cold_start_datetime,
         coldstart_end=options.cycle_datetime if options.cold_start_datetime else None,
@@ -95,7 +98,8 @@ def set_vars(options) -> ForecastVars:
         root_dir = "/ngen-app/data",
         calib_input_config = "/ngen-app/data/configs/rte_cal_input_bmi.config",
         forecast_input_config = "/ngen-app/data/configs/forecast_input.config",
-        forecast_rounds = 1
+        forecast_rounds = 1,
+        nprocs=options.nprocs,
     )
 
 def create_kwargs(forecast_vars) -> dict:
@@ -122,6 +126,7 @@ def create_kwargs(forecast_vars) -> dict:
 def calibration__build_and_run(forecast_vars) -> None:
     print("Building calibration realization")
     rb_calib = RealizationBuilder(forecast_vars.calib_input_config)
+    rb_calib.config_overrides = InputConfig(Parallel=make_parallel_config(nprocs=forecast_vars.nprocs))
     rb_calib.build_calib_realization()
     #assert_paths_common_input()
     if not os.path.isfile(rb_calib.calib_config_file):
@@ -192,6 +197,22 @@ def get_options(args_list=None):
     parser.add_argument('-forcing_configuration',
                         type=str,
                         help="Forcing configuration to use, e.g., 'short_range', 'standard_ana', etc.")
+    parser.add_argument(
+        "--fcst_run_name",
+        type=str,
+        default=DEFAULT_FORECAST_RUN_NAME,
+        help=f"Replaces default value for fcst_run_name ({repr(DEFAULT_FORECAST_RUN_NAME)})",
+    )
+    parser.add_argument(
+        "-n", "--nprocs",
+        type=int,
+        default=DEFAULT_NPROCS,
+        help=f"""
+Currently only affects Calibration. Replaces default value for nprocs ({repr(DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance.
+When nprocs is 1, Calibration's ParallelConfig is: {make_parallel_config(nprocs=1)}.
+When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(nprocs=2)}
+""",
+    ),
 
     if args_list is not None:
         return parser.parse_args(args_list)
