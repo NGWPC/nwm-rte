@@ -40,3 +40,6 @@ docs/
 # Docker-related files (often not needed in the build context)
 Dockerfile
 docker-compose.yml
+
+# Region manager input data
+nwm-region-mgr/data/

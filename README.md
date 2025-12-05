@@ -48,7 +48,15 @@ git checkout poc
 
 3. Review [config.bashrc](config.bashrc), edit variables as needed, in particular: `REPOS_COMMON_ROOT__HOST`, `NGEN_SOURCE_MODE`, `NGEN_BASE__REMOTE_GHCR_TAG`, and the branch choices for the various manager packages.
 
-4. Download data and clone other repos
+4. Clone other repos
+
+```shell
+# This clones repos. It will not alter the state of existing repos on your disk (for each clone, it skips if the folder already exists on disk).
+# Be ready to provide git credentials several times if prompted.
+time ./setup_clone_repos.sh
+```
+
+5. Download data
 
 ```shell
 # This downloads data.
@@ -57,12 +65,11 @@ time ./setup_data.sh
 ```
 
 ```shell
-# This clones repos. It will not alter the state of existing repos on your disk (for each clone, it skips if the folder already exists on disk).
-# Be ready to provide git credentials several times if prompted.
-time ./setup_clone_repos.sh
+# OPTIONAL: `setup_data.sh` can take an optional named argument (`-r`) to download regionalization data
+time ./setup_data.sh -r
 ```
 
-5. Build the Docker image
+6. Build the Docker image
 
 ```shell
 # This builds a local Docker image of ngen RTE, containing ngen base + manager (component) packages.
@@ -71,7 +78,7 @@ time ./setup_clone_repos.sh
 time ./ngen_rte_build.sh
 ```
 
-6. Run an example workflow
+7. Run an example workflow
 
 ```shell
 # This starts an ephemeral container of the ngen RTE image and runs a test workflow script (runs calibrations and forecasts).

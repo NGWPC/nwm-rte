@@ -13,8 +13,7 @@ print = functools.partial(print, flush=True)
 EVAL_VERF_PYTHON_BINARY = "/ngen-app/venvs/eval_verf/bin/python"
 
 REG_REPO_ROOT = "/ngen-app/nwm-region-mgr"
-REG_SAMPLE_CONFIGS = f"{REG_REPO_ROOT}/sample_files/configs"
-
+REG_CONFIGS = f"{REG_REPO_ROOT}/configs"
 
 @validate_call
 def run_cmd(cmd: list[str], check: bool = True, cwd: str = None, shell: bool = False):
@@ -31,7 +30,7 @@ def main(parreg: bool, formreg: bool, ngen: bool, run_eval: bool):
             cmd=[
                 "python",
                 f"{REG_REPO_ROOT}/regionalization.py",
-                REG_SAMPLE_CONFIGS,
+                REG_CONFIGS,
             ],
             cwd=REG_REPO_ROOT,
         )
@@ -42,8 +41,8 @@ def main(parreg: bool, formreg: bool, ngen: bool, run_eval: bool):
             cmd=[
                 "python",
                 f"{REG_REPO_ROOT}/run_formreg.py",
-                f"{REG_SAMPLE_CONFIGS}/config_general.yaml",
-                f"{REG_SAMPLE_CONFIGS}/config_formreg.yaml",
+                f"{REG_CONFIGS}/config_general.yaml",
+                f"{REG_CONFIGS}/config_formreg.yaml",
             ],
             cwd=REG_REPO_ROOT,
         )
@@ -53,7 +52,7 @@ def main(parreg: bool, formreg: bool, ngen: bool, run_eval: bool):
             "python",
             f"{REG_REPO_ROOT}/run_ngen_vpu_docker.py",
             "--config_ngen",
-            f"{REG_SAMPLE_CONFIGS}/config_ngen.yaml",
+            f"{REG_CONFIGS}/config_ngen.yaml",
         ]
         # TODO remove the ulimit settings after ngen #90 has been merged
         ulimit_extras = ["ulimit", "-n", "60000", "&&"]
@@ -71,7 +70,7 @@ def main(parreg: bool, formreg: bool, ngen: bool, run_eval: bool):
                 EVAL_VERF_PYTHON_BINARY,
                 "-um",
                 "nwm.verf",
-                f"{REG_SAMPLE_CONFIGS}/config_eval.yaml",
+                f"{REG_CONFIGS}/config_eval.yaml",
             ],
             cwd=REG_REPO_ROOT,
             shell=True,
@@ -89,6 +88,6 @@ if __name__ == "__main__":
     print(f"{__file__}: args: {args}")
 
     assert os.path.exists(REG_REPO_ROOT)
-    assert os.path.exists(REG_SAMPLE_CONFIGS)
+    assert os.path.exists(REG_CONFIGS)
 
     main(**vars(args))

@@ -9,6 +9,13 @@ mkdir -p "${RUN_NGEN_ROOT__HOST}"
 mkdir -p "${S3_ROOT__HOST}"
 
 
+### Download regionalization data
+# Check if --regionalization or -r flag (argument) is passed
+if [[ "$@" =~ (--regionalization|-r) ]]; then
+    aws s3 sync "s3://ngwpc-dev/regionalization/data/inputs/" "${MNT__NWM_REGION_MGR__INPUT_DATA}/"
+    aws s3 sync "s3://ngwpc-dev/max.kipp/reg-development-data-inputs-20251204/module_parameter_files/" "${MNT__NWM_REGION_MGR__INPUT_DATA}/module_parameter_files/"
+fi
+
 # TODO if updating these, also need to update run_tests.py
 TEST_GAGE="01123000"
 WORKFLOW_INPUT_CONFIG_ROOT__COLDSTART="${RUN_NGEN_ROOT__HOST}/cold_start_workflow"

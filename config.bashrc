@@ -80,8 +80,8 @@ COMPONENT__CAL_MGR__REMOTE_REPO_TAG="maxkipp-ngwpc-9054-workflow-automation"
 
 ##### Package: Region Manager
 ### Only used when sourcing region manager from GitHub
-COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
-# COMPONENT__REGION_MGR__REMOTE_REPO_TAG="yliu_test_old_image"
+# COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
+COMPONENT__REGION_MGR__REMOTE_REPO_TAG="yliu_test_old_image"
 
 ##### Package: Verification
 ### Only used when sourcing verification manager from GitHub
@@ -118,11 +118,13 @@ MNT__RUN_NGEN__HOST="${RUN_NGEN_ROOT__HOST}"
 MNT__RUN_NGEN__CONTAINER_1="/ngwpc/run_ngen"
 MNT__RUN_NGEN__CONTAINER_2="${MNT__RUN_NGEN__HOST}"
 
+### Region manager data mounts
+MNT__NWM_REGION_MGR__INPUT_DATA="${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr/data/inputs"
+
 #### Parameter file mounts
 MNT__MODULE_PARAM_FILES_DIR__HOST="${REPOS_COMMON_ROOT__HOST}/nwm-msw-mgr/src/mswm/module_parameter_files"
 MNT__MODULE_PARAM_FILES_DIR__CONTAINER_1="/ngen-app/nwm-msw-mgr/src/mswm/module_parameter_files"
 MNT__MODULE_PARAM_FILES_DIR__CONTAINER_2="${REPOS_COMMON_ROOT__HOST}/nwm-msw-mgr/src/mswm/module_parameter_files"
-
 
 ### Logging functions
 BASENAME="$(basename "$(readlink -f "$0")")"
