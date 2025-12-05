@@ -22,7 +22,14 @@ from mswm.utils import settings as mswm_settings
 
 from nwm_fcst_mgr.forecast import run_fcst
 
-from execution_tests import DEFAULT_NPROCS, DEFAULT_FORECAST_RUN_NAME, make_parallel_config
+from execution_tests import (
+    DEFAULT_NPROCS,
+    DEFAULT_FORECAST_RUN_NAME,
+    DEFAULT_FORCING_PROVIDER,
+    DEFAULT_GAGE_ID,
+    FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT,
+    make_parallel_config,
+)
 
 print = functools.partial(print, flush=True)
 
@@ -47,8 +54,8 @@ class ForecastVars:
     coldstart_start: Optional[str]
     coldstart_end: Optional[str]
     forecast_initial_cycle_datetime: Optional[str]
-    forcing_configuration: Optional[str] = None
-    nprocs: Optional[int] = DEFAULT_NPROCS
+    forcing_configuration: Optional[str]
+    nprocs: int
 
     # Derived paths (not passed to __init__)
     run_dir_base: str = field(init=False)
@@ -73,13 +80,13 @@ class ForecastVars:
         self.ngen_log_file = f"{self.run_dir_base}/logs/ngen.log"
         self.valid_best_yaml = f"{self.run_dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
 
-#@dataclass
-#class SavedStartState_PseudoCode:
+# @dataclass
+# class SavedStartState_PseudoCode:
 #    """Pseudocode"""
 #
 #    forecast_type: str
 #    cycle_datetime: datetime
-#    realization_file: str       
+#    realization_file: str
 
 def set_vars(options) -> ForecastVars:
     """
@@ -88,21 +95,25 @@ def set_vars(options) -> ForecastVars:
     :return: ForecastVars object
     """
     return ForecastVars(
-        gage_id=options.gage or "01123000",
-        fcst_run_name=options.fcst_run_name,
-        formulation_suffix=options.forcing_provider or "bmi",
+        gage_id=options.gage or DEFAULT_GAGE_ID,
+        fcst_run_name=options.fcst_run_name or DEFAULT_FORECAST_RUN_NAME,
+        formulation_suffix=options.forcing_provider or DEFAULT_FORCING_PROVIDER,
         coldstart_start=options.cold_start_datetime,
         coldstart_end=options.cycle_datetime if options.cold_start_datetime else None,
         forecast_initial_cycle_datetime=options.cycle_datetime,
-        forcing_configuration=options.forcing_configuration,
+        forcing_configuration=options.forcing_configuration or FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT[0],
+        nprocs=options.nprocs or DEFAULT_NPROCS,
         root_dir = "/ngen-app/data",
         calib_input_config = "/ngen-app/data/configs/rte_cal_input_bmi.config",
         forecast_input_config = "/ngen-app/data/configs/forecast_input.config",
         forecast_rounds = 1,
-        nprocs=options.nprocs,
     )
 
 def create_kwargs(forecast_vars) -> dict:
+    if forecast_vars.forecast_initial_cycle_datetime:
+        cycle_datetime = forecast_vars.forecast_initial_cycle_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT)
+    else:
+        cycle_datetime = None
     realization_kwargs = {
         #"input_path": forecast_vars.forecast_input_config,
         "valid_yaml": forecast_vars.valid_best_yaml,
@@ -114,7 +125,7 @@ def create_kwargs(forecast_vars) -> dict:
                 forcing_template_dir="/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/",
                 root_dir=forecast_vars.root_dir,
                 forcing_configuration=forecast_vars.forcing_configuration,
-                cycle_datetime=forecast_vars.forecast_initial_cycle_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT),
+                cycle_datetime=cycle_datetime,
                 cold_start_datetime=None,
             )
         )
@@ -151,7 +162,7 @@ def build_coldstart_realization(fcst_kwargs, forecast_vars):
 
     forcing_config = copy.deepcopy(rb_cs.input_configs["Forcing"])
     cs_overrides_dict = {
-        "forcing_configuration": "short_range",
+        "forcing_configuration": forecast_vars.forcing_configuration,
         "cold_start_datetime": forecast_vars.coldstart_start.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT),
         "cycle_datetime": forecast_vars.coldstart_end.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT),
     }
@@ -184,35 +195,34 @@ def get_options(args_list=None):
 
     parser.add_argument('-forcing_provider',
                         type=str,
-                        help="Forcing provider to use, e.g., 'bmi' or 'csv'")
+                        help=f"Forcing provider to use, e.g., 'bmi' or 'csv'. Default: {repr(DEFAULT_FORCING_PROVIDER)}")
     parser.add_argument('-cycle_datetime',
                         type=datetime_type,
-                        help="start date/time for the forecast cycle (also the end of cold-start if chosen), format= 'YYYY-MM-DD HH:mm:ss'")
+                        help="start date/time for the forecast cycle (also the end of cold-start if chosen), format= 'YYYY-MM-DD HH:mm:ss'. If omitted, a forecast will not be ran.")
     parser.add_argument('-cold_start_datetime',
                         type=datetime_type,
                         help="start date/time for cold-start, format= 'YYYY-MM-DD HH:mm:ss'. If omitted, a cold-start will not be used.")
     parser.add_argument('-gage',
                         type=str,
-                        help="Gage ID to run the forecast for.")
+                        help=f"Gage ID to run the forecast for. Default: {repr(DEFAULT_GAGE_ID)}")
     parser.add_argument('-forcing_configuration',
                         type=str,
-                        help="Forcing configuration to use, e.g., 'short_range', 'standard_ana', etc.")
+                        help=f"Forcing configuration to use, e.g., 'short_range', 'standard_ana', etc. Default: {repr(FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT[0])}")
     parser.add_argument(
         "--fcst_run_name",
         type=str,
-        default=DEFAULT_FORECAST_RUN_NAME,
-        help=f"Replaces default value for fcst_run_name ({repr(DEFAULT_FORECAST_RUN_NAME)})",
+        help=f"Forecast run name. Default: {repr(DEFAULT_FORECAST_RUN_NAME)}",
     )
     parser.add_argument(
         "-n", "--nprocs",
         type=int,
-        default=DEFAULT_NPROCS,
         help=f"""
 Currently only affects Calibration. Replaces default value for nprocs ({repr(DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance.
 When nprocs is 1, Calibration's ParallelConfig is: {make_parallel_config(nprocs=1)}.
 When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(nprocs=2)}
 """,
     ),
+    parser.add_argument("--skip_calibration", action="store_true", help="Causes calibration to be skipped")
 
     if args_list is not None:
         return parser.parse_args(args_list)
@@ -238,19 +248,21 @@ def main():
     #util_deletes.delete_test_output_dir(forecast_vars)
     #util_deletes.delete_files_to_force_esmf_and_netcdf_actions(forecast_vars)
     
-    calibration__build_and_run(forecast_vars)
+    if not options.skip_calibration:
+        calibration__build_and_run(forecast_vars)
 
     # TODO pseudocode for now for states.
     #saved_start_states_pseudocode: list[SavedStartState_PseudoCode] = []
 
-    rb_cs = build_coldstart_realization(fcst_kwargs, forecast_vars)
-    print(f'Running coldstart realization: {rb_cs.input_configs["Forcing"]}')
+    if options.cold_start_datetime:
+        rb_cs = build_coldstart_realization(fcst_kwargs, forecast_vars)
+        print(f'Running coldstart realization: {rb_cs.input_configs["Forcing"]}')
+        run_fcst(valid_yaml=forecast_vars.valid_best_yaml, real_path=str(rb_cs.realization_file))
     
-    run_fcst(valid_yaml=forecast_vars.valid_best_yaml, real_path=str(rb_cs.realization_file))
-    
-    rb_fcst = build_forecast_realization(fcst_kwargs)
-    print(f'Running forecast realization: {rb_fcst.input_configs["Forcing"]}')
-    run_fcst(valid_yaml=forecast_vars.valid_best_yaml, real_path=str(rb_fcst.realization_file))
+    if options.cycle_datetime:
+        rb_fcst = build_forecast_realization(fcst_kwargs)
+        print(f'Running forecast realization: {rb_fcst.input_configs["Forcing"]}')
+        run_fcst(valid_yaml=forecast_vars.valid_best_yaml, real_path=str(rb_fcst.realization_file))
 
     #saved_start_states_pseudocode.append(
     #    SavedStartState_PseudoCode(

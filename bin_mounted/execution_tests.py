@@ -32,10 +32,10 @@ print = functools.partial(print, flush=True)
 ### .config section [Forcing]
 DEFAULT_FORECAST_RUN_NAME = "fcst_run1"
 
-# FORCING_PROVIDER = "csv"
+# DEFAULT_FORCING_PROVIDER = "csv"
 # FORCING_DIR =
 
-FORCING_PROVIDER = "bmi"
+DEFAULT_FORCING_PROVIDER = "bmi"
 FORCING_DIR = None  # None when provider is bmi
 
 FORCING_TEMPLATE_DIR = "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
@@ -46,11 +46,11 @@ DT_END_COLDSTART = DT_START_FORECAST
 
 
 ### .config section [General]
-GAGE_ID = "01123000"
+DEFAULT_GAGE_ID = "01123000"
 MODELS = "noah-owp-modular,cfe-s"
 # MODELS="noah-owp-modular,topmodel"
 DEFAULT_MAIN_DIR = "/ngwpc/run_ngen"
-FORMULATION_NAME = f"test_{FORCING_PROVIDER}"
+FORMULATION_NAME = f"test_{DEFAULT_FORCING_PROVIDER}"
 
 
 ### .config section [Calibration]
@@ -125,7 +125,7 @@ def get_test_configs__calibration(nprocs: int = DEFAULT_NPROCS) -> list[InputCon
 
     for fct in forcing_config_types:
         general = GeneralConfig(
-            basin=GAGE_ID,
+            basin=DEFAULT_GAGE_ID,
             run_type="calibration",
             models=MODELS,
             formulation=FORMULATION_NAME,
@@ -153,7 +153,7 @@ def get_test_configs__calibration(nprocs: int = DEFAULT_NPROCS) -> list[InputCon
             calib_parameter_file=CALIB_PARAMETERS_DIR,
         )
         forcing = ForcingConfig(
-            forcing_provider=FORCING_PROVIDER,
+            forcing_provider=DEFAULT_FORCING_PROVIDER,
             forcing_dir=FORCING_DIR,
             forcing_template_dir=FORCING_TEMPLATE_DIR,
             root_dir=FORCING_ROOT_DIR,
@@ -162,7 +162,7 @@ def get_test_configs__calibration(nprocs: int = DEFAULT_NPROCS) -> list[InputCon
             cold_start_datetime=None,
         )
         datafile = DataFileConfig(
-            hydrofab_file=f"{HYDROFABRIC_DIR}/2.2/CONUS/{GAGE_ID}/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_{GAGE_ID}.gpkg",
+            hydrofab_file=f"{HYDROFABRIC_DIR}/2.2/CONUS/{DEFAULT_GAGE_ID}/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_{DEFAULT_GAGE_ID}.gpkg",
             noah_parameter_dir=f"{MODULE_PARAMETER_FILES_DIR}/noah-owp-modular",
             ueb_parameter_dir=f"{MODULE_PARAMETER_FILES_DIR}/ueb",
             lasam_parameter_dir=f"{MODULE_PARAMETER_FILES_DIR}/lasam",
@@ -213,7 +213,7 @@ def get_test_configs__forecast(
     for fct in forcing_config_types:
         general = None
         forcing = ForcingConfig(
-            forcing_provider=FORCING_PROVIDER,
+            forcing_provider=DEFAULT_FORCING_PROVIDER,
             forcing_dir=FORCING_DIR,
             forcing_template_dir=FORCING_TEMPLATE_DIR,
             root_dir=FORCING_ROOT_DIR,

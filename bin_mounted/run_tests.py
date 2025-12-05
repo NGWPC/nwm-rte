@@ -13,8 +13,8 @@ from execution_tests import (
     get_test_configs__forecast,
     get_test_configs__calibration,
     FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT,
-    GAGE_ID,
-    FORCING_PROVIDER,
+    DEFAULT_GAGE_ID,
+    DEFAULT_FORCING_PROVIDER,
     DEFAULT_FORECAST_RUN_NAME,
     FORMULATION_NAME,
     DEFAULT_MAIN_DIR,
@@ -28,18 +28,18 @@ from pseudocode import SavedState_Pseudo, StateManager_Pseudo
 print = functools.partial(print, flush=True)
 
 
-TEST_DIR_BASE = f"{DEFAULT_MAIN_DIR}/{CALIB_OBJECTIVE_FUNCTION}_{CALIB_OPTIMIZATION_ALGO}/{FORMULATION_NAME}/{GAGE_ID}"
+TEST_DIR_BASE = f"{DEFAULT_MAIN_DIR}/{CALIB_OBJECTIVE_FUNCTION}_{CALIB_OPTIMIZATION_ALGO}/{FORMULATION_NAME}/{DEFAULT_GAGE_ID}"
 # TEST_DIR_INPUT = f"{TEST_DIR_BASE}/Input"
 TEST_DIR_OUTPUT = f"{TEST_DIR_BASE}/Output"
 # TEST_NGEN_LOG_FILE = f"{TEST_DIR_BASE}/logs/ngen.log"
 
 ### Read by build_calib_realization()
-# CALIB_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_calibration_{FORCING_PROVIDER}.config"
-# CALIB_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_calibration_{FORCING_PROVIDER}_short.config"
+# CALIB_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_calibration_{DEFAULT_FORCING_PROVIDER}.config"
+# CALIB_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_calibration_{DEFAULT_FORCING_PROVIDER}_short.config"
 
 ### Read by build_fcst_realization() for CS and for Forecast
 # FORECAST_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_forecast.config"
-FORECAST_VALID_YAML = f"{TEST_DIR_OUTPUT}/Validation_Run/{GAGE_ID}_config_valid_best.yaml"
+FORECAST_VALID_YAML = f"{TEST_DIR_OUTPUT}/Validation_Run/{DEFAULT_GAGE_ID}_config_valid_best.yaml"
 
 
 def calibrations__build_and_run(test_manager: TestsManager, nprocs: int) -> None:
@@ -143,7 +143,7 @@ def main(
         if do_coldstart:
             raise ValueError(f"Cannot use skip_forecast={skip_forecast} and do_coldstart={do_coldstart}")
 
-    utils_testing_setup.assert_paths__core(GAGE_ID)
+    utils_testing_setup.assert_paths__core(DEFAULT_GAGE_ID)
     # utils_testing_setup.assert_paths__raw_config(CALIB_CONFIG_FILE, FORECAST_CONFIG_FILE)
 
     # TODO pseudocode for now for states.
@@ -156,7 +156,7 @@ def main(
     # utils_testing_setup.delete_test_output_dir(TEST_DIR_OUTPUT)
 
     if delete_scratch_and_mesh_first:
-        utils_testing_setup.delete_files_to_force_esmf_and_netcdf_actions(GAGE_ID)
+        utils_testing_setup.delete_files_to_force_esmf_and_netcdf_actions(DEFAULT_GAGE_ID)
 
     if do_calibration:
         calibrations__build_and_run(tests_manager, nprocs)

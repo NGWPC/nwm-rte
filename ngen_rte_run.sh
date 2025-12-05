@@ -57,7 +57,9 @@ function docker_run {
 # docker_run
 
 # docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --help
-# docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" -n 1 -cycle_datetime "2025-09-15 00:00:00" -forcing_configuration "short_range"
+# docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" -n 2
+# docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --skip_calibration -cycle_datetime "2025-09-15 00:00:00"
+# docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --skip_calibration -cycle_datetime "2025-09-15 00:00:00" -cold_start_datetime "2025-09-12 00:00:00"
 
 docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 1
