@@ -20,6 +20,12 @@ set -x
 
 source config.bashrc
 
+# DOCKER_BUILDKIT=1 is the default with Docker version 23+.
+# Here it is used to enable autodetection of dockerignore file outside of the build context,
+# which works when the dockerignore file is the same location and name as the Dockerfile,
+# but with the .dockerignore extension added to the end.
+export DOCKER_BUILDKIT=1
+
 TIMESTAMP=`date '+%Y%m%d%H%M%S'`
 
 ### Build ngen base image if specified, otherwise just set var to ghcr URL
