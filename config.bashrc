@@ -6,6 +6,9 @@ set -euo pipefail
 # NO_CACHE="--no-cache"
 NO_CACHE=""
 
+### STAGE: See Dockerfile.rte for acceptable values
+# STAGE="ngen_rte_base"
+STAGE="ngen_rte_eval_verf"
 
 # If you use this for REPOS_COMMON_ROOT__HOST, then the other repos are assumed to be siblings of this repo
 THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
