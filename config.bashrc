@@ -73,7 +73,7 @@ COMPONENT__MSW_MGR__REMOTE_REPO_TAG="maxkipp-ngwpc-9054-workflow-automation"
 
 ##### Package: Calibration Manager
 ### Only used when sourcing calibration manager from GitHub
-COMPONENT__CAL_MGR__REMOTE_REPO_TAG="maxkipp-ngwpc-9054-workflow-automation"
+COMPONENT__CAL_MGR__REMOTE_REPO_TAG="development"
 
 ##### Package: Region Manager
 ### Only used when sourcing region manager from GitHub
