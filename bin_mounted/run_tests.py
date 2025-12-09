@@ -42,7 +42,7 @@ TEST_DIR_OUTPUT = f"{TEST_DIR_BASE}/Output"
 FORECAST_VALID_YAML = f"{TEST_DIR_OUTPUT}/Validation_Run/{DEFAULT_GAGE_ID}_config_valid_best.yaml"
 
 
-def calibrations__build_and_run(test_manager: TestsManager, nprocs: int) -> None:
+def calibrations__build_and_run(tests_manager: TestsManager, nprocs: int) -> None:
     """Build calibration realizations and run them as tests."""
     for config_overrides in get_test_configs__calibration(nprocs=nprocs):
         fc = config_overrides.Forcing.forcing_configuration
@@ -59,11 +59,11 @@ def calibrations__build_and_run(test_manager: TestsManager, nprocs: int) -> None
             print(f"### {fc}: executing calibration realization")
             t.execute_calibration()
 
-        test_manager.add_forecast_test(t)
+        tests_manager.add_forecast_test(t)
 
 
 def forecasts__build_and_run(
-    test_manager: TestsManager,
+    tests_manager: TestsManager,
     state_manager: StateManager_Pseudo,
     do_all_forcing_configs: bool,
     quit_forecast_after_forcing_running: bool,
@@ -74,7 +74,7 @@ def forecasts__build_and_run(
 ) -> None:
     """
     Using ForecastTest, build and execute a list of forecast realizations.
-    test_manager is modified in-place, so some test results may be available if this function is interrupted.
+    tests_manager is modified in-place, so some test results may be available if this function is interrupted.
     """
     test_configs = get_test_configs__forecast(do_all_forcing_configs, do_coldstart)
     for tc in test_configs:
@@ -119,7 +119,7 @@ def forecasts__build_and_run(
                     )
                 )
 
-        test_manager.add_forecast_test(t)
+        tests_manager.add_forecast_test(t)
 
 
 def main(
@@ -135,13 +135,11 @@ def main(
 ):
     if not fcst_run_name.strip():
         raise ValueError(f"Empty fcst_run_name: {repr(fcst_run_name)}")
-    if skip_forecast:
-        if do_all_forcing_configs:
+    if do_all_forcing_configs:
+        if not (do_coldstart or (not skip_forecast)):
             raise ValueError(
-                f"Cannot use skip_forecast={skip_forecast} and do_all_forcing_configs={do_all_forcing_configs}"
+                f"When do_all_forcing_configs={do_all_forcing_configs}, must have coldstart and/or forecast enabled."
             )
-        if do_coldstart:
-            raise ValueError(f"Cannot use skip_forecast={skip_forecast} and do_coldstart={do_coldstart}")
 
     utils_testing_setup.assert_paths__core(DEFAULT_GAGE_ID)
     # utils_testing_setup.assert_paths__raw_config(CALIB_CONFIG_FILE, FORECAST_CONFIG_FILE)
@@ -161,17 +159,21 @@ def main(
     if do_calibration:
         calibrations__build_and_run(tests_manager, nprocs)
 
+    forecast_kwargs_base = {
+        "tests_manager": tests_manager,
+        "state_manager": state_manager,
+        "do_all_forcing_configs": do_all_forcing_configs,
+        "quit_forecast_after_forcing_running": quit_forecast_after_forcing_running,
+        "quit_forecast_after_duration": quit_forecast_after_duration,
+        "fcst_run_name": fcst_run_name,
+        # "nprocs": nprocs,
+    }
+
+    if do_coldstart:
+        forecasts__build_and_run(**(forecast_kwargs_base | {"do_coldstart": True}))  
+
     if not skip_forecast:
-        forecasts__build_and_run(
-            tests_manager,
-            state_manager,
-            do_all_forcing_configs,
-            quit_forecast_after_forcing_running,
-            quit_forecast_after_duration,
-            do_coldstart,
-            fcst_run_name,
-            # nprocs,
-        )
+        forecasts__build_and_run(**(forecast_kwargs_base | {"do_coldstart": False})) 
 
     tests_manager.evaluate_test_results()
 
@@ -179,11 +181,13 @@ def main(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "-delscratch",
         "--delete_scratch_and_mesh_first",
         action="store_true",
         help="Delete some files before the runs, which forces ESMF and NetCDF actions to occur, for testing those.",
     )
     parser.add_argument(
+        "-nofcst",
         "--skip_forecast",
         action="store_true",
         help=f"Skip building and running forecasts. Incompatible with --do_all_forcing_configs and --do_coldstart",
@@ -194,33 +198,39 @@ if __name__ == "__main__":
         help="Instead of waiting for each forecast to finish, quit after the ngen log file indicates that forcing is running successfully.",
     )
     parser.add_argument(
+        "-dur",
         "--quit_forecast_after_duration",
         default=None,
         type=float,
         help="Instead of waiting for each forecast to finish, quit after the specified elapsed processing duration in seconds.",
     )
     parser.add_argument(
+        "-calib",
         "--do_calibration",
         action="store_true",
         help="Build and run calibration before forecasts",
     )
     parser.add_argument(
+        "-allforcings",
         "--do_all_forcing_configs",
         action="store_true",
         help=f"Run all forcing configurations rather than the default shorter default list. Default list: {FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT}. Incompatible with --skip_forecast.",
     )
     parser.add_argument(
+        "-cs",
         "--do_coldstart",
         action="store_true",
         help="Causes use_cold_start to be True for all forecasts",
     )
     parser.add_argument(
+        "-fcname",
         "--fcst_run_name",
         type=str,
         default=DEFAULT_FORECAST_RUN_NAME,
         help=f"Replaces default value for fcst_run_name ({repr(DEFAULT_FORECAST_RUN_NAME)})",
     )
     parser.add_argument(
+        "-n",
         "--nprocs",
         type=int,
         default=DEFAULT_NPROCS,
