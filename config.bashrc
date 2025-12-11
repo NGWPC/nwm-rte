@@ -92,7 +92,8 @@ COMPONENT__VERF__REMOTE_REPO_TAG="development"
 
 #### Evaluation
 ### Only used when sourcing evaluation manager from GitHub
-COMPONENT__EVAL__REMOTE_REPO_TAG="development"
+# COMPONENT__EVAL__REMOTE_REPO_TAG="development"
+COMPONENT__EVAL__REMOTE_REPO_TAG="yliu_ZeroDivisionError"
 
 
 #### Data Assimilation Engine
