@@ -30,18 +30,19 @@ def main(parreg: bool, formreg: bool, ngen: bool, run_eval: bool):
                 "python",
                 f"{REG_REPO_ROOT}/regionalization.py",
                 REG_CONFIGS,
+                "region",
             ],
             cwd=REG_REPO_ROOT,
         )
 
     if formreg:
-        raise NotImplementedError("Not yet tested")
+        # raise NotImplementedError("Not yet tested")
         run_cmd(
             cmd=[
                 "python",
-                f"{REG_REPO_ROOT}/run_formreg.py",
-                f"{REG_CONFIGS}/config_general.yaml",
-                f"{REG_CONFIGS}/config_formreg.yaml",
+                f"{REG_REPO_ROOT}/regionalization.py",
+                REG_CONFIGS,
+                "formreg",
             ],
             cwd=REG_REPO_ROOT,
         )
@@ -63,7 +64,6 @@ def main(parreg: bool, formreg: bool, ngen: bool, run_eval: bool):
         )
 
     if run_eval:
-        raise NotImplementedError("Not yet tested")
         run_cmd(
             cmd=[
                 EVAL_VERF_PYTHON_BINARY,
