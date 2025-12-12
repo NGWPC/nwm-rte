@@ -23,7 +23,6 @@ jobs:
 
       - name: Clone required repositories
         run: |
-          cd /home/runner/work/nwm-rte/nwm-rte
           # Source config to get REPOS_COMMON_ROOT__HOST
           source config.bashrc
           mkdir -p "${REPOS_COMMON_ROOT__HOST}"
@@ -41,9 +40,7 @@ jobs:
           fi
 
       - name: Build RTE image
-        run: |
-          cd /home/runner/work/nwm-rte/nwm-rte
-          ./ngen_rte_build.sh
+        run: ./ngen_rte_build.sh
 
       - name: Check remaining space
         if: always()
@@ -51,14 +48,15 @@ jobs:
 
       - name: Create minimal test directories
         run: |
+          # Source config to get REPOS_COMMON_ROOT__HOST
+          source config.bashrc
           # Create minimal directory structure needed for noop mode
-          mkdir -p /home/runner/work/nwm-rte/run_ngen/data/esmf_mesh
-          mkdir -p /home/runner/work/nwm-rte/run_ngen/data/scratch
-          mkdir -p /home/runner/work/nwm-rte/nwm-rte/docker_logs/run
+          mkdir -p "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh"
+          mkdir -p "${RUN_NGEN_ROOT__HOST}/data/scratch"
+          mkdir -p docker_logs/run
 
       - name: Run RTE in noop mode
         run: |
-          cd /home/runner/work/nwm-rte/nwm-rte
           # Source the script to get docker_run function and config
           source ./ngen_rte_run.sh
           # Call docker_run with --noop flag
