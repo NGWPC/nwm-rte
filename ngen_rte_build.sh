@@ -68,7 +68,7 @@ fi
 
 ### Build RTE image from ngen base image
 info "Building image: ${TARGET_IMAGE_NAME}"
-sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} \
+sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target ${STAGE} \
     --build-arg NGEN_BASE_IMAGE=${NGEN_BASE_IMAGE} \
     --build-arg REPO_TAG__FCST_MGR="${COMPONENT__FCST_MGR__REMOTE_REPO_TAG}" \
     --build-arg REPO_TAG__MSW_MGR="${COMPONENT__MSW_MGR__REMOTE_REPO_TAG}" \

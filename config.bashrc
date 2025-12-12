@@ -6,6 +6,9 @@ set -euo pipefail
 # NO_CACHE="--no-cache"
 NO_CACHE=""
 
+### STAGE: See Dockerfile.rte for acceptable values
+# STAGE="ngen_rte_base"
+STAGE="ngen_rte_eval_verf"
 
 # If you use this for REPOS_COMMON_ROOT__HOST, then the other repos are assumed to be siblings of this repo
 THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
@@ -39,8 +42,7 @@ S3_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/s3"
 
 NGEN_SOURCE_MODE="ghcr"
 ## Only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.
-# NGEN_BASE__REMOTE_GHCR_TAG="latest"
-NGEN_BASE__REMOTE_GHCR_TAG="d4747379b977"
+NGEN_BASE__REMOTE_GHCR_TAG="latest"
 
 # NGEN_SOURCE_MODE="existing_local_tag"
 ## Only used when ngen image source mode is "existing_local_tag". Choose any existing local image tag.
