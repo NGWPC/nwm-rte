@@ -14,7 +14,8 @@ THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
 ### REPOS_COMMON_ROOT__HOST:
 ###
 ###     What this variable is for:
-###         ./setup_workspace.sh sets up this local directory by downloading data into it and cloning repos into it.
+###         ./setup_clone_repos.sh sets up this local directory and clones "sister" repos into it
+###         ./setup_data.sh  downloads data into it 
 ###         ./ngen_rte_build.sh uses this to find ngen when NGEN_SOURCE_MODE == "build_from_local"
 ###         ./ngen_rte_run.sh mounts various subdirectories and files from this local directory, into the container, during runtime.
 ###
@@ -36,6 +37,7 @@ S3_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/s3"
 
 ### NGEN_SOURCE_MODE:
 ###     Choose from: ["ghcr", "existing_local_tag", "build_from_local", "build_from_remote"]
+###         default to "ghcr", as this is used in the GHA Workflow
 
 NGEN_SOURCE_MODE="ghcr"
 ## Only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.

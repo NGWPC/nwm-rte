@@ -8,7 +8,7 @@
 # See config.bashrc for configuration. Components can be installed from GitHub or from local source code.
 # 
 # Requirements:
-#   Note: ./setup_workspace.sh can be used to clone the following repos.
+#   Note: ./setup_clone_repos.sh can be used to clone the following repos.
 #   
 #   If the Dockerfile is set up to install packages such as nwm-fcst-mgr, nwm-cal-mgr, nwm-msw-mgr, and others
 #   from local sources instead of from GitHub, then this script assumes this is ran from a sibling directory

@@ -1,0 +1,73 @@
+name: Build and Test RTE
+
+on:
+  push:
+    branches:
+      - development
+      - add-gha-workflow # Remove after testing
+  pull_request:
+    branches:
+      - development
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest # ubuntu-latest-4-cores
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Clone required repositories
+        run: |
+          cd /home/runner/work/nwm-rte/nwm-rte
+          # Source config to get REPOS_COMMON_ROOT__HOST
+          source config.bashrc
+          mkdir -p "${REPOS_COMMON_ROOT__HOST}"
+
+          # Clone only the repos needed for noop mode (ngen-forcing and nwm-msw-mgr for volume mounts)
+          # Use HTTPS instead of SSH for GitHub Actions
+          cd "${REPOS_COMMON_ROOT__HOST}"
+
+          if [ ! -d "ngen-forcing" ]; then
+            git clone --recurse-submodules https://github.com/NGWPC/ngen-forcing.git
+          fi
+
+          if [ ! -d "nwm-msw-mgr" ]; then
+            git clone https://github.com/NGWPC/nwm-msw-mgr.git
+          fi
+
+      - name: Build RTE image
+        run: |
+          cd /home/runner/work/nwm-rte/nwm-rte
+          ./ngen_rte_build.sh
+
+      - name: Check remaining space
+        if: always()
+        run: df -h
+
+      - name: Create minimal test directories
+        run: |
+          # Create minimal directory structure needed for noop mode
+          mkdir -p /home/runner/work/nwm-rte/run_ngen/data/esmf_mesh
+          mkdir -p /home/runner/work/nwm-rte/run_ngen/data/scratch
+          mkdir -p /home/runner/work/nwm-rte/nwm-rte/docker_logs/run
+
+      - name: Run RTE in noop mode
+        run: |
+          cd /home/runner/work/nwm-rte/nwm-rte
+          # Source the script to get docker_run function and config
+          source ./ngen_rte_run.sh
+          # Call docker_run with --noop flag
+          docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --noop
+
+      - name: Verify success
+        run: |
+          echo "Build and noop test completed successfully"
+          echo "The container was able to:"
+          echo "  1. Build successfully with all dependencies"
+          echo "  2. Import all required Python libraries"
+          echo "  3. Execute the workflow script in noop mode"

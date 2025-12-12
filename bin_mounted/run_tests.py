@@ -132,7 +132,14 @@ def main(
     do_coldstart: bool,
     fcst_run_name: str,
     nprocs: int,
+    noop: bool,
 ):
+    if noop:
+        print("Running in noop mode - only checking imports and basic setup")
+        print("Successfully imported all required libraries")
+        print("Noop mode complete - exiting")
+        return
+
     if not fcst_run_name.strip():
         raise ValueError(f"Empty fcst_run_name: {repr(fcst_run_name)}")
     if do_all_forcing_configs:
@@ -239,6 +246,11 @@ Currently only affects Calibration. Replaces default value for nprocs ({repr(DEF
 When nprocs is 1, Calibration's ParallelConfig is: {make_parallel_config(nprocs=1)}.
 When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(nprocs=2)}
 """,
+    )
+    parser.add_argument(
+        "--noop",
+        action="store_true",
+        help="Run in noop mode - only verify that the script can import libraries and basic setup, then exit without looking for data or running any workflows.",
     )
     args = parser.parse_args()
     print(f"args: {args}")
