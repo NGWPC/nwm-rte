@@ -44,17 +44,12 @@ function docker_run {
         -v "${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr:/ngen-app/nwm-region-mgr" \
         -v "${REPOS_COMMON_ROOT__HOST}/nwm-verf/data:/ngen-app/nwm-verf/data" \
         \
-        --rm ${TARGET_IMAGE_NAME} $*
+        --rm ${TARGET_IMAGE_NAME} "$@"
 }
         # --rm ${TARGET_IMAGE_NAME}
-        # --rm ${TARGET_IMAGE_NAME} $*
+        # --rm ${TARGET_IMAGE_NAME} "$@"
 
 # docker_run
-# docker_run "/ngen-app/bin/bin_mounted/run_regionalization.py" --help
-docker_run "/ngen-app/bin/bin_mounted/run_regionalization.py" --parreg
-# docker_run "/ngen-app/bin/bin_mounted/run_regionalization.py" --formreg
-docker_run "/ngen-app/bin/bin_mounted/run_regionalization.py" --ngen
-# docker_run "/ngen-app/bin/bin_mounted/run_regionalization.py" --eval
 
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py"
