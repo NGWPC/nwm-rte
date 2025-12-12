@@ -36,7 +36,6 @@ def main(parreg: bool, formreg: bool, ngen: bool, run_eval: bool):
         )
 
     if formreg:
-        # raise NotImplementedError("Not yet tested")
         run_cmd(
             cmd=[
                 "python",

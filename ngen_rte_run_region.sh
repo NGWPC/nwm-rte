@@ -2,22 +2,13 @@
 # 
 # ngen_rte_run.sh
 # 
-# This script makes a docker run call to execute a workflow in the RTE Docker image (already built).
+# This script makes a docker run call to execute a regionalization workflow in the RTE Docker image (already built).
 # 
-# Requirements:
-#   Note: ./setup_workspace.sh can be used to download the following data.
+# Steps before running this script:
+#   1. Set up local workspace: clone sibling Git repositories and download data following instructions in the RTE readme.
+#   2. Build a local docker image using ./ngen_rte_build.sh.
+#   3. Review the CLI args of this script.
 # 
-#   1. Various data files have been copied from s3 to locations defined in
-#       ./config.bashrc and ./setup_workspace.sh, e.g. from
-#           s3://ngwpc-hydrofabric
-#           s3://ngwpc-forcing
-#           s3://ngwpc-dev/
-# 
-#   2. Repo ngwpc/ngen-forcing has been cloned to ${REPOS_COMMON_ROOT__HOST}/ngen-forcing/ (for BMI config templates)
-# 
-#   3. Repo ngwpc/nwm-msw-mgr has been cloned to ${REPOS_COMMON_ROOT__HOST}/nwm-msw-mgr/ (for module_parameter_files)
-# 
-
 
 set -euo pipefail
 set -x

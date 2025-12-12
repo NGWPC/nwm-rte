@@ -40,13 +40,13 @@ mkdir -p ~/ngwpc && cd ~/ngwpc
 git clone git@github.com:NGWPC/nwm-rte.git && cd nwm-rte
 ```
 
-2. Check out a branch (at time of writing, poc branch was appropriate)
+2. (Optional) check out a particular branch
 
 ```shell
-git checkout poc
+git checkout development
 ```
 
-3. Review [config.bashrc](config.bashrc), edit variables as needed, in particular: `REPOS_COMMON_ROOT__HOST`, `NGEN_SOURCE_MODE`, `NGEN_BASE__REMOTE_GHCR_TAG`, and the branch choices for the various manager packages.
+3. Review [config.bashrc](config.bashrc), edit variables as needed, in particular: `REPOS_COMMON_ROOT__HOST`, `NGEN_SOURCE_MODE`, `NGEN_BASE__REMOTE_GHCR_TAG`, and the branch choices for various packages.
 
 4. Clone other repos
 
@@ -72,9 +72,11 @@ time ./setup_data.sh -r
 6. Build the Docker image
 
 ```shell
-# This builds a local Docker image of ngen RTE, containing ngen base + manager (component) packages.
+# This builds a local Docker image of ngen RTE, containing ngen base + component packages.
 # Be ready to supply sudo password if prompted.
-# If sourcing the ngen base image from an existing GHCR image, this is quick.
+# If sourcing the ngen base image from an existing GHCR image, this is quick, and
+# you may want to `docker pull` if pointing to a tag for the GHCR image (e.g. `latest`)
+# rather than an explicit image hash.
 time ./ngen_rte_build.sh
 ```
 
