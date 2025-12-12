@@ -98,11 +98,11 @@ ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/pyt
 #### Region Manager
 
 ## From GitHub
-# RUN python -m pip install "nwm_region_mgr[parreg] @ git+${GITHUB_ORG_URL}/${REPO_NAME__REGION_MGR}@${REPO_TAG__REGION_MGR}"
+RUN python -m pip install "nwm_region_mgr[parreg] @ git+${GITHUB_ORG_URL}/${REPO_NAME__REGION_MGR}@${REPO_TAG__REGION_MGR}"
 
 ## From local
-COPY "${REPO_NAME__REGION_MGR}/" "/tmp/${REPO_NAME__REGION_MGR}/"
-RUN python -m pip install "/tmp/${REPO_NAME__REGION_MGR}[parreg]" && rm -rf "/tmp/${REPO_NAME__REGION_MGR}/"
+# COPY "${REPO_NAME__REGION_MGR}/" "/tmp/${REPO_NAME__REGION_MGR}/"
+# RUN python -m pip install "/tmp/${REPO_NAME__REGION_MGR}[parreg]" && rm -rf "/tmp/${REPO_NAME__REGION_MGR}/"
 
 ##############################
 #### Data Assimilation Engine
