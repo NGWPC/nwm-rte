@@ -40,7 +40,16 @@ jobs:
           fi
 
       - name: Build RTE image
-        run: ./ngen_rte_build.sh
+        run: |
+          # Create a temporary parent directory structure for the build context
+          # The Dockerfile expects to COPY from nwm-rte/* so we need the repo to be in a subdirectory
+          cd ..
+          if [ ! -L nwm-rte ]; then
+            # Create symlink so build context can find nwm-rte/
+            ln -s $(basename "$GITHUB_WORKSPACE") nwm-rte
+          fi
+          cd nwm-rte
+          ./ngen_rte_build.sh
 
       - name: Check remaining space
         if: always()
