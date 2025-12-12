@@ -42,11 +42,7 @@ S3_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/s3"
 
 NGEN_SOURCE_MODE="ghcr"
 ## Only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.
-# NGEN_BASE__REMOTE_GHCR_TAG="latest"
-# NGEN_BASE__REMOTE_GHCR_TAG="d4747379b977"
-# NGEN_BASE__REMOTE_GHCR_TAG="e407705f7c1f"
-# NGEN_BASE__REMOTE_GHCR_TAG="pr-82-build"
-NGEN_BASE__REMOTE_GHCR_TAG="pr-91-build"
+NGEN_BASE__REMOTE_GHCR_TAG="latest"
 
 # NGEN_SOURCE_MODE="existing_local_tag"
 ## Only used when ngen image source mode is "existing_local_tag". Choose any existing local image tag.
