@@ -5,6 +5,7 @@ on:
     branches:
       - development
       - main
+      - add-gha-workflow # Remove after testing
   pull_request:
     branches:
       - development
