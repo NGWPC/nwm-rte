@@ -78,8 +78,7 @@ COMPONENT__CAL_MGR__REMOTE_REPO_TAG="development"
 
 ##### Package: Region Manager
 ### Only used when sourcing region manager from GitHub
-# COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
-COMPONENT__REGION_MGR__REMOTE_REPO_TAG="yliu_test_old_image"
+COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
 
 ##### Package: Verification
 ### Only used when sourcing verification manager from GitHub
@@ -87,8 +86,7 @@ COMPONENT__VERF__REMOTE_REPO_TAG="development"
 
 #### Evaluation
 ### Only used when sourcing evaluation manager from GitHub
-# COMPONENT__EVAL__REMOTE_REPO_TAG="development"
-COMPONENT__EVAL__REMOTE_REPO_TAG="yliu_ZeroDivisionError"
+COMPONENT__EVAL__REMOTE_REPO_TAG="development"
 
 
 #### Data Assimilation Engine
