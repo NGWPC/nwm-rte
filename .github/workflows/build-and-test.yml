@@ -4,15 +4,16 @@ on:
   push:
     branches:
       - development
-      - add-gha-workflow # Remove after testing
+      - main
   pull_request:
     branches:
       - development
+      - main
   workflow_dispatch:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest # ubuntu-latest-4-cores
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository

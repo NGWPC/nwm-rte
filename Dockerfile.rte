@@ -1,7 +1,7 @@
-# 
-# TODO add {}_git_info.json for each dependency repo (other repos do this in their Dockerfile).
+#
+# Git info JSON tracking is implemented for all dependency repos below.
 # TODO have remote vs local be parameterized in config file rather than requiring switching comment blocks here.
-# 
+#
 
 
 ARG NGEN_BASE_IMAGE="ghcr.io/ngwpc/ngen:latest"
@@ -54,10 +54,12 @@ RUN python -m pip install --upgrade pip
 
 ## From GitHub
 RUN python -m pip install "${GITHUB_ORG_URL}/${REPO_NAME__FCST_MGR}/archive/${REPO_TAG__FCST_MGR}.tar.gz"
+RUN python add_git_info.py --remote_repo_name "${REPO_NAME__FCST_MGR}" --remote_branch "${REPO_TAG__FCST_MGR}" --output_dir "/ngen-app"
 
 ## From local
 # COPY "${REPO_NAME__FCST_MGR}/" "/tmp/${REPO_NAME__FCST_MGR}/"
 # RUN python -m pip install "/tmp/${REPO_NAME__FCST_MGR}" && rm -rf "/tmp/${REPO_NAME__FCST_MGR}"
+# RUN python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__FCST_MGR}" --output_dir "/ngen-app"
 
 
 ##############################
@@ -65,11 +67,13 @@ RUN python -m pip install "${GITHUB_ORG_URL}/${REPO_NAME__FCST_MGR}/archive/${RE
 
 ## From GitHub
 RUN python -m pip install "${GITHUB_ORG_URL}/${REPO_NAME__MSW_MGR}/archive/${REPO_TAG__MSW_MGR}.tar.gz"
+RUN python add_git_info.py --remote_repo_name "${REPO_NAME__MSW_MGR}" --remote_branch "${REPO_TAG__MSW_MGR}" --output_dir "/ngen-app"
 RUN mkdir -p `dirname ${MSWM_MODULE_PARAMETER_FILES}`
 
 ## From local
 # COPY "${REPO_NAME__MSW_MGR}/" "/tmp/${REPO_NAME__MSW_MGR}/"
 # RUN python -m pip install "/tmp/${REPO_NAME__MSW_MGR}" && rm -rf "/tmp/${REPO_NAME__MSW_MGR}"
+# RUN python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__MSW_MGR}" --output_dir "/ngen-app"
 
 ## Either way, do the symlink to module_parameter_files. TODO improve this
 RUN mkdir -p "`dirname ${MSWM_MODULE_PARAMETER_FILES}`" && ln -s "/ngen-app/ngen-python/lib/${PYTHON_VERSION_STR}/site-packages/mswm/module_parameter_files" "${MSWM_MODULE_PARAMETER_FILES}"
@@ -84,6 +88,7 @@ RUN python -m pip install "${GITHUB_ORG_URL}/${REPO_NAME__CAL_MGR}/archive/${REP
 ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/python/calibration.py" "/ngen-app/bin/"
 ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/python/validation.py" "/ngen-app/bin/"
 ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/python/validation_iteration.py" "/ngen-app/bin/"
+RUN python add_git_info.py --remote_repo_name "${REPO_NAME__CAL_MGR}" --remote_branch "${REPO_TAG__CAL_MGR}" --output_dir "/ngen-app"
 
 ## From local
 # COPY "${REPO_NAME__CAL_MGR}/" "/tmp/${REPO_NAME__CAL_MGR}/"
@@ -94,6 +99,7 @@ ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/pyt
 # ADD "${REPO_NAME__CAL_MGR}/python/calibration.py" "/ngen-app/bin/"
 # ADD "${REPO_NAME__CAL_MGR}/python/validation.py" "/ngen-app/bin/"
 # ADD "${REPO_NAME__CAL_MGR}/python/validation_iteration.py" "/ngen-app/bin/"
+# RUN python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__CAL_MGR}" --output_dir "/ngen-app"
 
 
 ##############################
@@ -101,16 +107,19 @@ ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/pyt
 
 ## From GitHub
 RUN python -m pip install "nwm_region_mgr[parreg] @ git+${GITHUB_ORG_URL}/${REPO_NAME__REGION_MGR}@${REPO_TAG__REGION_MGR}"
+RUN python add_git_info.py --remote_repo_name "${REPO_NAME__REGION_MGR}" --remote_branch "${REPO_TAG__REGION_MGR}" --output_dir "/ngen-app"
 
 ## From local
 # COPY "${REPO_NAME__REGION_MGR}/" "/tmp/${REPO_NAME__REGION_MGR}/"
 # RUN python -m pip install "/tmp/${REPO_NAME__REGION_MGR}[parreg]" && rm -rf "/tmp/${REPO_NAME__REGION_MGR}/"
+# RUN python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__REGION_MGR}" --output_dir "/ngen-app"
 
 ##############################
 #### Data Assimilation Engine
 
 ## From GitHub
 RUN python -m pip install "data_assimilation_engine @ git+${GITHUB_ORG_URL}/${REPO_NAME__DATA_ASSIM_ENGINE}@${REPO_TAG__DATA_ASSIM_ENGINE}"
+RUN python add_git_info.py --remote_repo_name "${REPO_NAME__DATA_ASSIM_ENGINE}" --remote_branch "${REPO_TAG__DATA_ASSIM_ENGINE}" --output_dir "/ngen-app"
 # RUN python -m pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__DATA_ASSIM_ENGINE}@${REPO_TAG__DATA_ASSIM_ENGINE}"
 
 
@@ -119,10 +128,12 @@ RUN python -m pip install "data_assimilation_engine @ git+${GITHUB_ORG_URL}/${RE
 
 # ## From GitHub
 # RUN python -m pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__NGEN_FORCING}@${REPO_TAG__NGEN_FORCING}"
+# RUN python add_git_info.py --remote_repo_name "${REPO_NAME__NGEN_FORCING}" --remote_branch "${REPO_TAG__NGEN_FORCING}" --output_dir "/ngen-app"
 
 # ## From local
 # COPY "${REPO_NAME__NGEN_FORCING}/" "/tmp/${REPO_NAME__NGEN_FORCING}/"
 # RUN python -m pip install "/tmp/${REPO_NAME__NGEN_FORCING}" && rm -rf "/tmp/${REPO_NAME__NGEN_FORCING}/"
+# RUN python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__NGEN_FORCING}" --output_dir "/ngen-app"
 
 
 
@@ -155,10 +166,12 @@ ENV PYTHONPATH="${EVAL_VERF_PYTHON_BIN_DIR}/lib/python3.11/site-packages"
 
 ## From GitHub
 RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "nwm.verf @ git+${GITHUB_ORG_URL}/${REPO_NAME__VERF_MGR}@${REPO_TAG__VERF_MGR}"
+RUN python add_git_info.py --remote_repo_name "${REPO_NAME__VERF_MGR}" --remote_branch "${REPO_TAG__VERF_MGR}" --output_dir "/ngen-app"
 
 # ## From local
 # COPY "${REPO_NAME__VERF_MGR}/" "/tmp/${REPO_NAME__VERF_MGR}/"
 # RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "/tmp/${REPO_NAME__VERF_MGR}" && rm -rf "/tmp/${REPO_NAME__VERF_MGR}/"
+# RUN python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__VERF_MGR}" --output_dir "/ngen-app"
 
 
 ##############################
@@ -166,10 +179,12 @@ RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "nwm.verf @ git+${GITHUB_ORG_URL
 
 ## From GitHub
 RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "nwm.eval @ git+${GITHUB_ORG_URL}/${REPO_NAME__EVAL_MGR}@${REPO_TAG__EVAL_MGR}"
+RUN python add_git_info.py --remote_repo_name "${REPO_NAME__EVAL_MGR}" --remote_branch "${REPO_TAG__EVAL_MGR}" --output_dir "/ngen-app"
 
 ## From Local
 # COPY "${REPO_NAME__EVAL_MGR}/" "/tmp/${REPO_NAME__EVAL_MGR}/"
 # RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "/tmp/${REPO_NAME__EVAL_MGR}" && rm -rf "/tmp/${REPO_NAME__EVAL_MGR}/"
+# RUN python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__EVAL_MGR}" --output_dir "/ngen-app"
 
 
 ##############################
