@@ -135,8 +135,8 @@ def main(
     noop: bool,
 ):
     if noop:
-        print("Running in noop mode - only checking imports and basic setup")
-        print("Successfully imported all required libraries")
+        print("\nRunning in noop mode - only checking imports and basic setup.")
+        print("Successfully imported all required libraries.")
         print("Noop mode complete - exiting")
         return
 
