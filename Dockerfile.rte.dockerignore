@@ -30,8 +30,9 @@
 **/.coverage
 
 # Documentation files
-**/docs/
-**/*.md
+### These should not be dockerignored, since cal mgr looks for its own README.md during pip install.
+# **/docs/
+# **/*.md
 
 # Database files
 **/*.sqlite3
