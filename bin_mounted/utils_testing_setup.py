@@ -31,9 +31,9 @@ def delete_files_to_force_esmf_and_netcdf_actions(gage_id: str) -> None:
             print(f"Did not exist: {f}")
 
 
-def assert_paths__core(gage_id: str) -> None:
+def assert_paths__core(gage_id: str, gage_vintage: str) -> None:
     file_paths = [
-        f"/s3/ngwpc-hydrofabric/2.2/CONUS/{gage_id}/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_{gage_id}.gpkg",
+        f"/s3/ngwpc-hydrofabric/2.2/CONUS/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg",
         "/ngen-app/ngen/cmake_build/ngen",
         "/ngen-app/ngen/extern/sloth/cmake_build/libslothmodel.so",
         "/ngen-app/ngen/extern/cfe/cmake_build/libcfebmi.so",

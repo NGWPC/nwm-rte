@@ -47,6 +47,10 @@ DT_END_COLDSTART = DT_START_FORECAST
 
 ### .config section [General]
 DEFAULT_GAGE_ID = "01123000"
+DEFAULT_GAGE_VINTAGE = "2025_Mar_14_21_14_37"
+# DEFAULT_GAGE_ID = "01021500"
+# DEFAULT_GAGE_VINTAGE = "2025_Jan_30_04_28_08"
+
 MODELS = "noah-owp-modular,cfe-s"
 # MODELS="noah-owp-modular,topmodel"
 DEFAULT_MAIN_DIR = "/ngwpc/run_ngen"
@@ -162,7 +166,7 @@ def get_test_configs__calibration(nprocs: int = DEFAULT_NPROCS) -> list[InputCon
             cold_start_datetime=None,
         )
         datafile = DataFileConfig(
-            hydrofab_file=f"{HYDROFABRIC_DIR}/2.2/CONUS/{DEFAULT_GAGE_ID}/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_{DEFAULT_GAGE_ID}.gpkg",
+            hydrofab_file=f"{HYDROFABRIC_DIR}/2.2/CONUS/{DEFAULT_GAGE_ID}/GEOPACKAGE/USGS/{DEFAULT_GAGE_VINTAGE}/gauge_{DEFAULT_GAGE_ID}.gpkg",
             noah_parameter_dir=f"{MODULE_PARAMETER_FILES_DIR}/noah-owp-modular",
             ueb_parameter_dir=f"{MODULE_PARAMETER_FILES_DIR}/ueb",
             lasam_parameter_dir=f"{MODULE_PARAMETER_FILES_DIR}/lasam",

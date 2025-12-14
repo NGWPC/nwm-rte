@@ -14,6 +14,7 @@ from execution_tests import (
     get_test_configs__calibration,
     FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT,
     DEFAULT_GAGE_ID,
+    DEFAULT_GAGE_VINTAGE,
     DEFAULT_FORCING_PROVIDER,
     DEFAULT_FORECAST_RUN_NAME,
     FORMULATION_NAME,
@@ -141,7 +142,7 @@ def main(
                 f"When do_all_forcing_configs={do_all_forcing_configs}, must have coldstart and/or forecast enabled."
             )
 
-    utils_testing_setup.assert_paths__core(DEFAULT_GAGE_ID)
+    utils_testing_setup.assert_paths__core(DEFAULT_GAGE_ID, DEFAULT_GAGE_VINTAGE)
     # utils_testing_setup.assert_paths__raw_config(CALIB_CONFIG_FILE, FORECAST_CONFIG_FILE)
 
     # TODO pseudocode for now for states.
