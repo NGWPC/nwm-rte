@@ -246,7 +246,7 @@ def main():
     ### If wanting to skip Calibration but still do CS and/or Forecast,
     ### then remove this line so that the test calibration results remain available.
     #util_deletes.delete_test_output_dir(forecast_vars)
-    #util_deletes.delete_files_to_force_esmf_and_netcdf_actions(forecast_vars)
+    #util_deletes.delete_scratch_and_esmf_outputs(forecast_vars)
     
     if not options.skip_calibration:
         calibration__build_and_run(forecast_vars)

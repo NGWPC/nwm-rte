@@ -7,6 +7,7 @@ from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
 import utils_testing_setup
 from execution_tests import (
+    TestPaths,
     TestStat,
     LogParser,
     ForecastTest,
@@ -15,6 +16,7 @@ from execution_tests import (
     get_test_configs__calibration,
     FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT,
     DEFAULT_GAGE_ID,
+    DEFAULT_GAGE_VINTAGE,
     DEFAULT_FORCING_PROVIDER,
     DEFAULT_FORECAST_RUN_NAME,
     FORMULATION_NAME,
@@ -22,6 +24,7 @@ from execution_tests import (
     CALIB_OBJECTIVE_FUNCTION,
     CALIB_OPTIMIZATION_ALGO,
     DEFAULT_NPROCS,
+    DIR_FORCING_RAW_INPUT,
     make_parallel_config,
 )
 from pseudocode import SavedState_Pseudo, StateManager_Pseudo
@@ -29,23 +32,13 @@ from pseudocode import SavedState_Pseudo, StateManager_Pseudo
 print = functools.partial(print, flush=True)
 
 
-TEST_DIR_BASE = f"{DEFAULT_MAIN_DIR}/{CALIB_OBJECTIVE_FUNCTION}_{CALIB_OPTIMIZATION_ALGO}/{FORMULATION_NAME}/{DEFAULT_GAGE_ID}"
-# TEST_DIR_INPUT = f"{TEST_DIR_BASE}/Input"
-TEST_DIR_OUTPUT = f"{TEST_DIR_BASE}/Output"
-# TEST_NGEN_LOG_FILE = f"{TEST_DIR_BASE}/logs/ngen.log"
-
-### Read by build_calib_realization()
-# CALIB_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_calibration_{DEFAULT_FORCING_PROVIDER}.config"
-# CALIB_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_calibration_{DEFAULT_FORCING_PROVIDER}_short.config"
-
-### Read by build_fcst_realization() for CS and for Forecast
-# FORECAST_CONFIG_FILE = f"{DEFAULT_MAIN_DIR}/cold_start_workflow/input_forecast.config"
-FORECAST_VALID_YAML = f"{TEST_DIR_OUTPUT}/Validation_Run/{DEFAULT_GAGE_ID}_config_valid_best.yaml"
-
-
-def calibrations__build_and_run(tests_manager: TestsManager, nprocs: int) -> None:
+def calibrations__build_and_run(test_paths: TestPaths, tests_manager: TestsManager, nprocs: int) -> None:
     """Build calibration realizations and run them as tests."""
-    for config_overrides in get_test_configs__calibration(nprocs=nprocs):
+    for config_overrides in get_test_configs__calibration(
+        nprocs=nprocs,
+        gage_id=test_paths.gage_id,
+        gage_vintage=test_paths.gage_vintage,
+    ):
         fc = config_overrides.Forcing.forcing_configuration
         rb_kwargs = {"config_overrides": config_overrides}
         print(f"\n\n##########\n### Calibration: {fc}: setting up test with rb_kwargs = {rb_kwargs}")
@@ -64,6 +57,7 @@ def calibrations__build_and_run(tests_manager: TestsManager, nprocs: int) -> Non
 
 
 def forecasts__build_and_run(
+    test_paths: TestPaths,
     tests_manager: TestsManager,
     state_manager: StateManager_Pseudo,
     do_all_forcing_configs: bool,
@@ -87,8 +81,8 @@ def forecasts__build_and_run(
     for config_overrides in test_configs:
         fc = config_overrides.Forcing.forcing_configuration
         rb_kwargs = {
-            # "input_path": FORECAST_CONFIG_FILE,
-            "valid_yaml": FORECAST_VALID_YAML,
+            # "input_path": test_paths.dir_input,
+            "valid_yaml": test_paths.valid_yaml,
             "fcst_run_name": fcst_run_name,
             "config_overrides": config_overrides,
             "use_cold_start": do_coldstart,
@@ -97,7 +91,7 @@ def forecasts__build_and_run(
 
         t = ForecastTest(
             rb_kwargs=rb_kwargs,
-            ngen_log=LogParser(path=f"{TEST_DIR_OUTPUT}/Forecast_Run/{fcst_run_name}/logs/ngen.log"),
+            ngen_log=LogParser(path=f"{test_paths.dir_output}/Forecast_Run/{fcst_run_name}/logs/ngen.log"),
         )
 
         # Build the realization, trapping exceptions into class attrs
@@ -132,6 +126,7 @@ def run_noop_mode() -> None:
 
 def main(
     delete_scratch_and_mesh_first: bool,
+    delete_forcing_raw_input_first: bool,
     skip_forecast: bool,
     quit_forecast_after_forcing_running: bool,
     quit_forecast_after_duration: float | None,
@@ -140,10 +135,12 @@ def main(
     do_coldstart: bool,
     fcst_run_name: str,
     nprocs: int,
+    gage_id__gage_vintage: list[str],
     noop: bool,
 ):
     if noop:
         run_noop_mode()
+
 
     if not fcst_run_name.strip():
         raise ValueError(f"Empty fcst_run_name: {repr(fcst_run_name)}")
@@ -153,8 +150,16 @@ def main(
                 f"When do_all_forcing_configs={do_all_forcing_configs}, must have coldstart and/or forecast enabled."
             )
 
-    utils_testing_setup.assert_paths__core(DEFAULT_GAGE_ID)
-    # utils_testing_setup.assert_paths__raw_config(CALIB_CONFIG_FILE, FORECAST_CONFIG_FILE)
+    gage_id, gage_vintage = gage_id__gage_vintage
+    test_paths = TestPaths(
+        gage_id=gage_id,
+        gage_vintage=gage_vintage,
+        obj_func=CALIB_OBJECTIVE_FUNCTION,
+        optim_algo=CALIB_OPTIMIZATION_ALGO,
+    )
+
+    utils_testing_setup.assert_paths__core(test_paths)
+    # utils_testing_setup.assert_paths__raw_config(test_paths)  # Only works for default gage
 
     # TODO pseudocode for now for states.
     state_manager = StateManager_Pseudo()
@@ -163,15 +168,18 @@ def main(
     ### NOTE this deletes the test output dir.
     ### If wanting to skip Calibration but still do CS and/or Forecast,
     ### then remove this line so that the test calibration results remain available.
-    # utils_testing_setup.delete_test_output_dir(TEST_DIR_OUTPUT)
+    # utils_testing_setup.delete_test_output_dir(test_paths)
 
     if delete_scratch_and_mesh_first:
-        utils_testing_setup.delete_files_to_force_esmf_and_netcdf_actions(DEFAULT_GAGE_ID)
+        utils_testing_setup.delete_scratch_and_esmf_outputs(test_paths)
+    if delete_forcing_raw_input_first:
+        utils_testing_setup.delete_forcing_raw_inputs()
 
     if do_calibration:
-        calibrations__build_and_run(tests_manager, nprocs)
+        calibrations__build_and_run(test_paths, tests_manager, nprocs)
 
     forecast_kwargs_base = {
+        "test_paths": test_paths,
         "tests_manager": tests_manager,
         "state_manager": state_manager,
         "do_all_forcing_configs": do_all_forcing_configs,
@@ -182,10 +190,10 @@ def main(
     }
 
     if do_coldstart:
-        forecasts__build_and_run(**(forecast_kwargs_base | {"do_coldstart": True}))  
+        forecasts__build_and_run(**(forecast_kwargs_base | {"do_coldstart": True}))
 
     if not skip_forecast:
-        forecasts__build_and_run(**(forecast_kwargs_base | {"do_coldstart": False})) 
+        forecasts__build_and_run(**(forecast_kwargs_base | {"do_coldstart": False}))
 
     tests_manager.evaluate_test_results()
 
@@ -196,7 +204,13 @@ if __name__ == "__main__":
         "-delscratch",
         "--delete_scratch_and_mesh_first",
         action="store_true",
-        help="Delete some files before the runs, which forces ESMF and NetCDF actions to occur, for testing those.",
+        help="Delete scratch dir and ESMF mesh files before the run, which forces ESMF and NetCDF actions to occur.",
+    )
+    parser.add_argument(
+        "-delraw",
+        "--delete_forcing_raw_input_first",
+        action="store_true",
+        help=f"Delete contents of {repr(DIR_FORCING_RAW_INPUT)} before the run, which forces forcing data to be re-downloaded.",
     )
     parser.add_argument(
         "-nofcst",
@@ -251,6 +265,14 @@ Currently only affects Calibration. Replaces default value for nprocs ({repr(DEF
 When nprocs is 1, Calibration's ParallelConfig is: {make_parallel_config(nprocs=1)}.
 When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(nprocs=2)}
 """,
+    )
+    parser.add_argument(
+        "-g",
+        "--gage_id__gage_vintage",
+        type=str,
+        nargs=2,
+        default=[DEFAULT_GAGE_ID, DEFAULT_GAGE_VINTAGE],
+        help=f"Calibration gage ID and gage vintage (2 args). If not provided, then these defaults will be used: {DEFAULT_GAGE_ID}, {DEFAULT_GAGE_VINTAGE} will be used.",
     )
     parser.add_argument(
         "--noop",

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import StrEnum
 import functools
@@ -28,6 +29,8 @@ from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
 
 print = functools.partial(print, flush=True)
 
+DIR_FORCING_RAW_INPUT = "/ngen-app/data/raw_input"
+
 
 ### .config section [Forcing]
 DEFAULT_FORECAST_RUN_NAME = "fcst_run1"
@@ -47,6 +50,8 @@ DT_END_COLDSTART = DT_START_FORECAST
 
 ### .config section [General]
 DEFAULT_GAGE_ID = "01123000"
+DEFAULT_GAGE_VINTAGE = "2025_Mar_14_21_14_37"
+
 MODELS = "noah-owp-modular,cfe-s"
 # MODELS="noah-owp-modular,topmodel"
 DEFAULT_MAIN_DIR = "/ngwpc/run_ngen"
@@ -78,8 +83,6 @@ DEFAULT_NPROCS = 1
 FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range", "standard_ana", "medium_range_blend"]
 # FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range"]
 FORECAST_FORCING_CONFIGURATION_TYPES__ALL = [
-    # "aorc",   # Calibration only
-    # "nwm",    # Calibration only
     "standard_ana",
     "standard_ana_alaska",
     "standard_ana_hawaii",
@@ -104,6 +107,46 @@ CALIB_FORCING_CONFIGURATION_TYPES = [
 ]
 
 
+@dataclass
+class TestPaths:
+    # From calibration
+    gage_id: str
+    gage_vintage: str
+    obj_func: str
+    optim_algo: str
+
+    @property
+    def dir_base(self) -> str:
+        return (
+            f"{DEFAULT_MAIN_DIR}/{CALIB_OBJECTIVE_FUNCTION}_{CALIB_OPTIMIZATION_ALGO}/{FORMULATION_NAME}/{self.gage_id}"
+        )
+
+    @property
+    def dir_input(self) -> str:
+        return f"{self.dir_base}/Input"
+
+    @property
+    def dir_output(self) -> str:
+        return f"{self.dir_base}/Output"
+
+    @property
+    def ngen_log_file(self) -> str:
+        return f"{self.dir_base}/logs/ngen.log"
+
+    @property
+    def calib_config_file(self) -> str:
+        return f"{self.dir_base}/cold_start_workflow/input_calibration_{DEFAULT_FORCING_PROVIDER}.config"
+        # return f"{self.dir_base}/cold_start_workflow/input_calibration_{DEFAULT_FORCING_PROVIDER}_short.config"
+
+    @property
+    def fcst_config_file(self) -> str:
+        return f"{self.dir_base}/cold_start_workflow/input_forecast.config"
+
+    @property
+    def valid_yaml(self) -> str:
+        return f"{self.dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
+
+
 def make_parallel_config(nprocs: int) -> ParallelConfig:
     if nprocs and nprocs > 1:
         parallel = ParallelConfig(
@@ -116,7 +159,11 @@ def make_parallel_config(nprocs: int) -> ParallelConfig:
     return parallel
 
 
-def get_test_configs__calibration(nprocs: int = DEFAULT_NPROCS) -> list[InputConfig]:
+def get_test_configs__calibration(
+    nprocs: int = DEFAULT_NPROCS,
+    gage_id: str = DEFAULT_GAGE_ID,
+    gage_vintage: str = DEFAULT_GAGE_VINTAGE,
+) -> list[InputConfig]:
     configs: list[InputConfig] = []
 
     forcing_config_types = CALIB_FORCING_CONFIGURATION_TYPES
@@ -125,7 +172,7 @@ def get_test_configs__calibration(nprocs: int = DEFAULT_NPROCS) -> list[InputCon
 
     for fct in forcing_config_types:
         general = GeneralConfig(
-            basin=DEFAULT_GAGE_ID,
+            basin=gage_id,
             run_type="calibration",
             models=MODELS,
             formulation=FORMULATION_NAME,
@@ -162,7 +209,7 @@ def get_test_configs__calibration(nprocs: int = DEFAULT_NPROCS) -> list[InputCon
             cold_start_datetime=None,
         )
         datafile = DataFileConfig(
-            hydrofab_file=f"{HYDROFABRIC_DIR}/2.2/CONUS/{DEFAULT_GAGE_ID}/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_{DEFAULT_GAGE_ID}.gpkg",
+            hydrofab_file=f"{HYDROFABRIC_DIR}/2.2/CONUS/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg",
             noah_parameter_dir=f"{MODULE_PARAMETER_FILES_DIR}/noah-owp-modular",
             ueb_parameter_dir=f"{MODULE_PARAMETER_FILES_DIR}/ueb",
             lasam_parameter_dir=f"{MODULE_PARAMETER_FILES_DIR}/lasam",
