@@ -1,16 +1,18 @@
 import os
 import shutil
 
+from execution_tests import TestPaths
 
-def delete_test_output_dir(test_dir_output: str) -> None:
-    print(f"Deleting if exists: {test_dir_output}")
+
+def delete_test_output_dir(test_paths: TestPaths) -> None:
+    print(f"Deleting if exists: {test_paths.dir_output}")
     try:
-        shutil.rmtree(test_dir_output)
+        shutil.rmtree(test_paths.dir_output)
     except (FileNotFoundError, NotADirectoryError):
         pass
 
 
-def delete_files_to_force_esmf_and_netcdf_actions(gage_id: str) -> None:
+def delete_files_to_force_esmf_and_netcdf_actions(test_paths: TestPaths) -> None:
     dirs_to_delete = ["/ngwpc/run_ngen/data/scratch/NWM"]
     for d in dirs_to_delete:
         if os.path.exists(d):
@@ -20,8 +22,8 @@ def delete_files_to_force_esmf_and_netcdf_actions(gage_id: str) -> None:
             print(f"Did not exist: {d}")
 
     files_to_delete = [
-        f"/ngwpc/run_ngen/data/esmf_mesh/gauge_{gage_id}_ESMF_Mesh.nc",
-        f"/ngen-app/data/esmf_mesh/gauge_{gage_id}_ESMF_Mesh.nc",
+        f"/ngwpc/run_ngen/data/esmf_mesh/gauge_{test_paths.gage_id}_ESMF_Mesh.nc",
+        f"/ngen-app/data/esmf_mesh/gauge_{test_paths.gage_id}_ESMF_Mesh.nc",
     ]
     for f in files_to_delete:
         if os.path.exists(f):
@@ -31,9 +33,9 @@ def delete_files_to_force_esmf_and_netcdf_actions(gage_id: str) -> None:
             print(f"Did not exist: {f}")
 
 
-def assert_paths__core(gage_id: str, gage_vintage: str) -> None:
+def assert_paths__core(test_paths: TestPaths) -> None:
     file_paths = [
-        f"/s3/ngwpc-hydrofabric/2.2/CONUS/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg",
+        f"/s3/ngwpc-hydrofabric/2.2/CONUS/{test_paths.gage_id}/GEOPACKAGE/USGS/{test_paths.gage_vintage}/gauge_{test_paths.gage_id}.gpkg",
         "/ngen-app/ngen/cmake_build/ngen",
         "/ngen-app/ngen/extern/sloth/cmake_build/libslothmodel.so",
         "/ngen-app/ngen/extern/cfe/cmake_build/libcfebmi.so",
@@ -60,10 +62,10 @@ def assert_paths__core(gage_id: str, gage_vintage: str) -> None:
             raise NotADirectoryError(fp)
 
 
-def assert_paths__raw_config(calib_config: str, forecast_config: str) -> None:
+def assert_paths__raw_config(test_paths: TestPaths) -> None:
     for fp in [
-        calib_config,
-        forecast_config,
+        test_paths.calib_config_file,
+        test_paths.fcst_config_file,
     ]:
         if not os.path.isfile(fp):
             raise FileNotFoundError(fp)
