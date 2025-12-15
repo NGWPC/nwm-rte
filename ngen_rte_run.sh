@@ -24,34 +24,51 @@ set -x
 
 source config.bashrc
 
+# Default to fcst_run1
+fcst_run_name=${1:-"fcst_run1"}
+
+
     # time sudo docker run --entrypoint python \
     # time sudo docker run --entrypoint /bin/sh -it \
 function docker_run {
     time sudo docker run --entrypoint python \
         -v "${MNT__RUN_NGEN__HOST}:${MNT__RUN_NGEN__CONTAINER_1}" \
         -v "${MNT__RUN_NGEN__HOST}:${MNT__RUN_NGEN__CONTAINER_2}" \
+        \
+        -v "${MNT__RUN_NGEN__HOST}/data/esmf_mesh/:/ngen-app/data/esmf_mesh/" \
+        -v "${MNT__RUN_NGEN__HOST}/data/scratch:/ngen-app/data/scratch" \
+        -v "${MNT__RUN_NGEN__HOST}/cold_start_workflow:/ngen-app/data/configs" \
+        -v "${MNT__RUN_NGEN__HOST}/data/raw_input:/ngen-app/data/raw_input" \
+        -v "${MNT__RUN_NGEN__HOST}/kge_dds:/ngen-app/data/run_ngen" \
+        \
         -v "${MNT__NGEN_FORCING__HOST}:${MNT__NGEN_FORCING__CONTAINER_1}" \
         -v "${MNT__NGEN_FORCING__HOST}:${MNT__NGEN_FORCING__CONTAINER_2}" \
         -v "${MNT__S3_DATA__HOST}:${MNT__S3_DATA__CONTAINER_1}" \
         -v "${MNT__S3_DATA__HOST}:${MNT__S3_DATA__CONTAINER_2}" \
         -v "${MNT__MODULE_PARAM_FILES_DIR__HOST}:${MNT__MODULE_PARAM_FILES_DIR__CONTAINER_1}" \
         -v "${MNT__MODULE_PARAM_FILES_DIR__HOST}:${MNT__MODULE_PARAM_FILES_DIR__CONTAINER_2}" \
-        -v "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/:/ngen-app/data/esmf_mesh/" \
-        -v "${RUN_NGEN_ROOT__HOST}/data/scratch:/ngen-app/data/scratch" \
         -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
         -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
         \
-        -v "${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr:/ngen-app/nwm-region-mgr" \
-        -v "${REPOS_COMMON_ROOT__HOST}/nwm-verf/data:/ngen-app/nwm-verf/data" \
-        \
-        --rm ${TARGET_IMAGE_NAME} "$@"
+        --rm ${TARGET_IMAGE_NAME} "$@" --fcst_run_name "${fcst_run_name}"
 }
         # --rm ${TARGET_IMAGE_NAME}
-        # --rm ${TARGET_IMAGE_NAME} "$@"
+        # --rm ${TARGET_IMAGE_NAME} "$@" --fcst_run_name "${fcst_run_name}"
 
 # docker_run
 
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
+# docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --help
+# docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" -n 2
+# docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --skip_calibration -cycle_datetime "2025-09-15 00:00:00"
+# docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --skip_calibration -cycle_datetime "2025-09-15 00:00:00" -cold_start_datetime "2025-09-12 00:00:00"
+
+docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
+# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 1
+# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 2
+# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" "2025_Jan_30_13_08_20" --do_calibration --skip_forecast --nprocs 2
+# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" "2025_Jan_30_13_08_20"
+# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "02207385" "2025_Mar_14_21_15_07" --do_calibration --skip_forecast --nprocs 2
+# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "02207385" "2025_Mar_14_21_15_07"
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py"
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --delete_scratch_and_mesh_first
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_coldstart

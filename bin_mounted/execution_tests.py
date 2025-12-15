@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import StrEnum
 import functools
@@ -12,7 +13,14 @@ from pydantic import BaseModel, Field, ConfigDict, validate_call
 from pydantic.json import pydantic_encoder
 
 from mswm.build_inputs import RealizationBuilder
-from mswm.utils.input_configuration import InputConfig, GeneralConfig, CalibConfig, ForcingConfig, DataFileConfig
+from mswm.utils.input_configuration import (
+    InputConfig,
+    GeneralConfig,
+    CalibConfig,
+    ForcingConfig,
+    DataFileConfig,
+    ParallelConfig,
+)
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
 from nwm_fcst_mgr.forecast import ForecastExecutionManager, RunStatus
@@ -21,14 +29,16 @@ from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
 
 print = functools.partial(print, flush=True)
 
+DIR_FORCING_RAW_INPUT = "/ngen-app/data/raw_input"
+
 
 ### .config section [Forcing]
-FORECAST_RUN_NAME = "fcst_run1"
+DEFAULT_FORECAST_RUN_NAME = "fcst_run1"
 
-# FORCING_PROVIDER = "csv"
+# DEFAULT_FORCING_PROVIDER = "csv"
 # FORCING_DIR =
 
-FORCING_PROVIDER = "bmi"
+DEFAULT_FORCING_PROVIDER = "bmi"
 FORCING_DIR = None  # None when provider is bmi
 
 FORCING_TEMPLATE_DIR = "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
@@ -39,11 +49,13 @@ DT_END_COLDSTART = DT_START_FORECAST
 
 
 ### .config section [General]
-GAGE_ID = "01123000"
+DEFAULT_GAGE_ID = "01123000"
+DEFAULT_GAGE_VINTAGE = "2025_Mar_14_21_14_37"
+
 MODELS = "noah-owp-modular,cfe-s"
 # MODELS="noah-owp-modular,topmodel"
 DEFAULT_MAIN_DIR = "/ngwpc/run_ngen"
-FORMULATION_NAME = f"test_{FORCING_PROVIDER}"
+FORMULATION_NAME = f"test_{DEFAULT_FORCING_PROVIDER}"
 
 
 ### .config section [Calibration]
@@ -62,12 +74,15 @@ NGEN_DIR = "/ngen-app/ngen"
 HYDROFABRIC_DIR = "/s3/ngwpc-hydrofabric"
 
 
+### .config section [Parallel]
+DEFAULT_NPROCS = 1
+
+
 ### Test settings
 ### See this for full list of forcing configuration types: mswm.utils.input_configuration.mswm_valid_configs
 FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range", "standard_ana", "medium_range_blend"]
+# FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range"]
 FORECAST_FORCING_CONFIGURATION_TYPES__ALL = [
-    # "aorc",   # Calibration only
-    # "nwm",    # Calibration only
     "standard_ana",
     "standard_ana_alaska",
     "standard_ana_hawaii",
@@ -92,7 +107,63 @@ CALIB_FORCING_CONFIGURATION_TYPES = [
 ]
 
 
-def get_test_configs__calibration() -> list[InputConfig]:
+@dataclass
+class TestPaths:
+    # From calibration
+    gage_id: str
+    gage_vintage: str
+    obj_func: str
+    optim_algo: str
+
+    @property
+    def dir_base(self) -> str:
+        return (
+            f"{DEFAULT_MAIN_DIR}/{CALIB_OBJECTIVE_FUNCTION}_{CALIB_OPTIMIZATION_ALGO}/{FORMULATION_NAME}/{self.gage_id}"
+        )
+
+    @property
+    def dir_input(self) -> str:
+        return f"{self.dir_base}/Input"
+
+    @property
+    def dir_output(self) -> str:
+        return f"{self.dir_base}/Output"
+
+    @property
+    def ngen_log_file(self) -> str:
+        return f"{self.dir_base}/logs/ngen.log"
+
+    @property
+    def calib_config_file(self) -> str:
+        return f"{self.dir_base}/cold_start_workflow/input_calibration_{DEFAULT_FORCING_PROVIDER}.config"
+        # return f"{self.dir_base}/cold_start_workflow/input_calibration_{DEFAULT_FORCING_PROVIDER}_short.config"
+
+    @property
+    def fcst_config_file(self) -> str:
+        return f"{self.dir_base}/cold_start_workflow/input_forecast.config"
+
+    @property
+    def valid_yaml(self) -> str:
+        return f"{self.dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
+
+
+def make_parallel_config(nprocs: int) -> ParallelConfig:
+    if nprocs and nprocs > 1:
+        parallel = ParallelConfig(
+            parallel_ngen_exe="/ngen-app/ngen/cmake_build/ngen",
+            partition_generator_exe="/ngen-app/ngen/cmake_build/partitionGenerator",
+            nprocs=nprocs,
+        )
+    else:
+        parallel = ParallelConfig(nprocs=nprocs)
+    return parallel
+
+
+def get_test_configs__calibration(
+    nprocs: int = DEFAULT_NPROCS,
+    gage_id: str = DEFAULT_GAGE_ID,
+    gage_vintage: str = DEFAULT_GAGE_VINTAGE,
+) -> list[InputConfig]:
     configs: list[InputConfig] = []
 
     forcing_config_types = CALIB_FORCING_CONFIGURATION_TYPES
@@ -101,7 +172,7 @@ def get_test_configs__calibration() -> list[InputConfig]:
 
     for fct in forcing_config_types:
         general = GeneralConfig(
-            basin=GAGE_ID,
+            basin=gage_id,
             run_type="calibration",
             models=MODELS,
             formulation=FORMULATION_NAME,
@@ -129,7 +200,7 @@ def get_test_configs__calibration() -> list[InputConfig]:
             calib_parameter_file=CALIB_PARAMETERS_DIR,
         )
         forcing = ForcingConfig(
-            forcing_provider=FORCING_PROVIDER,
+            forcing_provider=DEFAULT_FORCING_PROVIDER,
             forcing_dir=FORCING_DIR,
             forcing_template_dir=FORCING_TEMPLATE_DIR,
             root_dir=FORCING_ROOT_DIR,
@@ -138,7 +209,7 @@ def get_test_configs__calibration() -> list[InputConfig]:
             cold_start_datetime=None,
         )
         datafile = DataFileConfig(
-            hydrofab_file=f"{HYDROFABRIC_DIR}/2.2/CONUS/{GAGE_ID}/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_{GAGE_ID}.gpkg",
+            hydrofab_file=f"{HYDROFABRIC_DIR}/2.2/CONUS/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg",
             noah_parameter_dir=f"{MODULE_PARAMETER_FILES_DIR}/noah-owp-modular",
             ueb_parameter_dir=f"{MODULE_PARAMETER_FILES_DIR}/ueb",
             lasam_parameter_dir=f"{MODULE_PARAMETER_FILES_DIR}/lasam",
@@ -159,12 +230,19 @@ def get_test_configs__calibration() -> list[InputConfig]:
             topmodel_lib=f"{NGEN_DIR}/extern/topmodel/cmake_build/libtopmodelbmi.so",
             ueb_lib=f"{NGEN_DIR}/extern/ueb-bmi/cmake_build/src/libbmiuebcxx.so",
         )
-        configs.append(InputConfig(General=general, Calibration=calibration, Forcing=forcing, DataFile=datafile))
+        parallel = make_parallel_config(nprocs)
+        configs.append(
+            InputConfig(General=general, Calibration=calibration, Forcing=forcing, DataFile=datafile, Parallel=parallel)
+        )
 
     return configs
 
 
-def get_test_configs__forecast(do_all_forcing_configs: bool, use_cold_start: bool = False) -> list[InputConfig]:
+def get_test_configs__forecast(
+    do_all_forcing_configs: bool,
+    use_cold_start: bool = False,
+    # nprocs: int = DEFAULT_NPROCS,
+) -> list[InputConfig]:
     configs: list[InputConfig] = []
 
     if use_cold_start:
@@ -182,7 +260,7 @@ def get_test_configs__forecast(do_all_forcing_configs: bool, use_cold_start: boo
     for fct in forcing_config_types:
         general = None
         forcing = ForcingConfig(
-            forcing_provider=FORCING_PROVIDER,
+            forcing_provider=DEFAULT_FORCING_PROVIDER,
             forcing_dir=FORCING_DIR,
             forcing_template_dir=FORCING_TEMPLATE_DIR,
             root_dir=FORCING_ROOT_DIR,
@@ -190,8 +268,9 @@ def get_test_configs__forecast(do_all_forcing_configs: bool, use_cold_start: boo
             cycle_datetime=cycle_datetime,
             cold_start_datetime=cold_start_datetime,
         )
-
-        configs.append(InputConfig(General=general, Forcing=forcing))
+        # parallel = make_parallel_config(nprocs)  # TODO adjust forecast manager to use this
+        parallel = None
+        configs.append(InputConfig(General=general, Forcing=forcing, Parallel=parallel))
 
     return configs
 
