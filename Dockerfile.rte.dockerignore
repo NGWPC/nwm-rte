@@ -16,7 +16,8 @@
 **/*.sublime-workspace
 
 # Version control specific files
-**/.git/
+### .git should not be dockerignored, since add_git_info.py uses that.
+# **/.git/
 **/.gitignore
 
 # Build/distribution artifacts
@@ -30,8 +31,9 @@
 **/.coverage
 
 # Documentation files
-**/docs/
-**/*.md
+### These should not be dockerignored, since cal mgr looks for its own README.md during pip install.
+# **/docs/
+# **/*.md
 
 # Database files
 **/*.sqlite3
@@ -40,3 +42,6 @@
 # Docker-related files (often not needed in the build context)
 **/Dockerfile
 **/docker-compose.yml
+
+# Region manager input data
+nwm-region-mgr/data/
