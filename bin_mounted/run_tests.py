@@ -1,6 +1,7 @@
 import argparse
 from datetime import datetime
 import functools
+import sys
 
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
@@ -122,6 +123,13 @@ def forecasts__build_and_run(
         tests_manager.add_forecast_test(t)
 
 
+def run_noop_mode() -> None:
+    """Run noop mode - verify imports and basic setup without executing workflows."""
+    print("\nRunning in noop mode - only checking imports and basic setup.")
+    print("Successfully imported all required libraries.")
+    print("Noop mode complete - exiting")
+    sys.exit(0)  # Exit the program directly
+
 def main(
     delete_scratch_and_mesh_first: bool,
     skip_forecast: bool,
@@ -135,10 +143,7 @@ def main(
     noop: bool,
 ):
     if noop:
-        print("\nRunning in noop mode - only checking imports and basic setup.")
-        print("Successfully imported all required libraries.")
-        print("Noop mode complete - exiting")
-        return
+        run_noop_mode()
 
     if not fcst_run_name.strip():
         raise ValueError(f"Empty fcst_run_name: {repr(fcst_run_name)}")
