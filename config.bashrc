@@ -41,8 +41,7 @@ S3_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/s3"
 
 NGEN_SOURCE_MODE="ghcr"
 ## Only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.
-# NGEN_BASE__REMOTE_GHCR_TAG="latest"
-NGEN_BASE__REMOTE_GHCR_TAG="d4747379b977"
+NGEN_BASE__REMOTE_GHCR_TAG="latest"
 
 # NGEN_SOURCE_MODE="existing_local_tag"
 ## Only used when ngen image source mode is "existing_local_tag". Choose any existing local image tag.
@@ -70,8 +69,7 @@ COMPONENT__FCST_MGR__REMOTE_REPO_TAG="development"
 
 ##### Package: Model Setup Workflow Manager
 ### Only used when sourcing mswm from GitHub
-# COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
-COMPONENT__MSW_MGR__REMOTE_REPO_TAG="maxkipp-ngwpc-9054-workflow-automation"
+COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
 
 ##### Package: Calibration Manager
 ### Only used when sourcing calibration manager from GitHub
