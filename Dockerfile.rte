@@ -59,8 +59,9 @@ RUN python add_git_info.py --remote_repo_name "${REPO_NAME__FCST_MGR}" --remote_
 
 ## From local
 # COPY "${REPO_NAME__FCST_MGR}/" "/tmp/${REPO_NAME__FCST_MGR}/"
-# RUN python -m pip install "/tmp/${REPO_NAME__FCST_MGR}" && rm -rf "/tmp/${REPO_NAME__FCST_MGR}"
-# RUN python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__FCST_MGR}" --output_dir "/ngen-app/git-info"
+# RUN python -m pip install "/tmp/${REPO_NAME__FCST_MGR}" && \
+#     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__FCST_MGR}" --output_dir "/ngen-app/git-info" && \
+#     rm -rf "/tmp/${REPO_NAME__FCST_MGR}"
 
 
 ##############################
@@ -73,8 +74,9 @@ RUN mkdir -p `dirname ${MSWM_MODULE_PARAMETER_FILES}`
 
 ## From local
 # COPY "${REPO_NAME__MSW_MGR}/" "/tmp/${REPO_NAME__MSW_MGR}/"
-# RUN python -m pip install "/tmp/${REPO_NAME__MSW_MGR}" && rm -rf "/tmp/${REPO_NAME__MSW_MGR}"
-# RUN python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__MSW_MGR}" --output_dir "/ngen-app/git-info"
+# RUN python -m pip install "/tmp/${REPO_NAME__MSW_MGR}" && \
+#     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__MSW_MGR}" --output_dir "/ngen-app/git-info" && \
+#     rm -rf "/tmp/${REPO_NAME__MSW_MGR}"
 
 ## Either way, do the symlink to module_parameter_files. TODO improve this
 RUN mkdir -p "`dirname ${MSWM_MODULE_PARAMETER_FILES}`" && ln -s "/ngen-app/ngen-python/lib/${PYTHON_VERSION_STR}/site-packages/mswm/module_parameter_files" "${MSWM_MODULE_PARAMETER_FILES}"
@@ -96,11 +98,11 @@ RUN python add_git_info.py --remote_repo_name "${REPO_NAME__CAL_MGR}" --remote_b
 # RUN \
 #     python -m pip install "/tmp/${REPO_NAME__CAL_MGR}/python/calib" && \
 #     python -m pip install "/tmp/${REPO_NAME__CAL_MGR}/python/config" && \
+#     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__CAL_MGR}" --output_dir "/ngen-app/git-info" && \
 #     rm -rf "/tmp/${REPO_NAME__CAL_MGR}/"
 # ADD "${REPO_NAME__CAL_MGR}/python/calibration.py" "/ngen-app/bin/"
 # ADD "${REPO_NAME__CAL_MGR}/python/validation.py" "/ngen-app/bin/"
 # ADD "${REPO_NAME__CAL_MGR}/python/validation_iteration.py" "/ngen-app/bin/"
-# RUN python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__CAL_MGR}" --output_dir "/ngen-app/git-info"
 
 
 ##############################
@@ -112,8 +114,9 @@ RUN python add_git_info.py --remote_repo_name "${REPO_NAME__REGION_MGR}" --remot
 
 ## From local
 # COPY "${REPO_NAME__REGION_MGR}/" "/tmp/${REPO_NAME__REGION_MGR}/"
-# RUN python -m pip install "/tmp/${REPO_NAME__REGION_MGR}[parreg]" && rm -rf "/tmp/${REPO_NAME__REGION_MGR}/"
-# RUN python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__REGION_MGR}" --output_dir "/ngen-app/git-info"
+# RUN python -m pip install "/tmp/${REPO_NAME__REGION_MGR}[parreg]" && \
+#     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__REGION_MGR}" --output_dir "/ngen-app/git-info" && \
+#     rm -rf "/tmp/${REPO_NAME__REGION_MGR}/"
 
 ##############################
 #### Data Assimilation Engine
@@ -133,8 +136,9 @@ RUN python add_git_info.py --remote_repo_name "${REPO_NAME__DATA_ASSIM_ENGINE}" 
 
 # ## From local
 # COPY "${REPO_NAME__NGEN_FORCING}/" "/tmp/${REPO_NAME__NGEN_FORCING}/"
-# RUN python -m pip install "/tmp/${REPO_NAME__NGEN_FORCING}" && rm -rf "/tmp/${REPO_NAME__NGEN_FORCING}/"
-# RUN python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__NGEN_FORCING}" --output_dir "/ngen-app/git-info"
+# RUN python -m pip install "/tmp/${REPO_NAME__NGEN_FORCING}" && \
+#     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__NGEN_FORCING}" --output_dir "/ngen-app/git-info" && \
+#     rm -rf "/tmp/${REPO_NAME__NGEN_FORCING}/"
 
 
 
@@ -171,8 +175,9 @@ RUN python add_git_info.py --remote_repo_name "${REPO_NAME__VERF_MGR}" --remote_
 
 # ## From local
 # COPY "${REPO_NAME__VERF_MGR}/" "/tmp/${REPO_NAME__VERF_MGR}/"
-# RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "/tmp/${REPO_NAME__VERF_MGR}" && rm -rf "/tmp/${REPO_NAME__VERF_MGR}/"
-# RUN python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__VERF_MGR}" --output_dir "/ngen-app/git-info"
+# RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "/tmp/${REPO_NAME__VERF_MGR}" && \
+#     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__VERF_MGR}" --output_dir "/ngen-app/git-info" && \
+#     rm -rf "/tmp/${REPO_NAME__VERF_MGR}/"
 
 
 ##############################
@@ -184,8 +189,9 @@ RUN python add_git_info.py --remote_repo_name "${REPO_NAME__EVAL_MGR}" --remote_
 
 ## From Local
 # COPY "${REPO_NAME__EVAL_MGR}/" "/tmp/${REPO_NAME__EVAL_MGR}/"
-# RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "/tmp/${REPO_NAME__EVAL_MGR}" && rm -rf "/tmp/${REPO_NAME__EVAL_MGR}/"
-# RUN python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__EVAL_MGR}" --output_dir "/ngen-app/git-info"
+# RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "/tmp/${REPO_NAME__EVAL_MGR}" && \
+#     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__EVAL_MGR}" --output_dir "/ngen-app/git-info" && \
+#     rm -rf "/tmp/${REPO_NAME__EVAL_MGR}/"
 
 
 ##############################
