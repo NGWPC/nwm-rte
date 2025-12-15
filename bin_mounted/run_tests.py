@@ -23,6 +23,7 @@ from execution_tests import (
     CALIB_OBJECTIVE_FUNCTION,
     CALIB_OPTIMIZATION_ALGO,
     DEFAULT_NPROCS,
+    DIR_FORCING_RAW_INPUT,
     make_parallel_config,
 )
 from pseudocode import SavedState_Pseudo, StateManager_Pseudo
@@ -117,6 +118,7 @@ def forecasts__build_and_run(
 
 def main(
     delete_scratch_and_mesh_first: bool,
+    delete_forcing_raw_input_first: bool,
     skip_forecast: bool,
     quit_forecast_after_forcing_running: bool,
     quit_forecast_after_duration: float | None,
@@ -157,7 +159,9 @@ def main(
     # utils_testing_setup.delete_test_output_dir(test_paths)
 
     if delete_scratch_and_mesh_first:
-        utils_testing_setup.delete_files_to_force_esmf_and_netcdf_actions(test_paths)
+        utils_testing_setup.delete_scratch_and_esmf_outputs(test_paths)
+    if delete_forcing_raw_input_first:
+        utils_testing_setup.delete_forcing_raw_inputs()
 
     if do_calibration:
         calibrations__build_and_run(test_paths, tests_manager, nprocs)
@@ -188,7 +192,13 @@ if __name__ == "__main__":
         "-delscratch",
         "--delete_scratch_and_mesh_first",
         action="store_true",
-        help="Delete some files before the runs, which forces ESMF and NetCDF actions to occur, for testing those.",
+        help="Delete scratch dir and ESMF mesh files before the run, which forces ESMF and NetCDF actions to occur.",
+    )
+    parser.add_argument(
+        "-delraw",
+        "--delete_forcing_raw_input_first",
+        action="store_true",
+        help=f"Delete contents of {repr(DIR_FORCING_RAW_INPUT)} before the run, which forces forcing data to be re-downloaded.",
     )
     parser.add_argument(
         "-nofcst",

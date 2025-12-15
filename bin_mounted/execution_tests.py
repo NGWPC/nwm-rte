@@ -29,6 +29,8 @@ from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
 
 print = functools.partial(print, flush=True)
 
+DIR_FORCING_RAW_INPUT = "/ngen-app/data/raw_input"
+
 
 ### .config section [Forcing]
 DEFAULT_FORECAST_RUN_NAME = "fcst_run1"

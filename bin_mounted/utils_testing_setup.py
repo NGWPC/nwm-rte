@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from execution_tests import TestPaths
+from execution_tests import TestPaths, DIR_FORCING_RAW_INPUT
 
 
 def delete_test_output_dir(test_paths: TestPaths) -> None:
@@ -12,7 +12,20 @@ def delete_test_output_dir(test_paths: TestPaths) -> None:
         pass
 
 
-def delete_files_to_force_esmf_and_netcdf_actions(test_paths: TestPaths) -> None:
+def delete_forcing_raw_inputs() -> None:
+    dir_raw_input = DIR_FORCING_RAW_INPUT
+    print(f"Listing: {DIR_FORCING_RAW_INPUT}")
+    for bn in os.listdir(dir_raw_input):
+        fp = os.path.join(dir_raw_input, bn)
+        if os.path.isdir(fp):
+            print(f"Deleting directory: {fp}")
+            shutil.rmtree(fp)
+        else:
+            print(f"Deleting file: {fp}")
+            os.remove(fp)
+
+
+def delete_scratch_and_esmf_outputs(test_paths: TestPaths) -> None:
     dirs_to_delete = ["/ngwpc/run_ngen/data/scratch/NWM"]
     for d in dirs_to_delete:
         if os.path.exists(d):
