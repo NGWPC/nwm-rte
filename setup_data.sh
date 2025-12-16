@@ -9,7 +9,7 @@ mkdir -p "${RUN_NGEN_ROOT__HOST}"
 mkdir -p "${S3_ROOT__HOST}"
 
 
-# TODO if updating these, also need to update example_workflow.py
+# TODO if updating these, also need to update run_tests.py
 TEST_GAGE="01123000"
 WORKFLOW_INPUT_CONFIG_ROOT__COLDSTART="${RUN_NGEN_ROOT__HOST}/cold_start_workflow"
 WORKFLOW_INPUT_CONFIG_ROOT__VALIDATION="${RUN_NGEN_ROOT__HOST}/kge_dds/test_bmi/${TEST_GAGE}/Output/Validation_Run"

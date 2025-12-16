@@ -10,7 +10,7 @@ A configurable `docker build` and `docker run` sequence for headless end-to-end 
 
 [ngen_rte_build.sh](ngen_rte_build.sh) sources configuration from [config.bashrc](config.bashrc), then builds an image using [Dockerfile.rte](Dockerfile.rte).
 
-[ngen_rte_run.sh](ngen_rte_run.sh) uses `docker run` to start an ephemeral container of the new image with various host disk mounts applied, and runs a Python script in that container.  By default it runs [example_workflow.py](bin_mounted/example_workflow.py).  Some data is mounted from cloned repos.  Other data is mounted from non-repo locations.
+[ngen_rte_run.sh](ngen_rte_run.sh) uses `docker run` to start an ephemeral container of the new image with various host disk mounts applied, and runs a Python script in that container.  By default it runs [run_tests.py](bin_mounted/run_tests.py).  Some data is mounted from cloned repos.  Other data is mounted from non-repo locations.
 
 ## Configuration Options
 
@@ -40,27 +40,30 @@ mkdir -p ~/ngwpc && cd ~/ngwpc
 git clone git@github.com:NGWPC/nwm-rte.git && cd nwm-rte
 ```
 
-2. Check out a branch (at time of writing, poc branch was appropriate)
+2. Check out a branch
 
 ```shell
-git checkout poc
+git checkout development
 ```
 
 3. Review [config.bashrc](config.bashrc), edit variables as needed, in particular: `REPOS_COMMON_ROOT__HOST`, `NGEN_SOURCE_MODE`, `NGEN_BASE__REMOTE_GHCR_TAG`, and the branch choices for the various manager packages.
 
-4. Download data and clone other repos
-
-```shell
-# This downloads data.
-# You need to set up s3 credentials before running.
-time ./setup_data.sh
-```
+4. Clone other repos and download data
 
 ```shell
 # This clones repos. It will not alter the state of existing repos on your disk (for each clone, it skips if the folder already exists on disk).
 # Be ready to provide git credentials several times if prompted.
 time ./setup_clone_repos.sh
 ```
+
+```shell
+# This downloads data.
+# You need to set up s3 credentials before running.
+# This should be done after cloning repos.
+time ./setup_data.sh
+```
+
+
 
 5. Build the Docker image
 
@@ -74,10 +77,11 @@ time ./ngen_rte_build.sh
 6. Run an example workflow
 
 ```shell
-# This starts an ephemeral container of the ngen RTE image and runs an example workflow script (runs forecast).
+# This starts an ephemeral container of the ngen RTE image and runs a test workflow script (runs calibrations and forecasts).
 # Be ready to supply sudo password if prompted.
-# See CLI args in the example workflow script for details on behavior.
+# See CLI args in the example workflow script for details on behavior, and alternate test modes.
 # Different ways of calling the example workflow script are provided as commented-out lines near the bottom of ngen_rte_run.sh
+# After setting up RTE, the first run must be a calibration, to produce some files that are used by forecasts. After the first calibration run, subsequent forecasts can be ran without needing to re-run calibration.
 time ./ngen_rte_run.sh
 ```
 

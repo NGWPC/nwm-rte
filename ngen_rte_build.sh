@@ -20,6 +20,12 @@ set -x
 
 source config.bashrc
 
+# DOCKER_BUILDKIT=1 is the default with Docker version 23+.
+# Here it is used to enable autodetection of dockerignore file outside of the build context,
+# which works when the dockerignore file is the same location and name as the Dockerfile,
+# but with the .dockerignore extension added to the end.
+export DOCKER_BUILDKIT=1
+
 TIMESTAMP=`date '+%Y%m%d%H%M%S'`
 
 ### Build ngen base image if specified, otherwise just set var to ghcr URL
@@ -62,7 +68,7 @@ fi
 
 ### Build RTE image from ngen base image
 info "Building image: ${TARGET_IMAGE_NAME}"
-sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} \
+sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target ${STAGE} \
     --build-arg NGEN_BASE_IMAGE=${NGEN_BASE_IMAGE} \
     --build-arg REPO_TAG__FCST_MGR="${COMPONENT__FCST_MGR__REMOTE_REPO_TAG}" \
     --build-arg REPO_TAG__MSW_MGR="${COMPONENT__MSW_MGR__REMOTE_REPO_TAG}" \

@@ -3,9 +3,12 @@
 set -euo pipefail
 
 ### NO_CACHE: Passed to `docker build` call. Choose from: ["--no-cache", ""]. Has mild effect on RTE build speed when using pre-built base ngen image.
-NO_CACHE="--no-cache"
-# NO_CACHE=""
+# NO_CACHE="--no-cache"
+NO_CACHE=""
 
+### STAGE: See Dockerfile.rte for acceptable values
+# STAGE="ngen_rte_base"
+STAGE="ngen_rte_eval_verf"
 
 # If you use this for REPOS_COMMON_ROOT__HOST, then the other repos are assumed to be siblings of this repo
 THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
@@ -40,8 +43,6 @@ S3_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/s3"
 NGEN_SOURCE_MODE="ghcr"
 ## Only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.
 NGEN_BASE__REMOTE_GHCR_TAG="latest"
-## This one is based on PR 71: https://github.com/NGWPC/ngen/pull/71
-# NGEN_BASE__REMOTE_GHCR_TAG="df0d2034f3c0"
 
 # NGEN_SOURCE_MODE="existing_local_tag"
 ## Only used when ngen image source mode is "existing_local_tag". Choose any existing local image tag.
@@ -65,12 +66,11 @@ TARGET_IMAGE_NAME="ngen_rte:${NGEN_SOURCE_MODE}"
 # COMPONENT__FCST_MGR__SOURCE_MODE="local"
 ### Only used when sourcing fcst mgr from GitHub
 # COMPONENT__FCST_MGR__REMOTE_REPO_TAG="development"
-COMPONENT__FCST_MGR__REMOTE_REPO_TAG="maxkipp-ngwpc-9004-workflow-automation"
+COMPONENT__FCST_MGR__REMOTE_REPO_TAG="development"
 
 ##### Package: Model Setup Workflow Manager
 ### Only used when sourcing mswm from GitHub
-# COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
-COMPONENT__MSW_MGR__REMOTE_REPO_TAG="maxkipp-ngwpc-9004-workflow-automation"
+COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
 
 ##### Package: Calibration Manager
 ### Only used when sourcing calibration manager from GitHub
