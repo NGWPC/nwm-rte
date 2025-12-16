@@ -40,27 +40,30 @@ mkdir -p ~/ngwpc && cd ~/ngwpc
 git clone git@github.com:NGWPC/nwm-rte.git && cd nwm-rte
 ```
 
-2. Check out a branch (at time of writing, poc branch was appropriate)
+2. Check out a branch
 
 ```shell
-git checkout poc
+git checkout development
 ```
 
 3. Review [config.bashrc](config.bashrc), edit variables as needed, in particular: `REPOS_COMMON_ROOT__HOST`, `NGEN_SOURCE_MODE`, `NGEN_BASE__REMOTE_GHCR_TAG`, and the branch choices for the various manager packages.
 
-4. Download data and clone other repos
-
-```shell
-# This downloads data.
-# You need to set up s3 credentials before running.
-time ./setup_data.sh
-```
+4. Clone other repos and download data
 
 ```shell
 # This clones repos. It will not alter the state of existing repos on your disk (for each clone, it skips if the folder already exists on disk).
 # Be ready to provide git credentials several times if prompted.
 time ./setup_clone_repos.sh
 ```
+
+```shell
+# This downloads data.
+# You need to set up s3 credentials before running.
+# This should be done after cloning repos.
+time ./setup_data.sh
+```
+
+
 
 5. Build the Docker image
 
