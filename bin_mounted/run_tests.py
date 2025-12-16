@@ -13,20 +13,11 @@ from execution_tests import (
     TestsManager,
     get_test_configs__forecast,
     get_test_configs__calibration,
-    FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT,
-    DEFAULT_GAGE_ID,
-    DEFAULT_GAGE_VINTAGE,
-    DEFAULT_FORCING_PROVIDER,
-    DEFAULT_FORECAST_RUN_NAME,
-    FORMULATION_NAME,
-    DEFAULT_MAIN_DIR,
-    CALIB_OBJECTIVE_FUNCTION,
-    CALIB_OPTIMIZATION_ALGO,
-    DEFAULT_NPROCS,
-    DIR_FORCING_RAW_INPUT,
     make_parallel_config,
 )
 from pseudocode import SavedState_Pseudo, StateManager_Pseudo
+
+import consts as c
 
 print = functools.partial(print, flush=True)
 
@@ -142,8 +133,8 @@ def main(
     test_paths = TestPaths(
         gage_id=gage_id,
         gage_vintage=gage_vintage,
-        obj_func=CALIB_OBJECTIVE_FUNCTION,
-        optim_algo=CALIB_OPTIMIZATION_ALGO,
+        obj_func=c.CALIB_OBJECTIVE_FUNCTION,
+        optim_algo=c.CALIB_OPTIMIZATION_ALGO,
     )
 
     utils_testing_setup.assert_paths__core(test_paths)
@@ -198,7 +189,7 @@ if __name__ == "__main__":
         "-delraw",
         "--delete_forcing_raw_input_first",
         action="store_true",
-        help=f"Delete contents of {repr(DIR_FORCING_RAW_INPUT)} before the run, which forces forcing data to be re-downloaded.",
+        help=f"Delete contents of {repr(c.DIR_FORCING_RAW_INPUT)} before the run, which forces forcing data to be re-downloaded.",
     )
     parser.add_argument(
         "-nofcst",
@@ -228,7 +219,7 @@ if __name__ == "__main__":
         "-allforcings",
         "--do_all_forcing_configs",
         action="store_true",
-        help=f"Run all forcing configurations rather than the default shorter default list. Default list: {FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT}. Incompatible with --skip_forecast.",
+        help=f"Run all forcing configurations rather than the default shorter default list. Default list: {c.FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT}. Incompatible with --skip_forecast.",
     )
     parser.add_argument(
         "-cs",
@@ -240,16 +231,16 @@ if __name__ == "__main__":
         "-fcname",
         "--fcst_run_name",
         type=str,
-        default=DEFAULT_FORECAST_RUN_NAME,
-        help=f"Replaces default value for fcst_run_name ({repr(DEFAULT_FORECAST_RUN_NAME)})",
+        default=c.DEFAULT_FORECAST_RUN_NAME,
+        help=f"Replaces default value for fcst_run_name ({repr(c.DEFAULT_FORECAST_RUN_NAME)})",
     )
     parser.add_argument(
         "-n",
         "--nprocs",
         type=int,
-        default=DEFAULT_NPROCS,
+        default=c.DEFAULT_NPROCS,
         help=f"""
-Currently only affects Calibration. Replaces default value for nprocs ({repr(DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance.
+Currently only affects Calibration. Replaces default value for nprocs ({repr(c.DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance.
 When nprocs is 1, Calibration's ParallelConfig is: {make_parallel_config(nprocs=1)}.
 When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(nprocs=2)}
 """,
@@ -259,8 +250,8 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         "--gage_id__gage_vintage",
         type=str,
         nargs=2,
-        default=[DEFAULT_GAGE_ID, DEFAULT_GAGE_VINTAGE],
-        help=f"Calibration gage ID and gage vintage (2 args). If not provided, then these defaults will be used: {DEFAULT_GAGE_ID}, {DEFAULT_GAGE_VINTAGE} will be used.",
+        default=[c.DEFAULT_GAGE_ID, c.DEFAULT_GAGE_VINTAGE],
+        help=f"Calibration gage ID and gage vintage (2 args). If not provided, then these defaults will be used: {c.DEFAULT_GAGE_ID}, {c.DEFAULT_GAGE_VINTAGE} will be used.",
     )
     args = parser.parse_args()
     print(f"args: {args}")

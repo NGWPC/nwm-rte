@@ -1,7 +1,9 @@
 import os
 import shutil
 
-from execution_tests import TestPaths, DIR_FORCING_RAW_INPUT
+from execution_tests import TestPaths
+
+import consts as c
 
 
 def delete_test_output_dir(test_paths: TestPaths) -> None:
@@ -13,8 +15,8 @@ def delete_test_output_dir(test_paths: TestPaths) -> None:
 
 
 def delete_forcing_raw_inputs() -> None:
-    dir_raw_input = DIR_FORCING_RAW_INPUT
-    print(f"Listing: {DIR_FORCING_RAW_INPUT}")
+    dir_raw_input = c.DIR_FORCING_RAW_INPUT
+    print(f"Listing: {c.DIR_FORCING_RAW_INPUT}")
     for bn in os.listdir(dir_raw_input):
         fp = os.path.join(dir_raw_input, bn)
         if os.path.isdir(fp):
