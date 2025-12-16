@@ -40,7 +40,7 @@ mkdir -p ~/ngwpc && cd ~/ngwpc
 git clone git@github.com:NGWPC/nwm-rte.git && cd nwm-rte
 ```
 
-2. (Optional) check out a particular branch
+2. Check out a branch
 
 ```shell
 git checkout development

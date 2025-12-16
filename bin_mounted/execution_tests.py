@@ -424,7 +424,7 @@ class ForecastTest(BaseModel):
     def execute_forecast(
         self,
         quit_forecast_after_forcing_running: bool,
-        quit_forecast_after_duration: bool,
+        quit_forecast_after_duration: float | None,  # seconds
     ) -> None:
         if self.rb_stat != TestStat.PASS:
             raise RuntimeError(f"Cannot run forecast when realization did not build (self.rb_stat: {self.rb_stat})")
