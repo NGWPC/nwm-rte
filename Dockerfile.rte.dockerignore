@@ -16,7 +16,8 @@
 **/*.sublime-workspace
 
 # Version control specific files
-**/.git/
+### .git should not be dockerignored, since add_git_info.py uses that.
+# **/.git/
 **/.gitignore
 
 # Build/distribution artifacts
