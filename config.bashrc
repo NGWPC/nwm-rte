@@ -117,11 +117,13 @@ MNT__RUN_NGEN__HOST="${RUN_NGEN_ROOT__HOST}"
 MNT__RUN_NGEN__CONTAINER_1="/ngwpc/run_ngen"
 MNT__RUN_NGEN__CONTAINER_2="${MNT__RUN_NGEN__HOST}"
 
+### Region manager data mounts
+MNT__NWM_REGION_MGR__INPUT_DATA="${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr/data/inputs"
+
 #### Parameter file mounts
 MNT__MODULE_PARAM_FILES_DIR__HOST="${REPOS_COMMON_ROOT__HOST}/nwm-msw-mgr/src/mswm/module_parameter_files"
 MNT__MODULE_PARAM_FILES_DIR__CONTAINER_1="/ngen-app/nwm-msw-mgr/src/mswm/module_parameter_files"
 MNT__MODULE_PARAM_FILES_DIR__CONTAINER_2="${REPOS_COMMON_ROOT__HOST}/nwm-msw-mgr/src/mswm/module_parameter_files"
-
 
 ### Logging functions
 BASENAME="$(basename "$(readlink -f "$0")")"
