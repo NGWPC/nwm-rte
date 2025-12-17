@@ -1,6 +1,7 @@
 import argparse
 from datetime import datetime
 import functools
+import json
 
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
@@ -17,6 +18,7 @@ from execution_tests import (
 )
 from pseudocode import SavedState_Pseudo, StateManager_Pseudo
 from pydantic import BaseModel, ConfigDict, Field, validate_call
+from pydantic.json import pydantic_encoder
 
 import consts as c
 
@@ -89,16 +91,16 @@ def calibrations__build_and_run(cfg: Config) -> None:
     ):
         fc = config_overrides.Forcing.forcing_configuration
         rb_kwargs = {"config_overrides": config_overrides}
-        print(f"\n\n##########\n### Calibration: {fc}: setting up test with rb_kwargs = {rb_kwargs}")
+        print(f"\n\n##########\n### Calibration {repr(fc)}: setting up test with rb_kwargs = \n{json.dumps(rb_kwargs, indent=2, default=pydantic_encoder)}")
         t = ForecastTest(rb_kwargs=rb_kwargs)
 
         # Build the realization, trapping exceptions into class attrs
-        print(f"### {fc}: building realization")
+        print(f"### Calibration {repr(fc)}: building realization")
         t.make_realization_builder__build_realization(build_method="build_calib_realization")
 
         if t.rb_stat == TestStat.PASS:
             # Execute the realization via ngen, trapping exceptions and logs into class attrs
-            print(f"### {fc}: executing calibration realization")
+            print(f"### Calibration {repr(fc)}: executing calibration realization")
             t.execute_calibration()
 
         cfg.tests_manager.add_forecast_test(t)
@@ -126,7 +128,7 @@ def forecasts__build_and_run(cfg: Config, cs: bool) -> None:
             "config_overrides": config_overrides,
             "use_cold_start": cs,
         }
-        print(f"\n\n##########\n### {fc}: setting up test with rb_kwargs = {rb_kwargs}")
+        print(f"\n\n##########\n### Forecast {repr(fc)}: setting up test with rb_kwargs = {rb_kwargs}")
 
         t = ForecastTest(
             rb_kwargs=rb_kwargs,
@@ -134,12 +136,12 @@ def forecasts__build_and_run(cfg: Config, cs: bool) -> None:
         )
 
         # Build the realization, trapping exceptions into class attrs
-        print(f"### {fc}: building realization")
+        print(f"### Forecast {repr(fc)}: building realization")
         t.make_realization_builder__build_realization(build_method="build_fcst_realization")
 
         if t.rb_stat == TestStat.PASS:
             # Execute the realization via ngen, trapping exceptions and logs into class attrs
-            print(f"### {fc}: executing realization via ngen")
+            print(f"### Forecast {repr(fc)}: executing realization via ngen")
             t.execute_forecast(
                 quit_forecast_after_forcing_running=cfg.quit_forecast_after_forcing_running,
                 quit_forecast_after_duration=cfg.quit_forecast_after_duration,
@@ -258,7 +260,7 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         help=f"Calibration gage ID and gage vintage (2 args). If not provided, then these defaults will be used: {c.DEFAULT_GAGE_ID}, {c.DEFAULT_GAGE_VINTAGE} will be used.",
     )
     args = parser.parse_args()
-    print(f"args: {args}")
+    print(f"{__file__}: args: {json.dumps(vars(args), indent=2)}")
 
     cfg = Config(**vars(args))
     main(cfg)
