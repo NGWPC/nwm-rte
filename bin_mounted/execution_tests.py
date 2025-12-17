@@ -93,35 +93,45 @@ def get_test_configs__calibration(
     str_calib_start = c.DT_START_CALIB.strftime(DEFAULT_DATETIME_FORMAT)
     str_calib_end = c.DT_END_CALIB.strftime(DEFAULT_DATETIME_FORMAT)
 
+    general = GeneralConfig(
+        basin=gage_id,
+        run_type="calibration",
+        models=c.MODELS,
+        formulation=c.FORMULATION_NAME,
+        main_dir=c.DEFAULT_MAIN_DIR,
+        start_period=str_calib_start,
+        end_period=str_calib_end,
+    )
+    calibration = CalibConfig(
+        optimization_algorithm=c.CALIB_OPTIMIZATION_ALGO,
+        objective_function=c.CALIB_OBJECTIVE_FUNCTION,
+        start_iteration=c.CALIB_ITER_START,
+        number_iteration=c.CALIB_ITER_COUNT,
+        calib_start_period=str_calib_start,
+        calib_end_period=str_calib_end,
+        calib_eval_start_period=str_calib_start,
+        calib_eval_end_period=str_calib_end,
+        valid_start_period=str_calib_start,
+        valid_end_period=str_calib_end,
+        valid_eval_start_period=str_calib_start,
+        valid_eval_end_period=str_calib_end,
+        full_eval_start_period=str_calib_start,
+        full_eval_end_period=str_calib_end,
+        save_plot_iter_freq=c.CALIB_SAVE_PLOT_ITER_FREQ,
+        ngen_cerf=False,
+        calib_parameter_file=c.CALIB_PARAMETERS_DIR,
+    )
+    datafile = DataFileConfig(
+        **(
+            c.DATAFILE_LIBS
+            | {
+                "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/CONUS/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg"
+            }
+        ),
+    )
+    parallel = make_parallel_config(nprocs)
+
     for fct in forcing_config_types:
-        general = GeneralConfig(
-            basin=gage_id,
-            run_type="calibration",
-            models=c.MODELS,
-            formulation=c.FORMULATION_NAME,
-            main_dir=c.DEFAULT_MAIN_DIR,
-            start_period=str_calib_start,
-            end_period=str_calib_end,
-        )
-        calibration = CalibConfig(
-            optimization_algorithm=c.CALIB_OPTIMIZATION_ALGO,
-            objective_function=c.CALIB_OBJECTIVE_FUNCTION,
-            start_iteration=c.CALIB_ITER_START,
-            number_iteration=c.CALIB_ITER_COUNT,
-            calib_start_period=str_calib_start,
-            calib_end_period=str_calib_end,
-            calib_eval_start_period=str_calib_start,
-            calib_eval_end_period=str_calib_end,
-            valid_start_period=str_calib_start,
-            valid_end_period=str_calib_end,
-            valid_eval_start_period=str_calib_start,
-            valid_eval_end_period=str_calib_end,
-            full_eval_start_period=str_calib_start,
-            full_eval_end_period=str_calib_end,
-            save_plot_iter_freq=c.CALIB_SAVE_PLOT_ITER_FREQ,
-            ngen_cerf=False,
-            calib_parameter_file=c.CALIB_PARAMETERS_DIR,
-        )
         forcing = ForcingConfig(
             forcing_provider=c.DEFAULT_FORCING_PROVIDER,
             forcing_dir=c.FORCING_DIR,
@@ -131,15 +141,6 @@ def get_test_configs__calibration(
             cycle_datetime=c.DT_START_FORECAST.strftime(DEFAULT_DATETIME_FORMAT),
             cold_start_datetime=None,
         )
-        datafile = DataFileConfig(
-            **(
-                c.DATAFILE_LIBS
-                | {
-                    "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/CONUS/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg"
-                }
-            ),
-        )
-        parallel = make_parallel_config(nprocs)
         configs.append(
             InputConfig(General=general, Calibration=calibration, Forcing=forcing, DataFile=datafile, Parallel=parallel)
         )
