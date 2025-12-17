@@ -5,10 +5,10 @@
 # This script makes a docker run call to execute a workflow in the RTE Docker image (already built).
 # 
 # Requirements:
-#   Note: ./setup_workspace.sh can be used to download the following data.
+#   Note: ./setup_data.sh can be used to download the following data.
 # 
 #   1. Various data files have been copied from s3 to locations defined in
-#       ./config.bashrc and ./setup_workspace.sh, e.g. from
+#       ./config.bashrc and ./setup_clone_repos.sh, e.g. from
 #           s3://ngwpc-hydrofabric
 #           s3://ngwpc-forcing
 #           s3://ngwpc-dev/
@@ -55,29 +55,33 @@ function docker_run {
         # --rm ${TARGET_IMAGE_NAME}
         # --rm ${TARGET_IMAGE_NAME} "$@" --fcst_run_name "${fcst_run_name}"
 
-# docker_run
+# Only run if not being sourced (allows sourcing for docker_run function reuse in GHA workflow)
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    # docker_run
 
-# docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --help
-# docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" -n 2
-# docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --skip_calibration -cycle_datetime "2025-09-15 00:00:00"
-# docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --skip_calibration -cycle_datetime "2025-09-15 00:00:00" -cold_start_datetime "2025-09-12 00:00:00"
+    # docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --help
+    # docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" -n 2
+    # docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --skip_calibration -cycle_datetime "2025-09-15 00:00:00"
+    # docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --skip_calibration -cycle_datetime "2025-09-15 00:00:00" -cold_start_datetime "2025-09-12 00:00:00"
 
-docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 1
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 2
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" "2025_Jan_30_13_08_20" --do_calibration --skip_forecast --nprocs 2
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" "2025_Jan_30_13_08_20"
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "02207385" "2025_Mar_14_21_15_07" --do_calibration --skip_forecast --nprocs 2
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "02207385" "2025_Mar_14_21_15_07"
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py"
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_coldstart
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_forcing_running
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_duration 15
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --help
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --do_coldstart
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_all_forcing_configs
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_all_forcing_configs --quit_forecast_after_forcing_running
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_all_forcing_configs --quit_forecast_after_duration 15
-# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --do_coldstart --do_all_forcing_configs
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --noop
+    docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 1
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 2
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" "2025_Jan_30_13_08_20" --do_calibration --skip_forecast --nprocs 2
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" "2025_Jan_30_13_08_20"
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "02207385" "2025_Mar_14_21_15_07" --do_calibration --skip_forecast --nprocs 2
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "02207385" "2025_Mar_14_21_15_07"
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py"
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_coldstart
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_forcing_running
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_duration 15
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --help
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --do_coldstart
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_all_forcing_configs
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_all_forcing_configs --quit_forecast_after_forcing_running
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_all_forcing_configs --quit_forecast_after_duration 15
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --do_coldstart --do_all_forcing_configs
 
-exit 0
+    exit 0
+fi

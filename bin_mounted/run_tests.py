@@ -1,6 +1,7 @@
 import argparse
 from datetime import datetime
 import functools
+import sys
 
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
@@ -37,6 +38,7 @@ class Config(BaseModel):
     fcst_run_name: str
     nprocs: int = Field(ge=1)
     gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
+    noop: bool
 
     # Set after init
     gage_id: str = Field(init=False, default=None)
@@ -156,6 +158,14 @@ def forecasts__build_and_run(cfg: Config, cs: bool) -> None:
         cfg.tests_manager.add_forecast_test(t)
 
 
+def run_noop_mode() -> None:
+    """Run noop mode - verify imports and basic setup without executing workflows."""
+    print("\nRunning in noop mode - only checking imports and basic setup.")
+    print("Successfully imported all required libraries.")
+    print("Noop mode complete - exiting")
+    sys.exit(0)  # Exit the program directly
+
+
 @validate_call
 def main(cfg: Config):
     utils_testing_setup.assert_paths__core(cfg.test_paths)
@@ -164,6 +174,8 @@ def main(cfg: Config):
     ### If wanting to skip Calibration but still do CS and/or Forecast,
     ### then remove this line so that the test calibration results remain available.
     # utils_testing_setup.delete_test_output_dir(cfg.test_paths)
+    if cfg.noop:
+        run_noop_mode()
 
     if cfg.delete_scratch_and_mesh_first:
         utils_testing_setup.delete_scratch_and_esmf_outputs(cfg.test_paths)
@@ -256,6 +268,11 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         nargs=2,
         default=[c.DEFAULT_GAGE_ID, c.DEFAULT_GAGE_VINTAGE],
         help=f"Calibration gage ID and gage vintage (2 args). If not provided, then these defaults will be used: {c.DEFAULT_GAGE_ID}, {c.DEFAULT_GAGE_VINTAGE} will be used.",
+    )
+    parser.add_argument(
+        "--noop",
+        action="store_true",
+        help="Run in noop mode - only verify that the script can import libraries and basic setup, then exit without looking for data or running any workflows.",
     )
     args = parser.parse_args()
     print(f"args: {args}")

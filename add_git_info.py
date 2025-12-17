@@ -3,6 +3,7 @@ import functools
 import json
 import os
 import subprocess
+import urllib.request
 
 print = functools.partial(print, flush=True)
 
@@ -30,6 +31,28 @@ def get_repo_name(local_repo_path: str) -> str:
     return repo_name
 
 
+def fetch_github_commit_info(repo_name: str, branch: str) -> dict:
+    """Fetch commit information from GitHub API for a given repo and branch/tag/commit"""
+    # GitHub API endpoint for commits
+    api_url = f"https://api.github.com/repos/{GH_ORG}/{repo_name}/commits/{branch}"
+
+    print(f"Fetching commit info from: {api_url}")
+
+    try:
+        req = urllib.request.Request(api_url)
+        # Add user agent to avoid GitHub API rate limiting issues
+        req.add_header('User-Agent', 'nwm-rte-build-script')
+
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read().decode())
+
+        return data
+    except urllib.error.HTTPError as e:
+        print(f"ERROR: Failed to fetch from GitHub API: {e}")
+        print(f"Response body: {e.read().decode() if hasattr(e, 'read') else 'N/A'}")
+        raise
+
+
 class GitInfoBuilder:
     def __init__(
         self,
@@ -53,7 +76,23 @@ class GitInfoBuilder:
             d["build_date"] = run("date -u +'%Y-%m-%d %H:%M:%S UTC'", cwd=local_repo_path)
 
         elif remote_repo_name and remote_branch:
-            raise NotImplementedError("Remote mode not implemented yet")
+            # Fetch commit info from GitHub API
+            commit_data = fetch_github_commit_info(remote_repo_name, remote_branch)
+
+            # Extract relevant information from the API response
+            d["repo_name"] = remote_repo_name
+            d["commit_hash"] = commit_data["sha"]
+            d["branch"] = remote_branch  # The branch/tag/ref that was requested
+            d["tags"] = ""  # Tags not easily available from this API endpoint
+            d["author"] = commit_data["commit"]["author"]["name"]
+            d["commit_date"] = commit_data["commit"]["author"]["date"]
+            d["message"] = commit_data["commit"]["message"].split('\n')[0]  # First line only
+            d["build_date"] = subprocess.run(
+                ["date", "-u", "+%Y-%m-%d %H:%M:%S UTC"],
+                capture_output=True,
+                text=True,
+                check=True
+            ).stdout.rstrip()
         else:
             raise ValueError("Incompatible args combo")
 
