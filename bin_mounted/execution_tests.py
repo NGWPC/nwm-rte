@@ -90,8 +90,6 @@ def get_test_configs__calibration(
     configs: list[InputConfig] = []
 
     forcing_config_types = c.CALIB_FORCING_CONFIGURATION_TYPES
-    str_calib_start = c.DT_START_CALIB.strftime(DDF)
-    str_calib_end = c.DT_END_CALIB.strftime(DDF)
 
     general = GeneralConfig(
         basin=gage_id,
@@ -99,24 +97,24 @@ def get_test_configs__calibration(
         models=c.MODELS,
         formulation=c.FORMULATION_NAME,
         main_dir=c.DEFAULT_MAIN_DIR,
-        start_period=str_calib_start,
-        end_period=str_calib_end,
+        start_period=c.CALIB_EVAL_START.strftime(DDF),
+        end_period=c.CALIB_EVAL_END.strftime(DDF),
     )
     calibration = CalibConfig(
         optimization_algorithm=c.CALIB_OPTIMIZATION_ALGO,
         objective_function=c.CALIB_OBJECTIVE_FUNCTION,
         start_iteration=c.CALIB_ITER_START,
         number_iteration=c.CALIB_ITER_COUNT,
-        calib_start_period=str_calib_start,
-        calib_end_period=str_calib_end,
-        calib_eval_start_period=str_calib_start,
-        calib_eval_end_period=str_calib_end,
-        valid_start_period=str_calib_start,
-        valid_end_period=str_calib_end,
-        valid_eval_start_period=str_calib_start,
-        valid_eval_end_period=str_calib_end,
-        full_eval_start_period=str_calib_start,
-        full_eval_end_period=str_calib_end,
+        calib_start_period=c.CALIB_SIM_START.strftime(DDF),
+        calib_end_period=c.CALIB_SIM_END.strftime(DDF),
+        calib_eval_start_period=c.CALIB_EVAL_START.strftime(DDF),
+        calib_eval_end_period=c.CALIB_EVAL_END.strftime(DDF),
+        valid_start_period=c.VALID_SIM_START.strftime(DDF),
+        valid_end_period=c.VALID_SIM_END.strftime(DDF),
+        valid_eval_start_period=c.VALID_EVAL_START.strftime(DDF),
+        valid_eval_end_period=c.VALID_EVAL_END.strftime(DDF),
+        full_eval_start_period=c.VALID_SIM_START.strftime(DDF),
+        full_eval_end_period=c.VALID_SIM_END.strftime(DDF),
         save_plot_iter_freq=c.CALIB_SAVE_PLOT_ITER_FREQ,
         ngen_cerf=False,
         calib_parameter_file=c.CALIB_PARAMETERS_DIR,

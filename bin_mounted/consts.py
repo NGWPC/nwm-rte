@@ -40,6 +40,29 @@ CALIB_SAVE_PLOT_ITER_FREQ = 1
 DT_START_CALIB = datetime(year=2015, month=10, day=1, hour=0, minute=0, second=0)
 DT_END_CALIB = DT_START_CALIB + timedelta(hours=47)
 
+
+##### Calibration
+## Overall calib sim
+CALIB_SIM_START = datetime(year=2015, month=10, day=1, hour=0, minute=0, second=0)
+CALIB_SIM_DURATION = timedelta(hours=47)
+CALIB_SIM_END = CALIB_SIM_START + CALIB_SIM_DURATION
+
+CALIB_EVAL_OFFSET = timedelta(hours=6)
+CALIB_EVAL_DURATION = timedelta(hours=36)
+CALIB_EVAL_START = CALIB_SIM_START + CALIB_EVAL_OFFSET
+CALIB_EVAL_END = CALIB_EVAL_START + CALIB_EVAL_DURATION
+
+##### Validation
+VALID_SIM_START = datetime(year=2021, month=10, day=1, hour=0, minute=0, second=0)
+VALID_SIM_DURATION = timedelta(hours=47)
+VALID_SIM_END = VALID_SIM_START + VALID_SIM_DURATION
+
+VALID_EVAL_OFFSET = timedelta(hours=6)
+VALID_EVAL_DURATION = timedelta(hours=36)
+VALID_EVAL_START = VALID_SIM_START + VALID_EVAL_OFFSET
+VALID_EVAL_END = VALID_EVAL_START + VALID_EVAL_DURATION
+
+
 ### .config section [DataFile]
 MODULE_PARAMETER_FILES_DIR = "/ngen-app/nwm-msw-mgr/src/mswm/module_parameter_files"
 NGEN_DIR = "/ngen-app/ngen"
@@ -52,8 +75,8 @@ DEFAULT_NPROCS = 1
 
 ### Test settings
 ### See this for full list of forcing configuration types: mswm.utils.input_configuration.mswm_valid_configs
-# FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range", "standard_ana", "medium_range_blend"]
-FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range"]
+FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range", "standard_ana", "medium_range_blend"]
+# FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range"]
 FORECAST_FORCING_CONFIGURATION_TYPES__ALL = [
     "standard_ana",
     "standard_ana_alaska",
