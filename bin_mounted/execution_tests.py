@@ -21,7 +21,7 @@ from mswm.utils.input_configuration import (
     DataFileConfig,
     ParallelConfig,
 )
-from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
+from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 
 from nwm_fcst_mgr.forecast import ForecastExecutionManager, RunStatus
 from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
@@ -90,8 +90,8 @@ def get_test_configs__calibration(
     configs: list[InputConfig] = []
 
     forcing_config_types = c.CALIB_FORCING_CONFIGURATION_TYPES
-    str_calib_start = c.DT_START_CALIB.strftime(DEFAULT_DATETIME_FORMAT)
-    str_calib_end = c.DT_END_CALIB.strftime(DEFAULT_DATETIME_FORMAT)
+    str_calib_start = c.DT_START_CALIB.strftime(DDF)
+    str_calib_end = c.DT_END_CALIB.strftime(DDF)
 
     general = GeneralConfig(
         basin=gage_id,
@@ -138,7 +138,7 @@ def get_test_configs__calibration(
             forcing_template_dir=c.FORCING_TEMPLATE_DIR,
             root_dir=c.FORCING_ROOT_DIR,
             forcing_configuration=fct,
-            cycle_datetime=c.DT_START_FORECAST.strftime(DEFAULT_DATETIME_FORMAT),
+            cycle_datetime=c.DT_START_FORECAST.strftime(DDF),
             cold_start_datetime=None,
         )
         configs.append(
@@ -156,11 +156,11 @@ def get_test_configs__forecast(
     configs: list[InputConfig] = []
 
     if use_cold_start:
-        cold_start_datetime = c.DT_START_COLDSTART.strftime(DEFAULT_DATETIME_FORMAT)
-        cycle_datetime = c.DT_END_COLDSTART.strftime(DEFAULT_DATETIME_FORMAT)
+        cold_start_datetime = c.DT_START_COLDSTART.strftime(DDF)
+        cycle_datetime = c.DT_END_COLDSTART.strftime(DDF)
     else:
         cold_start_datetime = None
-        cycle_datetime = c.DT_START_FORECAST.strftime(DEFAULT_DATETIME_FORMAT)
+        cycle_datetime = c.DT_START_FORECAST.strftime(DDF)
 
     if do_all_forcing_configs:
         forcing_config_types = c.FORECAST_FORCING_CONFIGURATION_TYPES__ALL
