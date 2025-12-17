@@ -22,14 +22,9 @@ from mswm.utils import settings as mswm_settings
 
 from nwm_fcst_mgr.forecast import run_fcst
 
-from execution_tests import (
-    DEFAULT_NPROCS,
-    DEFAULT_FORECAST_RUN_NAME,
-    DEFAULT_FORCING_PROVIDER,
-    DEFAULT_GAGE_ID,
-    FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT,
-    make_parallel_config,
-)
+from execution_tests import make_parallel_config
+import consts as c
+
 
 print = functools.partial(print, flush=True)
 
@@ -95,14 +90,14 @@ def set_vars(options) -> ForecastVars:
     :return: ForecastVars object
     """
     return ForecastVars(
-        gage_id=options.gage or DEFAULT_GAGE_ID,
-        fcst_run_name=options.fcst_run_name or DEFAULT_FORECAST_RUN_NAME,
-        formulation_suffix=options.forcing_provider or DEFAULT_FORCING_PROVIDER,
+        gage_id=options.gage or c.DEFAULT_GAGE_ID,
+        fcst_run_name=options.fcst_run_name or c.DEFAULT_FORECAST_RUN_NAME,
+        formulation_suffix=options.forcing_provider or c.DEFAULT_FORCING_PROVIDER,
         coldstart_start=options.cold_start_datetime,
         coldstart_end=options.cycle_datetime if options.cold_start_datetime else None,
         forecast_initial_cycle_datetime=options.cycle_datetime,
-        forcing_configuration=options.forcing_configuration or FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT[0],
-        nprocs=options.nprocs or DEFAULT_NPROCS,
+        forcing_configuration=options.forcing_configuration or c.FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT[0],
+        nprocs=options.nprocs or c.DEFAULT_NPROCS,
         root_dir = "/ngen-app/data",
         calib_input_config = "/ngen-app/data/configs/rte_cal_input_bmi.config",
         forecast_input_config = "/ngen-app/data/configs/forecast_input.config",
@@ -195,7 +190,7 @@ def get_options(args_list=None):
 
     parser.add_argument('-forcing_provider',
                         type=str,
-                        help=f"Forcing provider to use, e.g., 'bmi' or 'csv'. Default: {repr(DEFAULT_FORCING_PROVIDER)}")
+                        help=f"Forcing provider to use, e.g., 'bmi' or 'csv'. Default: {repr(c.DEFAULT_FORCING_PROVIDER)}")
     parser.add_argument('-cycle_datetime',
                         type=datetime_type,
                         help="start date/time for the forecast cycle (also the end of cold-start if chosen), format= 'YYYY-MM-DD HH:mm:ss'. If omitted, a forecast will not be ran.")
@@ -204,20 +199,20 @@ def get_options(args_list=None):
                         help="start date/time for cold-start, format= 'YYYY-MM-DD HH:mm:ss'. If omitted, a cold-start will not be used.")
     parser.add_argument('-gage',
                         type=str,
-                        help=f"Gage ID to run the forecast for. Default: {repr(DEFAULT_GAGE_ID)}")
+                        help=f"Gage ID to run the forecast for. Default: {repr(c.DEFAULT_GAGE_ID)}")
     parser.add_argument('-forcing_configuration',
                         type=str,
-                        help=f"Forcing configuration to use, e.g., 'short_range', 'standard_ana', etc. Default: {repr(FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT[0])}")
+                        help=f"Forcing configuration to use, e.g., 'short_range', 'standard_ana', etc. Default: {repr(c.FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT[0])}")
     parser.add_argument(
         "--fcst_run_name",
         type=str,
-        help=f"Forecast run name. Default: {repr(DEFAULT_FORECAST_RUN_NAME)}",
+        help=f"Forecast run name. Default: {repr(c.DEFAULT_FORECAST_RUN_NAME)}",
     )
     parser.add_argument(
         "-n", "--nprocs",
         type=int,
         help=f"""
-Currently only affects Calibration. Replaces default value for nprocs ({repr(DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance.
+Currently only affects Calibration. Replaces default value for nprocs ({repr(c.DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance.
 When nprocs is 1, Calibration's ParallelConfig is: {make_parallel_config(nprocs=1)}.
 When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(nprocs=2)}
 """,
