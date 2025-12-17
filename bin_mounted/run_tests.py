@@ -168,14 +168,15 @@ def run_noop_mode() -> None:
 
 @validate_call
 def main(cfg: Config):
+    if cfg.noop:
+        run_noop_mode()
+
     utils_testing_setup.assert_paths__core(cfg.test_paths)
     # utils_testing_setup.assert_paths__raw_config(cfg.test_paths)  # Only works for default gage
     ### NOTE this deletes the test output dir.
     ### If wanting to skip Calibration but still do CS and/or Forecast,
     ### then remove this line so that the test calibration results remain available.
     # utils_testing_setup.delete_test_output_dir(cfg.test_paths)
-    if cfg.noop:
-        run_noop_mode()
 
     if cfg.delete_scratch_and_mesh_first:
         utils_testing_setup.delete_scratch_and_esmf_outputs(cfg.test_paths)
