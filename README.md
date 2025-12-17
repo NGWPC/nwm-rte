@@ -46,9 +46,9 @@ git clone git@github.com:NGWPC/nwm-rte.git && cd nwm-rte
 git checkout development
 ```
 
-3. Review [config.bashrc](config.bashrc), edit variables as needed, in particular: `REPOS_COMMON_ROOT__HOST`, `NGEN_SOURCE_MODE`, `NGEN_BASE__REMOTE_GHCR_TAG`, and the branch choices for the various manager packages.
+3. Review [config.bashrc](config.bashrc), edit variables as needed, in particular: `REPOS_COMMON_ROOT__HOST`, `NGEN_SOURCE_MODE`, `NGEN_BASE__REMOTE_GHCR_TAG`, and the branch choices for various packages.
 
-4. Clone other repos and download data
+4. Clone other repos
 
 ```shell
 # This clones repos. It will not alter the state of existing repos on your disk (for each clone, it skips if the folder already exists on disk).
@@ -56,25 +56,31 @@ git checkout development
 time ./setup_clone_repos.sh
 ```
 
+5. Download data
+
 ```shell
 # This downloads data.
 # You need to set up s3 credentials before running.
-# This should be done after cloning repos.
 time ./setup_data.sh
 ```
 
+```shell
+# OPTIONAL: `setup_data.sh` can take an optional named argument (`-r`) to download regionalization data
+time ./setup_data.sh -r
+```
 
-
-5. Build the Docker image
+6. Build the Docker image
 
 ```shell
-# This builds a local Docker image of ngen RTE, containing ngen base + manager (component) packages.
+# This builds a local Docker image of ngen RTE, containing ngen base + component packages.
 # Be ready to supply sudo password if prompted.
-# If sourcing the ngen base image from an existing GHCR image, this is quick.
+# If sourcing the ngen base image from an existing GHCR image, this is quick, and
+# you may want to `docker pull` if pointing to a tag for the GHCR image (e.g. `latest`)
+# rather than an explicit image hash.
 time ./ngen_rte_build.sh
 ```
 
-6. Run an example workflow
+7. Run an example workflow
 
 ```shell
 # This starts an ephemeral container of the ngen RTE image and runs a test workflow script (runs calibrations and forecasts).

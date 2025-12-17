@@ -70,6 +70,7 @@ docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "02207385" "2025_Mar_14_21_15_07" --do_calibration --skip_forecast --nprocs 2
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "02207385" "2025_Mar_14_21_15_07"
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py"
+# docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --delete_scratch_and_mesh_first
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_coldstart
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_forcing_running
 # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_duration 15
