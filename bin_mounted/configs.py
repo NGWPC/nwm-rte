@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 import consts as c
 
 
-class TestConfig(BaseModel):
+class RTETestConfig(BaseModel):
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
     delete_scratch_and_mesh_first: bool

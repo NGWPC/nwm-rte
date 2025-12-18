@@ -2,10 +2,10 @@ import os
 import shutil
 
 import consts as c
-from configs import TestConfig
+from configs import RTETestConfig
 
 
-def delete_test_output_dir(cfg: TestConfig) -> None:
+def delete_test_output_dir(cfg: RTETestConfig) -> None:
     for _, _, test_paths in cfg.get_calib_permutations():
         print(f"Deleting if exists: {test_paths.dir_output}")
         try:
@@ -27,7 +27,7 @@ def delete_forcing_raw_inputs() -> None:
             os.remove(fp)
 
 
-def delete_scratch_and_esmf_outputs(cfg: TestConfig) -> None:
+def delete_scratch_and_esmf_outputs(cfg: RTETestConfig) -> None:
     dirs_to_delete = ["/ngwpc/run_ngen/data/scratch/NWM"]
     for d in dirs_to_delete:
         if os.path.exists(d):
@@ -48,7 +48,7 @@ def delete_scratch_and_esmf_outputs(cfg: TestConfig) -> None:
             print(f"Did not exist: {f}")
 
 
-def assert_paths__core(cfg: TestConfig) -> None:
+def assert_paths__core(cfg: RTETestConfig) -> None:
     file_paths = [
         f"/s3/ngwpc-hydrofabric/2.2/CONUS/{cfg.gage_id}/GEOPACKAGE/USGS/{cfg.gage_vintage}/gauge_{cfg.gage_id}.gpkg",
         "/ngen-app/ngen/cmake_build/ngen",
@@ -77,7 +77,7 @@ def assert_paths__core(cfg: TestConfig) -> None:
             raise NotADirectoryError(fp)
 
 
-def assert_paths__raw_config(cfg: TestConfig) -> None:
+def assert_paths__raw_config(cfg: RTETestConfig) -> None:
     for _, _, test_paths in cfg.get_calib_permutations():
         for fp in [
             test_paths.calib_config_file,

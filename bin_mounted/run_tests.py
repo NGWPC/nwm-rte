@@ -22,12 +22,12 @@ from pydantic import validate_call
 from pydantic.json import pydantic_encoder
 
 import consts as c
-from configs import TestConfig
+from configs import RTETestConfig
 
 print = functools.partial(print, flush=True)
 
 
-def calibrations__build_and_run(cfg: TestConfig) -> None:
+def calibrations__build_and_run(cfg: RTETestConfig) -> None:
     """Build calibration realizations and run them as tests."""
     for obj_func, optim_algo, _ in cfg.get_calib_permutations():
         for config_overrides in get_test_configs__calibration(
@@ -57,7 +57,7 @@ def calibrations__build_and_run(cfg: TestConfig) -> None:
             cfg.tests_manager.add_forecast_test(t)
 
 
-def forecasts__build_and_run(cfg: TestConfig, cs: bool) -> None:
+def forecasts__build_and_run(cfg: RTETestConfig, cs: bool) -> None:
     """
     Using ForecastTest, build and execute a list of forecast realizations.
     tests_manager is modified in-place, so some test results may be available if this function is interrupted.
@@ -123,7 +123,7 @@ def run_noop_mode() -> None:
     sys.exit(0)  # Exit the program directly
 
 
-def main(cfg: TestConfig):
+def main(cfg: RTETestConfig):
     if cfg.noop:
         run_noop_mode()
 
@@ -269,5 +269,5 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
     args = parser.parse_args()
     print(f"{__file__}: args: {json.dumps(vars(args), indent=2)}")
 
-    cfg = TestConfig(**vars(args))
+    cfg = RTETestConfig(**vars(args))
     main(cfg)
