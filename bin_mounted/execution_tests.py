@@ -328,22 +328,28 @@ class ForecastTest(BaseModel):
             self.calib_log.path,
         ]
         print(f"Running command args: {cmd}")
-        proc = subprocess.Popen(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
-            proc.wait(timeout=quit_calibration_after_duration)
-        except subprocess.TimeoutExpired:
-            proc.terminate()
-            proc.wait(timeout=10)
-            if quit_calibration_after_duration:
-                pass
-            else:
-                raise
-        if proc.returncode != 0:
-            print(f"Calibration failed, non-zero returncode {proc.returncode} returned during call to: {cmd}")
+            proc = subprocess.run(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=quit_calibration_after_duration,
+                check=True,
+            )
+        except subprocess.TimeoutExpired as e:
+            if not quit_calibration_after_duration:
+                raise e
+            stderr_str = e.stderr.decode()
+        except subprocess.CalledProcessError as e:
+            print(f"Calibration failed with exception {type(e)}: {repr(e)}.")
             self.fcst_exe_stat = TestStat.FAIL
+            self.fcst_exe_excep = e
+            self.fcst_exe_excep_tb = traceback.format_exc().splitlines()
+            stderr_str = e.stderr.decode()
         else:
             self.fcst_exe_stat = TestStat.PASS
-        self.calib_proc_stderr = proc.stderr.read().splitlines()
+            stderr_str = proc.stderr.decode()
+        self.calib_proc_stderr = stderr_str.splitlines()
         if os.path.exists(self.calib_log.path):
             self.calib_log.read_and_parse()
 
