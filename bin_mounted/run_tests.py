@@ -2,6 +2,7 @@ import argparse
 from datetime import datetime
 import functools
 import json
+import sys
 
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
@@ -114,7 +115,18 @@ def forecasts__build_and_run(cfg: TestConfig, cs: bool) -> None:
             cfg.tests_manager.add_forecast_test(t)
 
 
+def run_noop_mode() -> None:
+    """Run noop mode - verify imports and basic setup without executing workflows."""
+    print("\nRunning in noop mode - only checking imports and basic setup.")
+    print("Successfully imported all required libraries.")
+    print("Noop mode complete - exiting")
+    sys.exit(0)  # Exit the program directly
+
+
 def main(cfg: TestConfig):
+    if cfg.noop:
+        run_noop_mode()
+
     utils_testing_setup.assert_paths__core(cfg)
     # utils_testing_setup.assert_paths__raw_config(cfg)
     ### NOTE this deletes the test output dir.
@@ -248,6 +260,11 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         nargs=2,
         default=[c.DEFAULT_GAGE_ID, c.DEFAULT_GAGE_VINTAGE],
         help=f"Calibration gage ID and gage vintage (2 args). If not provided, then these defaults will be used: {c.DEFAULT_GAGE_ID}, {c.DEFAULT_GAGE_VINTAGE} will be used.",
+    )
+    parser.add_argument(
+        "--noop",
+        action="store_true",
+        help="Run in noop mode - only verify that the script can import libraries and basic setup, then exit without looking for data or running any workflows.",
     )
     args = parser.parse_args()
     print(f"{__file__}: args: {json.dumps(vars(args), indent=2)}")
