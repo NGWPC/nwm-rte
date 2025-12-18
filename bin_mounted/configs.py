@@ -29,6 +29,7 @@ class TestConfig(BaseModel):
     fcst_run_name: str
     nprocs: int = Field(ge=1)
     gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
+    noop: bool
 
     # Set after init
     gage_id: str = Field(init=False, default=None)
