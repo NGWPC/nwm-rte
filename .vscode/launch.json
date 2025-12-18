@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "run_bmi_model",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "NextGen_Forcings_Engine_BMI.run_bmi_model",
+            "args": [
+                "2015-10-01 01:00:00",
+                "2015-10-01 03:00:00",
+                "-config_path",
+                "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/forcing_config/aorc_config.yml",
+                "-b_date",
+                "201510010000",
+                "-output_path",
+                "/ngen-app/bin/bin_mounted/bmi_model_forcing_output.nc",
+            ],
+            "justMyCode": false,
+            "console": "integratedTerminal"
+        }
+    ]
+}
