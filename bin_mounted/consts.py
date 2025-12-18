@@ -1,5 +1,10 @@
 from datetime import datetime, timedelta
 
+from calib.strategy import (
+    Objective as CalObjective,
+    Algorithm as CalOptimizationAlgo,
+)
+
 
 DIR_FORCING_RAW_INPUT = "/ngen-app/data/raw_input"
 
@@ -31,14 +36,41 @@ FORMULATION_NAME = f"test_{DEFAULT_FORCING_PROVIDER}"
 
 
 ### .config section [Calibration]
-CALIB_OBJECTIVE_FUNCTION = "kge"
-CALIB_OPTIMIZATION_ALGO = "dds"
+CALIB_OBJECTIVE_FUNCTION = CalObjective.kge
+CALIB_OPTIMIZATION_ALGO = CalOptimizationAlgo.dds
 CALIB_PARAMETERS_DIR = "/ngwpc/run_ngen/data/calib_params_tab_delimited"
 CALIB_ITER_START = 0
 CALIB_ITER_COUNT = 2
 CALIB_SAVE_PLOT_ITER_FREQ = 1
-DT_START_CALIB = datetime(year=2015, month=10, day=1, hour=0, minute=0, second=0)
-DT_END_CALIB = DT_START_CALIB + timedelta(hours=47)
+# Only needed for optimization algo PSO and GWO
+CALIB_SWARM_SIZE=3
+# Only needed for optimization algo PSO 
+CALIB_PSO_C1=2
+CALIB_PSO_C2=2
+CALIB_PSO_W=0.7
+
+
+##### Calibration
+# Calib sim
+CALIB_SIM_START = datetime(year=2015, month=10, day=1, hour=0, minute=0, second=0)
+CALIB_SIM_DURATION = timedelta(hours=47)
+CALIB_SIM_END = CALIB_SIM_START + CALIB_SIM_DURATION
+# Calib eval
+CALIB_EVAL_START = CALIB_SIM_START + timedelta(hours=6)  # Delayed start from calibration simulation, for warmup
+CALIB_EVAL_END = CALIB_SIM_END
+
+##### Validation
+# Validation sim
+VALID_SIM_START = CALIB_SIM_START - timedelta(hours=6)
+VALID_SIM_END = CALIB_SIM_END
+# Validation eval
+VALID_EVAL_START = CALIB_SIM_START
+VALID_EVAL_END = CALIB_SIM_END - timedelta(hours=6)
+
+##### Full evaluation
+FULL_EVAL_START = CALIB_SIM_START
+FULL_EVAL_END = CALIB_SIM_END
+
 
 ### .config section [DataFile]
 MODULE_PARAMETER_FILES_DIR = "/ngen-app/nwm-msw-mgr/src/mswm/module_parameter_files"
@@ -52,8 +84,8 @@ DEFAULT_NPROCS = 1
 
 ### Test settings
 ### See this for full list of forcing configuration types: mswm.utils.input_configuration.mswm_valid_configs
-# FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range", "standard_ana", "medium_range_blend"]
-FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range"]
+FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range", "standard_ana", "medium_range_blend"]
+# FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range"]
 FORECAST_FORCING_CONFIGURATION_TYPES__ALL = [
     "standard_ana",
     "standard_ana_alaska",

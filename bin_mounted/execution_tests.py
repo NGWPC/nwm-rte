@@ -21,7 +21,7 @@ from mswm.utils.input_configuration import (
     DataFileConfig,
     ParallelConfig,
 )
-from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
+from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 
 from nwm_fcst_mgr.forecast import ForecastExecutionManager, RunStatus
 from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
@@ -34,15 +34,26 @@ print = functools.partial(print, flush=True)
 
 @dataclass
 class TestPaths:
-    # From calibration
+    """
+    Paths dependent on calibration settings.
+    If iterating over a list of objective functions or optimization algorithms,
+    obj_func and optim_algo may need to be replaced on the fly during the iterations.
+    """
+
     gage_id: str
     gage_vintage: str
-    obj_func: str
-    optim_algo: str
+    obj_func: c.CalObjective | None
+    optim_algo: c.CalOptimizationAlgo | None
+
+    def update_obj_func_and_optim_algo(self, obj_func: c.CalObjective, optim_algo: c.CalOptimizationAlgo) -> None:
+        self.obj_func = obj_func
+        self.optim_algo = optim_algo
 
     @property
     def dir_base(self) -> str:
-        return f"{c.DEFAULT_MAIN_DIR}/{c.CALIB_OBJECTIVE_FUNCTION}_{c.CALIB_OPTIMIZATION_ALGO}/{c.FORMULATION_NAME}/{self.gage_id}"
+        if not (self.obj_func and self.optim_algo):
+            raise ValueError("obj_func and optim_algo must be set before calling this method")
+        return f"{c.DEFAULT_MAIN_DIR}/{self.obj_func.value}_{self.optim_algo.value}/{c.FORMULATION_NAME}/{self.gage_id}"
 
     @property
     def dir_input(self) -> str:
@@ -86,60 +97,66 @@ def get_test_configs__calibration(
     nprocs: int = c.DEFAULT_NPROCS,
     gage_id: str = c.DEFAULT_GAGE_ID,
     gage_vintage: str = c.DEFAULT_GAGE_VINTAGE,
+    obj_func: c.CalObjective = c.CALIB_OBJECTIVE_FUNCTION,
+    optim_algo: c.CalOptimizationAlgo = c.CALIB_OPTIMIZATION_ALGO,
 ) -> list[InputConfig]:
     configs: list[InputConfig] = []
 
     forcing_config_types = c.CALIB_FORCING_CONFIGURATION_TYPES
-    str_calib_start = c.DT_START_CALIB.strftime(DEFAULT_DATETIME_FORMAT)
-    str_calib_end = c.DT_END_CALIB.strftime(DEFAULT_DATETIME_FORMAT)
+
+    general = GeneralConfig(
+        basin=gage_id,
+        run_type="calibration",
+        models=c.MODELS,
+        formulation=c.FORMULATION_NAME,
+        main_dir=c.DEFAULT_MAIN_DIR,
+        start_period=c.CALIB_EVAL_START.strftime(DDF),
+        end_period=c.CALIB_EVAL_END.strftime(DDF),
+    )
+
+    calibration = CalibConfig(
+        optimization_algorithm=optim_algo,
+        swarm_size=c.CALIB_SWARM_SIZE,
+        c1=c.CALIB_PSO_C1,
+        c2=c.CALIB_PSO_C2,
+        w=c.CALIB_PSO_W,
+        objective_function=obj_func,
+        start_iteration=c.CALIB_ITER_START,
+        number_iteration=c.CALIB_ITER_COUNT,
+        calib_start_period=c.CALIB_SIM_START.strftime(DDF),
+        calib_end_period=c.CALIB_SIM_END.strftime(DDF),
+        calib_eval_start_period=c.CALIB_EVAL_START.strftime(DDF),
+        calib_eval_end_period=c.CALIB_EVAL_END.strftime(DDF),
+        valid_start_period=c.VALID_SIM_START.strftime(DDF),
+        valid_end_period=c.VALID_SIM_END.strftime(DDF),
+        valid_eval_start_period=c.VALID_EVAL_START.strftime(DDF),
+        valid_eval_end_period=c.VALID_EVAL_END.strftime(DDF),
+        full_eval_start_period=c.VALID_SIM_START.strftime(DDF),
+        full_eval_end_period=c.VALID_SIM_END.strftime(DDF),
+        save_plot_iter_freq=c.CALIB_SAVE_PLOT_ITER_FREQ,
+        ngen_cerf=False,
+        calib_parameter_file=c.CALIB_PARAMETERS_DIR,
+    )
+    datafile = DataFileConfig(
+        **(
+            c.DATAFILE_LIBS
+            | {
+                "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/CONUS/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg"
+            }
+        ),
+    )
+    parallel = make_parallel_config(nprocs)
 
     for fct in forcing_config_types:
-        general = GeneralConfig(
-            basin=gage_id,
-            run_type="calibration",
-            models=c.MODELS,
-            formulation=c.FORMULATION_NAME,
-            main_dir=c.DEFAULT_MAIN_DIR,
-            start_period=str_calib_start,
-            end_period=str_calib_end,
-        )
-        calibration = CalibConfig(
-            optimization_algorithm=c.CALIB_OPTIMIZATION_ALGO,
-            objective_function=c.CALIB_OBJECTIVE_FUNCTION,
-            start_iteration=c.CALIB_ITER_START,
-            number_iteration=c.CALIB_ITER_COUNT,
-            calib_start_period=str_calib_start,
-            calib_end_period=str_calib_end,
-            calib_eval_start_period=str_calib_start,
-            calib_eval_end_period=str_calib_end,
-            valid_start_period=str_calib_start,
-            valid_end_period=str_calib_end,
-            valid_eval_start_period=str_calib_start,
-            valid_eval_end_period=str_calib_end,
-            full_eval_start_period=str_calib_start,
-            full_eval_end_period=str_calib_end,
-            save_plot_iter_freq=c.CALIB_SAVE_PLOT_ITER_FREQ,
-            ngen_cerf=False,
-            calib_parameter_file=c.CALIB_PARAMETERS_DIR,
-        )
         forcing = ForcingConfig(
             forcing_provider=c.DEFAULT_FORCING_PROVIDER,
             forcing_dir=c.FORCING_DIR,
             forcing_template_dir=c.FORCING_TEMPLATE_DIR,
             root_dir=c.FORCING_ROOT_DIR,
             forcing_configuration=fct,
-            cycle_datetime=c.DT_START_FORECAST.strftime(DEFAULT_DATETIME_FORMAT),
+            cycle_datetime=c.DT_START_FORECAST.strftime(DDF),
             cold_start_datetime=None,
         )
-        datafile = DataFileConfig(
-            **(
-                c.DATAFILE_LIBS
-                | {
-                    "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/CONUS/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg"
-                }
-            ),
-        )
-        parallel = make_parallel_config(nprocs)
         configs.append(
             InputConfig(General=general, Calibration=calibration, Forcing=forcing, DataFile=datafile, Parallel=parallel)
         )
@@ -155,11 +172,11 @@ def get_test_configs__forecast(
     configs: list[InputConfig] = []
 
     if use_cold_start:
-        cold_start_datetime = c.DT_START_COLDSTART.strftime(DEFAULT_DATETIME_FORMAT)
-        cycle_datetime = c.DT_END_COLDSTART.strftime(DEFAULT_DATETIME_FORMAT)
+        cold_start_datetime = c.DT_START_COLDSTART.strftime(DDF)
+        cycle_datetime = c.DT_END_COLDSTART.strftime(DDF)
     else:
         cold_start_datetime = None
-        cycle_datetime = c.DT_START_FORECAST.strftime(DEFAULT_DATETIME_FORMAT)
+        cycle_datetime = c.DT_START_FORECAST.strftime(DDF)
 
     if do_all_forcing_configs:
         forcing_config_types = c.FORECAST_FORCING_CONFIGURATION_TYPES__ALL
@@ -294,7 +311,7 @@ class ForecastTest(BaseModel):
             # Also set forecast execution to fail, since it can't run if realization failed to build
             self.fcst_exe_stat = TestStat.FAIL
 
-    def execute_calibration(self) -> None:
+    def execute_calibration(self, quit_calibration_after_duration: float | None) -> None:
         if self.rb_stat != TestStat.PASS:
             raise RuntimeError(f"Cannot run calibration when realization did not build (self.rb_stat: {self.rb_stat})")
 
@@ -311,24 +328,30 @@ class ForecastTest(BaseModel):
             self.calib_log.path,
         ]
         print(f"Running command args: {cmd}")
-        proc = subprocess.run(cmd, check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
-            proc.check_returncode()
-        except Exception as e:
-            print(
-                f"Caught unexpected exception in main thread while executing calibration: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
+            proc = subprocess.run(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=quit_calibration_after_duration,
+                check=True,
             )
+        except subprocess.TimeoutExpired as e:
+            if not quit_calibration_after_duration:
+                raise e
+            stderr_str = e.stderr.decode()
+        except subprocess.CalledProcessError as e:
+            print(f"Calibration failed with exception {type(e)}: {repr(e)}.")
             self.fcst_exe_stat = TestStat.FAIL
             self.fcst_exe_excep = e
             self.fcst_exe_excep_tb = traceback.format_exc().splitlines()
+            stderr_str = e.stderr.decode()
         else:
             self.fcst_exe_stat = TestStat.PASS
-            self.fcst_exe_excep = None
-            self.fcst_exe_excep_tb = []
-        finally:
-            self.calib_proc_stderr = proc.stderr.splitlines()
-            if os.path.exists(self.calib_log.path):
-                self.calib_log.read_and_parse()
+            stderr_str = proc.stderr.decode()
+        self.calib_proc_stderr = stderr_str.splitlines()
+        if os.path.exists(self.calib_log.path):
+            self.calib_log.read_and_parse()
 
     def execute_forecast(
         self,

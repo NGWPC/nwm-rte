@@ -1,6 +1,7 @@
 import argparse
 from datetime import datetime
 import functools
+import json
 import sys
 
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
@@ -17,145 +18,101 @@ from execution_tests import (
     make_parallel_config,
 )
 from pseudocode import SavedState_Pseudo, StateManager_Pseudo
-from pydantic import BaseModel, ConfigDict, Field, validate_call
+from pydantic import validate_call
+from pydantic.json import pydantic_encoder
 
 import consts as c
+from configs import RTETestConfig
 
 print = functools.partial(print, flush=True)
 
 
-class Config(BaseModel):
-    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
-
-    delete_scratch_and_mesh_first: bool
-    delete_forcing_raw_input_first: bool
-    skip_forecast: bool
-    quit_forecast_after_forcing_running: bool
-    quit_forecast_after_duration: float | None = Field(ge=0)
-    do_calibration: bool
-    do_all_forcing_configs: bool
-    do_coldstart: bool
-    fcst_run_name: str
-    nprocs: int = Field(ge=1)
-    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
-    noop: bool
-
-    # Set after init
-    gage_id: str = Field(init=False, default=None)
-    gage_vintage: str = Field(init=False, default=None)
-    tests_manager: TestsManager = Field(init=False, default=None)
-    state_manager: StateManager_Pseudo = Field(init=False, default=None)  # TODO pseudocode for now for states.
-    test_paths: TestPaths = Field(init=False, default=None)
-
-    def model_post_init(self, __context) -> None:
-        errors = []
-
-        gage_id, gage_vintage = self.gage_id__gage_vintage
-        if gage_id != gage_id.strip():
-            errors.append(ValueError(f"Whitespace found on end of gage_id: {repr(gage_id)}"))
-        if gage_vintage != gage_vintage.strip():
-            errors.append(ValueError(f"Whitespace found on end of gage_vintage: {repr(gage_vintage)}"))
-
-        if self.fcst_run_name != self.fcst_run_name.strip():
-            errors.append(ValueError(f"Whitespace found on end of fcst_run_name: {repr(self.fcst_run_name)}"))
-
-        if self.do_all_forcing_configs:
-            if self.skip_forecast and (not self.do_coldstart):
-                errors.append(
-                    ValueError(
-                        f"When do_all_forcing_configs={self.do_all_forcing_configs}, must have coldstart and/or forecast enabled."
-                    )
-                )
-
-        if errors:
-            raise RuntimeError(errors)
-
-        self.gage_id = gage_id
-        self.gage_vintage = gage_vintage
-        self.tests_manager = TestsManager()
-        self.state_manager = StateManager_Pseudo()
-        self.test_paths = TestPaths(
-            gage_id=gage_id,
-            gage_vintage=gage_vintage,
-            obj_func=c.CALIB_OBJECTIVE_FUNCTION,
-            optim_algo=c.CALIB_OPTIMIZATION_ALGO,
-        )
-
-
-def calibrations__build_and_run(cfg: Config) -> None:
+def calibrations__build_and_run(cfg: RTETestConfig) -> None:
     """Build calibration realizations and run them as tests."""
-    for config_overrides in get_test_configs__calibration(
-        nprocs=cfg.nprocs,
-        gage_id=cfg.gage_id,
-        gage_vintage=cfg.gage_vintage,
-    ):
-        fc = config_overrides.Forcing.forcing_configuration
-        rb_kwargs = {"config_overrides": config_overrides}
-        print(f"\n\n##########\n### Calibration: {fc}: setting up test with rb_kwargs = {rb_kwargs}")
-        t = ForecastTest(rb_kwargs=rb_kwargs)
+    for obj_func, optim_algo, _ in cfg.get_calib_permutations():
+        for config_overrides in get_test_configs__calibration(
+            nprocs=cfg.nprocs,
+            gage_id=cfg.gage_id,
+            gage_vintage=cfg.gage_vintage,
+            obj_func=obj_func,
+            optim_algo=optim_algo,
+        ):
+            fc = config_overrides.Forcing.forcing_configuration
+            msg_prefix = f"Calibration {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
+            rb_kwargs = {"config_overrides": config_overrides}
+            print(
+                f"\n\n##########\n### {msg_prefix}: setting up test with rb_kwargs = \n{json.dumps(rb_kwargs, indent=2, default=pydantic_encoder)}"
+            )
+            t = ForecastTest(rb_kwargs=rb_kwargs)
 
-        # Build the realization, trapping exceptions into class attrs
-        print(f"### {fc}: building realization")
-        t.make_realization_builder__build_realization(build_method="build_calib_realization")
+            # Build the realization, trapping exceptions into class attrs
+            print(f"### {msg_prefix}: building realization")
+            t.make_realization_builder__build_realization(build_method="build_calib_realization")
 
-        if t.rb_stat == TestStat.PASS:
-            # Execute the realization via ngen, trapping exceptions and logs into class attrs
-            print(f"### {fc}: executing calibration realization")
-            t.execute_calibration()
+            if t.rb_stat == TestStat.PASS:
+                # Execute the realization via ngen, trapping exceptions and logs into class attrs
+                print(f"### {msg_prefix}: executing calibration realization")
+                t.execute_calibration(cfg.quit_calibration_after_duration)
 
-        cfg.tests_manager.add_forecast_test(t)
+            cfg.tests_manager.add_forecast_test(t)
 
 
-def forecasts__build_and_run(cfg: Config, cs: bool) -> None:
+def forecasts__build_and_run(cfg: RTETestConfig, cs: bool) -> None:
     """
     Using ForecastTest, build and execute a list of forecast realizations.
     tests_manager is modified in-place, so some test results may be available if this function is interrupted.
     `cs` controls whether coldstart is used (not `cfg.do_coldstart`).
     """
-    test_configs = get_test_configs__forecast(cfg.do_all_forcing_configs, use_cold_start=cs)
-    for tc in test_configs:
-        if cfg.quit_forecast_after_forcing_running and tc.Forcing.forcing_configuration != "short_range":
-            raise NotImplementedError(
-                f"quit_forecast_after_forcing_running not yet tested for forcing_configuration = {repr(tc.Forcing.forcing_configuration)}"
-            )
-
-    for config_overrides in test_configs:
-        fc = config_overrides.Forcing.forcing_configuration
-        rb_kwargs = {
-            # "input_path": cfg.test_paths.dir_input,
-            "valid_yaml": cfg.test_paths.valid_yaml,
-            "fcst_run_name": cfg.fcst_run_name,
-            "config_overrides": config_overrides,
-            "use_cold_start": cs,
-        }
-        print(f"\n\n##########\n### {fc}: setting up test with rb_kwargs = {rb_kwargs}")
-
-        t = ForecastTest(
-            rb_kwargs=rb_kwargs,
-            ngen_log=LogParser(path=f"{cfg.test_paths.dir_output}/Forecast_Run/{cfg.fcst_run_name}/logs/ngen.log"),
-        )
-
-        # Build the realization, trapping exceptions into class attrs
-        print(f"### {fc}: building realization")
-        t.make_realization_builder__build_realization(build_method="build_fcst_realization")
-
-        if t.rb_stat == TestStat.PASS:
-            # Execute the realization via ngen, trapping exceptions and logs into class attrs
-            print(f"### {fc}: executing realization via ngen")
-            t.execute_forecast(
-                quit_forecast_after_forcing_running=cfg.quit_forecast_after_forcing_running,
-                quit_forecast_after_duration=cfg.quit_forecast_after_duration,
-            )
-
-            if t.rb.input_configs_class.Forcing.forcing_configuration == "standard_ana":
-                cfg.state_manager.add_saved_state(
-                    SavedState_Pseudo(
-                        dt=datetime.strptime(t.rb.input_configs_class.Forcing.cycle_datetime, DEFAULT_DATETIME_FORMAT),
-                        realization_file=t.rb.realization_file,
-                    )
+    for obj_func, optim_algo, test_paths in cfg.get_calib_permutations():
+        test_configs = get_test_configs__forecast(cfg.do_all_forcing_configs, use_cold_start=cs)
+        for tc in test_configs:
+            if cfg.quit_forecast_after_forcing_running and tc.Forcing.forcing_configuration != "short_range":
+                raise NotImplementedError(
+                    f"quit_forecast_after_forcing_running not yet tested for forcing_configuration = {repr(tc.Forcing.forcing_configuration)}"
                 )
 
-        cfg.tests_manager.add_forecast_test(t)
+        for config_overrides in test_configs:
+            fc = config_overrides.Forcing.forcing_configuration
+            msg_prefix = (
+                f"Forecast {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
+            )
+            rb_kwargs = {
+                # "input_path": test_paths.dir_input,
+                "valid_yaml": test_paths.valid_yaml,
+                "fcst_run_name": cfg.fcst_run_name,
+                "config_overrides": config_overrides,
+                "use_cold_start": cs,
+            }
+            print(f"\n\n##########\n### {msg_prefix}: setting up test with rb_kwargs = {rb_kwargs}")
+
+            t = ForecastTest(
+                rb_kwargs=rb_kwargs,
+                ngen_log=LogParser(path=f"{test_paths.dir_output}/Forecast_Run/{cfg.fcst_run_name}/logs/ngen.log"),
+            )
+
+            # Build the realization, trapping exceptions into class attrs
+            print(f"### {msg_prefix}: building realization")
+            t.make_realization_builder__build_realization(build_method="build_fcst_realization")
+
+            if t.rb_stat == TestStat.PASS:
+                # Execute the realization via ngen, trapping exceptions and logs into class attrs
+                print(f"### {msg_prefix}: executing realization via ngen")
+                t.execute_forecast(
+                    quit_forecast_after_forcing_running=cfg.quit_forecast_after_forcing_running,
+                    quit_forecast_after_duration=cfg.quit_forecast_after_duration,
+                )
+
+                if t.rb.input_configs_class.Forcing.forcing_configuration == "standard_ana":
+                    cfg.state_manager.add_saved_state(
+                        SavedState_Pseudo(
+                            dt=datetime.strptime(
+                                t.rb.input_configs_class.Forcing.cycle_datetime, DEFAULT_DATETIME_FORMAT
+                            ),
+                            realization_file=t.rb.realization_file,
+                        )
+                    )
+
+            cfg.tests_manager.add_forecast_test(t)
 
 
 def run_noop_mode() -> None:
@@ -166,20 +123,19 @@ def run_noop_mode() -> None:
     sys.exit(0)  # Exit the program directly
 
 
-@validate_call
-def main(cfg: Config):
+def main(cfg: RTETestConfig):
     if cfg.noop:
         run_noop_mode()
 
-    utils_testing_setup.assert_paths__core(cfg.test_paths)
-    # utils_testing_setup.assert_paths__raw_config(cfg.test_paths)  # Only works for default gage
+    utils_testing_setup.assert_paths__core(cfg)
+    # utils_testing_setup.assert_paths__raw_config(cfg)
     ### NOTE this deletes the test output dir.
     ### If wanting to skip Calibration but still do CS and/or Forecast,
     ### then remove this line so that the test calibration results remain available.
-    # utils_testing_setup.delete_test_output_dir(cfg.test_paths)
+    # utils_testing_setup.delete_test_output_dir(cfg)
 
     if cfg.delete_scratch_and_mesh_first:
-        utils_testing_setup.delete_scratch_and_esmf_outputs(cfg.test_paths)
+        utils_testing_setup.delete_scratch_and_esmf_outputs(cfg)
     if cfg.delete_forcing_raw_input_first:
         utils_testing_setup.delete_forcing_raw_inputs()
 
@@ -220,7 +176,7 @@ if __name__ == "__main__":
         help="Instead of waiting for each forecast to finish, quit after the ngen log file indicates that forcing is running successfully.",
     )
     parser.add_argument(
-        "-dur",
+        "-quitfcdur",
         "--quit_forecast_after_duration",
         default=None,
         type=float,
@@ -231,6 +187,41 @@ if __name__ == "__main__":
         "--do_calibration",
         action="store_true",
         help="Build and run calibration before forecasts",
+    )
+    parser.add_argument(
+        "-quitcaldur",
+        "--quit_calibration_after_duration",
+        default=None,
+        type=float,
+        help="Instead of waiting for each calibration to finish, quit after the specified elapsed processing duration in seconds.",
+    )
+    parser.add_argument(
+        "-ofuncs",
+        "--objective_functions",
+        nargs="+",
+        type=list[c.CalObjective],
+        default=[c.CALIB_OBJECTIVE_FUNCTION],
+        help=f"For calibration. Default: {[c.CALIB_OBJECTIVE_FUNCTION]}",
+    )
+    parser.add_argument(
+        "-allofuncs",
+        "--do_all_objective_functions",
+        action="store_true",
+        help=f"For calibration, causes all objective functions to be executed: {list(c.CalObjective)}",
+    )
+    parser.add_argument(
+        "-optalgos",
+        "--optimization_algorithms",
+        nargs="+",
+        type=list[c.CalOptimizationAlgo],
+        default=[c.CALIB_OPTIMIZATION_ALGO],
+        help=f"For calibration. Default: {[c.CALIB_OPTIMIZATION_ALGO]}",
+    )
+    parser.add_argument(
+        "-alloptalgos",
+        "--do_all_optimization_algorithms",
+        action="store_true",
+        help=f"For calibration, causes all optimization algorithms to be executed: {list(c.CalOptimizationAlgo)}",
     )
     parser.add_argument(
         "-allforcings",
@@ -276,7 +267,7 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         help="Run in noop mode - only verify that the script can import libraries and basic setup, then exit without looking for data or running any workflows.",
     )
     args = parser.parse_args()
-    print(f"args: {args}")
+    print(f"{__file__}: args: {json.dumps(vars(args), indent=2)}")
 
-    cfg = Config(**vars(args))
+    cfg = RTETestConfig(**vars(args))
     main(cfg)
