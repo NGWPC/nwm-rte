@@ -1,0 +1,19 @@
+{
+    "name": "ngen_rte_bmi_forcing",
+    "image": "ngen_rte:ghcr",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.debugpy",
+                "ms-azuretools.vscode-docker"
+            ]
+        }
+    },
+    "mounts": [
+        "source=${localWorkspaceFolder}/../run_ngen,target=/ngwpc/run_ngen,type=bind",
+        "source=${localWorkspaceFolder}/../s3,target=/s3,type=bind",
+        "source=${localWorkspaceFolder}/bin_mounted,target=/ngen-app/bin/bin_mounted,type=bind"
+    ],
+    "remoteUser": "root"
+}
