@@ -1,17 +1,17 @@
 import os
 import shutil
 
-from execution_tests import TestPaths
-
 import consts as c
+from configs import TestConfig
 
 
-def delete_test_output_dir(test_paths: TestPaths) -> None:
-    print(f"Deleting if exists: {test_paths.dir_output}")
-    try:
-        shutil.rmtree(test_paths.dir_output)
-    except (FileNotFoundError, NotADirectoryError):
-        pass
+def delete_test_output_dir(cfg: TestConfig) -> None:
+    for _, _, test_paths in cfg.get_calib_permutations():
+        print(f"Deleting if exists: {test_paths.dir_output}")
+        try:
+            shutil.rmtree(test_paths.dir_output)
+        except (FileNotFoundError, NotADirectoryError):
+            pass
 
 
 def delete_forcing_raw_inputs() -> None:
@@ -27,7 +27,7 @@ def delete_forcing_raw_inputs() -> None:
             os.remove(fp)
 
 
-def delete_scratch_and_esmf_outputs(test_paths: TestPaths) -> None:
+def delete_scratch_and_esmf_outputs(cfg: TestConfig) -> None:
     dirs_to_delete = ["/ngwpc/run_ngen/data/scratch/NWM"]
     for d in dirs_to_delete:
         if os.path.exists(d):
@@ -37,8 +37,8 @@ def delete_scratch_and_esmf_outputs(test_paths: TestPaths) -> None:
             print(f"Did not exist: {d}")
 
     files_to_delete = [
-        f"/ngwpc/run_ngen/data/esmf_mesh/gauge_{test_paths.gage_id}_ESMF_Mesh.nc",
-        f"/ngen-app/data/esmf_mesh/gauge_{test_paths.gage_id}_ESMF_Mesh.nc",
+        f"/ngwpc/run_ngen/data/esmf_mesh/gauge_{cfg.gage_id}_ESMF_Mesh.nc",
+        f"/ngen-app/data/esmf_mesh/gauge_{cfg.gage_id}_ESMF_Mesh.nc",
     ]
     for f in files_to_delete:
         if os.path.exists(f):
@@ -48,9 +48,9 @@ def delete_scratch_and_esmf_outputs(test_paths: TestPaths) -> None:
             print(f"Did not exist: {f}")
 
 
-def assert_paths__core(test_paths: TestPaths) -> None:
+def assert_paths__core(cfg: TestConfig) -> None:
     file_paths = [
-        f"/s3/ngwpc-hydrofabric/2.2/CONUS/{test_paths.gage_id}/GEOPACKAGE/USGS/{test_paths.gage_vintage}/gauge_{test_paths.gage_id}.gpkg",
+        f"/s3/ngwpc-hydrofabric/2.2/CONUS/{cfg.gage_id}/GEOPACKAGE/USGS/{cfg.gage_vintage}/gauge_{cfg.gage_id}.gpkg",
         "/ngen-app/ngen/cmake_build/ngen",
         "/ngen-app/ngen/extern/sloth/cmake_build/libslothmodel.so",
         "/ngen-app/ngen/extern/cfe/cmake_build/libcfebmi.so",
@@ -77,10 +77,11 @@ def assert_paths__core(test_paths: TestPaths) -> None:
             raise NotADirectoryError(fp)
 
 
-def assert_paths__raw_config(test_paths: TestPaths) -> None:
-    for fp in [
-        test_paths.calib_config_file,
-        test_paths.fcst_config_file,
-    ]:
-        if not os.path.isfile(fp):
-            raise FileNotFoundError(fp)
+def assert_paths__raw_config(cfg: TestConfig) -> None:
+    for _, _, test_paths in cfg.get_calib_permutations():
+        for fp in [
+            test_paths.calib_config_file,
+            test_paths.fcst_config_file,
+        ]:
+            if not os.path.isfile(fp):
+                raise FileNotFoundError(fp)

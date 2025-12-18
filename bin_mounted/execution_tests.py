@@ -34,15 +34,26 @@ print = functools.partial(print, flush=True)
 
 @dataclass
 class TestPaths:
-    # From calibration
+    """
+    Paths dependent on calibration settings.
+    If iterating over a list of objective functions or optimization algorithms,
+    obj_func and optim_algo may need to be replaced on the fly during the iterations.
+    """
+
     gage_id: str
     gage_vintage: str
-    obj_func: str
-    optim_algo: str
+    obj_func: c.CalObjective | None
+    optim_algo: c.CalOptimizationAlgo | None
+
+    def update_obj_func_and_optim_algo(self, obj_func: c.CalObjective, optim_algo: c.CalOptimizationAlgo) -> None:
+        self.obj_func = obj_func
+        self.optim_algo = optim_algo
 
     @property
     def dir_base(self) -> str:
-        return f"{c.DEFAULT_MAIN_DIR}/{c.CALIB_OBJECTIVE_FUNCTION}_{c.CALIB_OPTIMIZATION_ALGO}/{c.FORMULATION_NAME}/{self.gage_id}"
+        if not (self.obj_func and self.optim_algo):
+            raise ValueError("obj_func and optim_algo must be set before calling this method")
+        return f"{c.DEFAULT_MAIN_DIR}/{self.obj_func.value}_{self.optim_algo.value}/{c.FORMULATION_NAME}/{self.gage_id}"
 
     @property
     def dir_input(self) -> str:
@@ -86,6 +97,8 @@ def get_test_configs__calibration(
     nprocs: int = c.DEFAULT_NPROCS,
     gage_id: str = c.DEFAULT_GAGE_ID,
     gage_vintage: str = c.DEFAULT_GAGE_VINTAGE,
+    obj_func: c.CalObjective = c.CALIB_OBJECTIVE_FUNCTION,
+    optim_algo: c.CalOptimizationAlgo = c.CALIB_OPTIMIZATION_ALGO,
 ) -> list[InputConfig]:
     configs: list[InputConfig] = []
 
@@ -100,9 +113,14 @@ def get_test_configs__calibration(
         start_period=c.CALIB_EVAL_START.strftime(DDF),
         end_period=c.CALIB_EVAL_END.strftime(DDF),
     )
+
     calibration = CalibConfig(
-        optimization_algorithm=c.CALIB_OPTIMIZATION_ALGO,
-        objective_function=c.CALIB_OBJECTIVE_FUNCTION,
+        optimization_algorithm=optim_algo,
+        swarm_size=c.CALIB_SWARM_SIZE,
+        c1=c.CALIB_PSO_C1,
+        c2=c.CALIB_PSO_C2,
+        w=c.CALIB_PSO_W,
+        objective_function=obj_func,
         start_iteration=c.CALIB_ITER_START,
         number_iteration=c.CALIB_ITER_COUNT,
         calib_start_period=c.CALIB_SIM_START.strftime(DDF),
@@ -293,7 +311,7 @@ class ForecastTest(BaseModel):
             # Also set forecast execution to fail, since it can't run if realization failed to build
             self.fcst_exe_stat = TestStat.FAIL
 
-    def execute_calibration(self) -> None:
+    def execute_calibration(self, quit_calibration_after_duration: float | None) -> None:
         if self.rb_stat != TestStat.PASS:
             raise RuntimeError(f"Cannot run calibration when realization did not build (self.rb_stat: {self.rb_stat})")
 
@@ -310,24 +328,24 @@ class ForecastTest(BaseModel):
             self.calib_log.path,
         ]
         print(f"Running command args: {cmd}")
-        proc = subprocess.run(cmd, check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = subprocess.Popen(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
-            proc.check_returncode()
-        except Exception as e:
-            print(
-                f"Caught unexpected exception in main thread while executing calibration: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
-            )
+            proc.wait(timeout=quit_calibration_after_duration)
+        except subprocess.TimeoutExpired:
+            proc.terminate()
+            proc.wait(timeout=10)
+            if quit_calibration_after_duration:
+                pass
+            else:
+                raise
+        if proc.returncode != 0:
+            print(f"Calibration failed, non-zero returncode {proc.returncode} returned during call to: {cmd}")
             self.fcst_exe_stat = TestStat.FAIL
-            self.fcst_exe_excep = e
-            self.fcst_exe_excep_tb = traceback.format_exc().splitlines()
         else:
             self.fcst_exe_stat = TestStat.PASS
-            self.fcst_exe_excep = None
-            self.fcst_exe_excep_tb = []
-        finally:
-            self.calib_proc_stderr = proc.stderr.splitlines()
-            if os.path.exists(self.calib_log.path):
-                self.calib_log.read_and_parse()
+        self.calib_proc_stderr = proc.stderr.read().splitlines()
+        if os.path.exists(self.calib_log.path):
+            self.calib_log.read_and_parse()
 
     def execute_forecast(
         self,

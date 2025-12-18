@@ -1,5 +1,10 @@
 from datetime import datetime, timedelta
 
+from calib.strategy import (
+    Objective as CalObjective,
+    Algorithm as CalOptimizationAlgo,
+)
+
 
 DIR_FORCING_RAW_INPUT = "/ngen-app/data/raw_input"
 
@@ -31,36 +36,40 @@ FORMULATION_NAME = f"test_{DEFAULT_FORCING_PROVIDER}"
 
 
 ### .config section [Calibration]
-CALIB_OBJECTIVE_FUNCTION = "kge"
-CALIB_OPTIMIZATION_ALGO = "dds"
+CALIB_OBJECTIVE_FUNCTION = CalObjective.kge
+CALIB_OPTIMIZATION_ALGO = CalOptimizationAlgo.dds
 CALIB_PARAMETERS_DIR = "/ngwpc/run_ngen/data/calib_params_tab_delimited"
 CALIB_ITER_START = 0
 CALIB_ITER_COUNT = 2
 CALIB_SAVE_PLOT_ITER_FREQ = 1
-DT_START_CALIB = datetime(year=2015, month=10, day=1, hour=0, minute=0, second=0)
-DT_END_CALIB = DT_START_CALIB + timedelta(hours=47)
+# Only needed for optimization algo PSO and GWO
+CALIB_SWARM_SIZE=3
+# Only needed for optimization algo PSO 
+CALIB_PSO_C1=2
+CALIB_PSO_C2=2
+CALIB_PSO_W=0.7
 
 
 ##### Calibration
-## Overall calib sim
+# Calib sim
 CALIB_SIM_START = datetime(year=2015, month=10, day=1, hour=0, minute=0, second=0)
 CALIB_SIM_DURATION = timedelta(hours=47)
 CALIB_SIM_END = CALIB_SIM_START + CALIB_SIM_DURATION
-
-CALIB_EVAL_OFFSET = timedelta(hours=6)
-CALIB_EVAL_DURATION = timedelta(hours=36)
-CALIB_EVAL_START = CALIB_SIM_START + CALIB_EVAL_OFFSET
-CALIB_EVAL_END = CALIB_EVAL_START + CALIB_EVAL_DURATION
+# Calib eval
+CALIB_EVAL_START = CALIB_SIM_START + timedelta(hours=6)  # Delayed start from calibration simulation, for warmup
+CALIB_EVAL_END = CALIB_SIM_END
 
 ##### Validation
-VALID_SIM_START = datetime(year=2021, month=10, day=1, hour=0, minute=0, second=0)
-VALID_SIM_DURATION = timedelta(hours=47)
-VALID_SIM_END = VALID_SIM_START + VALID_SIM_DURATION
+# Validation sim
+VALID_SIM_START = CALIB_SIM_START - timedelta(hours=6)
+VALID_SIM_END = CALIB_SIM_END
+# Validation eval
+VALID_EVAL_START = CALIB_SIM_START
+VALID_EVAL_END = CALIB_SIM_END - timedelta(hours=6)
 
-VALID_EVAL_OFFSET = timedelta(hours=6)
-VALID_EVAL_DURATION = timedelta(hours=36)
-VALID_EVAL_START = VALID_SIM_START + VALID_EVAL_OFFSET
-VALID_EVAL_END = VALID_EVAL_START + VALID_EVAL_DURATION
+##### Full evaluation
+FULL_EVAL_START = CALIB_SIM_START
+FULL_EVAL_END = CALIB_SIM_END
 
 
 ### .config section [DataFile]
