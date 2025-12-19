@@ -76,7 +76,8 @@ COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
 
 ##### Package: Calibration Manager
 ### Only used when sourcing calibration manager from GitHub
-COMPONENT__CAL_MGR__REMOTE_REPO_TAG="development"
+# COMPONENT__CAL_MGR__REMOTE_REPO_TAG="development"
+COMPONENT__CAL_MGR__REMOTE_REPO_TAG="feature/unified-setup"
 
 ##### Package: Region Manager
 ### Only used when sourcing region manager from GitHub

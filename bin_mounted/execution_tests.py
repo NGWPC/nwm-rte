@@ -69,12 +69,12 @@ class TestPaths:
 
     @property
     def calib_config_file(self) -> str:
-        return f"{self.dir_base}/cold_start_workflow/input_calibration_{c.DEFAULT_FORCING_PROVIDER}.config"
-        # return f"{self.dir_base}/cold_start_workflow/input_calibration_{c.DEFAULT_FORCING_PROVIDER}_short.config"
+        return f"{self.dir_base}/configs/input_calibration_{c.DEFAULT_FORCING_PROVIDER}.config"
+        # return f"{self.dir_base}/configs/input_calibration_{c.DEFAULT_FORCING_PROVIDER}_short.config"
 
     @property
     def fcst_config_file(self) -> str:
-        return f"{self.dir_base}/cold_start_workflow/input_forecast.config"
+        return f"{self.dir_base}/configs/input_forecast.config"
 
     @property
     def valid_yaml(self) -> str:
@@ -275,12 +275,12 @@ class ForecastTest(BaseModel):
     ngen_log: LogParser = Field(init=False, default=None)
     # Log containing stdout+stderr stream of the subprocess call to ngen (ngen's terminal output).
     #   e.g. for forecast (from ForecastExecutionManager): ".../Output/Forecast_Run/fcst_run1/ngen_stdout_stderr.log"
-    #   e.g. for calibration (from calibration.py): ".../Output/Calibration_Run/ngen_0pif3ish_worker/ngen_stdout_stderr.log"
+    #   e.g. for calibration (from calibration executable): ".../Output/Calibration_Run/ngen_0pif3ish_worker/ngen_stdout_stderr.log"
     #   TODO need to implement for calibration. Read calib_log content to determine this path, since it shows the (randomized) name of the worker.
     exe_log: LogParser = Field(init=False, default=None)
-    # Log created by calibration.py (can specify as CLI arg during call to calibration.py)
+    # Log created by calibration executable (can specify as CLI arg during call to calibration executable)
     calib_log: LogParser = Field(init=False, default=None)
-    # Stderr lines of the subprocess call to calibration.py.
+    # Stderr lines of the subprocess call to calibration executable.
     calib_proc_stderr: list[str] = Field(init=False, default=[])
 
     def make_realization_builder__build_realization(self, build_method: str) -> None:
@@ -321,8 +321,7 @@ class ForecastTest(BaseModel):
 
         print(f"Running calibration, will log to: {repr(self.calib_log.path)}")
         cmd = [
-            "python",
-            "/ngen-app/bin/calibration.py",
+            "calibration",
             str(self.rb.calib_config_file),
             "--log_path_overwrite",
             self.calib_log.path,
