@@ -6,14 +6,24 @@
             "extensions": [
                 "ms-python.python",
                 "ms-python.debugpy",
+                "ms-python.mpi4py",
+                "ms-vscode.cpptools",
                 "ms-azuretools.vscode-docker"
-            ]
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/ngen-app/ngen-python/bin/python"
+            }
         }
     },
     "mounts": [
+        // Mount various directories needed for input data, model outputs, and scripts.
         "source=${localWorkspaceFolder}/../run_ngen,target=/ngwpc/run_ngen,type=bind",
         "source=${localWorkspaceFolder}/../s3,target=/s3,type=bind",
-        "source=${localWorkspaceFolder}/bin_mounted,target=/ngen-app/bin/bin_mounted,type=bind"
+        "source=${localWorkspaceFolder}/bin_mounted,target=/ngen-app/bin/bin_mounted,type=bind",
+        // Mount ngen-forcing source code so that it can be (re)installed in editable mode.
+        "source=${localWorkspaceFolder}/../ngen-forcing,target=/ngen-app/src/ngen-forcing,type=bind",
     ],
-    "remoteUser": "root"
+    "remoteUser": "root",
+    // (Re)install ngen-forcing in editable mode.
+    "postStartCommand": "python -m pip install -e /ngen-app/src/ngen-forcing"
 }

@@ -1,23 +1,110 @@
+// Compound configuration for mpirun -n 2 was adapted from: https://gist.github.com/xangma/b2bc310e595f7abf61ff1e19f3fd63f5
+// It starts individual debugpy instances to attach to each MPI rank after the C++ debugger (cppdbg) has started them with mpirun.
+// 
+// The python code must include this after MpiConfig communicator has initialized.
+//   debugpy.listen(('localhost', 5678 + self.rank))
+//   debugpy.wait_for_client()
+// 
+// Breakpoints in the python code can be set in the VS Code margins, and/or coded like: `debugpy.breakpoint()`
+// 
 {
     "version": "0.2.0",
+    "compounds": [
+        {
+            "name": "run_bmi_model_mpi_n2",
+            "configurations": [
+                "_run_bmi_model_mpi_n2",
+                "_python_attach_rank_0",
+                "_python_attach_rank_1",
+            ],
+            "stopAll": true
+        },
+    ],
     "configurations": [
         {
-            "name": "run_bmi_model",
+            "name": "run_bmi_model_nompi",
             "type": "debugpy",
             "request": "launch",
             "module": "NextGen_Forcings_Engine_BMI.run_bmi_model",
             "args": [
-                "2015-10-01 01:00:00",
-                "2015-10-01 03:00:00",
+                "2013-07-25 00:00:00",
+                "2013-07-25 23:00:00",
                 "-config_path",
                 "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/forcing_config/aorc_config.yml",
                 "-b_date",
-                "201510010000",
+                "201307250000",
                 "-output_path",
-                "/ngen-app/bin/bin_mounted/bmi_model_forcing_output.nc",
+                "/ngen-app/bin/bin_mounted/bmi_model_forcing_output_nompi.nc",
             ],
             "justMyCode": false,
-            "console": "integratedTerminal"
-        }
+            "console": "integratedTerminal",
+            "python": "${command:python.interpreterPath}"
+        },
+        // BEGIN compound _run_bmi_model_mpi_n2 
+        {
+            "name": "_run_bmi_model_mpi_n2",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/lib64/openmpi/bin/mpirun",
+            "cwd": "${workspaceFolder}",
+            // "environment": [
+            //     {
+            //         "name": "OMP_NUM_THREADS",
+            //         "value": "2"
+            //     },
+            // ],
+            "linux": {
+                "MIMode": "gdb",
+                "setupCommands": [
+                    {
+                        "description": "Enable pretty-printing for gdb",
+                        "text": "-enable-pretty-printing",
+                        "ignoreFailures": true
+                    }
+                ]
+            },
+            "args": [
+                "-n",
+                "2",
+                // "--bind-to",
+                // "none",
+                "python",
+                "-um",
+                "mpi4py",
+                "-m",
+                "NextGen_Forcings_Engine_BMI.run_bmi_model",
+                "2013-07-25 00:00:00",
+                "2013-07-25 23:00:00",
+                "-config_path",
+                "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/forcing_config/aorc_config.yml",
+                "-b_date",
+                "201307250000",
+                "-output_path",
+                "/ngen-app/bin/bin_mounted/bmi_model_forcing_output_mpi_n2.nc",
+            ],
+        },
+        {
+            "name": "_python_attach_rank_0",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5678
+            },
+            "preLaunchTask": "sleep",
+            "justMyCode": false
+        },
+        {
+            "name": "_python_attach_rank_1",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5679
+            },
+            "preLaunchTask": "sleep",
+            "justMyCode": false
+        },
+        // END compound _run_bmi_model_mpi_n2
     ]
 }
