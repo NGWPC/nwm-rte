@@ -21,9 +21,9 @@
         "source=${localWorkspaceFolder}/../s3,target=/s3,type=bind",
         "source=${localWorkspaceFolder}/bin_mounted,target=/ngen-app/bin/bin_mounted,type=bind",
         // Mount ngen-forcing source code so that it can be (re)installed in editable mode.
-        "source=${localWorkspaceFolder}/../ngen-forcing,target=/ngen-app/src/ngen-forcing,type=bind",
+        "source=${localWorkspaceFolder}/../ngen-forcing,target=/workspaces/nwm-rte/src/ngen-forcing,type=bind",
     ],
     "remoteUser": "root",
     // (Re)install ngen-forcing in editable mode.
-    "postStartCommand": "python -m pip install -e /ngen-app/src/ngen-forcing"
+    "postStartCommand": "python -m pip install -e ./src/ngen-forcing"
 }
