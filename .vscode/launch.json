@@ -19,6 +19,23 @@
             ],
             "stopAll": true
         },
+        // {
+        //     "name": "run_ngen_mpi_n2",
+        //     "configurations": [
+        //         "_run_ngen_mpi_n2",
+        //         "_python_attach_rank_0",
+        //         "_python_attach_rank_1",
+        //     ],
+        //     "stopAll": true
+        // },
+        // {
+        //     "name": "run_ngen_nompi",
+        //     "configurations": [
+        //         "_run_ngen_nompi",
+        //         "_python_attach_rank_0",
+        //     ],
+        //     "stopAll": true
+        // },
     ],
     "configurations": [
         {
@@ -40,7 +57,36 @@
             "console": "integratedTerminal",
             "python": "${command:python.interpreterPath}"
         },
-        // BEGIN compound _run_bmi_model_mpi_n2 
+        ////////////////////
+        // BEGIN _run_ngen_nompi 
+        // {
+        //     "name": "_run_ngen_nompi",
+        //     "type": "cppdbg",
+        //     "request": "launch",
+        //     "program": "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/ngen",
+        //     "cwd": "/ngwpc/run_ngen/kge_dds/test_bmi/01123000",
+        //     "linux": {
+        //         "MIMode": "gdb",
+        //         "setupCommands": [
+        //             {
+        //                 "description": "Enable pretty-printing for gdb",
+        //                 "text": "-enable-pretty-printing",
+        //                 "ignoreFailures": true
+        //             }
+        //         ]
+        //     },
+        //     "args": [
+        //         "/s3/ngwpc-hydrofabric/2.2/CONUS/01123000/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_01123000.gpkg",
+        //         "all",
+        //         "/s3/ngwpc-hydrofabric/2.2/CONUS/01123000/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_01123000.gpkg",
+        //         "all",
+        //         "01123000_realization_config_bmi_calib.json",
+        //         "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/01123000_partition_config.json",
+        //     ],
+        // },
+        // END _run_ngen_nompi 
+        ////////////////////
+        // BEGIN _run_bmi_model_mpi_n2 
         {
             "name": "_run_bmi_model_mpi_n2",
             "type": "cppdbg",
@@ -83,6 +129,48 @@
                 "/ngen-app/bin/bin_mounted/bmi_model_forcing_output_mpi_n2.nc",
             ],
         },
+        // END _run_bmi_model_mpi_n2
+        ////////////////////
+        // BEGIN _run_ngen_mpi_n2 
+        // {
+        //     "name": "_run_ngen_mpi_n2",
+        //     "type": "cppdbg",
+        //     "request": "launch",
+        //     "program": "/usr/lib64/openmpi/bin/mpirun",
+        //     "cwd": "/ngwpc/run_ngen/kge_dds/test_bmi/01123000",
+        //     // "environment": [
+        //     //     {
+        //     //         "name": "OMP_NUM_THREADS",
+        //     //         "value": "2"
+        //     //     },
+        //     // ],
+        //     "linux": {
+        //         "MIMode": "gdb",
+        //         "setupCommands": [
+        //             {
+        //                 "description": "Enable pretty-printing for gdb",
+        //                 "text": "-enable-pretty-printing",
+        //                 "ignoreFailures": true
+        //             }
+        //         ]
+        //     },
+        //     "args": [
+        //         "-n",
+        //         "2",
+        //         // "--bind-to",
+        //         // "none",
+        //         "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/ngen",
+        //         "/s3/ngwpc-hydrofabric/2.2/CONUS/01123000/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_01123000.gpkg",
+        //         "all",
+        //         "/s3/ngwpc-hydrofabric/2.2/CONUS/01123000/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_01123000.gpkg",
+        //         "all",
+        //         "01123000_realization_config_bmi_calib.json",
+        //         "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/01123000_partition_config.json",
+        //     ],
+        // },
+        // END _run_ngen_mpi_n2 
+        ////////////////////
+        // BEGIN python attachers
         {
             "name": "_python_attach_rank_0",
             "type": "debugpy",
@@ -105,6 +193,6 @@
             "preLaunchTask": "sleep",
             "justMyCode": false
         },
-        // END compound _run_bmi_model_mpi_n2
+        // END python attachers
     ]
 }
