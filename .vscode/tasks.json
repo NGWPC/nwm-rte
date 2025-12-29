@@ -7,7 +7,7 @@
         {
             "label": "sleep",
             "type": "shell",
-            "command": "sleep 4",
+            "command": "sleep 6",
             "group": "none",
             "presentation": {
                 "reveal": "silent",
