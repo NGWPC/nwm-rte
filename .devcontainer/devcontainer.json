@@ -18,6 +18,7 @@
     "mounts": [
         // Mount various directories needed for input data, model outputs, and scripts.
         "source=${localWorkspaceFolder}/../run_ngen,target=/ngwpc/run_ngen,type=bind",
+        "source=${localWorkspaceFolder}/../run_ngen/data,target=/ngen-app/data,type=bind",
         "source=${localWorkspaceFolder}/../s3,target=/s3,type=bind",
         "source=${localWorkspaceFolder}/bin_mounted,target=/ngen-app/bin/bin_mounted,type=bind",
         // Mount ngen-forcing source code so that it can be (re)installed in editable mode.
