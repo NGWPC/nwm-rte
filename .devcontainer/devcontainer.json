@@ -1,6 +1,9 @@
 {
     "name": "ngen_rte_bmi_forcing",
     "image": "ngen_rte:ghcr",
+    "containerEnv": {
+        "FORCING_LOGLEVEL": "DEBUG"
+    },
     "customizations": {
         "vscode": {
             "extensions": [
