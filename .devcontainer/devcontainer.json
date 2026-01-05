@@ -24,6 +24,8 @@
         "source=${localWorkspaceFolder}/../run_ngen/data,target=/ngen-app/data,type=bind",
         "source=${localWorkspaceFolder}/../s3,target=/s3,type=bind",
         "source=${localWorkspaceFolder}/bin_mounted,target=/ngen-app/bin/bin_mounted,type=bind",
+        // Mount container's tmp folder for forcing cache files like "/tmp/aorc_ce4b1034_2013.nc"
+        "source=${localWorkspaceFolder}/.devcontainer/tmp,target=/tmp,type=bind",
         // Mount ngen-forcing source code so that it can be (re)installed in editable mode.
         "source=${localWorkspaceFolder}/../ngen-forcing,target=/workspaces/nwm-rte/src/ngen-forcing,type=bind",
     ],
