@@ -210,3 +210,4 @@ __marimo__/
 /docker_logs/
 /tmp/
 /bin_mounted/*_tests_results*.json
+/.devcontainer/tmp/
