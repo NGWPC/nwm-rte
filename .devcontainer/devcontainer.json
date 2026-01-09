@@ -31,5 +31,6 @@
     ],
     "remoteUser": "root",
     // (Re)install ngen-forcing in editable mode.
-    "postStartCommand": "python -m pip install -e ./src/ngen-forcing"
+    // "postStartCommand": "python -m pip install -e ./src/ngen-forcing"
+    "postStartCommand": "python -m pip install -e ./src/ngen-forcing && python -m pip install -e ./src/ngen-forcing/nextgen_forcings_ewts"
 }
