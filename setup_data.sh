@@ -17,7 +17,7 @@ fi
 
 # TODO if updating these, also need to update run_tests.py
 TEST_GAGE="01123000"
-WORKFLOW_INPUT_CONFIG_ROOT__COLDSTART="${RUN_NGEN_ROOT__HOST}/configs"
+WORKFLOW_INPUT_CONFIG_ROOT="${RUN_NGEN_ROOT__HOST}/configs"
 
 DATA__HYDROFABRIC__S3_SOURCE="s3://ngwpc-hydrofabric"
 DATA__HYDROFABRIC__HOST="${S3_ROOT__HOST}/ngwpc-hydrofabric"
@@ -51,14 +51,14 @@ aws s3 sync "${DATA__PARAMETERS__S3_SOURCE}/" "${DATA__PARAMETERS__HOST}/"
 aws s3 cp "${DATA__GEO_EM_CONUS_NC__S3_SOURCE}" "${DATA__GEO_EM_CONUS_NC__HOST}"
 
 ### Download .config files
-mkdir -p "${WORKFLOW_INPUT_CONFIG_ROOT__COLDSTART}"
+mkdir -p "${WORKFLOW_INPUT_CONFIG_ROOT}"
 
 ## Calibration config file
-# curl -O --output-dir "${WORKFLOW_INPUT_CONFIG_ROOT__COLDSTART}/" "https://raw.githubusercontent.com/NGWPC/nwm-msw-mgr/development/src/mswm/example_inputs/calibration/input_calibration.config"
-aws s3 cp "${TEST_RUN_CONFIG__CALIBRATION__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROOT__COLDSTART}/"
+# curl -O --output-dir "${WORKFLOW_INPUT_CONFIG_ROOT}/" "https://raw.githubusercontent.com/NGWPC/nwm-msw-mgr/development/src/mswm/example_inputs/calibration/input_calibration.config"
+aws s3 cp "${TEST_RUN_CONFIG__CALIBRATION__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROOT}/"
 
 ## Forecast config file
-# curl -O --output-dir "${WORKFLOW_INPUT_CONFIG_ROOT__COLDSTART}/" "https://raw.githubusercontent.com/NGWPC/nwm-msw-mgr/development/src/mswm/example_inputs/forecast/input_forecast.config"
-aws s3 cp "${TEST_RUN_CONFIG__FORECAST__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROOT__COLDSTART}/"
+# curl -O --output-dir "${WORKFLOW_INPUT_CONFIG_ROOT}/" "https://raw.githubusercontent.com/NGWPC/nwm-msw-mgr/development/src/mswm/example_inputs/forecast/input_forecast.config"
+aws s3 cp "${TEST_RUN_CONFIG__FORECAST__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROOT}/"
 
 exit 0
