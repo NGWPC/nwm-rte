@@ -2,18 +2,13 @@
 # 
 # ngen_rte_build.sh
 # 
-# This script builds the ngen base image (or sources it from existing ghcr image),
-# then adds components such as mswm, fcst mgr, cal mgr, etc. to that image,
-# 
-# See config.bashrc for configuration. Components can be installed from GitHub or from local source code.
-# 
+# This script builds the ngen base image (or sources it from existing ghcr image), then adds components packages
+# See config.bashrc for configuration. Components can be installed from GitHub, or from local source code, or skipped.
 # Requirements:
-#   Note: ./setup_clone_repos.sh can be used to clone the following repos.
-#   
-#   If the Dockerfile is set up to install packages such as nwm-fcst-mgr, nwm-cal-mgr, nwm-msw-mgr, and others
-#   from local sources instead of from GitHub, then this script assumes this is ran from a sibling directory
+#   If configured to install ngwpc packages from local sources instead of from GitHub,
+#   then this script assumes this is ran from a sibling directory
 #   of those repositories (already cloned, checked out, pulled).
-#
+#   ./setup_clone_repos.sh can be used to clone the relevant ngwpc repos.
 
 set -euo pipefail
 set -x
@@ -70,14 +65,6 @@ fi
 info "Building image: ${TARGET_IMAGE_NAME}"
 sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target ${STAGE} \
     --build-arg NGEN_BASE_IMAGE=${NGEN_BASE_IMAGE} \
-    --build-arg REPO_TAG__FCST_MGR="${COMPONENT__FCST_MGR__REMOTE_REPO_TAG}" \
-    --build-arg REPO_TAG__MSW_MGR="${COMPONENT__MSW_MGR__REMOTE_REPO_TAG}" \
-    --build-arg REPO_TAG__CAL_MGR="${COMPONENT__CAL_MGR__REMOTE_REPO_TAG}" \
-    --build-arg REPO_TAG__REGION_MGR="${COMPONENT__REGION_MGR__REMOTE_REPO_TAG}" \
-    --build-arg REPO_TAG__VERF_MGR="${COMPONENT__VERF__REMOTE_REPO_TAG}" \
-    --build-arg REPO_TAG__EVAL_MGR="${COMPONENT__EVAL__REMOTE_REPO_TAG}" \
-    --build-arg REPO_TAG__DATA_ASSIM_ENGINE="${COMPONENT__DATA_ASSIM_ENGINE__REMOTE_REPO_TAG}" \
-    --build-arg REPO_TAG__NGEN_FORCING="${COMPONENT__NGEN_FORCING__REMOTE_REPO_TAG}" \
     ".." \
     |& tee "docker_logs/build/${TARGET_IMAGE_NAME}-${TIMESTAMP}.log"
 

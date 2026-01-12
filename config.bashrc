@@ -2,17 +2,50 @@
 
 set -euo pipefail
 
-### NO_CACHE: Passed to `docker build` call. Choose from: ["--no-cache", ""]. Has mild effect on RTE build speed when using pre-built base ngen image.
-# NO_CACHE="--no-cache"
-NO_CACHE=""
+### Passed to `docker build` call. Choose from: ["--no-cache", ""]
+NO_CACHE="--no-cache"
+# NO_CACHE=""
 
 ### STAGE: See Dockerfile.rte for acceptable values
 # STAGE="ngen_rte_base"
 STAGE="ngen_rte_eval_verf"
 
+### Sources of component packages.
+###     If empty string, package will be skipped (not installed at all).
+###     If "LOCAL", will install from current state of local code.
+###     If any other string, will install from GitHub, and the string must be a valid tag, branch, or commit.
+COMPONENT__FCST_MGR__REMOTE_REPO_TAG="development"
+COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
+COMPONENT__CAL_MGR__REMOTE_REPO_TAG="feature/unified-setup"
+COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
+COMPONENT__DATA_ASSIM_ENGINE__REMOTE_REPO_TAG="development"
+COMPONENT__NGEN_FORCING__REMOTE_REPO_TAG=""  # For reinstall of ngen-forcing Python package
+COMPONENT__EVAL__REMOTE_REPO_TAG="development"
+COMPONENT__VERF__REMOTE_REPO_TAG="development"
+
+### NGEN_SOURCE_MODE:
+###     Choose from: ["ghcr", "existing_local_tag", "build_from_local", "build_from_remote"]
+###         default to "ghcr", as this is used in the GHA Workflow
+
+NGEN_SOURCE_MODE="ghcr"
+## Only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.
+NGEN_BASE__REMOTE_GHCR_TAG="latest"
+
+# NGEN_SOURCE_MODE="existing_local_tag"
+## Only used when ngen image source mode is "existing_local_tag". Choose any existing local image tag.
+# NGEN_BASE__EXISTING_LOCAL_TAG="ngen:localdebug"
+
+# NGEN_SOURCE_MODE="build_from_remote"
+## Only used when ngen source mode is "build_from_remote". Choose any GitHub tag (or branch name).
+# NGEN_BASE__REMOTE_REPO_TAG="development"
+
+# NGEN_SOURCE_MODE="build_from_local"
+
+### Freeform name tag for image that is built in this process
+TARGET_IMAGE_NAME="ngen_rte:${NGEN_SOURCE_MODE}_local_packages"
+
 # If you use this for REPOS_COMMON_ROOT__HOST, then the other repos are assumed to be siblings of this repo
 THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
-
 
 ### REPOS_COMMON_ROOT__HOST:
 ###
@@ -33,74 +66,8 @@ REPOS_COMMON_ROOT__HOST=${THIS_SCRIPTS_GRANDPARENT_DIR}
 # REPOS_COMMON_ROOT__HOST="${HOME}/ngwpc"
 # REPOS_COMMON_ROOT__HOST="${HOME}/ngwpc__rte"
 
-
 RUN_NGEN_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/run_ngen"
 S3_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/s3"
-
-
-### NGEN_SOURCE_MODE:
-###     Choose from: ["ghcr", "existing_local_tag", "build_from_local", "build_from_remote"]
-###         default to "ghcr", as this is used in the GHA Workflow
-
-NGEN_SOURCE_MODE="ghcr"
-## Only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.
-NGEN_BASE__REMOTE_GHCR_TAG="latest"
-
-# NGEN_SOURCE_MODE="existing_local_tag"
-## Only used when ngen image source mode is "existing_local_tag". Choose any existing local image tag.
-# NGEN_BASE__EXISTING_LOCAL_TAG="ngen:build_from_remote"
-
-# NGEN_SOURCE_MODE="build_from_remote"
-## Only used when ngen source mode is "build_from_remote". Choose any GitHub tag (or branch name).
-# NGEN_BASE__REMOTE_REPO_TAG="development"
-
-# NGEN_SOURCE_MODE="build_from_local"
-
-
-### Freeform name tag for image that is built in this process
-# TARGET_IMAGE_NAME="ngen_rte:`date '+%Y%m%d%H%M%S'`-${NGEN_SOURCE_MODE}"
-TARGET_IMAGE_NAME="ngen_rte:${NGEN_SOURCE_MODE}"
-
-
-##### Package: Forecast Manager
-### TODO implement this type of switch (currently need to edit Dockerfile.rte to switch). When implemented, will choose from ["remote", "local"]
-# COMPONENT__FCST_MGR__SOURCE_MODE="remote"
-# COMPONENT__FCST_MGR__SOURCE_MODE="local"
-### Only used when sourcing fcst mgr from GitHub
-# COMPONENT__FCST_MGR__REMOTE_REPO_TAG="development"
-COMPONENT__FCST_MGR__REMOTE_REPO_TAG="development"
-
-##### Package: Model Setup Workflow Manager
-### Only used when sourcing mswm from GitHub
-COMPONENT__MSW_MGR__REMOTE_REPO_TAG="development"
-
-##### Package: Calibration Manager
-### Only used when sourcing calibration manager from GitHub
-# COMPONENT__CAL_MGR__REMOTE_REPO_TAG="development"
-COMPONENT__CAL_MGR__REMOTE_REPO_TAG="feature/unified-setup"
-
-##### Package: Region Manager
-### Only used when sourcing region manager from GitHub
-COMPONENT__REGION_MGR__REMOTE_REPO_TAG="development"
-
-##### Package: Verification
-### Only used when sourcing verification manager from GitHub
-COMPONENT__VERF__REMOTE_REPO_TAG="development"
-
-#### Evaluation
-### Only used when sourcing evaluation manager from GitHub
-COMPONENT__EVAL__REMOTE_REPO_TAG="development"
-
-
-#### Data Assimilation Engine
-### Only used when sourcing evaluation manager from GitHub
-COMPONENT__DATA_ASSIM_ENGINE__REMOTE_REPO_TAG="development"
-
-
-#### NGEN Forcing Python Package Override
-### Only used when sourcing NGEN forcing python package override from GitHub
-COMPONENT__NGEN_FORCING__REMOTE_REPO_TAG="development"
-
 
 ### Config template mounts from ngen-forcing repo
 ###   e.g. ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/
@@ -130,5 +97,6 @@ MNT__MODULE_PARAM_FILES_DIR__CONTAINER_2="${REPOS_COMMON_ROOT__HOST}/nwm-msw-mgr
 BASENAME="$(basename "$(readlink -f "$0")")"
 function log_to_stderr() { echo "[$(date -u +'%Y-%m-%dT%H:%M:%S%z')] ${BASENAME}: ${LINENO}: $*" >&2; }
 function info() { log_to_stderr INFO: $*; }
+function warning() { log_to_stderr WARNING: $*; }
 function error() { log_to_stderr ERROR: $*; }
 function fatal() { log_to_stderr FATAL ERROR: $*; exit 1; }
