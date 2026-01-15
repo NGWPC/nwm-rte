@@ -85,9 +85,10 @@ def forecasts__build_and_run(cfg: RTETestConfig, cs: bool) -> None:
             }
             print(f"\n\n##########\n### {msg_prefix}: setting up test with rb_kwargs = {rb_kwargs}")
 
+            run_type = "Cold_Start_Run" if cs else "Forecast_Run"
             t = ForecastTest(
                 rb_kwargs=rb_kwargs,
-                ngen_log=LogParser(path=f"{test_paths.dir_output}/Forecast_Run/{cfg.fcst_run_name}/logs/ngen.log"),
+                ngen_log=LogParser(path=f"{test_paths.dir_output}/{run_type}/{cfg.fcst_run_name}/logs/ngen.log"),
             )
 
             # Build the realization, trapping exceptions into class attrs

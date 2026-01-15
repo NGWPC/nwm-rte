@@ -56,16 +56,17 @@ git checkout development
 time ./setup_clone_repos.sh
 ```
 
-5. Download data
+5. Download data. 
+
+**Note:** Run once, either with or without `-r` flag for regionalization data.
 
 ```shell
-# This downloads data.
 # You need to set up s3 credentials before running.
 time ./setup_data.sh
 ```
 
 ```shell
-# OPTIONAL: `setup_data.sh` can take an optional named argument (`-r`) to download regionalization data
+# OPTIONAL: Pass the -r argument to download regionalization data.
 time ./setup_data.sh -r
 ```
 
