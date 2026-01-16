@@ -12,7 +12,8 @@ function clone_if_not_exists {
     if test -d "${REPOS_COMMON_ROOT__HOST}/${1}"; then
         info "Already exists: ${REPOS_COMMON_ROOT__HOST}/${1}"
     else
-        ( cd "${REPOS_COMMON_ROOT__HOST}" && git clone --recurse-submodules "git@github.com:NGWPC/${1}.git" )
+        ( cd "${REPOS_COMMON_ROOT__HOST}" && git clone --recurse-submodules "git@github.com:NGWPC/${1}.git" ) || \
+        ( cd "${REPOS_COMMON_ROOT__HOST}" && git clone --recurse-submodules "https://github.com/NGWPC/${1}.git" )
     fi
     # ( cd "${REPOS_COMMON_ROOT__HOST}/${1}" && git pull --recurse-submodules && git submodule update --init --recursive )
 }
