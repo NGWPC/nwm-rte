@@ -93,12 +93,10 @@
             "request": "launch",
             "program": "/usr/lib64/openmpi/bin/mpirun",
             "cwd": "${workspaceFolder}",
-            // "environment": [
-            //     {
-            //         "name": "OMP_NUM_THREADS",
-            //         "value": "2"
-            //     },
-            // ],
+            "environment": [
+                // { "name": "OMP_NUM_THREADS", "value": "2" },
+                { "name": "WAIT_FOR_DEBUGPY", "value": "TRUE" },
+            ],
             "linux": {
                 "MIMode": "gdb",
                 "setupCommands": [
