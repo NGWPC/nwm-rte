@@ -200,9 +200,9 @@ if __name__ == "__main__":
         "-ofuncs",
         "--objective_functions",
         nargs="+",
-        type=list[c.CalObjective],
+        type=c.CalObjective,
         default=[c.CALIB_OBJECTIVE_FUNCTION],
-        help=f"For calibration. Default: {[c.CALIB_OBJECTIVE_FUNCTION]}",
+        help=f"List of objective functions for calibration. Default: {[c.CALIB_OBJECTIVE_FUNCTION]}",
     )
     parser.add_argument(
         "-allofuncs",
@@ -214,9 +214,9 @@ if __name__ == "__main__":
         "-optalgos",
         "--optimization_algorithms",
         nargs="+",
-        type=list[c.CalOptimizationAlgo],
+        type=c.CalOptimizationAlgo,
         default=[c.CALIB_OPTIMIZATION_ALGO],
-        help=f"For calibration. Default: {[c.CALIB_OPTIMIZATION_ALGO]}",
+        help=f"List of optimization algorithms for calibration. Default: {[c.CALIB_OPTIMIZATION_ALGO]}",
     )
     parser.add_argument(
         "-alloptalgos",
