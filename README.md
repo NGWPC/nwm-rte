@@ -34,10 +34,13 @@ Meaning, it will not alter the state of the repos that you already have cloned, 
 mkdir -p ~/ngwpc && cd ~/ngwpc
 ```
 
-1. Clone this repo and enter it:
+1. Clone this repo and enter it, using either SSH or HTTPS:
 
 ```shell
+### Via SSH (use your GitHub auth, for read-write access)
 git clone git@github.com:NGWPC/nwm-rte.git && cd nwm-rte
+### Or via HTTPS (no auth required, for read-only access)
+git clone https://github.com/NGWPC/nwm-rte.git && cd nwm-rte
 ```
 
 2. Check out a branch
@@ -52,8 +55,13 @@ git checkout development
 
 ```shell
 # This clones repos. It will not alter the state of existing repos on your disk (for each clone, it skips if the folder already exists on disk).
-# Be ready to provide git credentials several times if prompted.
-time ./setup_clone_repos.sh
+# This script has one positional argument, for specifying whether you wish to clone via SSH or via HTTPS.
+
+### Via SSH (use your GitHub auth, for read-write access)
+### Be ready to provide git credentials several times if prompted.
+time ./setup_clone_repos.sh ssh
+### Or via HTTPS (no auth required, for read-only access)
+time ./setup_clone_repos.sh https
 ```
 
 5. Download data
