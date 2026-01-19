@@ -1,11 +1,10 @@
+import consts as c
 from execution_tests import (
     TestPaths,
     TestsManager,
 )
 from pseudocode import SavedState_Pseudo, StateManager_Pseudo
 from pydantic import BaseModel, ConfigDict, Field
-
-import consts as c
 
 
 class RTETestConfig(BaseModel):
@@ -29,25 +28,38 @@ class RTETestConfig(BaseModel):
     fcst_run_name: str
     nprocs: int = Field(ge=1)
     gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
+    domain: str
     noop: bool
 
     # Set after init
     gage_id: str = Field(init=False, default=None)
     gage_vintage: str = Field(init=False, default=None)
     tests_manager: TestsManager = Field(init=False, default=None)
-    state_manager: StateManager_Pseudo = Field(init=False, default=None)  # TODO pseudocode for now for states.
+    state_manager: StateManager_Pseudo = Field(
+        init=False, default=None
+    )  # TODO pseudocode for now for states.
 
     def model_post_init(self, __context) -> None:
         errors = []
 
         gage_id, gage_vintage = self.gage_id__gage_vintage
         if gage_id != gage_id.strip():
-            errors.append(ValueError(f"Whitespace found on end of gage_id: {repr(gage_id)}"))
+            errors.append(
+                ValueError(f"Whitespace found on end of gage_id: {repr(gage_id)}")
+            )
         if gage_vintage != gage_vintage.strip():
-            errors.append(ValueError(f"Whitespace found on end of gage_vintage: {repr(gage_vintage)}"))
+            errors.append(
+                ValueError(
+                    f"Whitespace found on end of gage_vintage: {repr(gage_vintage)}"
+                )
+            )
 
         if self.fcst_run_name != self.fcst_run_name.strip():
-            errors.append(ValueError(f"Whitespace found on end of fcst_run_name: {repr(self.fcst_run_name)}"))
+            errors.append(
+                ValueError(
+                    f"Whitespace found on end of fcst_run_name: {repr(self.fcst_run_name)}"
+                )
+            )
 
         if self.do_all_objective_functions:
             self.objective_functions = list(c.CalObjective)
@@ -70,7 +82,9 @@ class RTETestConfig(BaseModel):
         self.tests_manager = TestsManager()
         self.state_manager = StateManager_Pseudo()
 
-    def get_calib_permutations(self) -> list[tuple[c.CalObjective, c.CalOptimizationAlgo, TestPaths]]:
+    def get_calib_permutations(
+        self,
+    ) -> list[tuple[c.CalObjective, c.CalOptimizationAlgo, TestPaths]]:
         """Returns the permutations of objective function and optimization algorithm specified in the config, as well as a TestPaths instance for each.
         If only_first, then only the first permutation will be returned. Else all permutations will be returned."""
         ret = []
@@ -82,5 +96,13 @@ class RTETestConfig(BaseModel):
                 if optim_algo == c.CalOptimizationAlgo.none:
                     # TODO enable optimization algo "none" for supported circumstances
                     continue
-                ret.append((obj_func, optim_algo, TestPaths(self.gage_id, self.gage_vintage, obj_func, optim_algo)))
+                ret.append(
+                    (
+                        obj_func,
+                        optim_algo,
+                        TestPaths(
+                            self.gage_id, self.gage_vintage, obj_func, optim_algo
+                        ),
+                    )
+                )
         return ret

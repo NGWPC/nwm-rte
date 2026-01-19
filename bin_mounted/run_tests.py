@@ -1,28 +1,26 @@
 import argparse
-from datetime import datetime
 import functools
 import json
 import sys
+from datetime import datetime
 
-from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
-
+import consts as c
 import utils_testing_setup
+from configs import RTETestConfig
 from execution_tests import (
-    TestPaths,
-    TestStat,
-    LogParser,
     ForecastTest,
+    LogParser,
+    TestPaths,
     TestsManager,
-    get_test_configs__forecast,
+    TestStat,
     get_test_configs__calibration,
+    get_test_configs__forecast,
     make_parallel_config,
 )
+from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 from pseudocode import SavedState_Pseudo, StateManager_Pseudo
 from pydantic import validate_call
 from pydantic.json import pydantic_encoder
-
-import consts as c
-from configs import RTETestConfig
 
 print = functools.partial(print, flush=True)
 
@@ -47,7 +45,9 @@ def calibrations__build_and_run(cfg: RTETestConfig) -> None:
 
             # Build the realization, trapping exceptions into class attrs
             print(f"### {msg_prefix}: building realization")
-            t.make_realization_builder__build_realization(build_method="build_calib_realization")
+            t.make_realization_builder__build_realization(
+                build_method="build_calib_realization"
+            )
 
             if t.rb_stat == TestStat.PASS:
                 # Execute the realization via ngen, trapping exceptions and logs into class attrs
@@ -64,18 +64,21 @@ def forecasts__build_and_run(cfg: RTETestConfig, cs: bool) -> None:
     `cs` controls whether coldstart is used (not `cfg.do_coldstart`).
     """
     for obj_func, optim_algo, test_paths in cfg.get_calib_permutations():
-        test_configs = get_test_configs__forecast(cfg.do_all_forcing_configs, use_cold_start=cs)
+        test_configs = get_test_configs__forecast(
+            cfg.do_all_forcing_configs, use_cold_start=cs
+        )
         for tc in test_configs:
-            if cfg.quit_forecast_after_forcing_running and tc.Forcing.forcing_configuration != "short_range":
+            if (
+                cfg.quit_forecast_after_forcing_running
+                and tc.Forcing.forcing_configuration != "short_range"
+            ):
                 raise NotImplementedError(
                     f"quit_forecast_after_forcing_running not yet tested for forcing_configuration = {repr(tc.Forcing.forcing_configuration)}"
                 )
 
         for config_overrides in test_configs:
             fc = config_overrides.Forcing.forcing_configuration
-            msg_prefix = (
-                f"Forecast {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
-            )
+            msg_prefix = f"Forecast {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
             rb_kwargs = {
                 # "input_path": test_paths.dir_input,
                 "valid_yaml": test_paths.valid_yaml,
@@ -83,16 +86,22 @@ def forecasts__build_and_run(cfg: RTETestConfig, cs: bool) -> None:
                 "config_overrides": config_overrides,
                 "use_cold_start": cs,
             }
-            print(f"\n\n##########\n### {msg_prefix}: setting up test with rb_kwargs = {rb_kwargs}")
+            print(
+                f"\n\n##########\n### {msg_prefix}: setting up test with rb_kwargs = {rb_kwargs}"
+            )
 
             t = ForecastTest(
                 rb_kwargs=rb_kwargs,
-                ngen_log=LogParser(path=f"{test_paths.dir_output}/Forecast_Run/{cfg.fcst_run_name}/logs/ngen.log"),
+                ngen_log=LogParser(
+                    path=f"{test_paths.dir_output}/Forecast_Run/{cfg.fcst_run_name}/logs/ngen.log"
+                ),
             )
 
             # Build the realization, trapping exceptions into class attrs
             print(f"### {msg_prefix}: building realization")
-            t.make_realization_builder__build_realization(build_method="build_fcst_realization")
+            t.make_realization_builder__build_realization(
+                build_method="build_fcst_realization"
+            )
 
             if t.rb_stat == TestStat.PASS:
                 # Execute the realization via ngen, trapping exceptions and logs into class attrs
@@ -102,11 +111,15 @@ def forecasts__build_and_run(cfg: RTETestConfig, cs: bool) -> None:
                     quit_forecast_after_duration=cfg.quit_forecast_after_duration,
                 )
 
-                if t.rb.input_configs_class.Forcing.forcing_configuration == "standard_ana":
+                if (
+                    t.rb.input_configs_class.Forcing.forcing_configuration
+                    == "standard_ana"
+                ):
                     cfg.state_manager.add_saved_state(
                         SavedState_Pseudo(
                             dt=datetime.strptime(
-                                t.rb.input_configs_class.Forcing.cycle_datetime, DEFAULT_DATETIME_FORMAT
+                                t.rb.input_configs_class.Forcing.cycle_datetime,
+                                DEFAULT_DATETIME_FORMAT,
                             ),
                             realization_file=t.rb.realization_file,
                         )
@@ -168,7 +181,7 @@ if __name__ == "__main__":
         "-nofcst",
         "--skip_forecast",
         action="store_true",
-        help=f"Skip building and running forecasts. Incompatible with --do_all_forcing_configs and --do_coldstart",
+        help="Skip building and running forecasts. Incompatible with --do_all_forcing_configs and --do_coldstart",
     )
     parser.add_argument(
         "--quit_forecast_after_forcing_running",
@@ -265,6 +278,13 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         "--noop",
         action="store_true",
         help="Run in noop mode - only verify that the script can import libraries and basic setup, then exit without looking for data or running any workflows.",
+    )
+    parser.add_argument(
+        "-d",
+        "--domain",
+        type=str,
+        default=c.DEFAULT_DOMAIN,
+        help="Domain to be processed. Should be the domain of the gage id provided. options include CONUS, Alaska, Hawaii, PR",
     )
     args = parser.parse_args()
     print(f"{__file__}: args: {json.dumps(vars(args), indent=2)}")
