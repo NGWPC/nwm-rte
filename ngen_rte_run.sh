@@ -50,6 +50,7 @@ function docker_run {
         -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
         -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
         \
+        -v "$(pwd)/.env:/ngen-app/.env"\
         --rm ${TARGET_IMAGE_NAME} "$@" --fcst_run_name "${fcst_run_name}"
 }
         # --rm ${TARGET_IMAGE_NAME}
@@ -65,8 +66,8 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --skip_calibration -cycle_datetime "2025-09-15 00:00:00" -cold_start_datetime "2025-09-12 00:00:00"
 
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --noop
-    docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
-    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 1
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
+    docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 2 #-g "15200280" "2025_Mar_14_21_20_29"
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 2
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" "2025_Jan_30_13_08_20" --do_calibration --skip_forecast --nprocs 2
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" "2025_Jan_30_13_08_20"
