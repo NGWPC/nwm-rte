@@ -85,9 +85,10 @@ def forecasts__build_and_run(cfg: RTETestConfig, cs: bool) -> None:
             }
             print(f"\n\n##########\n### {msg_prefix}: setting up test with rb_kwargs = {rb_kwargs}")
 
+            run_type = "Cold_Start_Run" if cs else "Forecast_Run"
             t = ForecastTest(
                 rb_kwargs=rb_kwargs,
-                ngen_log=LogParser(path=f"{test_paths.dir_output}/Forecast_Run/{cfg.fcst_run_name}/logs/ngen.log"),
+                ngen_log=LogParser(path=f"{test_paths.dir_output}/{run_type}/{cfg.fcst_run_name}/logs/ngen.log"),
             )
 
             # Build the realization, trapping exceptions into class attrs
@@ -199,9 +200,9 @@ if __name__ == "__main__":
         "-ofuncs",
         "--objective_functions",
         nargs="+",
-        type=list[c.CalObjective],
+        type=c.CalObjective,
         default=[c.CALIB_OBJECTIVE_FUNCTION],
-        help=f"For calibration. Default: {[c.CALIB_OBJECTIVE_FUNCTION]}",
+        help=f"List of objective functions for calibration. Default: {[c.CALIB_OBJECTIVE_FUNCTION]}",
     )
     parser.add_argument(
         "-allofuncs",
@@ -213,9 +214,9 @@ if __name__ == "__main__":
         "-optalgos",
         "--optimization_algorithms",
         nargs="+",
-        type=list[c.CalOptimizationAlgo],
+        type=c.CalOptimizationAlgo,
         default=[c.CALIB_OPTIMIZATION_ALGO],
-        help=f"For calibration. Default: {[c.CALIB_OPTIMIZATION_ALGO]}",
+        help=f"List of optimization algorithms for calibration. Default: {[c.CALIB_OPTIMIZATION_ALGO]}",
     )
     parser.add_argument(
         "-alloptalgos",

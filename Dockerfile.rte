@@ -78,32 +78,18 @@ RUN mkdir -p `dirname ${MSWM_MODULE_PARAMETER_FILES}`
 #     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__MSW_MGR}" --output_dir "/ngen-app/git-info" && \
 #     rm -rf "/tmp/${REPO_NAME__MSW_MGR}"
 
-## Either way, do the symlink to module_parameter_files. TODO improve this
-RUN mkdir -p "`dirname ${MSWM_MODULE_PARAMETER_FILES}`" && ln -s "/ngen-app/ngen-python/lib/${PYTHON_VERSION_STR}/site-packages/mswm/module_parameter_files" "${MSWM_MODULE_PARAMETER_FILES}"
-
-
 ##############################
-#### Calibration Manager (TODO have executable py scripts come included with python -m pip install)
+#### Calibration Manager
 
 ## From GitHub
-RUN python -m pip install "${GITHUB_ORG_URL}/${REPO_NAME__CAL_MGR}/archive/${REPO_TAG__CAL_MGR}.tar.gz#subdirectory=python/calib"
-RUN python -m pip install "${GITHUB_ORG_URL}/${REPO_NAME__CAL_MGR}/archive/${REPO_TAG__CAL_MGR}.tar.gz#subdirectory=python/config"
-ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/python/calibration.py" "/ngen-app/bin/"
-ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/python/validation.py" "/ngen-app/bin/"
-ADD "${GITHUBUSERCONTENT_ORG_URL}/${REPO_NAME__CAL_MGR}/${REPO_TAG__CAL_MGR}/python/validation_iteration.py" "/ngen-app/bin/"
+RUN python -m pip install "${GITHUB_ORG_URL}/${REPO_NAME__CAL_MGR}/archive/${REPO_TAG__CAL_MGR}.tar.gz"
 RUN python add_git_info.py --remote_repo_name "${REPO_NAME__CAL_MGR}" --remote_branch "${REPO_TAG__CAL_MGR}" --output_dir "/ngen-app/git-info"
 
 ## From local
 # COPY "${REPO_NAME__CAL_MGR}/" "/tmp/${REPO_NAME__CAL_MGR}/"
-# RUN \
-#     python -m pip install "/tmp/${REPO_NAME__CAL_MGR}/python/calib" && \
-#     python -m pip install "/tmp/${REPO_NAME__CAL_MGR}/python/config" && \
+# RUN python -m pip install "/tmp/${REPO_NAME__CAL_MGR}" && \
 #     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__CAL_MGR}" --output_dir "/ngen-app/git-info" && \
 #     rm -rf "/tmp/${REPO_NAME__CAL_MGR}/"
-# ADD "${REPO_NAME__CAL_MGR}/python/calibration.py" "/ngen-app/bin/"
-# ADD "${REPO_NAME__CAL_MGR}/python/validation.py" "/ngen-app/bin/"
-# ADD "${REPO_NAME__CAL_MGR}/python/validation_iteration.py" "/ngen-app/bin/"
-
 
 ##############################
 #### Region Manager

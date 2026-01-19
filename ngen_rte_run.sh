@@ -37,7 +37,7 @@ function docker_run {
         \
         -v "${MNT__RUN_NGEN__HOST}/data/esmf_mesh/:/ngen-app/data/esmf_mesh/" \
         -v "${MNT__RUN_NGEN__HOST}/data/scratch:/ngen-app/data/scratch" \
-        -v "${MNT__RUN_NGEN__HOST}/cold_start_workflow:/ngen-app/data/configs" \
+        -v "${MNT__RUN_NGEN__HOST}/configs:/ngen-app/data/configs" \
         -v "${MNT__RUN_NGEN__HOST}/data/raw_input:/ngen-app/data/raw_input" \
         -v "${MNT__RUN_NGEN__HOST}/data:/ngencerf/data/bmi_forcing_work" \
         -v "${MNT__RUN_NGEN__HOST}/data/ngen-cal-work:/ngencerf/data/ngen-cal-work" \
@@ -69,7 +69,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --skip_calibration -cycle_datetime "2025-09-15 00:00:00" -cold_start_datetime "2025-09-12 00:00:00"
 
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --noop
-    docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 1
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 2
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" "2025_Jan_30_13_08_20" --do_calibration --skip_forecast --nprocs 2
@@ -81,7 +81,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_forcing_running
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_duration 15
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --help
-    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --do_coldstart
+    docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --do_coldstart
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_all_forcing_configs
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_all_forcing_configs --quit_forecast_after_forcing_running
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_all_forcing_configs --quit_forecast_after_duration 15

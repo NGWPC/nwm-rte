@@ -139,8 +139,7 @@ def calibration__build_and_run(forecast_vars) -> None:
         raise FileNotFoundError(rb_calib.calib_config_file)
     print("Running calibration")
     cmd = [
-        "python",
-        "/ngen-app/bin/calibration.py",
+        "calibration",
         str(rb_calib.calib_config_file),
     ]
     print(f"Running command args: {cmd}")
