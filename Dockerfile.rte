@@ -134,10 +134,7 @@ RUN python add_git_info.py --remote_repo_name "${REPO_NAME__DATA_ASSIM_ENGINE}" 
 # RUN python add_git_info.py --remote_repo_name "${REPO_NAME__NGEN_FORCING}" --remote_branch "${REPO_TAG__NGEN_FORCING}" --output_dir "/ngen-app/git-info"
 
 # ## From local
-# COPY "${REPO_NAME__NGEN_FORCING}/" "/tmp/${REPO_NAME__NGEN_FORCING}/"
-# RUN python -m pip install "/tmp/${REPO_NAME__NGEN_FORCING}" && \
-#     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__NGEN_FORCING}" --output_dir "/ngen-app/git-info" && \
-#     rm -rf "/tmp/${REPO_NAME__NGEN_FORCING}/"
+RUN python -m pip install "/tmp/${REPO_NAME__NGEN_FORCING}/nextgen_forcings_ewts/"
 
 
 
