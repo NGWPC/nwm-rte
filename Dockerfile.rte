@@ -47,8 +47,8 @@ ENV PATH="${PYTHON_ENV}:${PATH}"
 RUN python -m pip install --upgrade pip
 # For VS Code debugger
 RUN pip install debugpy
-
-
+RUN dnf install -y gdb
+ 
 ##############################
 ##### Forecast Manager
 
