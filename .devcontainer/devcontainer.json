@@ -1,6 +1,9 @@
 {
     "name": "ngen_rte_bmi_forcing",
     "image": "ngen_rte:ghcr",
+    "containerEnv": {
+        "FORCING_LOGLEVEL": "DEBUG"
+    },
     "customizations": {
         "vscode": {
             "extensions": [
@@ -18,13 +21,20 @@
     "mounts": [
         // Mount various directories needed for input data, model outputs, and scripts.
         "source=${localWorkspaceFolder}/../run_ngen,target=/ngwpc/run_ngen,type=bind",
+        "source=${localWorkspaceFolder}/../run_ngen/data,target=/ngen-app/data,type=bind",
         "source=${localWorkspaceFolder}/../s3,target=/s3,type=bind",
         "source=${localWorkspaceFolder}/bin_mounted,target=/ngen-app/bin/bin_mounted,type=bind",
-        "source=${localWorkspaceFolder}/../run_ngen/data,target=/ngen-app/data,type=bind",
+        // Mount container's tmp folder for forcing cache files like "/tmp/aorc_ce4b1034_2013.nc"
+        "source=${localWorkspaceFolder}/.devcontainer/tmp,target=/tmp,type=bind",
         // Mount ngen-forcing source code so that it can be (re)installed in editable mode.
-        "source=${localWorkspaceFolder}/../ngen-forcing,target=/workspaces/nwm-rte/src/ngen-forcing,type=bind"
+        "source=${localWorkspaceFolder}/../ngen-forcing,target=/workspaces/nwm-rte/src/ngen-forcing,type=bind",
+        // Mounts for replicating ngencerf environment (for running realizations originating on ngencerf):
+        "source=${localWorkspaceFolder}/../run_ngen/data,target=/ngencerf/data/bmi_forcing_work,type=bind",
+        "source=${localWorkspaceFolder}/../run_ngen/data/ngen-cal-work,target=/ngencerf/data/ngen-cal-work,type=bind",
+        "source=${localWorkspaceFolder}/../run_ngen/data/ngen-static-files,target=/ngencerf/data/ngen-static-files,type=bind",
     ],
     "remoteUser": "root",
     // (Re)install ngen-forcing in editable mode.
-    "postStartCommand": "python -m pip install -e ./src/ngen-forcing"
+    // "postStartCommand": "python -m pip install -e ./src/ngen-forcing"
+    "postStartCommand": "python -m pip install -e ./src/ngen-forcing && python -m pip install -e ./src/ngen-forcing/nextgen_forcings_ewts"
 }

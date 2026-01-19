@@ -54,11 +54,9 @@ CALIB_PSO_W = 0.7
 
 ##### Calibration
 # Calib sim
-CALIB_SIM_START = datetime(year=2013, month=7, day=25, hour=00, minute=0, second=0)
-CALIB_SIM_END = datetime(year=2014, month=7, day=26, hour=23, minute=0, second=0)
-# CALIB_SIM_START = datetime(year=2015, month=10, day=1, hour=0, minute=0, second=0)
-# CALIB_SIM_DURATION = timedelta(hours=47)
-# CALIB_SIM_END = CALIB_SIM_START + CALIB_SIM_DURATION
+CALIB_SIM_START = datetime(year=2013, month=7, day=25, hour=0, minute=0, second=0)
+CALIB_SIM_DURATION = timedelta(hours=47)
+CALIB_SIM_END = CALIB_SIM_START + CALIB_SIM_DURATION
 # Calib eval
 CALIB_EVAL_START = CALIB_SIM_START + timedelta(
     hours=6

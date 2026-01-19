@@ -37,8 +37,11 @@ function docker_run {
         \
         -v "${MNT__RUN_NGEN__HOST}/data/esmf_mesh/:/ngen-app/data/esmf_mesh/" \
         -v "${MNT__RUN_NGEN__HOST}/data/scratch:/ngen-app/data/scratch" \
-        -v "${MNT__RUN_NGEN__HOST}/cold_start_workflow:/ngen-app/data/configs" \
+        -v "${MNT__RUN_NGEN__HOST}/configs:/ngen-app/data/configs" \
         -v "${MNT__RUN_NGEN__HOST}/data/raw_input:/ngen-app/data/raw_input" \
+        -v "${MNT__RUN_NGEN__HOST}/data:/ngencerf/data/bmi_forcing_work" \
+        -v "${MNT__RUN_NGEN__HOST}/data/ngen-cal-work:/ngencerf/data/ngen-cal-work" \
+        -v "${MNT__RUN_NGEN__HOST}/data/ngen-static-files:/ngencerf/data/ngen-static-files" \
         -v "${MNT__RUN_NGEN__HOST}/kge_dds:/ngen-app/data/run_ngen" \
         \
         -v "${MNT__NGEN_FORCING__HOST}:${MNT__NGEN_FORCING__CONTAINER_1}" \
@@ -49,6 +52,7 @@ function docker_run {
         -v "${MNT__MODULE_PARAM_FILES_DIR__HOST}:${MNT__MODULE_PARAM_FILES_DIR__CONTAINER_2}" \
         -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
         -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
+        -v "$(pwd)/.devcontainer/tmp:/tmp" \
         \
         -v "$(pwd)/.env:/ngen-app/.env"\
         --rm ${TARGET_IMAGE_NAME} "$@" --fcst_run_name "${fcst_run_name}"
@@ -67,7 +71,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --noop
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration
-    docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 2 #-g "15200280" "2025_Mar_14_21_20_29"
+    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 1
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 2
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" "2025_Jan_30_13_08_20" --do_calibration --skip_forecast --nprocs 2
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" "2025_Jan_30_13_08_20"
@@ -78,7 +82,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_forcing_running
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_duration 15
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --help
-    # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --do_coldstart
+    docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --do_coldstart
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_all_forcing_configs
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_all_forcing_configs --quit_forecast_after_forcing_running
     # docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --do_all_forcing_configs --quit_forecast_after_duration 15
