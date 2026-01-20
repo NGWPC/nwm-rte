@@ -63,6 +63,15 @@ function docker_run {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # docker_run
 
+    # docker_run "/ngen-app/bin/bin_mounted/run_calibration.py"
+    # docker_run "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc"
+    # docker_run "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm"
+    # docker_run "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -fregion "CONUS" -ofunc mae -optalgo dds --gage_id__gage_vintage "10396000" "2025_Mar_14_21_17_04"  # NGWPC-9339
+    # docker_run "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -fregion "Hawaii" --gage_id__gage_vintage "16010000" "2025_Apr_07_21_40_35"
+    # docker_run "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -fregion "Hawaii" --gage_id__gage_vintage "16019000" "2025_Jul_15_16_33_40"
+    # docker_run "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -fregion "Hawaii" --gage_id__gage_vintage "16060000" "2025_Apr_07_21_41_09"
+    # docker_run "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -fregion "Puerto_Rico" --gage_id__gage_vintage "50014800" "2025_Apr_08_15_13_08"
+
     # docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --help
     # docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" -n 2
     # docker_run "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --skip_calibration -cycle_datetime "2025-09-15 00:00:00"

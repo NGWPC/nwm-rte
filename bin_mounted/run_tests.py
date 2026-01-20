@@ -263,6 +263,14 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         help=f"Calibration gage ID and gage vintage (2 args). If not provided, then these defaults will be used: {c.DEFAULT_GAGE_ID}, {c.DEFAULT_GAGE_VINTAGE} will be used.",
     )
     parser.add_argument(
+        "-fregion",
+        "--forcing_region",
+        type=str,
+        default=c.CALIB_FORCING_REGION_DEFAULT,
+        choices=c.CALIB_FORCING_REGION_CHOICES,
+        help=f"Region of forcing data. Default={c.CALIB_FORCING_REGION_DEFAULT}",
+    )
+    parser.add_argument(
         "--noop",
         action="store_true",
         help="Run in noop mode - only verify that the script can import libraries and basic setup, then exit without looking for data or running any workflows.",

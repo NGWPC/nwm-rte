@@ -27,7 +27,7 @@ from nwm_fcst_mgr.forecast import ForecastExecutionManager, RunStatus
 from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
 
 import consts as c
-
+from time_windows import CalibTimeWindows
 
 print = functools.partial(print, flush=True)
 
@@ -99,10 +99,13 @@ def get_test_configs__calibration(
     gage_vintage: str = c.DEFAULT_GAGE_VINTAGE,
     obj_func: c.CalObjective = c.CALIB_OBJECTIVE_FUNCTION,
     optim_algo: c.CalOptimizationAlgo = c.CALIB_OPTIMIZATION_ALGO,
+    forcing_config_types = c.CALIB_FORCING_CONFIGURATION_TYPES,
+    forcing_region = c.CALIB_FORCING_REGION_DEFAULT,
+    windows: CalibTimeWindows = CalibTimeWindows(),
 ) -> list[InputConfig]:
-    configs: list[InputConfig] = []
+    # assert forcing_region == "CONUS"  # temporary assertion
 
-    forcing_config_types = c.CALIB_FORCING_CONFIGURATION_TYPES
+    configs: list[InputConfig] = []
 
     general = GeneralConfig(
         basin=gage_id,
@@ -110,8 +113,8 @@ def get_test_configs__calibration(
         models=c.MODELS,
         formulation=c.FORMULATION_NAME,
         main_dir=c.DEFAULT_MAIN_DIR,
-        start_period=c.CALIB_EVAL_START.strftime(DDF),
-        end_period=c.CALIB_EVAL_END.strftime(DDF),
+        start_period=windows.calib_eval_start.strftime(DDF),
+        end_period=windows.calib_eval_end.strftime(DDF),
     )
 
     calibration = CalibConfig(
@@ -123,16 +126,16 @@ def get_test_configs__calibration(
         objective_function=obj_func,
         start_iteration=c.CALIB_ITER_START,
         number_iteration=c.CALIB_ITER_COUNT,
-        calib_start_period=c.CALIB_SIM_START.strftime(DDF),
-        calib_end_period=c.CALIB_SIM_END.strftime(DDF),
-        calib_eval_start_period=c.CALIB_EVAL_START.strftime(DDF),
-        calib_eval_end_period=c.CALIB_EVAL_END.strftime(DDF),
-        valid_start_period=c.VALID_SIM_START.strftime(DDF),
-        valid_end_period=c.VALID_SIM_END.strftime(DDF),
-        valid_eval_start_period=c.VALID_EVAL_START.strftime(DDF),
-        valid_eval_end_period=c.VALID_EVAL_END.strftime(DDF),
-        full_eval_start_period=c.VALID_SIM_START.strftime(DDF),
-        full_eval_end_period=c.VALID_SIM_END.strftime(DDF),
+        calib_start_period=windows.calib_sim_start.strftime(DDF),
+        calib_end_period=windows.calib_sim_end.strftime(DDF),
+        calib_eval_start_period=windows.calib_eval_start.strftime(DDF),
+        calib_eval_end_period=windows.calib_eval_end.strftime(DDF),
+        valid_start_period=windows.valid_sim_start.strftime(DDF),
+        valid_end_period=windows.valid_sim_end.strftime(DDF),
+        valid_eval_start_period=windows.valid_eval_start.strftime(DDF),
+        valid_eval_end_period=windows.valid_eval_end.strftime(DDF),
+        full_eval_start_period=windows.full_eval_start.strftime(DDF),
+        full_eval_end_period=windows.full_eval_end.strftime(DDF),
         save_plot_iter_freq=c.CALIB_SAVE_PLOT_ITER_FREQ,
         ngen_cerf=False,
         calib_parameter_file=c.CALIB_PARAMETERS_DIR,
@@ -141,7 +144,7 @@ def get_test_configs__calibration(
         **(
             c.DATAFILE_LIBS
             | {
-                "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/CONUS/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg"
+                "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{forcing_region}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg"
             }
         ),
     )

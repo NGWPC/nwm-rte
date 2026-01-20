@@ -1,11 +1,51 @@
+from datetime import datetime, timedelta
+from dataclasses import dataclass
+
 from execution_tests import (
-    TestPaths,
-    TestsManager,
+    TestsManager, TestPaths
 )
 from pseudocode import SavedState_Pseudo, StateManager_Pseudo
 from pydantic import BaseModel, ConfigDict, Field
 
 import consts as c
+
+
+class RTECalibConfig(BaseModel):
+    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
+
+    delete_scratch_and_mesh_first: bool
+    delete_forcing_raw_input_first: bool
+    objective_function: c.CalObjective
+    optimization_algorithm: c.CalOptimizationAlgo
+    nprocs: int = Field(ge=1)
+    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
+    calib_sim_start: datetime
+    calib_sim_duration: timedelta
+    calib_eval_delayment: timedelta
+    valid_sim_advancement: timedelta
+    valid_eval_curtailment: timedelta
+    forcing_source: str
+    forcing_region: str
+
+    fcst_run_name: str  # TODO not used, here temporarily for compatibility with other executable. TODO: remove this after ngen_rte_run.sh has been generalized.
+
+    # Set after init
+    gage_id: str = Field(init=False, default=None)
+    gage_vintage: str = Field(init=False, default=None)
+
+    def model_post_init(self, __context) -> None:
+        errors = []
+
+        gage_id, gage_vintage, errors_extend = parse_gage_id__gage_vintage(
+            self.gage_id__gage_vintage
+        )
+        errors.extend(errors_extend)
+
+        if errors:
+            raise RuntimeError(errors)
+
+        self.gage_id = gage_id
+        self.gage_vintage = gage_vintage
 
 
 class RTETestConfig(BaseModel):
@@ -29,6 +69,7 @@ class RTETestConfig(BaseModel):
     fcst_run_name: str
     nprocs: int = Field(ge=1)
     gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
+    forcing_region: str
     noop: bool
 
     # Set after init
@@ -40,14 +81,11 @@ class RTETestConfig(BaseModel):
     def model_post_init(self, __context) -> None:
         errors = []
 
-        gage_id, gage_vintage = self.gage_id__gage_vintage
-        if gage_id != gage_id.strip():
-            errors.append(ValueError(f"Whitespace found on end of gage_id: {repr(gage_id)}"))
-        if gage_vintage != gage_vintage.strip():
-            errors.append(ValueError(f"Whitespace found on end of gage_vintage: {repr(gage_vintage)}"))
+        gage_id, gage_vintage, errors_extend = parse_gage_id__gage_vintage(self.gage_id__gage_vintage)
+        errors.extend(errors_extend)
 
-        if self.fcst_run_name != self.fcst_run_name.strip():
-            errors.append(ValueError(f"Whitespace found on end of fcst_run_name: {repr(self.fcst_run_name)}"))
+        errors_extend = parse_fcst_run_name(self.fcst_run_name)
+        errors.extend(errors_extend)
 
         if self.do_all_objective_functions:
             self.objective_functions = list(c.CalObjective)
@@ -84,3 +122,25 @@ class RTETestConfig(BaseModel):
                     continue
                 ret.append((obj_func, optim_algo, TestPaths(self.gage_id, self.gage_vintage, obj_func, optim_algo)))
         return ret
+
+
+def parse_gage_id__gage_vintage(gage_id__gage_vintage: tuple[str, str]) -> tuple[str | None, str | None, list[Exception]]:
+    errors: list[Exception] = []
+    gage_id, gage_vintage = gage_id__gage_vintage
+
+    if gage_id != gage_id.strip():
+        errors.append(ValueError(f"Whitespace found on end of gage_id: {repr(gage_id)}"))
+        gage_id = None
+
+    if gage_vintage != gage_vintage.strip():
+        errors.append(ValueError(f"Whitespace found on end of gage_vintage: {repr(gage_vintage)}"))
+        gage_vintage = None
+
+    return gage_id, gage_vintage, errors
+
+
+def parse_fcst_run_name(fcst_run_name: str) -> list[Exception]:
+    errors: list[Exception] = []
+    if fcst_run_name != fcst_run_name.strip():
+        errors.append(ValueError(f"Whitespace found on end of fcst_run_name: {repr(fcst_run_name)}"))
+    return errors

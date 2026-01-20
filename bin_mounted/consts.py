@@ -48,28 +48,12 @@ CALIB_SWARM_SIZE=3
 CALIB_PSO_C1=2
 CALIB_PSO_C2=2
 CALIB_PSO_W=0.7
-
-
-##### Calibration
-# Calib sim
-CALIB_SIM_START = datetime(year=2013, month=7, day=25, hour=0, minute=0, second=0)
-CALIB_SIM_DURATION = timedelta(hours=47)
-CALIB_SIM_END = CALIB_SIM_START + CALIB_SIM_DURATION
-# Calib eval
-CALIB_EVAL_START = CALIB_SIM_START + timedelta(hours=6)  # Delayed start from calibration simulation, for warmup
-CALIB_EVAL_END = CALIB_SIM_END
-
-##### Validation
-# Validation sim
-VALID_SIM_START = CALIB_SIM_START - timedelta(hours=6)
-VALID_SIM_END = CALIB_SIM_END
-# Validation eval
-VALID_EVAL_START = CALIB_SIM_START
-VALID_EVAL_END = CALIB_SIM_END - timedelta(hours=6)
-
-##### Full evaluation
-FULL_EVAL_START = CALIB_SIM_START
-FULL_EVAL_END = CALIB_SIM_END
+# Timing
+CALIB_SIM_START_DEFAULT = datetime(year=2013, month=7, day=25, hour=0, minute=0, second=0)
+CALIB_SIM_DURATION_DEFAULT = timedelta(hours=47)
+CALIB_EVAL_DELAYMENT_DEFAULT = timedelta(hours=6)  # Gets added
+VALID_SIM_ADVANCEMENT_DEFAULT = timedelta(hours=6)  # Gets subtracted
+VALID_EVAL_CURTAILMENT_DEFAULT = timedelta(hours=6)  # Gets subtracted
 
 
 ### .config section [DataFile]
@@ -105,11 +89,21 @@ FORECAST_FORCING_CONFIGURATION_TYPES__ALL = [
     "long_range_mem3",
     "long_range_mem4",
 ]
+
+CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT = "aorc"
 CALIB_FORCING_CONFIGURATION_TYPES = [
     "nwm",
-    "aorc",
+    CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT,
 ]
 
+CALIB_FORCING_REGION_DEFAULT = "CONUS"
+CALIB_FORCING_REGION_CHOICES = [
+    CALIB_FORCING_REGION_DEFAULT,
+    # "Alaska",
+    # "Hawaii",
+    # "PR",
+    # "Puerto_Rico",
+]
 
 # For construction of DataFileConfig
 DATAFILE_LIBS = {
