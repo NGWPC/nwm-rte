@@ -333,6 +333,8 @@ class ForecastTest(BaseModel):
             str(self.rb.calib_config_file),
             "--log_path_overwrite",
             self.calib_log.path,
+            # "--worker_name",
+            # "000test",
         ]
         print(f"Running command args: {cmd}")
         try:

@@ -55,6 +55,8 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
         str(rb.calib_config_file),
         "--log_path_overwrite",
         log_path,
+        # "--worker_name",
+        # "000test",
     ]
 
     print(f"\n\nStarting calibration with configuration: {cfg.model_dump_json(indent=2)}\nand logging to: {log_path}\n\nvia command args: {cmd}")
@@ -171,7 +173,6 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         choices=c.CALIB_FORCING_REGION_CHOICES,
         help=f"Region of forcing data. Default={c.CALIB_FORCING_REGION_DEFAULT}",
     )
-    parser.add_argument("-fcname", "--fcst_run_name", help="Not used by this executable, here temporarily for compatibility with other executable. TODO: remove this after ngen_rte_run.sh has been generalized.")
     args = parser.parse_args()
     cfg = RTECalibConfig(**vars(args))
     main(cfg)
