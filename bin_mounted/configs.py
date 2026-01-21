@@ -27,8 +27,6 @@ class RTECalibConfig(BaseModel):
     forcing_source: str
     forcing_region: str
 
-    fcst_run_name: str  # TODO not used, here temporarily for compatibility with other executable. TODO: remove this after ngen_rte_run.sh has been generalized.
-
     # Set after init
     gage_id: str = Field(init=False, default=None)
     gage_vintage: str = Field(init=False, default=None)
