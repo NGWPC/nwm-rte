@@ -51,9 +51,9 @@ CALIB_PSO_W=0.7
 # Timing
 CALIB_SIM_START_DEFAULT = datetime(year=2013, month=7, day=25, hour=0, minute=0, second=0)
 CALIB_SIM_DURATION_DEFAULT = timedelta(hours=47)
-CALIB_EVAL_DELAYMENT_DEFAULT = timedelta(hours=6)  # Gets added
-VALID_SIM_ADVANCEMENT_DEFAULT = timedelta(hours=6)  # Gets subtracted
-VALID_EVAL_CURTAILMENT_DEFAULT = timedelta(hours=6)  # Gets subtracted
+CALIB_EVAL_DELAYMENT_DEFAULT = timedelta(hours=0)  # Gets added
+VALID_SIM_ADVANCEMENT_DEFAULT = timedelta(hours=0)  # Gets subtracted
+VALID_EVAL_CURTAILMENT_DEFAULT = timedelta(hours=0)  # Gets subtracted
 
 
 ### .config section [DataFile]
