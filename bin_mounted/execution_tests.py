@@ -115,6 +115,9 @@ def get_test_configs__calibration(
         main_dir=c.DEFAULT_MAIN_DIR,
         start_period=windows.calib_eval_start.strftime(DDF),
         end_period=windows.calib_eval_end.strftime(DDF),
+        output_precip=True,
+        output_swe=True,
+        output_sm=True,
     )
 
     calibration = CalibConfig(
@@ -126,6 +129,8 @@ def get_test_configs__calibration(
         objective_function=obj_func,
         start_iteration=c.CALIB_ITER_START,
         number_iteration=c.CALIB_ITER_COUNT,
+        calib_output_vars=True,
+        valid_output_vars=True,
         calib_start_period=windows.calib_sim_start.strftime(DDF),
         calib_end_period=windows.calib_sim_end.strftime(DDF),
         calib_eval_start_period=windows.calib_eval_start.strftime(DDF),
