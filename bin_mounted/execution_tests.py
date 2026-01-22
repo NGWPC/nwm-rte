@@ -7,7 +7,7 @@ import os
 import subprocess
 import time
 import traceback
-from typing import Any, Dict
+from typing import Any, Dict, Literal
 
 from pydantic import BaseModel, Field, ConfigDict, validate_call
 from pydantic.json import pydantic_encoder
@@ -44,16 +44,22 @@ class TestPaths:
     gage_vintage: str
     obj_func: c.CalObjective | None
     optim_algo: c.CalOptimizationAlgo | None
+    forcing_region: str
+    forcing_provider: str
 
     def update_obj_func_and_optim_algo(self, obj_func: c.CalObjective, optim_algo: c.CalOptimizationAlgo) -> None:
         self.obj_func = obj_func
         self.optim_algo = optim_algo
 
     @property
+    def fpp(self):
+        return ForcingProviderPaths(forcing_region=self.forcing_region, forcing_provider=self.forcing_provider)
+
+    @property
     def dir_base(self) -> str:
         if not (self.obj_func and self.optim_algo):
             raise ValueError("obj_func and optim_algo must be set before calling this method")
-        return f"{c.DEFAULT_MAIN_DIR}/{self.obj_func.value}_{self.optim_algo.value}/{c.FORMULATION_NAME}/{self.gage_id}"
+        return f"{c.DEFAULT_MAIN_DIR}/{self.obj_func.value}_{self.optim_algo.value}/{self.fpp.formulation_name}/{self.gage_id}"
 
     @property
     def dir_input(self) -> str:
@@ -69,8 +75,8 @@ class TestPaths:
 
     @property
     def calib_config_file(self) -> str:
-        return f"{self.dir_base}/configs/input_calibration_{c.DEFAULT_FORCING_PROVIDER}.config"
-        # return f"{self.dir_base}/configs/input_calibration_{c.DEFAULT_FORCING_PROVIDER}_short.config"
+        return f"{self.dir_base}/configs/input_calibration_{self.forcing_provider}.config"
+        # return f"{self.dir_base}/configs/input_calibration_{self.forcing_provider}_short.config"
 
     @property
     def fcst_config_file(self) -> str:
@@ -100,10 +106,15 @@ def get_test_configs__calibration(
     obj_func: c.CalObjective = c.CALIB_OBJECTIVE_FUNCTION,
     optim_algo: c.CalOptimizationAlgo = c.CALIB_OPTIMIZATION_ALGO,
     forcing_config_types = c.CALIB_FORCING_CONFIGURATION_TYPES,
-    forcing_region = c.CALIB_FORCING_REGION_DEFAULT,
+    forcing_region: str = c.CALIB_FORCING_REGION_DEFAULT,
+    forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
     windows: CalibTimeWindows = CalibTimeWindows(),
 ) -> list[InputConfig]:
     # assert forcing_region == "CONUS"  # temporary assertion
+    fpp = ForcingProviderPaths(
+        forcing_provider=forcing_provider,
+        forcing_region=forcing_region,
+    )
 
     configs: list[InputConfig] = []
 
@@ -111,7 +122,7 @@ def get_test_configs__calibration(
         basin=gage_id,
         run_type="calibration",
         models=c.MODELS,
-        formulation=c.FORMULATION_NAME,
+        formulation=fpp.formulation_name,
         main_dir=c.DEFAULT_MAIN_DIR,
         start_period=windows.calib_eval_start.strftime(DDF),
         end_period=windows.calib_eval_end.strftime(DDF),
@@ -157,8 +168,8 @@ def get_test_configs__calibration(
 
     for fct in forcing_config_types:
         forcing = ForcingConfig(
-            forcing_provider=c.DEFAULT_FORCING_PROVIDER,
-            forcing_dir=c.FORCING_DIR,
+            forcing_provider=fpp.forcing_provider,
+            forcing_dir=fpp.get_forcing_dir(gage_id),
             forcing_template_dir=c.FORCING_TEMPLATE_DIR,
             root_dir=c.FORCING_ROOT_DIR,
             forcing_configuration=fct,
@@ -175,8 +186,16 @@ def get_test_configs__calibration(
 def get_test_configs__forecast(
     do_all_forcing_configs: bool,
     use_cold_start: bool = False,
+    gage_id: str = c.DEFAULT_GAGE_ID,
+    forcing_region: str = c.CALIB_FORCING_REGION_DEFAULT,
+    forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
     # nprocs: int = DEFAULT_NPROCS,
 ) -> list[InputConfig]:
+    fpp = ForcingProviderPaths(
+        forcing_provider=forcing_provider,
+        forcing_region=forcing_region,
+    )
+
     configs: list[InputConfig] = []
 
     if use_cold_start:
@@ -194,8 +213,8 @@ def get_test_configs__forecast(
     for fct in forcing_config_types:
         general = None
         forcing = ForcingConfig(
-            forcing_provider=c.DEFAULT_FORCING_PROVIDER,
-            forcing_dir=c.FORCING_DIR,
+            forcing_provider=fpp.forcing_provider,
+            forcing_dir=fpp.get_forcing_dir(gage_id),
             forcing_template_dir=c.FORCING_TEMPLATE_DIR,
             root_dir=c.FORCING_ROOT_DIR,
             forcing_configuration=fct,
@@ -522,3 +541,23 @@ class TestsManager(BaseModel):
             f.write(json.dumps(self.forecast_tests, indent=2, default=pydantic_encoder))
         if self.fcst_stat_sums.any_failed:
             raise RuntimeError(self.fcst_stat_sums)
+
+
+class ForcingProviderPaths(BaseModel):
+    model_config = ConfigDict(strict=True)
+    forcing_provider: Literal["csv", "bmi"]
+    forcing_region: str  # e.g. CONUS. TODO restrict choices
+
+    def get_forcing_dir(self, gage_id: str | None) -> str | None:
+        if self.forcing_provider == "csv":
+            if not gage_id:
+                raise ValueError("Gage ID must be provided when forcing_provider == 'csv'")
+            return c.CSV_FORCING_DIR_FORMAT.format(forcing_region=self.forcing_region, gage_id=gage_id)
+        elif self.forcing_provider == "bmi":
+            return None
+        else:
+            raise ValueError(f"Unexpected forcing_provider: {self.forcing_provider}")
+
+    @property
+    def formulation_name(self) -> str:
+        return f"test_{self.forcing_provider}"

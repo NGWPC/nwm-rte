@@ -26,6 +26,7 @@ class RTECalibConfig(BaseModel):
     valid_eval_curtailment: timedelta
     forcing_source: str
     forcing_region: str
+    forcing_provider: str
 
     # Set after init
     gage_id: str = Field(init=False, default=None)
@@ -68,6 +69,7 @@ class RTETestConfig(BaseModel):
     nprocs: int = Field(ge=1)
     gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
     forcing_region: str
+    forcing_provider: str
     noop: bool
 
     # Set after init
@@ -118,7 +120,20 @@ class RTETestConfig(BaseModel):
                 if optim_algo == c.CalOptimizationAlgo.none:
                     # TODO enable optimization algo "none" for supported circumstances
                     continue
-                ret.append((obj_func, optim_algo, TestPaths(self.gage_id, self.gage_vintage, obj_func, optim_algo)))
+                ret.append(
+                    (
+                        obj_func,
+                        optim_algo,
+                        TestPaths(
+                            self.gage_id,
+                            self.gage_vintage,
+                            obj_func,
+                            optim_algo,
+                            self.forcing_region,
+                            self.forcing_provider,
+                        ),
+                    )
+                )
         return ret
 
 

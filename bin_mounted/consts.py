@@ -12,12 +12,12 @@ DIR_FORCING_RAW_INPUT = "/ngen-app/data/raw_input"
 ### .config section [Forcing]
 DEFAULT_FORECAST_RUN_NAME = "fcst_run1"
 
-# DEFAULT_FORCING_PROVIDER = "csv"
-# FORCING_DIR =
+FORCING_PROVIDER_DEFAULT = "bmi"
+FORCING_PROVIDER_CHOICES = [FORCING_PROVIDER_DEFAULT, "csv"]
 
-DEFAULT_FORCING_PROVIDER = "bmi"
-FORCING_DIR = None  # None when provider is bmi
-
+# For CSV forcing
+CSV_FORCING_DIR_FORMAT = "/s3/ngwpc-forcing/aorc_2.2/{forcing_region}/Gage_{gage_id}/"
+# For BMI forcing
 FORCING_TEMPLATE_DIR = "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
 FORCING_ROOT_DIR = "/ngen-app/data"
 DT_START_FORECAST = datetime(year=2025, month=9, day=15, hour=0, minute=0, second=0)
@@ -30,9 +30,7 @@ DEFAULT_GAGE_ID = "01123000"
 DEFAULT_GAGE_VINTAGE = "2025_Mar_14_21_14_37"
 
 MODELS = "noah-owp-modular,cfe-s"
-# MODELS="noah-owp-modular,topmodel"
 DEFAULT_MAIN_DIR = "/ngwpc/run_ngen"
-FORMULATION_NAME = f"test_{DEFAULT_FORCING_PROVIDER}"
 
 
 ### .config section [Calibration]

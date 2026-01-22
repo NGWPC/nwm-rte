@@ -40,6 +40,7 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
         optim_algo=cfg.optimization_algorithm,
         forcing_config_types=[cfg.forcing_source],
         forcing_region=cfg.forcing_region,
+        forcing_provider=cfg.forcing_provider,
         windows=windows,
     )
     assert len(all_config_overrides) == 1  # Can be > 1 in test runner, not in atomic calibration runner
@@ -172,6 +173,14 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         default=c.CALIB_FORCING_REGION_DEFAULT,
         choices=c.CALIB_FORCING_REGION_CHOICES,
         help=f"Region of forcing data. Default={c.CALIB_FORCING_REGION_DEFAULT}",
+    )
+    parser.add_argument(
+        "-fprovider",
+        "--forcing_provider",
+        type=str,
+        default=c.FORCING_PROVIDER_DEFAULT,
+        choices=c.FORCING_PROVIDER_CHOICES,
+        help=f"Forcing provider. Default={c.FORCING_PROVIDER_DEFAULT}",
     )
     args = parser.parse_args()
     cfg = RTECalibConfig(**vars(args))

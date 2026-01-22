@@ -36,6 +36,8 @@ def calibrations__build_and_run(cfg: RTETestConfig) -> None:
             gage_vintage=cfg.gage_vintage,
             obj_func=obj_func,
             optim_algo=optim_algo,
+            forcing_region=cfg.forcing_region,
+            forcing_provider=cfg.forcing_provider,
         ):
             fc = config_overrides.Forcing.forcing_configuration
             msg_prefix = f"Calibration {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
@@ -64,7 +66,13 @@ def forecasts__build_and_run(cfg: RTETestConfig, cs: bool) -> None:
     `cs` controls whether coldstart is used (not `cfg.do_coldstart`).
     """
     for obj_func, optim_algo, test_paths in cfg.get_calib_permutations():
-        test_configs = get_test_configs__forecast(cfg.do_all_forcing_configs, use_cold_start=cs)
+        test_configs = get_test_configs__forecast(
+            cfg.do_all_forcing_configs,
+            use_cold_start=cs,
+            gage_id=cfg.gage_id,
+            forcing_region=cfg.forcing_region,
+            forcing_provider=cfg.forcing_provider,
+        )
         for tc in test_configs:
             if cfg.quit_forecast_after_forcing_running and tc.Forcing.forcing_configuration != "short_range":
                 raise NotImplementedError(
@@ -269,6 +277,14 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         default=c.CALIB_FORCING_REGION_DEFAULT,
         choices=c.CALIB_FORCING_REGION_CHOICES,
         help=f"Region of forcing data. Default={c.CALIB_FORCING_REGION_DEFAULT}",
+    )
+    parser.add_argument(
+        "-fprovider",
+        "--forcing_provider",
+        type=str,
+        default=c.FORCING_PROVIDER_DEFAULT,
+        choices=c.FORCING_PROVIDER_CHOICES,
+        help=f"Forcing provider. Default={c.FORCING_PROVIDER_DEFAULT}",
     )
     parser.add_argument(
         "--noop",
