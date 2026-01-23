@@ -10,10 +10,10 @@ fcst_run_name=${1:-"fcst_run1"}
 set -x
 
 
-docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --help
+# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --help
 # docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --noop
 # docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 1 --fcst_run_name "${fcst_run_name}"
+docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
 # docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
 # docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" "2025_Jan_30_13_08_20" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
 # docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" "2025_Jan_30_13_08_20" --fcst_run_name "${fcst_run_name}"
