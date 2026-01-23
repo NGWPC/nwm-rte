@@ -17,8 +17,6 @@ from execution_tests import (
     get_test_configs__calibration,
     make_parallel_config,
 )
-from pseudocode import SavedState_Pseudo, StateManager_Pseudo
-from pydantic import validate_call
 from pydantic.json import pydantic_encoder
 
 import consts as c
@@ -27,7 +25,7 @@ from configs import RTETestConfig
 print = functools.partial(print, flush=True)
 
 
-def calibrations__build_and_run(cfg: RTETestConfig) -> None:
+def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
     """Build calibration realizations and run them as tests."""
     for obj_func, optim_algo, _ in cfg.get_calib_permutations():
         for config_overrides in get_test_configs__calibration(
@@ -56,10 +54,10 @@ def calibrations__build_and_run(cfg: RTETestConfig) -> None:
                 print(f"### {msg_prefix}: executing calibration realization")
                 t.execute_calibration(cfg.quit_calibration_after_duration)
 
-            cfg.tests_manager.add_forecast_test(t)
+            tm.add_forecast_test(t)
 
 
-def forecasts__build_and_run(cfg: RTETestConfig, cs: bool) -> None:
+def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> None:
     """
     Using ForecastTest, build and execute a list of forecast realizations.
     tests_manager is modified in-place, so some test results may be available if this function is interrupted.
@@ -111,17 +109,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, cs: bool) -> None:
                     quit_forecast_after_duration=cfg.quit_forecast_after_duration,
                 )
 
-                if t.rb.input_configs_class.Forcing.forcing_configuration == "standard_ana":
-                    cfg.state_manager.add_saved_state(
-                        SavedState_Pseudo(
-                            dt=datetime.strptime(
-                                t.rb.input_configs_class.Forcing.cycle_datetime, DEFAULT_DATETIME_FORMAT
-                            ),
-                            realization_file=t.rb.realization_file,
-                        )
-                    )
-
-            cfg.tests_manager.add_forecast_test(t)
+            tm.add_forecast_test(t)
 
 
 def run_noop_mode() -> None:
@@ -148,15 +136,17 @@ def main(cfg: RTETestConfig):
     if cfg.delete_forcing_raw_input_first:
         utils_testing_setup.delete_forcing_raw_inputs()
 
+    tm = TestsManager()
+
     if cfg.do_calibration:
-        calibrations__build_and_run(cfg)
+        calibrations__build_and_run(cfg, tm)
 
     if cfg.do_coldstart:
-        forecasts__build_and_run(cfg, cs=True)
+        forecasts__build_and_run(cfg, tm, cs=True)
     if not cfg.skip_forecast:
-        forecasts__build_and_run(cfg, cs=False)
+        forecasts__build_and_run(cfg, tm, cs=False)
 
-    cfg.tests_manager.evaluate_test_results()
+    tm.evaluate_test_results()
 
 
 if __name__ == "__main__":

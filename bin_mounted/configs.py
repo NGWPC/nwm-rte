@@ -1,13 +1,65 @@
 from datetime import datetime, timedelta
 from dataclasses import dataclass
+from typing import Literal
 
-from execution_tests import (
-    TestsManager, TestPaths
-)
-from pseudocode import SavedState_Pseudo, StateManager_Pseudo
 from pydantic import BaseModel, ConfigDict, Field
 
 import consts as c
+
+
+@dataclass
+class TestPaths:
+    """
+    Paths dependent on calibration settings.
+    If iterating over a list of objective functions or optimization algorithms,
+    obj_func and optim_algo may need to be replaced on the fly during the iterations.
+    """
+
+    gage_id: str
+    gage_vintage: str
+    obj_func: c.CalObjective | None
+    optim_algo: c.CalOptimizationAlgo | None
+    global_domain: str
+    forcing_provider: str
+
+    def update_obj_func_and_optim_algo(self, obj_func: c.CalObjective, optim_algo: c.CalOptimizationAlgo) -> None:
+        self.obj_func = obj_func
+        self.optim_algo = optim_algo
+
+    @property
+    def fpp(self):
+        return ForcingProviderPaths(global_domain=self.global_domain, forcing_provider=self.forcing_provider)
+
+    @property
+    def dir_base(self) -> str:
+        if not (self.obj_func and self.optim_algo):
+            raise ValueError("obj_func and optim_algo must be set before calling this method")
+        return f"{c.DEFAULT_MAIN_DIR}/{self.obj_func.value}_{self.optim_algo.value}/{self.fpp.formulation_name}/{self.gage_id}"
+
+    @property
+    def dir_input(self) -> str:
+        return f"{self.dir_base}/Input"
+
+    @property
+    def dir_output(self) -> str:
+        return f"{self.dir_base}/Output"
+
+    @property
+    def ngen_log_file(self) -> str:
+        return f"{self.dir_base}/logs/ngen.log"
+
+    @property
+    def calib_config_file(self) -> str:
+        return f"{self.dir_base}/configs/input_calibration_{self.forcing_provider}.config"
+        # return f"{self.dir_base}/configs/input_calibration_{self.forcing_provider}_short.config"
+
+    @property
+    def fcst_config_file(self) -> str:
+        return f"{self.dir_base}/configs/input_forecast.config"
+
+    @property
+    def valid_yaml(self) -> str:
+        return f"{self.dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
 
 
 class RTECalibConfig(BaseModel):
@@ -75,8 +127,6 @@ class RTETestConfig(BaseModel):
     # Set after init
     gage_id: str = Field(init=False, default=None)
     gage_vintage: str = Field(init=False, default=None)
-    tests_manager: TestsManager = Field(init=False, default=None)
-    state_manager: StateManager_Pseudo = Field(init=False, default=None)  # TODO pseudocode for now for states.
 
     def model_post_init(self, __context) -> None:
         errors = []
@@ -105,8 +155,6 @@ class RTETestConfig(BaseModel):
 
         self.gage_id = gage_id
         self.gage_vintage = gage_vintage
-        self.tests_manager = TestsManager()
-        self.state_manager = StateManager_Pseudo()
 
     def get_calib_permutations(self) -> list[tuple[c.CalObjective, c.CalOptimizationAlgo, TestPaths]]:
         """Returns the permutations of objective function and optimization algorithm specified in the config, as well as a TestPaths instance for each.
@@ -157,3 +205,69 @@ def parse_fcst_run_name(fcst_run_name: str) -> list[Exception]:
     if fcst_run_name != fcst_run_name.strip():
         errors.append(ValueError(f"Whitespace found on end of fcst_run_name: {repr(fcst_run_name)}"))
     return errors
+
+
+class ForcingProviderPaths(BaseModel):
+    model_config = ConfigDict(strict=True)
+    forcing_provider: Literal["csv", "bmi"]
+    global_domain: str  # e.g. CONUS. TODO restrict choices
+
+    def get_forcing_dir(self, gage_id: str | None) -> str | None:
+        if self.forcing_provider == "csv":
+            if not gage_id:
+                raise ValueError("Gage ID must be provided when forcing_provider == 'csv'")
+            return c.CSV_FORCING_DIR_FORMAT.format(global_domain=self.global_domain, gage_id=gage_id)
+        elif self.forcing_provider == "bmi":
+            return None
+        else:
+            raise ValueError(f"Unexpected forcing_provider: {self.forcing_provider}")
+
+    @property
+    def formulation_name(self) -> str:
+        return f"test_{self.forcing_provider}"
+
+
+class CalibTimeWindows(BaseModel):
+    """Calibration time windows defined by a start time
+    and some timedelta offsets."""
+    calib_sim_start: datetime = Field(default=c.CALIB_SIM_START_DEFAULT)
+    calib_sim_duration: timedelta = Field(default=c.CALIB_SIM_DURATION_DEFAULT)
+    calib_eval_delayment: timedelta = Field(default=c.CALIB_EVAL_DELAYMENT_DEFAULT)  # Delayed start from calibration simulation, for warmup
+    valid_sim_advancement: timedelta = Field(default=c.VALID_SIM_ADVANCEMENT_DEFAULT)  # Validation simulation starts before calibration simulation, by this amount
+    valid_eval_curtailment: timedelta = Field(default=c.VALID_EVAL_CURTAILMENT_DEFAULT)  # Valid eval window cut short by this amount
+
+    @property
+    def calib_sim_end(self) -> datetime:
+        return self.calib_sim_start + self.calib_sim_duration
+    
+    @property
+    def calib_eval_start(self) -> datetime:
+        return self.calib_sim_start + self.calib_eval_delayment
+    
+    @property
+    def calib_eval_end(self) -> datetime:
+        return self.calib_sim_end
+
+    @property
+    def valid_sim_start(self) -> datetime:
+        return self.calib_sim_start - self.valid_sim_advancement
+    
+    @property
+    def valid_sim_end(self) -> datetime:
+        return self.calib_sim_end
+    
+    @property
+    def valid_eval_start(self) -> datetime:
+        return self.calib_sim_start
+    
+    @property
+    def valid_eval_end(self) -> datetime:
+        return self.calib_sim_end - self.valid_eval_curtailment
+    
+    @property
+    def full_eval_start(self) -> datetime:
+        return self.calib_sim_start
+
+    @property
+    def full_eval_end(self) -> datetime:
+        return self.calib_sim_end

@@ -7,7 +7,6 @@ import os
 import subprocess
 import time
 import traceback
-from typing import Any, Dict, Literal
 
 from pydantic import BaseModel, Field, ConfigDict, validate_call
 from pydantic.json import pydantic_encoder
@@ -26,65 +25,10 @@ from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 from nwm_fcst_mgr.forecast import ForecastExecutionManager, RunStatus
 from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
 
+from configs import ForcingProviderPaths, CalibTimeWindows
 import consts as c
-from time_windows import CalibTimeWindows
 
 print = functools.partial(print, flush=True)
-
-
-@dataclass
-class TestPaths:
-    """
-    Paths dependent on calibration settings.
-    If iterating over a list of objective functions or optimization algorithms,
-    obj_func and optim_algo may need to be replaced on the fly during the iterations.
-    """
-
-    gage_id: str
-    gage_vintage: str
-    obj_func: c.CalObjective | None
-    optim_algo: c.CalOptimizationAlgo | None
-    global_domain: str
-    forcing_provider: str
-
-    def update_obj_func_and_optim_algo(self, obj_func: c.CalObjective, optim_algo: c.CalOptimizationAlgo) -> None:
-        self.obj_func = obj_func
-        self.optim_algo = optim_algo
-
-    @property
-    def fpp(self):
-        return ForcingProviderPaths(global_domain=self.global_domain, forcing_provider=self.forcing_provider)
-
-    @property
-    def dir_base(self) -> str:
-        if not (self.obj_func and self.optim_algo):
-            raise ValueError("obj_func and optim_algo must be set before calling this method")
-        return f"{c.DEFAULT_MAIN_DIR}/{self.obj_func.value}_{self.optim_algo.value}/{self.fpp.formulation_name}/{self.gage_id}"
-
-    @property
-    def dir_input(self) -> str:
-        return f"{self.dir_base}/Input"
-
-    @property
-    def dir_output(self) -> str:
-        return f"{self.dir_base}/Output"
-
-    @property
-    def ngen_log_file(self) -> str:
-        return f"{self.dir_base}/logs/ngen.log"
-
-    @property
-    def calib_config_file(self) -> str:
-        return f"{self.dir_base}/configs/input_calibration_{self.forcing_provider}.config"
-        # return f"{self.dir_base}/configs/input_calibration_{self.forcing_provider}_short.config"
-
-    @property
-    def fcst_config_file(self) -> str:
-        return f"{self.dir_base}/configs/input_forecast.config"
-
-    @property
-    def valid_yaml(self) -> str:
-        return f"{self.dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
 
 
 def make_parallel_config(nprocs: int) -> ParallelConfig:
@@ -549,23 +493,3 @@ class TestsManager(BaseModel):
             f.write(json.dumps(self.forecast_tests, indent=2, default=pydantic_encoder))
         if self.fcst_stat_sums.any_failed:
             raise RuntimeError(self.fcst_stat_sums)
-
-
-class ForcingProviderPaths(BaseModel):
-    model_config = ConfigDict(strict=True)
-    forcing_provider: Literal["csv", "bmi"]
-    global_domain: str  # e.g. CONUS. TODO restrict choices
-
-    def get_forcing_dir(self, gage_id: str | None) -> str | None:
-        if self.forcing_provider == "csv":
-            if not gage_id:
-                raise ValueError("Gage ID must be provided when forcing_provider == 'csv'")
-            return c.CSV_FORCING_DIR_FORMAT.format(global_domain=self.global_domain, gage_id=gage_id)
-        elif self.forcing_provider == "bmi":
-            return None
-        else:
-            raise ValueError(f"Unexpected forcing_provider: {self.forcing_provider}")
-
-    @property
-    def formulation_name(self) -> str:
-        return f"test_{self.forcing_provider}"
