@@ -25,7 +25,7 @@ class RTECalibConfig(BaseModel):
     valid_sim_advancement: timedelta
     valid_eval_curtailment: timedelta
     forcing_source: str
-    forcing_region: str
+    global_domain: str
     forcing_provider: str
 
     # Set after init
@@ -68,7 +68,7 @@ class RTETestConfig(BaseModel):
     fcst_run_name: str
     nprocs: int = Field(ge=1)
     gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
-    forcing_region: str
+    global_domain: str
     forcing_provider: str
     noop: bool
 
@@ -129,7 +129,7 @@ class RTETestConfig(BaseModel):
                             self.gage_vintage,
                             obj_func,
                             optim_algo,
-                            self.forcing_region,
+                            self.global_domain,
                             self.forcing_provider,
                         ),
                     )

@@ -39,7 +39,7 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
         obj_func=cfg.objective_function,
         optim_algo=cfg.optimization_algorithm,
         forcing_config_types=[cfg.forcing_source],
-        forcing_region=cfg.forcing_region,
+        global_domain=cfg.global_domain,
         forcing_provider=cfg.forcing_provider,
         windows=windows,
     )
@@ -167,12 +167,12 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         help=f"Source of forcing data. Default={c.CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT}",
     )
     parser.add_argument(
-        "-fregion",
-        "--forcing_region",
+        "-gdomain",
+        "--global_domain",
         type=str,
-        default=c.CALIB_FORCING_REGION_DEFAULT,
-        choices=c.CALIB_FORCING_REGION_CHOICES,
-        help=f"Region of forcing data. Default={c.CALIB_FORCING_REGION_DEFAULT}",
+        default=c.CALIB_GLOBAL_DOMAIN_DEFAULT,
+        choices=c.CALIB_GLOBAL_DOMAIN_CHOICES,
+        help=f"Region of forcing data. Default={c.CALIB_GLOBAL_DOMAIN_DEFAULT}",
     )
     parser.add_argument(
         "-fprovider",

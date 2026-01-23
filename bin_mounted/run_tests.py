@@ -36,7 +36,7 @@ def calibrations__build_and_run(cfg: RTETestConfig) -> None:
             gage_vintage=cfg.gage_vintage,
             obj_func=obj_func,
             optim_algo=optim_algo,
-            forcing_region=cfg.forcing_region,
+            global_domain=cfg.global_domain,
             forcing_provider=cfg.forcing_provider,
         ):
             fc = config_overrides.Forcing.forcing_configuration
@@ -70,7 +70,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, cs: bool) -> None:
             cfg.do_all_forcing_configs,
             use_cold_start=cs,
             gage_id=cfg.gage_id,
-            forcing_region=cfg.forcing_region,
+            global_domain=cfg.global_domain,
             forcing_provider=cfg.forcing_provider,
         )
         for tc in test_configs:
@@ -272,11 +272,11 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
     )
     parser.add_argument(
         "-fregion",
-        "--forcing_region",
+        "--global_domain",
         type=str,
-        default=c.CALIB_FORCING_REGION_DEFAULT,
-        choices=c.CALIB_FORCING_REGION_CHOICES,
-        help=f"Region of forcing data. Default={c.CALIB_FORCING_REGION_DEFAULT}",
+        default=c.CALIB_GLOBAL_DOMAIN_DEFAULT,
+        choices=c.CALIB_GLOBAL_DOMAIN_CHOICES,
+        help=f"Region of forcing data. Default={c.CALIB_GLOBAL_DOMAIN_DEFAULT}",
     )
     parser.add_argument(
         "-fprovider",

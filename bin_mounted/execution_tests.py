@@ -44,7 +44,7 @@ class TestPaths:
     gage_vintage: str
     obj_func: c.CalObjective | None
     optim_algo: c.CalOptimizationAlgo | None
-    forcing_region: str
+    global_domain: str
     forcing_provider: str
 
     def update_obj_func_and_optim_algo(self, obj_func: c.CalObjective, optim_algo: c.CalOptimizationAlgo) -> None:
@@ -53,7 +53,7 @@ class TestPaths:
 
     @property
     def fpp(self):
-        return ForcingProviderPaths(forcing_region=self.forcing_region, forcing_provider=self.forcing_provider)
+        return ForcingProviderPaths(global_domain=self.global_domain, forcing_provider=self.forcing_provider)
 
     @property
     def dir_base(self) -> str:
@@ -106,14 +106,13 @@ def get_test_configs__calibration(
     obj_func: c.CalObjective = c.CALIB_OBJECTIVE_FUNCTION,
     optim_algo: c.CalOptimizationAlgo = c.CALIB_OPTIMIZATION_ALGO,
     forcing_config_types = c.CALIB_FORCING_CONFIGURATION_TYPES,
-    forcing_region: str = c.CALIB_FORCING_REGION_DEFAULT,
+    global_domain: str = c.CALIB_GLOBAL_DOMAIN_DEFAULT,
     forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
     windows: CalibTimeWindows = CalibTimeWindows(),
 ) -> list[InputConfig]:
-    # assert forcing_region == "CONUS"  # temporary assertion
     fpp = ForcingProviderPaths(
         forcing_provider=forcing_provider,
-        forcing_region=forcing_region,
+        global_domain=global_domain,
     )
 
     configs: list[InputConfig] = []
@@ -156,11 +155,19 @@ def get_test_configs__calibration(
         ngen_cerf=False,
         calib_parameter_file=c.CALIB_PARAMETERS_DIR,
     )
+
+    # Convert gpkg to EPSG:4326 (oCONUS gpkgs have non-5070, non-4326 projections). TODO move this logic into lower-level repo.
+    hydrofab_file_native = f"{c.HYDROFABRIC_DIR}/2.2/{global_domain}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg"
+    hydrofab_file_4326 = os.path.splitext(hydrofab_file_native)[0] + "_4326.gpkg"
+    cmd = ["ogr2ogr", "-overwrite", "-f", "GPKG", "-t_srs", "EPSG:4326", hydrofab_file_4326, hydrofab_file_native]
+    print(f"Converting geopackage to 4326: {cmd}")
+    subprocess.check_call(cmd)
+
     datafile = DataFileConfig(
         **(
             c.DATAFILE_LIBS
             | {
-                "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{forcing_region}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg"
+                "hydrofab_file": hydrofab_file_4326
             }
         ),
     )
@@ -175,6 +182,7 @@ def get_test_configs__calibration(
             forcing_configuration=fct,
             cycle_datetime=c.DT_START_FORECAST.strftime(DDF),
             cold_start_datetime=None,
+            global_domain=global_domain,
         )
         configs.append(
             InputConfig(General=general, Calibration=calibration, Forcing=forcing, DataFile=datafile, Parallel=parallel)
@@ -187,13 +195,13 @@ def get_test_configs__forecast(
     do_all_forcing_configs: bool,
     use_cold_start: bool = False,
     gage_id: str = c.DEFAULT_GAGE_ID,
-    forcing_region: str = c.CALIB_FORCING_REGION_DEFAULT,
+    global_domain: str = c.CALIB_GLOBAL_DOMAIN_DEFAULT,
     forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
     # nprocs: int = DEFAULT_NPROCS,
 ) -> list[InputConfig]:
     fpp = ForcingProviderPaths(
         forcing_provider=forcing_provider,
-        forcing_region=forcing_region,
+        global_domain=global_domain,
     )
 
     configs: list[InputConfig] = []
@@ -546,13 +554,13 @@ class TestsManager(BaseModel):
 class ForcingProviderPaths(BaseModel):
     model_config = ConfigDict(strict=True)
     forcing_provider: Literal["csv", "bmi"]
-    forcing_region: str  # e.g. CONUS. TODO restrict choices
+    global_domain: str  # e.g. CONUS. TODO restrict choices
 
     def get_forcing_dir(self, gage_id: str | None) -> str | None:
         if self.forcing_provider == "csv":
             if not gage_id:
                 raise ValueError("Gage ID must be provided when forcing_provider == 'csv'")
-            return c.CSV_FORCING_DIR_FORMAT.format(forcing_region=self.forcing_region, gage_id=gage_id)
+            return c.CSV_FORCING_DIR_FORMAT.format(global_domain=self.global_domain, gage_id=gage_id)
         elif self.forcing_provider == "bmi":
             return None
         else:

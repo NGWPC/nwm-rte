@@ -61,4 +61,9 @@ aws s3 cp "${TEST_RUN_CONFIG__CALIBRATION__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROO
 # curl -O --output-dir "${WORKFLOW_INPUT_CONFIG_ROOT}/" "https://raw.githubusercontent.com/NGWPC/nwm-msw-mgr/development/src/mswm/example_inputs/forecast/input_forecast.config"
 aws s3 cp "${TEST_RUN_CONFIG__FORECAST__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROOT}/"
 
+### Data for oCONUS NWM
+aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_Alaska.nc" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/"
+aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_Hawaii.nc" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/"
+aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_PuertoRico.nc" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/geo_em_Puerto_Rico.nc"
+
 exit 0

@@ -16,7 +16,7 @@ FORCING_PROVIDER_DEFAULT = "bmi"
 FORCING_PROVIDER_CHOICES = [FORCING_PROVIDER_DEFAULT, "csv"]
 
 # For CSV forcing
-CSV_FORCING_DIR_FORMAT = "/s3/ngwpc-forcing/aorc_2.2/{forcing_region}/Gage_{gage_id}/"
+CSV_FORCING_DIR_FORMAT = "/s3/ngwpc-forcing/aorc_2.2/{global_domain}/Gage_{gage_id}/"
 # For BMI forcing
 FORCING_TEMPLATE_DIR = "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
 FORCING_ROOT_DIR = "/ngen-app/data"
@@ -30,6 +30,7 @@ DEFAULT_GAGE_ID = "01123000"
 DEFAULT_GAGE_VINTAGE = "2025_Mar_14_21_14_37"
 
 MODELS = "noah-owp-modular,cfe-s"
+# MODELS = "snow-17,noah-owp-modular,smp,lasam,t-route"
 DEFAULT_MAIN_DIR = "/ngwpc/run_ngen"
 
 
@@ -94,13 +95,12 @@ CALIB_FORCING_CONFIGURATION_TYPES = [
     CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT,
 ]
 
-CALIB_FORCING_REGION_DEFAULT = "CONUS"
-CALIB_FORCING_REGION_CHOICES = [
-    CALIB_FORCING_REGION_DEFAULT,
-    # "Alaska",
-    # "Hawaii",
-    # "PR",
-    # "Puerto_Rico",
+CALIB_GLOBAL_DOMAIN_DEFAULT = "CONUS"
+CALIB_GLOBAL_DOMAIN_CHOICES = [
+    CALIB_GLOBAL_DOMAIN_DEFAULT,
+    "Alaska",
+    "Hawaii",
+    "Puerto_Rico",
 ]
 
 # For construction of DataFileConfig

@@ -41,6 +41,7 @@ class ForecastVars:
     """Configuration object for forecast runs."""
     gage_id: str
     fcst_run_name: str
+    global_domain: str
     formulation_suffix: str
     root_dir: str
     calib_input_config: str
@@ -92,6 +93,7 @@ def set_vars(options) -> ForecastVars:
     return ForecastVars(
         gage_id=options.gage or c.DEFAULT_GAGE_ID,
         fcst_run_name=options.fcst_run_name or c.DEFAULT_FORECAST_RUN_NAME,
+        global_domain=options.global_domain or c.CALIB_GLOBAL_DOMAIN_DEFAULT,
         formulation_suffix=options.forcing_provider or c.FORCING_PROVIDER_DEFAULT,
         coldstart_start=options.cold_start_datetime,
         coldstart_end=options.cycle_datetime if options.cold_start_datetime else None,
@@ -112,7 +114,7 @@ def create_kwargs(forecast_vars) -> dict:
 
     fpp = ForcingProviderPaths(
         forcing_provider=forecast_vars.formulation_suffix,
-        forcing_region="CONUS",
+        global_domain=forecast_vars.global_domain,
     )
 
     realization_kwargs = {
@@ -128,6 +130,7 @@ def create_kwargs(forecast_vars) -> dict:
                 forcing_configuration=forecast_vars.forcing_configuration,
                 cycle_datetime=cycle_datetime,
                 cold_start_datetime=None,
+                global_domain=forecast_vars.global_domain,
             )
         )
     }
@@ -192,7 +195,14 @@ def get_options(args_list=None):
     :return: Namespace object containing the parsed arguments.
     """
     parser = argparse.ArgumentParser()
-
+    parser.add_argument(
+        "-gdomain",
+        "--global_domain",
+        type=str,
+        default=c.CALIB_GLOBAL_DOMAIN_DEFAULT,
+        choices=c.CALIB_GLOBAL_DOMAIN_CHOICES,
+        help=f"Global domain/region of forcing data. Default={c.CALIB_GLOBAL_DOMAIN_DEFAULT}",
+    )
     parser.add_argument('-forcing_provider',
                         type=str,
                         help=f"Forcing provider to use, e.g., 'bmi' or 'csv'. Default: {repr(c.FORCING_PROVIDER_DEFAULT)}")
