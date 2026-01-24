@@ -41,17 +41,17 @@ elif [[ $NGEN_SOURCE_MODE == "build_from_remote" ]]; then
     NGEN_SOURCE_LOCAL="${REPOS_COMMON_ROOT__HOST}/ngen_tmp"
     NGEN_GIT_URL="https://github.com/NGWPC/ngen.git"
     if test -d ${NGEN_SOURCE_LOCAL}; then
-        info "Pulling branch ${NGEN_BASE__REMOTE_REPO_TAG} and submodules from ${NGEN_SOURCE_LOCAL}"
+        info "Pulling branch ${NGEN_BASE} and submodules from ${NGEN_SOURCE_LOCAL}"
         ( \
             cd ${NGEN_SOURCE_LOCAL} && \
             git fetch && \
-            git checkout ${NGEN_BASE__REMOTE_REPO_TAG} && \
+            git checkout ${NGEN_BASE} && \
             git pull --recurse-submodules && \
             git submodule update --init --recursive \
         )
     else
-        info "Cloning branch ${NGEN_BASE__REMOTE_REPO_TAG} from ${NGEN_GIT_URL}"
-        git clone --branch ${NGEN_BASE__REMOTE_REPO_TAG} --recurse-submodules "${NGEN_GIT_URL}" "${NGEN_SOURCE_LOCAL}"
+        info "Cloning branch ${NGEN_BASE} from ${NGEN_GIT_URL}"
+        git clone --branch ${NGEN_BASE} --recurse-submodules "${NGEN_GIT_URL}" "${NGEN_SOURCE_LOCAL}"
     fi
     # ./ngen_update_submodules.sh "${NGEN_SOURCE_LOCAL}"
     ( cd ${NGEN_SOURCE_LOCAL} && sudo docker build -t ${NGEN_BASE_IMAGE} . )
@@ -65,6 +65,14 @@ fi
 info "Building image: ${TARGET_IMAGE_NAME}"
 sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target ${STAGE} \
     --build-arg NGEN_BASE_IMAGE=${NGEN_BASE_IMAGE} \
+    --build-arg REPO_TAG_FCST_MGR="${REPO_TAG_FCST_MGR}" \
+    --build-arg REPO_TAG_MSW_MGR="${REPO_TAG_MSW_MGR}" \
+    --build-arg REPO_TAG_CAL_MGR="${REPO_TAG_CAL_MGR}" \
+    --build-arg REPO_TAG_REGION_MGR="${REPO_TAG_REGION_MGR}" \
+    --build-arg REPO_TAG_DATA_ASSIM_ENGINE="${REPO_TAG_DATA_ASSIM_ENGINE}" \
+    --build-arg REPO_TAG_NGEN_FORCING="${REPO_TAG_NGEN_FORCING}" \
+    --build-arg REPO_TAG_EVAL_MGR="${REPO_TAG_EVAL}" \
+    --build-arg REPO_TAG_VERF_MGR="${REPO_TAG_VERF}" \
     ".." \
     |& tee "docker_logs/build/${TARGET_IMAGE_NAME}-${TIMESTAMP}.log"
 

@@ -17,15 +17,53 @@ RUN mkdir -p /ngen-app/git-info
 ### Activate the venv
 ENV PATH="${PYTHON_ENV}:${PATH}"
 RUN python -m pip install --upgrade pip
+
 ### For VS Code debugger
 # RUN pip install debugpy
 # RUN dnf install -y gdb
 
-RUN --mount=type=bind,source=./,destination=/src_ngwpc "/src_ngwpc/nwm-rte/bin_mounted/install_packages.sh" "base"
+
+### Install nwm packages
+
+ARG REPO_TAG_FCST_MGR
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-fcst-mgr,dst=/src_ngwpc/nwm-fcst-mgr \
+    "/src_ngwpc/nwm-rte/install_package.sh" "python" "nwm-fcst-mgr" "${REPO_TAG_FCST_MGR}" ""
+
+ARG REPO_TAG_MSW_MGR
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-msw-mgr,dst=/src_ngwpc/nwm-msw-mgr \
+    "/src_ngwpc/nwm-rte/install_package.sh" "python" "nwm-msw-mgr" "${REPO_TAG_MSW_MGR}" ""
+
+ARG REPO_TAG_CAL_MGR
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-cal-mgr,dst=/src_ngwpc/nwm-cal-mgr \
+    "/src_ngwpc/nwm-rte/install_package.sh" "python" "nwm-cal-mgr" "${REPO_TAG_CAL_MGR}" ""
+
+ARG REPO_TAG_REGION_MGR
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-region-mgr,dst=/src_ngwpc/nwm-region-mgr \
+    "/src_ngwpc/nwm-rte/install_package.sh" "python" "nwm-region-mgr" "${REPO_TAG_REGION_MGR}" "[parreg]"
+
+ARG REPO_TAG_DATA_ASSIM_ENGINE
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
+    --mount=type=bind,src=data-assimilation-engine,dst=/src_ngwpc/data-assimilation-engine \
+    "/src_ngwpc/nwm-rte/install_package.sh" "python" "data-assimilation-engine" "${REPO_TAG_DATA_ASSIM_ENGINE}" ""
+
+## ngen-forcing package is included with the starting base image,
+## but it can be reinstalled from another branch or from local, like the other packages.
+ARG REPO_TAG_NGEN_FORCING
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
+    --mount=type=bind,src=ngen-forcing,dst=/src_ngwpc/ngen-forcing \
+    "/src_ngwpc/nwm-rte/install_package.sh" "python" "ngen-forcing" "${REPO_TAG_NGEN_FORCING}" ""
+## NOTE if installing ngen-forcing from local and editing additional package "nextgen_forcings_ewts",
+## then need this below RUN as well, until this additional ewts package can be incorporated into the top-level pip install.
+# COPY "ngen-forcing/" "/tmp/ngen-forcing/"
+# RUN python -m pip install "/tmp/ngen-forcing/nextgen_forcings_ewts/"
+
 
 ##################################################
-############ BEGIN SECOND STAGE: Adding a separate Python venv for nwm.eval and nwm.verf
-
+#### BEGIN SECOND STAGE: Adding a separate Python venv for nwm.eval and nwm.verf
 FROM ngen_rte_base AS ngen_rte_eval_verf
 
 # Call modules like `python_eval_verf -m nwm.verf`
@@ -46,7 +84,15 @@ ENV PYTHONPATH_SAVED=${PYTHONPATH}
 ENV PATH="${EVAL_VERF_PYTHON_BIN_DIR}:${PATH}"
 ENV PYTHONPATH="${EVAL_VERF_PYTHON_BIN_DIR}/lib/python3.11/site-packages"
 
-RUN --mount=type=bind,source=./,destination=/src_ngwpc "/src_ngwpc/nwm-rte/bin_mounted/install_packages.sh" "eval_verf"
+ARG REPO_TAG_VERF
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
+    --mount=type=bind,src=ngen-forcing,dst=/src_ngwpc/ngen-forcing \
+    "/src_ngwpc/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "nwm-verf" "${REPO_TAG_VERF}" ""
+
+ARG REPO_TAG_EVAL
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
+    --mount=type=bind,src=ngen-forcing,dst=/src_ngwpc/ngen-forcing \
+    "/src_ngwpc/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "nwm-eval-mgr" "${REPO_TAG_EVAL}" ""
 
 ##############################
 #### Clean up: reset PATH and PYTHONPATH
