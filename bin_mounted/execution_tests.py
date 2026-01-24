@@ -100,18 +100,11 @@ def get_test_configs__calibration(
         calib_parameter_file=c.CALIB_PARAMETERS_DIR,
     )
 
-    # Convert gpkg to EPSG:4326 (oCONUS gpkgs have non-5070, non-4326 projections). TODO move this logic into lower-level repo.
-    hydrofab_file_native = f"{c.HYDROFABRIC_DIR}/2.2/{global_domain}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg"
-    hydrofab_file_4326 = os.path.splitext(hydrofab_file_native)[0] + "_4326.gpkg"
-    cmd = ["ogr2ogr", "-overwrite", "-f", "GPKG", "-t_srs", "EPSG:4326", hydrofab_file_4326, hydrofab_file_native]
-    print(f"Converting geopackage to 4326: {cmd}")
-    subprocess.check_call(cmd)
-
     datafile = DataFileConfig(
         **(
             c.DATAFILE_LIBS
             | {
-                "hydrofab_file": hydrofab_file_4326
+                "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{global_domain}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg"
             }
         ),
     )
