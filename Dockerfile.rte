@@ -1,38 +1,10 @@
-#
-# TODO have remote vs local be parameterized in config file rather than requiring switching comment blocks here.
-#
-
 
 ARG NGEN_BASE_IMAGE="ghcr.io/ngwpc/ngen:latest"
 FROM $NGEN_BASE_IMAGE AS ngen_rte_base
 
-### Additional user args, these have to be after the FROM
-ARG REPO_TAG__FCST_MGR
-ARG REPO_TAG__MSW_MGR
-ARG REPO_TAG__CAL_MGR
-ARG REPO_TAG__REGION_MGR
-ARG REPO_TAG__VERF_MGR
-ARG REPO_TAG__EVAL_MGR
-ARG REPO_TAG__DATA_ASSIM_ENGINE
-ARG REPO_TAG__NGEN_FORCING
-
 ### Static args
 ARG PYTHON_ENV="/ngen-app/ngen-python/bin"
-ARG GITHUB_ORG_URL="https://github.com/NGWPC"
-ARG GITHUBUSERCONTENT_ORG_URL="https://raw.githubusercontent.com/NGWPC"
-ARG REPO_NAME__FCST_MGR="nwm-fcst-mgr"
-ARG REPO_NAME__CAL_MGR="nwm-cal-mgr"
-ARG REPO_NAME__MSW_MGR="nwm-msw-mgr"
-ARG REPO_NAME__REGION_MGR="nwm-region-mgr"
-ARG REPO_NAME__VERF_MGR="nwm-verf"
-ARG REPO_NAME__EVAL_MGR="nwm-eval-mgr"
-ARG REPO_NAME__DATA_ASSIM_ENGINE="data-assimilation-engine"
-ARG REPO_NAME__NGEN_FORCING="ngen-forcing"
-
-ARG MSWM_MODULE_PARAMETER_FILES="/ngen-app/${REPO_NAME__MSW_MGR}/src/mswm/module_parameter_files"
-
 ARG PYTHON_VERSION_STR="python3.11"
-
 ENV PIP_NO_CACHE_DIR=1
 ENV OMPI_ALLOW_RUN_AS_ROOT=1
 ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
@@ -49,88 +21,48 @@ RUN python -m pip install --upgrade pip
 RUN pip install debugpy
 RUN dnf install -y gdb
 
-
-##############################
-##### Forecast Manager
-
-## From GitHub
-RUN python -m pip install "${GITHUB_ORG_URL}/${REPO_NAME__FCST_MGR}/archive/${REPO_TAG__FCST_MGR}.tar.gz"
-RUN python add_git_info.py --remote_repo_name "${REPO_NAME__FCST_MGR}" --remote_branch "${REPO_TAG__FCST_MGR}" --output_dir "/ngen-app/git-info"
-
-## From local
-# COPY "${REPO_NAME__FCST_MGR}/" "/tmp/${REPO_NAME__FCST_MGR}/"
-# RUN python -m pip install "/tmp/${REPO_NAME__FCST_MGR}" && \
-#     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__FCST_MGR}" --output_dir "/ngen-app/git-info" && \
-#     rm -rf "/tmp/${REPO_NAME__FCST_MGR}"
+### For VS Code debugger
+# RUN pip install debugpy
+# RUN dnf install -y gdb
 
 
-##############################
-##### Model Setup Workflow Manager
+### Install nwm packages
 
-## From GitHub
-RUN python -m pip install "${GITHUB_ORG_URL}/${REPO_NAME__MSW_MGR}/archive/${REPO_TAG__MSW_MGR}.tar.gz"
-RUN python add_git_info.py --remote_repo_name "${REPO_NAME__MSW_MGR}" --remote_branch "${REPO_TAG__MSW_MGR}" --output_dir "/ngen-app/git-info"
-RUN mkdir -p `dirname ${MSWM_MODULE_PARAMETER_FILES}`
+ARG REPO_TAG_FCST_MGR
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-fcst-mgr,dst=/src_ngwpc/nwm-fcst-mgr \
+    "/src_ngwpc/nwm-rte/install_package.sh" "python" "nwm-fcst-mgr" "${REPO_TAG_FCST_MGR}" ""
 
-## From local
-# COPY "${REPO_NAME__MSW_MGR}/" "/tmp/${REPO_NAME__MSW_MGR}/"
-# RUN python -m pip install "/tmp/${REPO_NAME__MSW_MGR}" && \
-#     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__MSW_MGR}" --output_dir "/ngen-app/git-info" && \
-#     rm -rf "/tmp/${REPO_NAME__MSW_MGR}"
+ARG REPO_TAG_MSW_MGR
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-msw-mgr,dst=/src_ngwpc/nwm-msw-mgr \
+    "/src_ngwpc/nwm-rte/install_package.sh" "python" "nwm-msw-mgr" "${REPO_TAG_MSW_MGR}" ""
 
-##############################
-#### Calibration Manager
+ARG REPO_TAG_CAL_MGR
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-cal-mgr,dst=/src_ngwpc/nwm-cal-mgr \
+    "/src_ngwpc/nwm-rte/install_package.sh" "python" "nwm-cal-mgr" "${REPO_TAG_CAL_MGR}" ""
 
-## From GitHub
-RUN python -m pip install "${GITHUB_ORG_URL}/${REPO_NAME__CAL_MGR}/archive/${REPO_TAG__CAL_MGR}.tar.gz"
-RUN python add_git_info.py --remote_repo_name "${REPO_NAME__CAL_MGR}" --remote_branch "${REPO_TAG__CAL_MGR}" --output_dir "/ngen-app/git-info"
+ARG REPO_TAG_REGION_MGR
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-region-mgr,dst=/src_ngwpc/nwm-region-mgr \
+    "/src_ngwpc/nwm-rte/install_package.sh" "python" "nwm-region-mgr" "${REPO_TAG_REGION_MGR}" "[parreg]"
 
-## From local
-# COPY "${REPO_NAME__CAL_MGR}/" "/tmp/${REPO_NAME__CAL_MGR}/"
-# RUN python -m pip install "/tmp/${REPO_NAME__CAL_MGR}" && \
-#     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__CAL_MGR}" --output_dir "/ngen-app/git-info" && \
-#     rm -rf "/tmp/${REPO_NAME__CAL_MGR}/"
+ARG REPO_TAG_DATA_ASSIM_ENGINE
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
+    --mount=type=bind,src=data-assimilation-engine,dst=/src_ngwpc/data-assimilation-engine \
+    "/src_ngwpc/nwm-rte/install_package.sh" "python" "data-assimilation-engine" "${REPO_TAG_DATA_ASSIM_ENGINE}" ""
 
-##############################
-#### Region Manager
-
-## From GitHub
-RUN python -m pip install "nwm_region_mgr[parreg] @ git+${GITHUB_ORG_URL}/${REPO_NAME__REGION_MGR}@${REPO_TAG__REGION_MGR}"
-RUN python add_git_info.py --remote_repo_name "${REPO_NAME__REGION_MGR}" --remote_branch "${REPO_TAG__REGION_MGR}" --output_dir "/ngen-app/git-info"
-
-## From local
-# COPY "${REPO_NAME__REGION_MGR}/" "/tmp/${REPO_NAME__REGION_MGR}/"
-# RUN python -m pip install "/tmp/${REPO_NAME__REGION_MGR}[parreg]" && \
-#     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__REGION_MGR}" --output_dir "/ngen-app/git-info" && \
-#     rm -rf "/tmp/${REPO_NAME__REGION_MGR}/"
-
-##############################
-#### Data Assimilation Engine
-
-## From GitHub
-RUN python -m pip install "data_assimilation_engine @ git+${GITHUB_ORG_URL}/${REPO_NAME__DATA_ASSIM_ENGINE}@${REPO_TAG__DATA_ASSIM_ENGINE}"
-RUN python add_git_info.py --remote_repo_name "${REPO_NAME__DATA_ASSIM_ENGINE}" --remote_branch "${REPO_TAG__DATA_ASSIM_ENGINE}" --output_dir "/ngen-app/git-info"
-# RUN python -m pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__DATA_ASSIM_ENGINE}@${REPO_TAG__DATA_ASSIM_ENGINE}"
-
-
-##############################
-##### NGEN Forcing (overriding Python package that comes with ngen base image)
-
-# ## From GitHub
-# RUN python -m pip install "git+${GITHUB_ORG_URL}/${REPO_NAME__NGEN_FORCING}@${REPO_TAG__NGEN_FORCING}"
-# RUN python add_git_info.py --remote_repo_name "${REPO_NAME__NGEN_FORCING}" --remote_branch "${REPO_TAG__NGEN_FORCING}" --output_dir "/ngen-app/git-info"
-
-# ## From local
-# COPY "${REPO_NAME__NGEN_FORCING}/" "/tmp/${REPO_NAME__NGEN_FORCING}/"
-# RUN python -m pip install "/tmp/${REPO_NAME__NGEN_FORCING}" && \
-#     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__NGEN_FORCING}" --output_dir "/ngen-app/git-info" && \
-#     rm -rf "/tmp/${REPO_NAME__NGEN_FORCING}/"
-
+## ngen-forcing package is included with the starting base image,
+## but it can be reinstalled from another branch or from local.
+ARG REPO_TAG_NGEN_FORCING
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
+    --mount=type=bind,src=ngen-forcing,dst=/src_ngwpc/ngen-forcing \
+    "/src_ngwpc/nwm-rte/install_package.sh" "python" "ngen-forcing" "${REPO_TAG_NGEN_FORCING}" ""
 
 
 ##################################################
-############ BEGIN SECOND STAGE: Adding a separate Python venv for nwm.eval and nwm.verf
-
+#### BEGIN SECOND STAGE: Adding a separate Python venv for nwm.eval and nwm.verf
 FROM ngen_rte_base AS ngen_rte_eval_verf
 
 # Call modules like `python_eval_verf -m nwm.verf`
@@ -151,34 +83,15 @@ ENV PYTHONPATH_SAVED=${PYTHONPATH}
 ENV PATH="${EVAL_VERF_PYTHON_BIN_DIR}:${PATH}"
 ENV PYTHONPATH="${EVAL_VERF_PYTHON_BIN_DIR}/lib/python3.11/site-packages"
 
+ARG REPO_TAG_VERF
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
+    --mount=type=bind,src=ngen-forcing,dst=/src_ngwpc/ngen-forcing \
+    "/src_ngwpc/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "nwm-verf" "${REPO_TAG_VERF}" ""
 
-##############################
-#### Verification Manager (requires data-assimilation-engine)
-
-## From GitHub
-RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "nwm.verf @ git+${GITHUB_ORG_URL}/${REPO_NAME__VERF_MGR}@${REPO_TAG__VERF_MGR}"
-RUN python add_git_info.py --remote_repo_name "${REPO_NAME__VERF_MGR}" --remote_branch "${REPO_TAG__VERF_MGR}" --output_dir "/ngen-app/git-info"
-
-# ## From local
-# COPY "${REPO_NAME__VERF_MGR}/" "/tmp/${REPO_NAME__VERF_MGR}/"
-# RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "/tmp/${REPO_NAME__VERF_MGR}" && \
-#     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__VERF_MGR}" --output_dir "/ngen-app/git-info" && \
-#     rm -rf "/tmp/${REPO_NAME__VERF_MGR}/"
-
-
-##############################
-#### Evaluation Manager
-
-## From GitHub
-RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "nwm.eval @ git+${GITHUB_ORG_URL}/${REPO_NAME__EVAL_MGR}@${REPO_TAG__EVAL_MGR}"
-RUN python add_git_info.py --remote_repo_name "${REPO_NAME__EVAL_MGR}" --remote_branch "${REPO_TAG__EVAL_MGR}" --output_dir "/ngen-app/git-info"
-
-## From Local
-# COPY "${REPO_NAME__EVAL_MGR}/" "/tmp/${REPO_NAME__EVAL_MGR}/"
-# RUN ${EVAL_VERF_PYTHON_BIN_FILE} -m pip install "/tmp/${REPO_NAME__EVAL_MGR}" && \
-#     python add_git_info.py --local_repo_path "/tmp/${REPO_NAME__EVAL_MGR}" --output_dir "/ngen-app/git-info" && \
-#     rm -rf "/tmp/${REPO_NAME__EVAL_MGR}/"
-
+ARG REPO_TAG_EVAL
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
+    --mount=type=bind,src=ngen-forcing,dst=/src_ngwpc/ngen-forcing \
+    "/src_ngwpc/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "nwm-eval-mgr" "${REPO_TAG_EVAL}" ""
 
 ##############################
 #### Clean up: reset PATH and PYTHONPATH

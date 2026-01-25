@@ -7,12 +7,22 @@ source config.bashrc
 
 mkdir -p "${REPOS_COMMON_ROOT__HOST}"
 
+SSH_OR_HTTPS=$1
+
 ### Clone repos unless they already exist on disk
 function clone_if_not_exists {
+    if [ "$SSH_OR_HTTPS" == "ssh" ]; then
+        url="git@github.com:NGWPC/${1}.git"
+    elif [ "$SSH_OR_HTTPS" == "https" ]; then
+        url="https://github.com/NGWPC/${1}.git"
+    else
+        fatal "Expected 'ssh' or 'https' for position 1 CLI arg, but got: '$SSH_OR_HTTPS'"
+    fi
+
     if test -d "${REPOS_COMMON_ROOT__HOST}/${1}"; then
         info "Already exists: ${REPOS_COMMON_ROOT__HOST}/${1}"
     else
-        ( cd "${REPOS_COMMON_ROOT__HOST}" && git clone --recurse-submodules "git@github.com:NGWPC/${1}.git" )
+        ( cd "${REPOS_COMMON_ROOT__HOST}" && git clone --recurse-submodules "${url}" )
     fi
     # ( cd "${REPOS_COMMON_ROOT__HOST}/${1}" && git checkout development && git pull --recurse-submodules && git submodule update --init --recursive )
 }
