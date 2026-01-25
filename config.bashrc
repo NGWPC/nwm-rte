@@ -20,8 +20,8 @@ REPO_TAG_CAL_MGR="development"
 REPO_TAG_REGION_MGR="development"
 REPO_TAG_DATA_ASSIM_ENGINE="development"
 REPO_TAG_NGEN_FORCING=""  # For reinstall of ngen-forcing Python package
-REPO_TAG_EVAL="development"
 REPO_TAG_VERF="development"
+REPO_TAG_EVAL="development"
 
 ### NGEN_SOURCE_MODE:
 ### Choose from: ["ghcr", "existing_local_tag", "build_from_local", "build_from_remote"]
