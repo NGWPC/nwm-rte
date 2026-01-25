@@ -51,15 +51,11 @@ RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/inst
     "/src_ngwpc/nwm-rte/install_package.sh" "python" "data-assimilation-engine" "${REPO_TAG_DATA_ASSIM_ENGINE}" ""
 
 ## ngen-forcing package is included with the starting base image,
-## but it can be reinstalled from another branch or from local, like the other packages.
+## but it can be reinstalled from another branch or from local.
 ARG REPO_TAG_NGEN_FORCING
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
     --mount=type=bind,src=ngen-forcing,dst=/src_ngwpc/ngen-forcing \
     "/src_ngwpc/nwm-rte/install_package.sh" "python" "ngen-forcing" "${REPO_TAG_NGEN_FORCING}" ""
-## NOTE if installing ngen-forcing from local and editing additional package "nextgen_forcings_ewts",
-## then need this below RUN as well, until this additional ewts package can be incorporated into the top-level pip install.
-# COPY "ngen-forcing/" "/tmp/ngen-forcing/"
-# RUN python -m pip install "/tmp/ngen-forcing/nextgen_forcings_ewts/"
 
 
 ##################################################
