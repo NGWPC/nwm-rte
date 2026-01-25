@@ -27,16 +27,16 @@ REPO_TAG_VERF="development"
 ### Choose from: ["ghcr", "existing_local_tag", "build_from_local", "build_from_remote"]
 ### default to "ghcr", as this is used in the GHA Workflow
 
+## NGEN_BASE__REMOTE_GHCR_TAG is only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.
 NGEN_SOURCE_MODE="ghcr"
-## Only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.
 NGEN_BASE__REMOTE_GHCR_TAG="latest"
 
+## NGEN_BASE__EXISTING_LOCAL_TAG is only used when ngen image source mode is "existing_local_tag". Choose any existing local image tag.
 # NGEN_SOURCE_MODE="existing_local_tag"
-## Only used when ngen image source mode is "existing_local_tag". Choose any existing local image tag.
 # NGEN_BASE__EXISTING_LOCAL_TAG="ngen:localdebug"
 
+## NGEN_BASE is only used when ngen source mode is "build_from_remote". Choose any GitHub tag (or branch name).
 # NGEN_SOURCE_MODE="build_from_remote"
-## Only used when ngen source mode is "build_from_remote". Choose any GitHub tag (or branch name).
 # NGEN_BASE="development"
 
 # NGEN_SOURCE_MODE="build_from_local"
