@@ -71,8 +71,8 @@ sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target
     --build-arg REPO_TAG_REGION_MGR="${REPO_TAG_REGION_MGR}" \
     --build-arg REPO_TAG_DATA_ASSIM_ENGINE="${REPO_TAG_DATA_ASSIM_ENGINE}" \
     --build-arg REPO_TAG_NGEN_FORCING="${REPO_TAG_NGEN_FORCING}" \
-    --build-arg REPO_TAG_EVAL_MGR="${REPO_TAG_EVAL}" \
-    --build-arg REPO_TAG_VERF_MGR="${REPO_TAG_VERF}" \
+    --build-arg REPO_TAG_VERF="${REPO_TAG_VERF}" \
+    --build-arg REPO_TAG_EVAL="${REPO_TAG_EVAL}" \
     ".." \
     |& tee "docker_logs/build/${TARGET_IMAGE_NAME}-${TIMESTAMP}.log"
 

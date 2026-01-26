@@ -85,12 +85,12 @@ ENV PYTHONPATH="${EVAL_VERF_PYTHON_BIN_DIR}/lib/python3.11/site-packages"
 
 ARG REPO_TAG_VERF
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
-    --mount=type=bind,src=ngen-forcing,dst=/src_ngwpc/ngen-forcing \
+    --mount=type=bind,src=nwm-verf,dst=/src_ngwpc/nwm-verf \
     "/src_ngwpc/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "nwm-verf" "${REPO_TAG_VERF}" ""
 
 ARG REPO_TAG_EVAL
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
-    --mount=type=bind,src=ngen-forcing,dst=/src_ngwpc/ngen-forcing \
+    --mount=type=bind,src=nwm-eval-mgr,dst=/src_ngwpc/nwm-eval-mgr \
     "/src_ngwpc/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "nwm-eval-mgr" "${REPO_TAG_EVAL}" ""
 
 ##############################
