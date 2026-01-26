@@ -23,22 +23,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Clone required repositories
-        run: |
-          # Source config to get REPOS_COMMON_ROOT__HOST
-          source config.bashrc
-          mkdir -p "${REPOS_COMMON_ROOT__HOST}"
-
-          # Clone only the repos needed for noop mode (ngen-forcing and nwm-msw-mgr for volume mounts)
-          # Use HTTPS instead of SSH for GitHub Actions
-          cd "${REPOS_COMMON_ROOT__HOST}"
-
-          if [ ! -d "ngen-forcing" ]; then
-            git clone --recurse-submodules https://github.com/NGWPC/ngen-forcing.git
-          fi
-
-          if [ ! -d "nwm-msw-mgr" ]; then
-            git clone https://github.com/NGWPC/nwm-msw-mgr.git
-          fi
+        run: ./setup_clone_repos.sh https
 
       - name: Build RTE image
         run: |
@@ -58,7 +43,7 @@ jobs:
 
       - name: Create minimal test directories
         run: |
-          # Source config to get REPOS_COMMON_ROOT__HOST
+          # Source config to get RUN_NGEN_ROOT__HOST
           source config.bashrc
           # Create minimal directory structure needed for noop mode
           mkdir -p "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh"
