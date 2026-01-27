@@ -8,7 +8,6 @@ from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
 import utils_testing_setup
 from execution_tests import (
-    TestPaths,
     TestStat,
     LogParser,
     ForecastTest,
@@ -20,7 +19,7 @@ from execution_tests import (
 from pydantic.json import pydantic_encoder
 
 import consts as c
-from configs import RTETestConfig
+from configs import RTETestConfig, TestPaths
 
 print = functools.partial(print, flush=True)
 
