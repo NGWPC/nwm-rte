@@ -7,7 +7,7 @@ set -euo pipefail
 # Submits the regionalization workflow to SLURM using sbatch.
 #
 # Usage:
-#   cd [working_directory, e.g., /ngen-oe/$USER, /ngen-dev/$USER]
+#   cd [working_directory, e.g., /ngen-oe/$USER/run_region, /ngen-dev/$USER/run_region, or ~/run_region]
 #   /ngencerf-app/nwm-rte/sbatch_run_region.sh CONFIG_DIR OPTION [--dry-run]
 #
 # Examples:

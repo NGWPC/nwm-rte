@@ -81,7 +81,6 @@ $formreg && selected=$((selected + 1))
 $ngen    && selected=$((selected + 1))
 $eval    && selected=$((selected + 1))
 
-echo "Number of selected workflow steps: $selected"
 if [[ $selected -eq 0 ]]; then
     echo "ERROR: No workflow specified to run. Use -h or --help for usage information." >&2
     exit 1
@@ -131,8 +130,8 @@ function docker_run {
         -v "${CONFIG_DIR}:${CONFIG_DIR}" \
         -v "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/:/ngen-app/data/esmf_mesh/" \
         -v "${RUN_NGEN_ROOT__HOST}/data/scratch:/ngen-app/data/scratch" \
-        -v "${WORK_DIR}/docker_logs/run:/ngencerf/data/run-logs" \
-        -v "${WORK_DIR}/bin_mounted/:/ngen-app/bin/bin_mounted/" \
+        -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
+        -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
         -v "${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr:/ngen-app/nwm-region-mgr" \
         -v "${REPOS_COMMON_ROOT__HOST}/nwm-verf/data:/ngen-app/nwm-verf/data" \
         --rm ${TARGET_IMAGE_NAME} "$@"
