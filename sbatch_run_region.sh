@@ -30,9 +30,9 @@ set -euo pipefail
 # -----------------------------------------------------------------------------
 
 CONFIG_DIR="$(realpath "${1:-configs}")"
-OPTION="${2:-parreg}"      # formerly MODE
+OPTION="${2:-parreg}"   
 
-# determine script dir (assuming run_region.sh is also located there)
+# determine parent dir of current run script (assuming run_region.sh is also located here)
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 # Determine number of nodes and tasks from YAML
@@ -96,7 +96,7 @@ echo "===== sbatch script ====="
 echo "$SBATCH_SCRIPT"
 echo "========================="
 
-# If dry run, print the sbatch script and exit
+# If dry run, exit
 if [[ "${3:-}" == "--dry-run" ]]; then
     echo "DRY RUN"
     exit 0
