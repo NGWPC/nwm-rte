@@ -1,64 +1,68 @@
+"""RTE regionalization workflow runner script."""
+
 import argparse
 import functools
+import logging
 import os
 import subprocess
-import sys
-
 
 print = functools.partial(print, flush=True)
 
-# EVAL_VERF_PYTHON_BINARY = "python_eval_verf"
-EVAL_VERF_PYTHON_BINARY = "/ngen-app/venvs/eval_verf/bin/python"
+EVAL_VERF_PYTHON_BINARY = "/ngencerf-app/venvs/eval_verf/bin/python"
 
-REG_REPO_ROOT = "/ngen-app/nwm-region-mgr"
+REG_REPO_ROOT = "/ngencerf-app/nwm-region-mgr"
 REG_CONFIGS = f"{REG_REPO_ROOT}/configs"
-VERF_DATA = "/ngen-app/nwm-verf/data"
+VERF_DATA = "/ngencerf-app/nwm-verf/data"
+
+# Create a logger for RTE
+logger = logging.getLogger("RTE")
+logger.setLevel(logging.INFO)
+if not logger.handlers:
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
 
 
 def run_cmd(cmd: list[str], check: bool = True, cwd: str = None, shell: bool = False):
     if shell:
         cmd = " ".join(cmd)
-    msg = f"\n\n######## vvvvv\n{__file__}\nshell={shell}\ncwd={cwd}\nrunning={repr(cmd)}\n######## ^^^^^ \n"
-    print(msg)
+
+    msg = f"Running regionalization command: {' '.join(cmd) if isinstance(cmd, (list, tuple)) else str(cmd)}"
+    logger.info(msg)
+
     subprocess.run(cmd, check=check, cwd=cwd, shell=shell)
 
 
-def main(parreg: bool, formreg: bool, ngen: bool, run_eval: bool):
+def main(config_dir: str, parreg: bool, formreg: bool, ngen: bool, run_eval: bool):
     if parreg:
         run_cmd(
             cmd=[
-                "python",
-                f"{REG_REPO_ROOT}/regionalization.py",
-                REG_CONFIGS,
-                "region",
+                "python -um nwm_region_mgr",
+                config_dir,
+                "parreg",
             ],
-            cwd=REG_REPO_ROOT,
+            shell=True,
         )
 
     if formreg:
         run_cmd(
             cmd=[
-                "python",
-                f"{REG_REPO_ROOT}/regionalization.py",
-                REG_CONFIGS,
+                "python -um nwm_region_mgr",
+                config_dir,
                 "formreg",
             ],
-            cwd=REG_REPO_ROOT,
+            shell=True,
         )
 
     if ngen:
-        cmd = [
-            "python",
-            f"{REG_REPO_ROOT}/run_ngen_vpu_docker.py",
-            "--config_ngen",
-            f"{REG_CONFIGS}/config_ngen.yaml",
-        ]
-        # TODO remove the ulimit settings eventually when not needed
-        ulimit_extras = ["ulimit", "-n", "60000", "&&"]
-        cmd = ulimit_extras + cmd
         run_cmd(
-            cmd=cmd,
-            cwd=REG_REPO_ROOT,
+            cmd=[
+                "python -um nwm_region_mgr",
+                config_dir,
+                "ngen",
+            ],
             shell=True,
         )
 
@@ -68,7 +72,7 @@ def main(parreg: bool, formreg: bool, ngen: bool, run_eval: bool):
                 EVAL_VERF_PYTHON_BINARY,
                 "-um",
                 "nwm.verf",
-                f"{REG_CONFIGS}/config_eval.yaml",
+                f"{config_dir}/config_eval.yaml",
             ],
             shell=True,
         )
@@ -76,16 +80,17 @@ def main(parreg: bool, formreg: bool, ngen: bool, run_eval: bool):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--config_dir", type=str, default=REG_CONFIGS)
     parser.add_argument("--parreg", action="store_true")
     parser.add_argument("--formreg", action="store_true")
     parser.add_argument("--ngen", action="store_true")
     # eval is a python keyword so dest should be something else
     parser.add_argument("--eval", dest="run_eval", action="store_true")
     args = parser.parse_args()
-    print(f"{__file__}: args: {args}")
+    # print(f"{__file__}: args: {args}")
 
     assert os.path.exists(REG_REPO_ROOT)
-    assert os.path.exists(REG_CONFIGS)
+    assert os.path.exists(args.config_dir)
     assert os.path.exists(VERF_DATA)
 
     main(**vars(args))
