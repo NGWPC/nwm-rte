@@ -165,17 +165,17 @@ function docker_run {
         -v "$WORKSPACE_ROOT:$WORKSPACE_ROOT" \
         -w "$WORK_DIR" \
         -v "${CONFIG_DIR}:${CONFIG_DIR}" \
-        -v "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/:/ngen-app/data/esmf_mesh/" \
-        -v "${RUN_NGEN_ROOT__HOST}/data/scratch:/ngen-app/data/scratch" \
+        -v "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/:/ngencerf-app/data/esmf_mesh/" \
+        -v "${RUN_NGEN_ROOT__HOST}/data/scratch:/ngencerf-app/data/scratch" \
         -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
-        -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
-        -v "${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr:/ngen-app/nwm-region-mgr" \
-        -v "${REPOS_COMMON_ROOT__HOST}/nwm-verf/data:/ngen-app/nwm-verf/data" \
+        -v "$(pwd)/bin_mounted/:/ngencerf-app/bin/bin_mounted/" \
+        -v "${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr:/ngencerf-app/nwm-region-mgr" \
+        -v "${REPOS_COMMON_ROOT__HOST}/nwm-verf/data:/ngencerf-app/nwm-verf/data" \
         --rm ${TARGET_IMAGE_NAME} "$@"
 }
 
 # Run requested workflow steps
-SCRIPT="/ngen-app/bin/bin_mounted/run_regionalization.py"
+SCRIPT="/ngencerf-app/bin/bin_mounted/run_regionalization.py"
 
 $parreg  && docker_run "$SCRIPT" -c "$CONFIG_DIR" --parreg
 $formreg && docker_run "$SCRIPT" -c "$CONFIG_DIR" --formreg

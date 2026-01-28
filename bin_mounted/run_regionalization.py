@@ -8,11 +8,11 @@ import subprocess
 
 print = functools.partial(print, flush=True)
 
-EVAL_VERF_PYTHON_BINARY = "/ngen-app/venvs/eval_verf/bin/python"
+EVAL_VERF_PYTHON_BINARY = "/ngencerf-app/venvs/eval_verf/bin/python"
 
-REG_REPO_ROOT = "/ngen-app/nwm-region-mgr"
+REG_REPO_ROOT = "/ngencerf-app/nwm-region-mgr"
 REG_CONFIGS = f"{REG_REPO_ROOT}/configs"
-VERF_DATA = "/ngen-app/nwm-verf/data"
+VERF_DATA = "/ngencerf-app/nwm-verf/data"
 
 # Create a logger for RTE
 logger = logging.getLogger("RTE")
