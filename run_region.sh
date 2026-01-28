@@ -1,6 +1,44 @@
 #!/bin/bash
 set -euo pipefail
 
+# -----------------------------------------------------------------------------
+# run_region.sh
+#
+# Script to run NWM regionalization, NGEN simulation, and evaluation workflows
+# based on command line options.
+#
+# Usage:
+#   cd [working_directory, e.g., /ngen-oe/$USER/run_region, /ngen-dev/$USER/run_region, or ~/run_region]
+#   [NWM-RTE_ROOT]/run_region.sh [OPTIONS]
+#
+# Examples:
+#   # Run parameter regionalization with configs in ./configs
+#   /ngencerf-app/nwm-rte/run_region.sh --parreg -c configs
+#   ~/ngwpc/nwm-rte/run_region.sh --parreg -c configs
+#   ~/ngwpc/nwm-rte/run_region.sh -p -c configs
+#
+#   # Run formulation regionalization only
+#   /ngencerf-app/nwm-rte/run_region.sh --formreg -c configs
+#
+#  # Run NGEN simulation
+#   /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs
+#
+#  # Run evaluation
+#   /ngencerf-app/nwm-rte/run_region.sh --eval -c configs
+#
+#  # Run multiple steps
+#   /ngencerf-app/nwm-rte/run_region.sh --parreg --ngen -c configs
+#
+# Arguments:
+#   -p, --parreg         Run parameter regionalization (includes formulation)
+#   -f, --formreg        Run formulation regionalization only
+#   -n, --ngen           Run NGEN simulation
+#   -e, --eval           Run evaluation
+#   -c, --config_dir DIR Set config directory (default: ./configs)
+#   -r, --repos PATH     Set root directory for NGWPC repos (default: auto-detect)
+#   -h, --help           Show this message and exit
+# -----------------------------------------------------------------------------
+
 # Initial context. Note USER_NAME and USER_DIR can be different on some systems
 WORK_DIR="$(realpath .)"  
 USER_NAME="${USER%%@*}"
@@ -94,7 +132,6 @@ if [[ ! -d "$RTE_REPO_DIR" ]]; then
 fi
 
 # Determine config directory
-CONFIG_DIR="${WORK_DIR}/${CONFIG_DIR%/}"  # remove trailing slash if any
 CONFIG_DIR="$(realpath "$CONFIG_DIR")"
 if [[ ! -d "$CONFIG_DIR" ]]; then
     echo "ERROR: Config directory not found at $CONFIG_DIR" >&2

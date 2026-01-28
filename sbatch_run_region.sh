@@ -55,10 +55,10 @@ if n_procs <= 0:
     n_procs = cores_per_node
 
 nodes = math.ceil(n_procs / cores_per_node)
-tasks_per_node = math.ceil(n_procs / nodes)
-cpus_per_task = math.ceil(n_procs / (nodes * tasks_per_node))
+ntasks = n_procs
+cpus_per_task = 1
 
-print(nodes, nodes*tasks_per_node, cpus_per_task)
+print(nodes, ntasks, cpus_per_task)
 EOF
 )
 
