@@ -53,9 +53,9 @@ jobs:
       - name: Run RTE in noop mode
         run: |
           # Source the script to get docker_run function and config
-          source ./ngen_rte_run.sh
+          source ./run.sh
           # Call docker_run with --noop flag
-          docker_run "/ngen-app/bin/bin_mounted/run_tests.py" --noop
+          docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --noop
 
       - name: Verify success
         run: |
