@@ -9,6 +9,9 @@ if [ "$install_debuggers" = "YES" ]; then
     pip install debugpy
     echo "Installing gdb via dnf"
     dnf install -y gdb
+    yum install yum-utils -y
+    yum-config-manager --enable baseos-debug
+    debuginfo-install python3.11
 
 elif [ "$install_debuggers" = "NO" ]; then
     echo "Not installing debuggers"
