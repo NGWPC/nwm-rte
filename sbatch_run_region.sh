@@ -87,7 +87,7 @@ echo "Nodes allocated: \$SLURM_JOB_NUM_NODES"
 echo "Running on directory: \$SLURM_SUBMIT_DIR"
 echo "Job ID: \$SLURM_JOB_ID"
 
-cd "\$SCRIPT_DIR"
+cd "${SCRIPT_DIR}"
 ./run_region.sh --${OPTION} -c "${CONFIG_DIR}"
 EOF
 )

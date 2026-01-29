@@ -52,10 +52,10 @@ fi
 
 # Determine WORKSPACE_ROOT and REPOS_DIR based on environment
 if [[ -d "/ngen-dev/$USER_NAME" ]]; then
-    REPOS_DIR="/ngencerf-app/nwm-rte"
+    REPOS_DIR="/ngencerf-app"
     export WORKSPACE_ROOT="/ngen-dev/$USER_NAME"
 elif [[ -d "/ngen-oe/$USER_NAME" ]]; then
-    REPOS_DIR="/ngencerf-app/nwm-rte"
+    REPOS_DIR="/ngencerf-app"
     export WORKSPACE_ROOT="/ngen-oe/$USER_NAME"
 else
     WORKSPACE_ROOT="$HOME"
