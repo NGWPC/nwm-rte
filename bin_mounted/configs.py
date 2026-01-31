@@ -2,6 +2,12 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass
 from typing import Literal
 
+from mswm.utils.input_configuration import (
+    InputConfig,
+    ForcingConfig,
+)
+from mswm.utils import settings as mswm_settings
+
 from pydantic import BaseModel, ConfigDict, Field
 
 import consts as c
@@ -89,9 +95,7 @@ class RTECalibConfig(BaseModel):
     def model_post_init(self, __context) -> None:
         errors = []
 
-        gage_id, gage_vintage, errors_extend = parse_gage_id__gage_vintage(
-            self.gage_id__gage_vintage
-        )
+        gage_id, gage_vintage, errors_extend = parse_gage_id__gage_vintage(self.gage_id__gage_vintage)
         errors.extend(errors_extend)
 
         if errors:
@@ -99,6 +103,72 @@ class RTECalibConfig(BaseModel):
 
         self.gage_id = gage_id
         self.gage_vintage = gage_vintage
+
+
+class RTEForecastConfig(BaseModel):
+    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
+
+    delete_scratch_and_mesh_first: bool
+    delete_forcing_raw_input_first: bool
+    skip_calibration: bool
+    objective_function: c.CalObjective
+    optimization_algorithm: c.CalOptimizationAlgo
+    gage_id: str
+    global_domain: str
+    forcing_static_dir: str
+    forcing_provider: str
+    cycle_datetime: datetime | None
+    cold_start_datetime: datetime | None
+    forcing_configuration: str
+    fcst_run_name: str
+    nprocs: int = Field(ge=1)
+
+    # Derived paths (not passed to __init__)
+    root_dir: str = Field(init=False, default=None)
+    run_dir_base: str = Field(init=False, default=None)
+    run_dir_input: str = Field(init=False, default=None)
+    run_dir_output: str = Field(init=False, default=None)
+    ngen_log_file: str = Field(init=False, default=None)
+    valid_best_yaml: str = Field(init=False, default=None)
+
+    # Other derived attrs (not passed to __init__)
+    realization_builder_kwargs: dict = Field(init=False, default=None)
+
+    def model_post_init(self, __context) -> None:
+        self.root_dir = "/ngen-app/data"
+        self.run_dir_base = f"{self.root_dir}/run_ngen/test_{self.forcing_provider}/{self.gage_id}"
+        self.run_dir_input = f"{self.run_dir_base}/Input"
+        self.run_dir_output = f"{self.run_dir_base}/Output"
+        self.ngen_log_file = f"{self.run_dir_base}/logs/ngen.log"
+        self.valid_best_yaml = f"{self.run_dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
+
+        self.realization_builder_kwargs = self._make_realization_builder_kwargs()
+
+    def _make_realization_builder_kwargs(self) -> dict:
+        fpp = ForcingProviderPaths(
+            forcing_provider=self.forcing_provider,
+            global_domain=self.global_domain,
+            forcing_static_dir=self.forcing_static_dir
+        )
+        realization_kwargs = {
+            # "input_path": forecast_vars.forecast_input_config,
+            "valid_yaml": self.valid_best_yaml,
+            "fcst_run_name": self.fcst_run_name,
+            "config_overrides": InputConfig(
+                Forcing=ForcingConfig(
+                    forcing_provider=fpp.forcing_provider,
+                    forcing_dir=fpp.get_forcing_dir(gage_id=self.gage_id),
+                    forcing_template_dir="/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/",
+                    root_dir=self.root_dir,
+                    forcing_configuration=self.forcing_configuration,
+                    cycle_datetime=self.cycle_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT),
+                    cold_start_datetime=None,
+                    global_domain=self.global_domain,
+                    forcing_static_dir=self.forcing_static_dir,
+                )
+            ),
+        }
+        return realization_kwargs
 
 
 class RTETestConfig(BaseModel):
@@ -189,7 +259,9 @@ class RTETestConfig(BaseModel):
         return ret
 
 
-def parse_gage_id__gage_vintage(gage_id__gage_vintage: tuple[str, str]) -> tuple[str | None, str | None, list[Exception]]:
+def parse_gage_id__gage_vintage(
+    gage_id__gage_vintage: tuple[str, str],
+) -> tuple[str | None, str | None, list[Exception]]:
     errors: list[Exception] = []
     gage_id, gage_vintage = gage_id__gage_vintage
 
@@ -235,20 +307,24 @@ class ForcingProviderPaths(BaseModel):
 class CalibTimeWindows(BaseModel):
     """Calibration time windows defined by a start time
     and some timedelta offsets."""
+
     calib_sim_start: datetime = Field(default=c.CALIB_SIM_START_DEFAULT)
     calib_sim_duration: timedelta = Field(default=c.CALIB_SIM_DURATION_DEFAULT)
-    calib_eval_delayment: timedelta = Field(default=c.CALIB_EVAL_DELAYMENT_DEFAULT)  # Delayed start from calibration simulation, for warmup
-    valid_sim_advancement: timedelta = Field(default=c.VALID_SIM_ADVANCEMENT_DEFAULT)  # Validation simulation starts before calibration simulation, by this amount
-    valid_eval_curtailment: timedelta = Field(default=c.VALID_EVAL_CURTAILMENT_DEFAULT)  # Valid eval window cut short by this amount
+    # Delayed start from calibration simulation, for warmup
+    calib_eval_delayment: timedelta = Field(default=c.CALIB_EVAL_DELAYMENT_DEFAULT)
+    # Validation simulation starts before calibration simulation, by this amount
+    valid_sim_advancement: timedelta = Field(default=c.VALID_SIM_ADVANCEMENT_DEFAULT)
+    # Valid eval window cut short by this amount
+    valid_eval_curtailment: timedelta = Field(default=c.VALID_EVAL_CURTAILMENT_DEFAULT)
 
     @property
     def calib_sim_end(self) -> datetime:
         return self.calib_sim_start + self.calib_sim_duration
-    
+
     @property
     def calib_eval_start(self) -> datetime:
         return self.calib_sim_start + self.calib_eval_delayment
-    
+
     @property
     def calib_eval_end(self) -> datetime:
         return self.calib_sim_end
@@ -256,19 +332,19 @@ class CalibTimeWindows(BaseModel):
     @property
     def valid_sim_start(self) -> datetime:
         return self.calib_sim_start - self.valid_sim_advancement
-    
+
     @property
     def valid_sim_end(self) -> datetime:
         return self.calib_sim_end
-    
+
     @property
     def valid_eval_start(self) -> datetime:
         return self.calib_sim_start
-    
+
     @property
     def valid_eval_end(self) -> datetime:
         return self.calib_sim_end - self.valid_eval_curtailment
-    
+
     @property
     def full_eval_start(self) -> datetime:
         return self.calib_sim_start
