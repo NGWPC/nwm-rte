@@ -112,7 +112,7 @@ elif [[ $NGEN_SOURCE_MODE == "build_from_remote" ]]; then
         "${NGEN_BASE_REMOTE_TAG}" \
         "Dockerfile" \
         "ngen:remote-${NGEN_BASE_REMOTE_TAG}" \
-        ${NGEN_BASE_IMAGE}
+        ${ngen_build_arg}
 
 else
     fatal "Not implemented: NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE}"
