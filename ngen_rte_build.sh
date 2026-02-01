@@ -86,31 +86,33 @@ elif [[ $NGEN_SOURCE_MODE == "build_from_local" ]]; then
     ( cd ${NGEN_SOURCE_LOCAL}; sudo docker build -t ${NGEN_BASE_IMAGE} . )
 
 elif [[ $NGEN_SOURCE_MODE == "build_from_remote" ]]; then
-    if [[ -z "${NGEN_BASE}" ]]; then
-        fatal "NGEN_BASE cannot be empty when NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE}"
+    if [[ -z "${NGEN_BASE_REMOTE_TAG}" ]]; then
+        fatal "NGEN_BASE_REMOTE_TAG cannot be empty when NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE}"
     fi
+
+    NGEN_BASE_IMAGE="ngen:remote-${NGEN_BASE_REMOTE_TAG}"
 
     ngen_build_arg=""  # Initialize empty, then replace if building forcing from source
 
-    if [[ -n "${FORCING_BASE}" ]]; then
+    if [[ -n "${FORCING_BASE_REMOTE_TAG}" ]]; then
         # Build forcing first. NOTE: requires that the ngen Dockerfile has an ARG NGEN_FORCING_IMAGE
         build_intermediary_image_from_remote_source \
             "ngen-forcing" \
-            "${FORCING_BASE}" \
+            "${FORCING_BASE_REMOTE_TAG}" \
             "Dockerfile.bmi-forcings" \
-            "ngen-forcing:remote-${FORCING_BASE}" \
+            "ngen-forcing:remote-${FORCING_BASE_REMOTE_TAG}" \
             ""
 
-        ngen_build_arg="NGEN_FORCING_IMAGE=ngen-forcing:remote-${FORCING_BASE}"
+        ngen_build_arg="NGEN_FORCING_IMAGE=ngen-forcing:remote-${FORCING_BASE_REMOTE_TAG}"
     fi
 
     # Build ngen
     build_intermediary_image_from_remote_source \
         "ngen" \
-        "${NGEN_BASE}" \
+        "${NGEN_BASE_REMOTE_TAG}" \
         "Dockerfile" \
-        "ngen:remote-${NGEN_BASE}" \
-        "${ngen_build_arg}"
+        "ngen:remote-${NGEN_BASE_REMOTE_TAG}" \
+        ${NGEN_BASE_IMAGE}
 
 else
     fatal "Not implemented: NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE}"
