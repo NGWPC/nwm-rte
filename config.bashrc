@@ -42,6 +42,7 @@ NGEN_BASE__REMOTE_GHCR_TAG="latest"
 
 ## NGEN_BASE is only used when ngen source mode is "build_from_remote". Choose any GitHub tag (or branch name).
 # NGEN_SOURCE_MODE="build_from_remote"
+# FORCING_BASE="development"
 # NGEN_BASE="development"
 
 # NGEN_SOURCE_MODE="build_from_local"
