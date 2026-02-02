@@ -2,13 +2,18 @@
 
 set -euo pipefail
 
+### NOTE:
+###     Values set with this pattern use the existing value if it already exists,
+###     e.g. as an OS env var, otherwise they use the string specified in this config file.
+###         Pattern: VAR_NAME=${VAR_NAME:-"some_string"}
+
 ### Docker cache directive passed to `docker build` call. Choose from: ["--no-cache", ""]
-# NO_CACHE="--no-cache"
-NO_CACHE=""
+# NO_CACHE=${NO_CACHE:-"--no-cache"}
+NO_CACHE=${NO_CACHE:-""}
 
 ### STAGE: See Dockerfile.rte for acceptable values
-# STAGE="ngen_rte_base"
-STAGE="ngen_rte_eval_verf"
+# STAGE=${STAGE:-"ngen_rte_base"}
+STAGE=${STAGE:-"ngen_rte_eval_verf"}
 
 ### Passed to ./install_debuggers.sh, causes pip package `debugpy` and dnf package `gdb` to be installed.
 INSTALL_DEBUGGERS="NO"
@@ -19,33 +24,33 @@ INSTALL_DEBUGGERS="NO"
 ### If empty string, package will be skipped (not installed at all).
 ### If "LOCAL", will install from current state of local code.
 ### If any other string, will install from GitHub, and the string must be a valid tag, branch, or commit.
-REPO_TAG_FCST_MGR="development"
-REPO_TAG_MSW_MGR="development"
-REPO_TAG_CAL_MGR="development"
-REPO_TAG_REGION_MGR="development"
-REPO_TAG_DATA_ASSIM_ENGINE="development"
-REPO_TAG_NGEN_FORCING=""  # For reinstall of ngen-forcing Python package
-REPO_TAG_VERF="development"
-REPO_TAG_EVAL="development"
+REPO_TAG_FCST_MGR=${REPO_TAG_FCST_MGR:-"development"}
+REPO_TAG_MSW_MGR=${REPO_TAG_MSW_MGR:-"development"}
+REPO_TAG_CAL_MGR=${REPO_TAG_CAL_MGR:-"development"}
+REPO_TAG_REGION_MGR=${REPO_TAG_REGION_MGR:-"development"}
+REPO_TAG_DATA_ASSIM_ENGINE=${REPO_TAG_DATA_ASSIM_ENGINE:-"development"}
+REPO_TAG_NGEN_FORCING=${REPO_TAG_NGEN_FORCING:-""}  # For reinstall of ngen-forcing Python package}
+REPO_TAG_VERF=${REPO_TAG_VERF:-"development"}
+REPO_TAG_EVAL=${REPO_TAG_EVAL:-"development"}
 
 ### NGEN_SOURCE_MODE:
 ### Choose from: ["ghcr", "existing_local_tag", "build_from_local", "build_from_remote"]
 ### default to "ghcr", as this is used in the GHA Workflow
 
 ## NGEN_BASE__REMOTE_GHCR_TAG is only used when ngen image source mode is "ghcr". Choose any ghcr tag, e.g. "latest" or a commit hash.
-NGEN_SOURCE_MODE="ghcr"
-NGEN_BASE__REMOTE_GHCR_TAG="latest"
+NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"ghcr"}
+NGEN_BASE__REMOTE_GHCR_TAG=${NGEN_BASE__REMOTE_GHCR_TAG:-"latest"}
 
 ## NGEN_BASE__EXISTING_LOCAL_TAG is only used when ngen image source mode is "existing_local_tag". Choose any existing local image tag.
-# NGEN_SOURCE_MODE="existing_local_tag"
-# NGEN_BASE__EXISTING_LOCAL_TAG="ngen:localdebug"
+# NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"existing_local_tag"}
+NGEN_BASE__EXISTING_LOCAL_TAG=${NGEN_BASE__EXISTING_LOCAL_TAG:-"ngen:localdebug"}
 
 ## NGEN_BASE_REMOTE_TAG is only used when ngen source mode is "build_from_remote". Choose any GitHub tag (or branch name).
-# NGEN_SOURCE_MODE="build_from_remote"
-# FORCING_BASE_REMOTE_TAG="development"
-# NGEN_BASE_REMOTE_TAG="development"
+# NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"build_from_remote"}
+FORCING_BASE_REMOTE_TAG=${FORCING_BASE_REMOTE_TAG:-"development"}
+NGEN_BASE_REMOTE_TAG=${NGEN_BASE_REMOTE_TAG:-"development"}
 
-# NGEN_SOURCE_MODE="build_from_local"
+# NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"build_from_local"}
 
 ### Freeform name tag for image that is built in this process
 TARGET_IMAGE_NAME="ngen_rte:${NGEN_SOURCE_MODE}"
