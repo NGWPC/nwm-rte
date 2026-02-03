@@ -12,9 +12,9 @@ extras=$4
 
 if [ "$repo_remote_tag" = "LOCAL" ]; then
     echo "Installing '${repo_name}' from local with extras '${extras}'"
-    tar zcf "/tmp/${repo_name}.tgz" -C "/src_ngwpc" "${repo_name}" \
-        && (set -x; ${python_exe} -m pip install /tmp/${repo_name}.tgz${extras}) \
-        && rm /tmp/${repo_name}.tgz
+    tar --exclude=".venv" -zcf "/tmp/${repo_name}.tgz" -C "/src_ngwpc" "${repo_name}"
+    (set -x; ${python_exe} -m pip install /tmp/${repo_name}.tgz${extras})
+    rm /tmp/${repo_name}.tgz
     ${python_exe} add_git_info.py --local_repo_path "/src_ngwpc/${repo_name}" --output_dir "/ngen-app/git-info"
 
 # elif tag is not empty
