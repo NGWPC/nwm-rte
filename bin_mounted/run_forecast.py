@@ -44,7 +44,7 @@ def build_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
 
 
 def datetime_type(datetime_str) -> datetime:
-    return datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
+    return datetime.strptime(datetime_str, mswm_settings.DEFAULT_DATETIME_FORMAT)
 
 
 def main(cfg: RTEForecastConfig):
