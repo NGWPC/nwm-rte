@@ -65,6 +65,7 @@ fi
 info "Building image: ${TARGET_IMAGE_NAME}"
 sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target ${STAGE} \
     --build-arg NGEN_BASE_IMAGE=${NGEN_BASE_IMAGE} \
+    --build-arg INSTALL_DEBUGGERS=${INSTALL_DEBUGGERS} \
     --build-arg REPO_TAG_FCST_MGR="${REPO_TAG_FCST_MGR}" \
     --build-arg REPO_TAG_MSW_MGR="${REPO_TAG_MSW_MGR}" \
     --build-arg REPO_TAG_CAL_MGR="${REPO_TAG_CAL_MGR}" \

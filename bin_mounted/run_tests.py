@@ -8,7 +8,6 @@ from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
 import utils_testing_setup
 from execution_tests import (
-    TestPaths,
     TestStat,
     LogParser,
     ForecastTest,
@@ -17,17 +16,15 @@ from execution_tests import (
     get_test_configs__calibration,
     make_parallel_config,
 )
-from pseudocode import SavedState_Pseudo, StateManager_Pseudo
-from pydantic import validate_call
 from pydantic.json import pydantic_encoder
 
 import consts as c
-from configs import RTETestConfig
+from configs import RTETestConfig, TestPaths
 
 print = functools.partial(print, flush=True)
 
 
-def calibrations__build_and_run(cfg: RTETestConfig) -> None:
+def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
     """Build calibration realizations and run them as tests."""
     for obj_func, optim_algo, _ in cfg.get_calib_permutations():
         for config_overrides in get_test_configs__calibration(
@@ -36,6 +33,8 @@ def calibrations__build_and_run(cfg: RTETestConfig) -> None:
             gage_vintage=cfg.gage_vintage,
             obj_func=obj_func,
             optim_algo=optim_algo,
+            global_domain=cfg.global_domain,
+            forcing_provider=cfg.forcing_provider,
         ):
             fc = config_overrides.Forcing.forcing_configuration
             msg_prefix = f"Calibration {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
@@ -54,17 +53,23 @@ def calibrations__build_and_run(cfg: RTETestConfig) -> None:
                 print(f"### {msg_prefix}: executing calibration realization")
                 t.execute_calibration(cfg.quit_calibration_after_duration)
 
-            cfg.tests_manager.add_forecast_test(t)
+            tm.add_forecast_test(t)
 
 
-def forecasts__build_and_run(cfg: RTETestConfig, cs: bool) -> None:
+def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> None:
     """
     Using ForecastTest, build and execute a list of forecast realizations.
     tests_manager is modified in-place, so some test results may be available if this function is interrupted.
     `cs` controls whether coldstart is used (not `cfg.do_coldstart`).
     """
     for obj_func, optim_algo, test_paths in cfg.get_calib_permutations():
-        test_configs = get_test_configs__forecast(cfg.do_all_forcing_configs, use_cold_start=cs)
+        test_configs = get_test_configs__forecast(
+            cfg.do_all_forcing_configs,
+            use_cold_start=cs,
+            gage_id=cfg.gage_id,
+            global_domain=cfg.global_domain,
+            forcing_provider=cfg.forcing_provider,
+        )
         for tc in test_configs:
             if cfg.quit_forecast_after_forcing_running and tc.Forcing.forcing_configuration != "short_range":
                 raise NotImplementedError(
@@ -103,17 +108,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, cs: bool) -> None:
                     quit_forecast_after_duration=cfg.quit_forecast_after_duration,
                 )
 
-                if t.rb.input_configs_class.Forcing.forcing_configuration == "standard_ana":
-                    cfg.state_manager.add_saved_state(
-                        SavedState_Pseudo(
-                            dt=datetime.strptime(
-                                t.rb.input_configs_class.Forcing.cycle_datetime, DEFAULT_DATETIME_FORMAT
-                            ),
-                            realization_file=t.rb.realization_file,
-                        )
-                    )
-
-            cfg.tests_manager.add_forecast_test(t)
+            tm.add_forecast_test(t)
 
 
 def run_noop_mode() -> None:
@@ -140,15 +135,17 @@ def main(cfg: RTETestConfig):
     if cfg.delete_forcing_raw_input_first:
         utils_testing_setup.delete_forcing_raw_inputs()
 
+    tm = TestsManager()
+
     if cfg.do_calibration:
-        calibrations__build_and_run(cfg)
+        calibrations__build_and_run(cfg, tm)
 
     if cfg.do_coldstart:
-        forecasts__build_and_run(cfg, cs=True)
+        forecasts__build_and_run(cfg, tm, cs=True)
     if not cfg.skip_forecast:
-        forecasts__build_and_run(cfg, cs=False)
+        forecasts__build_and_run(cfg, tm, cs=False)
 
-    cfg.tests_manager.evaluate_test_results()
+    tm.evaluate_test_results()
 
 
 if __name__ == "__main__":
@@ -261,6 +258,22 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         nargs=2,
         default=[c.DEFAULT_GAGE_ID, c.DEFAULT_GAGE_VINTAGE],
         help=f"Calibration gage ID and gage vintage (2 args). If not provided, then these defaults will be used: {c.DEFAULT_GAGE_ID}, {c.DEFAULT_GAGE_VINTAGE} will be used.",
+    )
+    parser.add_argument(
+        "-fregion",
+        "--global_domain",
+        type=str,
+        default=c.CALIB_GLOBAL_DOMAIN_DEFAULT,
+        choices=c.CALIB_GLOBAL_DOMAIN_CHOICES,
+        help=f"Region of forcing data. Default={c.CALIB_GLOBAL_DOMAIN_DEFAULT}",
+    )
+    parser.add_argument(
+        "-fprovider",
+        "--forcing_provider",
+        type=str,
+        default=c.FORCING_PROVIDER_DEFAULT,
+        choices=c.FORCING_PROVIDER_CHOICES,
+        help=f"Forcing provider. Default={c.FORCING_PROVIDER_DEFAULT}",
     )
     parser.add_argument(
         "--noop",

@@ -18,9 +18,10 @@ RUN mkdir -p /ngen-app/git-info
 ENV PATH="${PYTHON_ENV}:${PATH}"
 RUN python -m pip install --upgrade pip
 
-### For VS Code debugger
-# RUN pip install debugpy
-# RUN dnf install -y gdb
+### Install debuggers if specified
+ARG INSTALL_DEBUGGERS
+RUN --mount=type=bind,src=nwm-rte/install_debuggers.sh,dst=/src_ngwpc/nwm-rte/install_debuggers.sh \
+    "/src_ngwpc/nwm-rte/install_debuggers.sh" "${INSTALL_DEBUGGERS}"
 
 
 ### Install nwm packages

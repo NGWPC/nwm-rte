@@ -22,7 +22,7 @@ from mswm.utils import settings as mswm_settings
 
 from nwm_fcst_mgr.forecast import run_fcst
 
-from execution_tests import make_parallel_config
+from execution_tests import make_parallel_config, ForcingProviderPaths
 import consts as c
 
 
@@ -41,6 +41,7 @@ class ForecastVars:
     """Configuration object for forecast runs."""
     gage_id: str
     fcst_run_name: str
+    global_domain: str
     formulation_suffix: str
     root_dir: str
     calib_input_config: str
@@ -92,7 +93,8 @@ def set_vars(options) -> ForecastVars:
     return ForecastVars(
         gage_id=options.gage or c.DEFAULT_GAGE_ID,
         fcst_run_name=options.fcst_run_name or c.DEFAULT_FORECAST_RUN_NAME,
-        formulation_suffix=options.forcing_provider or c.DEFAULT_FORCING_PROVIDER,
+        global_domain=options.global_domain or c.CALIB_GLOBAL_DOMAIN_DEFAULT,
+        formulation_suffix=options.forcing_provider or c.FORCING_PROVIDER_DEFAULT,
         coldstart_start=options.cold_start_datetime,
         coldstart_end=options.cycle_datetime if options.cold_start_datetime else None,
         forecast_initial_cycle_datetime=options.cycle_datetime,
@@ -109,19 +111,26 @@ def create_kwargs(forecast_vars) -> dict:
         cycle_datetime = forecast_vars.forecast_initial_cycle_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT)
     else:
         cycle_datetime = None
+
+    fpp = ForcingProviderPaths(
+        forcing_provider=forecast_vars.formulation_suffix,
+        global_domain=forecast_vars.global_domain,
+    )
+
     realization_kwargs = {
         #"input_path": forecast_vars.forecast_input_config,
         "valid_yaml": forecast_vars.valid_best_yaml,
         "fcst_run_name": forecast_vars.fcst_run_name,
         "config_overrides" : InputConfig(
             Forcing=ForcingConfig(
-                forcing_provider=forecast_vars.formulation_suffix,
-                forcing_dir=None,
+                forcing_provider=fpp.forcing_provider,
+                forcing_dir=fpp.get_forcing_dir(gage_id=forecast_vars.gage_id),
                 forcing_template_dir="/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/",
                 root_dir=forecast_vars.root_dir,
                 forcing_configuration=forecast_vars.forcing_configuration,
                 cycle_datetime=cycle_datetime,
                 cold_start_datetime=None,
+                global_domain=forecast_vars.global_domain,
             )
         )
     }
@@ -186,10 +195,17 @@ def get_options(args_list=None):
     :return: Namespace object containing the parsed arguments.
     """
     parser = argparse.ArgumentParser()
-
+    parser.add_argument(
+        "-gdomain",
+        "--global_domain",
+        type=str,
+        default=c.CALIB_GLOBAL_DOMAIN_DEFAULT,
+        choices=c.CALIB_GLOBAL_DOMAIN_CHOICES,
+        help=f"Global domain/region of forcing data. Default={c.CALIB_GLOBAL_DOMAIN_DEFAULT}",
+    )
     parser.add_argument('-forcing_provider',
                         type=str,
-                        help=f"Forcing provider to use, e.g., 'bmi' or 'csv'. Default: {repr(c.DEFAULT_FORCING_PROVIDER)}")
+                        help=f"Forcing provider to use, e.g., 'bmi' or 'csv'. Default: {repr(c.FORCING_PROVIDER_DEFAULT)}")
     parser.add_argument('-cycle_datetime',
                         type=datetime_type,
                         help="start date/time for the forecast cycle (also the end of cold-start if chosen), format= 'YYYY-MM-DD HH:mm:ss'. If omitted, a forecast will not be ran.")

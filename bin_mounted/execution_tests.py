@@ -7,7 +7,6 @@ import os
 import subprocess
 import time
 import traceback
-from typing import Any, Dict
 
 from pydantic import BaseModel, Field, ConfigDict, validate_call
 from pydantic.json import pydantic_encoder
@@ -26,59 +25,10 @@ from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 from nwm_fcst_mgr.forecast import ForecastExecutionManager, RunStatus
 from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
 
+from configs import ForcingProviderPaths, CalibTimeWindows
 import consts as c
 
-
 print = functools.partial(print, flush=True)
-
-
-@dataclass
-class TestPaths:
-    """
-    Paths dependent on calibration settings.
-    If iterating over a list of objective functions or optimization algorithms,
-    obj_func and optim_algo may need to be replaced on the fly during the iterations.
-    """
-
-    gage_id: str
-    gage_vintage: str
-    obj_func: c.CalObjective | None
-    optim_algo: c.CalOptimizationAlgo | None
-
-    def update_obj_func_and_optim_algo(self, obj_func: c.CalObjective, optim_algo: c.CalOptimizationAlgo) -> None:
-        self.obj_func = obj_func
-        self.optim_algo = optim_algo
-
-    @property
-    def dir_base(self) -> str:
-        if not (self.obj_func and self.optim_algo):
-            raise ValueError("obj_func and optim_algo must be set before calling this method")
-        return f"{c.DEFAULT_MAIN_DIR}/{self.obj_func.value}_{self.optim_algo.value}/{c.FORMULATION_NAME}/{self.gage_id}"
-
-    @property
-    def dir_input(self) -> str:
-        return f"{self.dir_base}/Input"
-
-    @property
-    def dir_output(self) -> str:
-        return f"{self.dir_base}/Output"
-
-    @property
-    def ngen_log_file(self) -> str:
-        return f"{self.dir_base}/logs/ngen.log"
-
-    @property
-    def calib_config_file(self) -> str:
-        return f"{self.dir_base}/configs/input_calibration_{c.DEFAULT_FORCING_PROVIDER}.config"
-        # return f"{self.dir_base}/configs/input_calibration_{c.DEFAULT_FORCING_PROVIDER}_short.config"
-
-    @property
-    def fcst_config_file(self) -> str:
-        return f"{self.dir_base}/configs/input_forecast.config"
-
-    @property
-    def valid_yaml(self) -> str:
-        return f"{self.dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
 
 
 def make_parallel_config(nprocs: int) -> ParallelConfig:
@@ -99,19 +49,29 @@ def get_test_configs__calibration(
     gage_vintage: str = c.DEFAULT_GAGE_VINTAGE,
     obj_func: c.CalObjective = c.CALIB_OBJECTIVE_FUNCTION,
     optim_algo: c.CalOptimizationAlgo = c.CALIB_OPTIMIZATION_ALGO,
+    forcing_config_types = c.CALIB_FORCING_CONFIGURATION_TYPES,
+    global_domain: str = c.CALIB_GLOBAL_DOMAIN_DEFAULT,
+    forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
+    windows: CalibTimeWindows = CalibTimeWindows(),
 ) -> list[InputConfig]:
-    configs: list[InputConfig] = []
+    fpp = ForcingProviderPaths(
+        forcing_provider=forcing_provider,
+        global_domain=global_domain,
+    )
 
-    forcing_config_types = c.CALIB_FORCING_CONFIGURATION_TYPES
+    configs: list[InputConfig] = []
 
     general = GeneralConfig(
         basin=gage_id,
         run_type="calibration",
         models=c.MODELS,
-        formulation=c.FORMULATION_NAME,
+        formulation=fpp.formulation_name,
         main_dir=c.DEFAULT_MAIN_DIR,
-        start_period=c.CALIB_EVAL_START.strftime(DDF),
-        end_period=c.CALIB_EVAL_END.strftime(DDF),
+        start_period=windows.calib_eval_start.strftime(DDF),
+        end_period=windows.calib_eval_end.strftime(DDF),
+        output_precip=True,
+        output_swe=True,
+        output_sm=True,
     )
 
     calibration = CalibConfig(
@@ -123,25 +83,28 @@ def get_test_configs__calibration(
         objective_function=obj_func,
         start_iteration=c.CALIB_ITER_START,
         number_iteration=c.CALIB_ITER_COUNT,
-        calib_start_period=c.CALIB_SIM_START.strftime(DDF),
-        calib_end_period=c.CALIB_SIM_END.strftime(DDF),
-        calib_eval_start_period=c.CALIB_EVAL_START.strftime(DDF),
-        calib_eval_end_period=c.CALIB_EVAL_END.strftime(DDF),
-        valid_start_period=c.VALID_SIM_START.strftime(DDF),
-        valid_end_period=c.VALID_SIM_END.strftime(DDF),
-        valid_eval_start_period=c.VALID_EVAL_START.strftime(DDF),
-        valid_eval_end_period=c.VALID_EVAL_END.strftime(DDF),
-        full_eval_start_period=c.VALID_SIM_START.strftime(DDF),
-        full_eval_end_period=c.VALID_SIM_END.strftime(DDF),
+        calib_output_vars=True,
+        valid_output_vars=True,
+        calib_start_period=windows.calib_sim_start.strftime(DDF),
+        calib_end_period=windows.calib_sim_end.strftime(DDF),
+        calib_eval_start_period=windows.calib_eval_start.strftime(DDF),
+        calib_eval_end_period=windows.calib_eval_end.strftime(DDF),
+        valid_start_period=windows.valid_sim_start.strftime(DDF),
+        valid_end_period=windows.valid_sim_end.strftime(DDF),
+        valid_eval_start_period=windows.valid_eval_start.strftime(DDF),
+        valid_eval_end_period=windows.valid_eval_end.strftime(DDF),
+        full_eval_start_period=windows.full_eval_start.strftime(DDF),
+        full_eval_end_period=windows.full_eval_end.strftime(DDF),
         save_plot_iter_freq=c.CALIB_SAVE_PLOT_ITER_FREQ,
         ngen_cerf=False,
         calib_parameter_file=c.CALIB_PARAMETERS_DIR,
     )
+
     datafile = DataFileConfig(
         **(
             c.DATAFILE_LIBS
             | {
-                "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/CONUS/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg"
+                "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{global_domain}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg"
             }
         ),
     )
@@ -149,13 +112,14 @@ def get_test_configs__calibration(
 
     for fct in forcing_config_types:
         forcing = ForcingConfig(
-            forcing_provider=c.DEFAULT_FORCING_PROVIDER,
-            forcing_dir=c.FORCING_DIR,
+            forcing_provider=fpp.forcing_provider,
+            forcing_dir=fpp.get_forcing_dir(gage_id),
             forcing_template_dir=c.FORCING_TEMPLATE_DIR,
             root_dir=c.FORCING_ROOT_DIR,
             forcing_configuration=fct,
             cycle_datetime=c.DT_START_FORECAST.strftime(DDF),
             cold_start_datetime=None,
+            global_domain=global_domain,
         )
         configs.append(
             InputConfig(General=general, Calibration=calibration, Forcing=forcing, DataFile=datafile, Parallel=parallel)
@@ -167,8 +131,16 @@ def get_test_configs__calibration(
 def get_test_configs__forecast(
     do_all_forcing_configs: bool,
     use_cold_start: bool = False,
+    gage_id: str = c.DEFAULT_GAGE_ID,
+    global_domain: str = c.CALIB_GLOBAL_DOMAIN_DEFAULT,
+    forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
     # nprocs: int = DEFAULT_NPROCS,
 ) -> list[InputConfig]:
+    fpp = ForcingProviderPaths(
+        forcing_provider=forcing_provider,
+        global_domain=global_domain,
+    )
+
     configs: list[InputConfig] = []
 
     if use_cold_start:
@@ -186,8 +158,8 @@ def get_test_configs__forecast(
     for fct in forcing_config_types:
         general = None
         forcing = ForcingConfig(
-            forcing_provider=c.DEFAULT_FORCING_PROVIDER,
-            forcing_dir=c.FORCING_DIR,
+            forcing_provider=fpp.forcing_provider,
+            forcing_dir=fpp.get_forcing_dir(gage_id),
             forcing_template_dir=c.FORCING_TEMPLATE_DIR,
             root_dir=c.FORCING_ROOT_DIR,
             forcing_configuration=fct,
@@ -325,6 +297,8 @@ class ForecastTest(BaseModel):
             str(self.rb.calib_config_file),
             "--log_path_overwrite",
             self.calib_log.path,
+            # "--worker_name",
+            # "000test",
         ]
         print(f"Running command args: {cmd}")
         try:

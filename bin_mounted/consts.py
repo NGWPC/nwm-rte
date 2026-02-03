@@ -12,12 +12,12 @@ DIR_FORCING_RAW_INPUT = "/ngen-app/data/raw_input"
 ### .config section [Forcing]
 DEFAULT_FORECAST_RUN_NAME = "fcst_run1"
 
-# DEFAULT_FORCING_PROVIDER = "csv"
-# FORCING_DIR =
+FORCING_PROVIDER_DEFAULT = "bmi"
+FORCING_PROVIDER_CHOICES = [FORCING_PROVIDER_DEFAULT, "csv"]
 
-DEFAULT_FORCING_PROVIDER = "bmi"
-FORCING_DIR = None  # None when provider is bmi
-
+# For CSV forcing
+CSV_FORCING_DIR_FORMAT = "/s3/ngwpc-forcing/aorc_2.2/{global_domain}/Gage_{gage_id}/"
+# For BMI forcing
 FORCING_TEMPLATE_DIR = "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
 FORCING_ROOT_DIR = "/ngen-app/data"
 DT_START_FORECAST = datetime(year=2025, month=9, day=15, hour=0, minute=0, second=0)
@@ -30,9 +30,8 @@ DEFAULT_GAGE_ID = "01123000"
 DEFAULT_GAGE_VINTAGE = "2025_Mar_14_21_14_37"
 
 MODELS = "noah-owp-modular,cfe-s"
-# MODELS="noah-owp-modular,topmodel"
+# MODELS = "snow-17,noah-owp-modular,smp,lasam,t-route"
 DEFAULT_MAIN_DIR = "/ngwpc/run_ngen"
-FORMULATION_NAME = f"test_{DEFAULT_FORCING_PROVIDER}"
 
 
 ### .config section [Calibration]
@@ -48,28 +47,12 @@ CALIB_SWARM_SIZE=3
 CALIB_PSO_C1=2
 CALIB_PSO_C2=2
 CALIB_PSO_W=0.7
-
-
-##### Calibration
-# Calib sim
-CALIB_SIM_START = datetime(year=2013, month=7, day=25, hour=0, minute=0, second=0)
-CALIB_SIM_DURATION = timedelta(hours=47)
-CALIB_SIM_END = CALIB_SIM_START + CALIB_SIM_DURATION
-# Calib eval
-CALIB_EVAL_START = CALIB_SIM_START + timedelta(hours=6)  # Delayed start from calibration simulation, for warmup
-CALIB_EVAL_END = CALIB_SIM_END
-
-##### Validation
-# Validation sim
-VALID_SIM_START = CALIB_SIM_START - timedelta(hours=6)
-VALID_SIM_END = CALIB_SIM_END
-# Validation eval
-VALID_EVAL_START = CALIB_SIM_START
-VALID_EVAL_END = CALIB_SIM_END - timedelta(hours=6)
-
-##### Full evaluation
-FULL_EVAL_START = CALIB_SIM_START
-FULL_EVAL_END = CALIB_SIM_END
+# Timing
+CALIB_SIM_START_DEFAULT = datetime(year=2013, month=7, day=25, hour=0, minute=0, second=0)
+CALIB_SIM_DURATION_DEFAULT = timedelta(hours=47)
+CALIB_EVAL_DELAYMENT_DEFAULT = timedelta(hours=0)  # Gets added
+VALID_SIM_ADVANCEMENT_DEFAULT = timedelta(hours=0)  # Gets subtracted
+VALID_EVAL_CURTAILMENT_DEFAULT = timedelta(hours=0)  # Gets subtracted
 
 
 ### .config section [DataFile]
@@ -105,11 +88,20 @@ FORECAST_FORCING_CONFIGURATION_TYPES__ALL = [
     "long_range_mem3",
     "long_range_mem4",
 ]
+
+CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT = "aorc"
 CALIB_FORCING_CONFIGURATION_TYPES = [
     "nwm",
-    "aorc",
+    CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT,
 ]
 
+CALIB_GLOBAL_DOMAIN_DEFAULT = "CONUS"
+CALIB_GLOBAL_DOMAIN_CHOICES = [
+    CALIB_GLOBAL_DOMAIN_DEFAULT,
+    "Alaska",
+    "Hawaii",
+    "Puerto_Rico",
+]
 
 # For construction of DataFileConfig
 DATAFILE_LIBS = {

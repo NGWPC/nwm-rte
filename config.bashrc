@@ -10,6 +10,11 @@ NO_CACHE=""
 # STAGE="ngen_rte_base"
 STAGE="ngen_rte_eval_verf"
 
+### Passed to ./install_debuggers.sh, causes pip package `debugpy` and dnf package `gdb` to be installed.
+INSTALL_DEBUGGERS="NO"
+# INSTALL_DEBUGGERS="YES"
+
+
 ### Sources of component packages.
 ### If empty string, package will be skipped (not installed at all).
 ### If "LOCAL", will install from current state of local code.
