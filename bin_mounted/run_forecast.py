@@ -1,9 +1,7 @@
 import copy
-from dataclasses import dataclass, field
 from datetime import datetime
 import functools
 import argparse
-from typing import Optional
 
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils import settings as mswm_settings
@@ -15,45 +13,6 @@ from configs import RTEForecastConfig
 import utils_testing_setup
 
 print = functools.partial(print, flush=True)
-
-
-@dataclass
-class ForecastVars:
-    """Configuration object for forecast runs."""
-
-    gage_id: str
-    fcst_run_name: str
-    global_domain: str
-    forcing_static_dir: str
-    formulation_suffix: str
-    root_dir: str
-    calib_input_config: str
-    forecast_input_config: str
-    forecast_rounds: int
-    coldstart_start: Optional[str]
-    coldstart_end: Optional[str]
-    forecast_initial_cycle_datetime: Optional[str]
-    forcing_configuration: Optional[str]
-    nprocs: int
-
-    # Derived paths (not passed to __init__)
-    run_dir_base: str = field(init=False)
-    run_dir_input: str = field(init=False)
-    run_dir_output: str = field(init=False)
-    ngen_log_file: str = field(init=False)
-    valid_best_yaml: str = field(init=False)
-
-    def __post_init__(self):
-        """Validate configuration and set derived paths."""
-
-        # compute derived paths
-        self.run_dir_base = (
-            f"{self.root_dir}/run_ngen/test_{self.formulation_suffix}/{self.gage_id}"
-        )
-        self.run_dir_input = f"{self.run_dir_base}/Input"
-        self.run_dir_output = f"{self.run_dir_base}/Output"
-        self.ngen_log_file = f"{self.run_dir_base}/logs/ngen.log"
-        self.valid_best_yaml = f"{self.run_dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
 
 
 def build_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
