@@ -23,9 +23,19 @@ def run(cmd: str, cwd: str) -> str:
 
 
 def get_repo_name(local_repo_path: str) -> str:
-    raw = run("git config --get remote.origin.url", cwd=local_repo_path)
-    assert raw.startswith(f"git@github.com:{GH_ORG}/")
-    repo_name = raw[len(f"git@github.com:{GH_ORG}/") :]
+    cmd = "git config --get remote.origin.url"
+    raw = run(cmd, cwd=local_repo_path)
+
+    startswith_ssh = f"git@github.com:{GH_ORG}/"
+    startswith_https = f"https://github.com/{GH_ORG}/"
+
+    if raw.startswith(startswith_ssh):
+        repo_name = raw[len(startswith_ssh) :]
+    elif raw.startswith(startswith_https):
+        repo_name = raw[len(startswith_https) :]
+    else:
+        raise ValueError(f"Unexpected result from cmd {cmd}: {raw}")
+
     if repo_name.endswith(".git"):
         repo_name = repo_name[: -len(".git")]
     return repo_name
