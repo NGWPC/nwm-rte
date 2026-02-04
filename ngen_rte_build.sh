@@ -39,12 +39,12 @@ function build_intermediary_image_from_remote_source () {
 
     if test -d ${source_local_tmp}; then
         info "Pulling ref ${repo_tag} and submodules for ${source_local_tmp}"
-        ( \
-            cd ${source_local_tmp} && \
-            git fetch && \
-            git checkout ${repo_tag} && \
-            git pull --recurse-submodules && \
-            git submodule update --init --recursive \
+        ( 
+        cd ${source_local_tmp}; \
+        git fetch; \
+        git checkout ${repo_tag}; \
+        git pull --recurse-submodules; \
+        git submodule update --init --recursive \
         )
     else
         info "Cloning ref ${repo_tag} from ${git_url}"
@@ -57,13 +57,13 @@ function build_intermediary_image_from_remote_source () {
     if [[ -n "${build_arg}" ]]; then
         # Use the build arg, e.g. for building ngen from ngen-forcing
         ( \
-            cd ${source_local_tmp} && sudo docker build -f ${dockerfile} -t ${target_image} --build-arg "${build_arg}" . \
+            cd ${source_local_tmp}; sudo docker build -f ${dockerfile} -t ${target_image} --build-arg "${build_arg}" . \
             |& tee "${REPOS_COMMON_ROOT__HOST}/nwm-rte/docker_logs/build/${target_image}-${TIMESTAMP}.log" \
         )
     else
         # No build arg
         ( \
-            cd ${source_local_tmp} && sudo docker build -f ${dockerfile} -t ${target_image} . \
+            cd ${source_local_tmp}; sudo docker build -f ${dockerfile} -t ${target_image} . \
             |& tee "${REPOS_COMMON_ROOT__HOST}/nwm-rte/docker_logs/build/${target_image}-${TIMESTAMP}.log" \
         )
     fi
