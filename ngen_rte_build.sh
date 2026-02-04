@@ -34,7 +34,7 @@ elif [[ $NGEN_SOURCE_MODE == "build_from_local" ]]; then
     NGEN_BASE_IMAGE="ngen:${NGEN_SOURCE_MODE}"
     NGEN_SOURCE_LOCAL="${REPOS_COMMON_ROOT__HOST}/ngen"
     # ./ngen_update_submodules.sh "${NGEN_SOURCE_LOCAL}"
-    ( cd ${NGEN_SOURCE_LOCAL} && sudo docker build -t ${NGEN_BASE_IMAGE} . )
+    ( cd ${NGEN_SOURCE_LOCAL}; sudo docker build -t ${NGEN_BASE_IMAGE} . )
 
 elif [[ $NGEN_SOURCE_MODE == "build_from_remote" ]]; then
     NGEN_BASE_IMAGE="ngen:${NGEN_SOURCE_MODE}"
@@ -42,19 +42,17 @@ elif [[ $NGEN_SOURCE_MODE == "build_from_remote" ]]; then
     NGEN_GIT_URL="https://github.com/NGWPC/ngen.git"
     if test -d ${NGEN_SOURCE_LOCAL}; then
         info "Pulling branch ${NGEN_BASE} and submodules from ${NGEN_SOURCE_LOCAL}"
-        ( \
-            cd ${NGEN_SOURCE_LOCAL} && \
-            git fetch && \
-            git checkout ${NGEN_BASE} && \
-            git pull --recurse-submodules && \
-            git submodule update --init --recursive \
-        )
+        cd ${NGEN_SOURCE_LOCAL}
+        git fetch
+        git checkout ${NGEN_BASE}
+        git pull --recurse-submodules
+        git submodule update --init --recursive
     else
         info "Cloning branch ${NGEN_BASE} from ${NGEN_GIT_URL}"
         git clone --branch ${NGEN_BASE} --recurse-submodules "${NGEN_GIT_URL}" "${NGEN_SOURCE_LOCAL}"
     fi
     # ./ngen_update_submodules.sh "${NGEN_SOURCE_LOCAL}"
-    ( cd ${NGEN_SOURCE_LOCAL} && sudo docker build -t ${NGEN_BASE_IMAGE} . )
+    ( cd ${NGEN_SOURCE_LOCAL}; sudo docker build -t ${NGEN_BASE_IMAGE} . )
 
 else
     fatal "Not implemented: NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE}"
