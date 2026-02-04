@@ -12,10 +12,12 @@ set -euo pipefail
 #   [NWM-RTE_ROOT]/run_region.sh [OPTIONS]
 #
 # Examples:
-#   # Run parameter regionalization with configs in ./configs
+#   # Run parameter regionalization
+#   # Sample config files can be found in nwm-region-mgr repo under configs directory
 #   /ngencerf-app/nwm-rte/run_region.sh --parreg -c configs
 #   ~/ngwpc/nwm-rte/run_region.sh --parreg -c configs
 #   ~/ngwpc/nwm-rte/run_region.sh -p -c configs
+#   ~/ngwpc/nwm-rte/run_region.sh -p -c ~/ngwpc/nwm-region-mgr/configs
 #
 #   # Run formulation regionalization only
 #   /ngencerf-app/nwm-rte/run_region.sh --formreg -c configs
@@ -39,39 +41,34 @@ set -euo pipefail
 #   -h, --help           Show this message and exit
 # -----------------------------------------------------------------------------
 
-# Initial context. Note USER_NAME and USER_DIR can be different on some systems
+# Initial context
 WORK_DIR="$(realpath .)"  
 USER_NAME="${USER%%@*}"
 
-# Resolve USER_DIR (case-insensitive)
-USER_DIR="$(find /home -maxdepth 1 -type d -iname "$USER_NAME" | head -n 1 || true)"
-if [[ -z "$USER_DIR" ]]; then
-    echo "ERROR: Could not locate home directory for user $USER_NAME under /home" >&2
-    exit 1
-fi
-
-# Determine WORKSPACE_ROOT and REPOS_DIR based on environment
+# Determine REPOS_DIR (NGWPC repos) based on environment
 if [[ -d "/ngen-dev/$USER_NAME" ]]; then
     REPOS_DIR="/ngencerf-app"
-    export WORKSPACE_ROOT="/ngen-dev/$USER_NAME"
 elif [[ -d "/ngen-oe/$USER_NAME" ]]; then
     REPOS_DIR="/ngencerf-app"
-    export WORKSPACE_ROOT="/ngen-oe/$USER_NAME"
 else
-    WORKSPACE_ROOT="$HOME"
+    # Resolve USER_DIR (case-insensitive)
+    # Note USER_NAME and USER_DIR can be different on some systems
+    USER_DIR="$(find /home -maxdepth 1 -type d -iname "$USER_NAME" | head -n 1 || true)"
+    if [[ -z "$USER_DIR" ]]; then
+        echo "ERROR: Could not locate home directory for user $USER_NAME under /home" >&2
+        exit 1
+    fi
+
     if [[ -d "$USER_DIR/repos" ]]; then
         REPOS_DIR="$USER_DIR/repos"
     elif [[ -d "$USER_DIR/ngwpc" ]]; then
         REPOS_DIR="$USER_DIR/ngwpc"
-    else
-        echo "ERROR: Could not find repos directory under $USER_DIR" >&2
-        exit 1
     fi
 fi
 
-export WORKSPACE_ROOT
-if [[ ! -w "$WORKSPACE_ROOT" ]]; then
-    echo "ERROR: WORKSPACE_ROOT is not writable: $WORKSPACE_ROOT" >&2
+export WORK_DIR
+if [[ ! -w "$WORK_DIR" ]]; then
+    echo "ERROR: WORK_DIR is not writable: $WORK_DIR" >&2
     exit 1
 fi
 
@@ -124,6 +121,13 @@ if [[ $selected -eq 0 ]]; then
     exit 1
 fi
 
+# make sure REPOS_DIR is set
+if [[ -z "${REPOS_DIR:-}" ]]; then
+    echo "ERROR: REPOS_DIR is not set and could not be auto-detected (/ngencerf-app on INT/EA/UAT; ~/repos or ~/ngwpc in AWS workspace)."
+    echo "Please specify with -r or --repos option." >&2
+    exit 1
+fi
+
 # Determine RTE repo directory
 RTE_REPO_DIR="$REPOS_DIR/nwm-rte"
 if [[ ! -d "$RTE_REPO_DIR" ]]; then
@@ -150,27 +154,34 @@ ensure_dir() {
     [[ -d "$1" ]] || mkdir -p "$1"
     sudo chown -R "$(id -u):$(id -g)" "$1"
 }
-ensure_dir "$RUN_NGEN_ROOT__HOST/data/esmf_mesh"
-ensure_dir "$RUN_NGEN_ROOT__HOST/data/scratch"
-ensure_dir "$WORK_DIR/docker_logs/run"
-ensure_dir "$WORK_DIR/bin_mounted"
+
+# Create run-time temporary directories for forcing
+ensure_dir "$WORK_DIR/run_time_tmp/run_ngen/data/scratch"
+ensure_dir "$WORK_DIR/run_time_tmp/run_ngen/data/esmf_mesh"
+
+# create docker logs directory
+ensure_dir "$WORK_DIR/run_time_tmp/docker_logs/run"
+
+# home dir inside container (required for some packages in nwm-verf and nwm-region-mgr)
+ensure_dir "$WORK_DIR/run_time_tmp/home"
+
+echo "Created run-time temporary directory: ${WORK_DIR}/run_time_tmp. Will be removed after run is complete."
 
 # Docker run function
 function docker_run {
     docker run \
         --entrypoint python \
         --user "$(id -u):$(id -g)" \
-        -e HOME="$WORKSPACE_ROOT" \
-        -e WORKSPACE_ROOT="$WORKSPACE_ROOT" \
-        -v "$WORKSPACE_ROOT:$WORKSPACE_ROOT" \
-        -w "$WORK_DIR" \
+        -e WORK_DIR="${WORK_DIR}" \
+        -e REPOS_COMMON_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}" \
+        -e HOME="${WORK_DIR}/run_time_tmp/home" \
+        -w "${WORK_DIR}" \
+        -v "${WORK_DIR}:${WORK_DIR}" \
+        -v "${REPOS_COMMON_ROOT__HOST}:${REPOS_COMMON_ROOT__HOST}" \
         -v "${CONFIG_DIR}:${CONFIG_DIR}" \
-        -v "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/:/ngencerf-app/data/esmf_mesh/" \
-        -v "${RUN_NGEN_ROOT__HOST}/data/scratch:/ngencerf-app/data/scratch" \
-        -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
+        -v "${WORK_DIR}/run_time_tmp/run_ngen/data:/ngencerf-app/data" \
+        -v "${WORK_DIR}/run_time_tmp/docker_logs/run:/ngencerf/data/run-logs" \
         -v "$(pwd)/bin_mounted/:/ngencerf-app/bin/bin_mounted/" \
-        -v "${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr:/ngencerf-app/nwm-region-mgr" \
-        -v "${REPOS_COMMON_ROOT__HOST}/nwm-verf/data:/ngencerf-app/nwm-verf/data" \
         --rm ${TARGET_IMAGE_NAME} "$@"
 }
 
@@ -181,3 +192,6 @@ $parreg  && docker_run "$SCRIPT" -c "$CONFIG_DIR" --parreg
 $formreg && docker_run "$SCRIPT" -c "$CONFIG_DIR" --formreg
 $ngen    && docker_run "$SCRIPT" -c "$CONFIG_DIR" --ngen
 $eval    && docker_run "$SCRIPT" -c "$CONFIG_DIR" --eval
+
+# clean up run-time directory
+rm -rf "${WORK_DIR}/run_time_tmp"

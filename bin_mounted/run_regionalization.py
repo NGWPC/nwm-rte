@@ -8,11 +8,10 @@ import subprocess
 
 print = functools.partial(print, flush=True)
 
-EVAL_VERF_PYTHON_BINARY = "/ngencerf-app/venvs/eval_verf/bin/python"
+EVAL_VERF_PYTHON_BINARY = "/ngen-app/venvs/eval_verf/bin/python"
 
 REG_REPO_ROOT = "/ngencerf-app/nwm-region-mgr"
 REG_CONFIGS = f"{REG_REPO_ROOT}/configs"
-VERF_DATA = "/ngencerf-app/nwm-verf/data"
 
 # Create a logger for RTE
 logger = logging.getLogger("RTE")
@@ -87,10 +86,7 @@ if __name__ == "__main__":
     # eval is a python keyword so dest should be something else
     parser.add_argument("--eval", dest="run_eval", action="store_true")
     args = parser.parse_args()
-    # print(f"{__file__}: args: {args}")
 
-    assert os.path.exists(REG_REPO_ROOT)
     assert os.path.exists(args.config_dir)
-    assert os.path.exists(VERF_DATA)
 
     main(**vars(args))
