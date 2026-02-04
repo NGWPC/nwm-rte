@@ -42,11 +42,13 @@ elif [[ $NGEN_SOURCE_MODE == "build_from_remote" ]]; then
     NGEN_GIT_URL="https://github.com/NGWPC/ngen.git"
     if test -d ${NGEN_SOURCE_LOCAL}; then
         info "Pulling branch ${NGEN_BASE} and submodules from ${NGEN_SOURCE_LOCAL}"
-        cd ${NGEN_SOURCE_LOCAL}
-        git fetch
-        git checkout ${NGEN_BASE}
-        git pull --recurse-submodules
-        git submodule update --init --recursive
+        (
+        cd ${NGEN_SOURCE_LOCAL}; \
+        git fetch; \
+        git checkout ${NGEN_BASE}; \
+        git pull --recurse-submodules; \
+        git submodule update --init --recursive \
+        )
     else
         info "Cloning branch ${NGEN_BASE} from ${NGEN_GIT_URL}"
         git clone --branch ${NGEN_BASE} --recurse-submodules "${NGEN_GIT_URL}" "${NGEN_SOURCE_LOCAL}"
