@@ -23,6 +23,55 @@ export DOCKER_BUILDKIT=1
 
 TIMESTAMP=`date '+%Y%m%d%H%M%S'`
 
+
+function build_intermediary_image_from_remote_source () {
+    # target_image="ngen:${NGEN_SOURCE_MODE}"
+    repo_name=$1  # e.g. "ngen-forcing"
+    repo_tag=$2  # e.g. "development" or "3.1.2.1.0"
+    dockerfile=$3  # e.g. "Dockerfile" or "Dockerfile.bmi-forcings"
+    target_image=$4  # e.g. "ngen-forcing:local-3.1.2.1.0"
+    build_arg=$5  # Optional, passed to docker build call. e.g. "" or "NGEN_FORCING_IMAGE_TAG=ngen-forcing:local-3.1.2.1.0"
+
+    source_local_tmp="${REPOS_COMMON_ROOT__HOST}/${repo_name}_tmp"
+    # source_local_tmp="${REPOS_COMMON_ROOT__HOST}/${repo_name}"
+
+    git_url="https://github.com/NGWPC/${repo_name}.git"
+
+    if test -d ${source_local_tmp}; then
+        info "Pulling ref ${repo_tag} and submodules for ${source_local_tmp}"
+        ( 
+        cd ${source_local_tmp}; \
+        git fetch; \
+        git checkout ${repo_tag}; \
+        git pull --recurse-submodules; \
+        git submodule update --init --recursive \
+        )
+    else
+        info "Cloning ref ${repo_tag} from ${git_url}"
+        git clone --branch ${repo_tag} --recurse-submodules "${git_url}" "${source_local_tmp}"
+    fi
+
+    info building image: ${target_image}
+
+    # Build the image, either with or without a build arg.
+    if [[ -n "${build_arg}" ]]; then
+        # Use the build arg, e.g. for building ngen from ngen-forcing
+        ( \
+            cd ${source_local_tmp}; sudo docker build -f ${dockerfile} -t ${target_image} --build-arg "${build_arg}" . \
+            |& tee "${REPOS_COMMON_ROOT__HOST}/nwm-rte/docker_logs/build/${target_image}-${TIMESTAMP}.log" \
+        )
+    else
+        # No build arg
+        ( \
+            cd ${source_local_tmp}; sudo docker build -f ${dockerfile} -t ${target_image} . \
+            |& tee "${REPOS_COMMON_ROOT__HOST}/nwm-rte/docker_logs/build/${target_image}-${TIMESTAMP}.log" \
+        )
+    fi
+
+    info built image: ${target_image}
+}
+
+
 ### Build ngen base image if specified, otherwise just set var to ghcr URL
 if [[ $NGEN_SOURCE_MODE == "ghcr" ]]; then
     NGEN_BASE_IMAGE="ghcr.io/ngwpc/ngen:${NGEN_BASE__REMOTE_GHCR_TAG}"
@@ -37,24 +86,33 @@ elif [[ $NGEN_SOURCE_MODE == "build_from_local" ]]; then
     ( cd ${NGEN_SOURCE_LOCAL}; sudo docker build -t ${NGEN_BASE_IMAGE} . )
 
 elif [[ $NGEN_SOURCE_MODE == "build_from_remote" ]]; then
-    NGEN_BASE_IMAGE="ngen:${NGEN_SOURCE_MODE}"
-    NGEN_SOURCE_LOCAL="${REPOS_COMMON_ROOT__HOST}/ngen_tmp"
-    NGEN_GIT_URL="https://github.com/NGWPC/ngen.git"
-    if test -d ${NGEN_SOURCE_LOCAL}; then
-        info "Pulling branch ${NGEN_BASE} and submodules from ${NGEN_SOURCE_LOCAL}"
-        (
-        cd ${NGEN_SOURCE_LOCAL}; \
-        git fetch; \
-        git checkout ${NGEN_BASE}; \
-        git pull --recurse-submodules; \
-        git submodule update --init --recursive \
-        )
-    else
-        info "Cloning branch ${NGEN_BASE} from ${NGEN_GIT_URL}"
-        git clone --branch ${NGEN_BASE} --recurse-submodules "${NGEN_GIT_URL}" "${NGEN_SOURCE_LOCAL}"
+    if [[ -z "${NGEN_BASE_REMOTE_TAG}" ]]; then
+        fatal "NGEN_BASE_REMOTE_TAG cannot be empty when NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE}"
     fi
-    # ./ngen_update_submodules.sh "${NGEN_SOURCE_LOCAL}"
-    ( cd ${NGEN_SOURCE_LOCAL}; sudo docker build -t ${NGEN_BASE_IMAGE} . )
+
+    NGEN_BASE_IMAGE="ngen:remote-${NGEN_BASE_REMOTE_TAG}"
+
+    ngen_build_arg=""  # Initialize empty, then replace if building forcing from source
+
+    if [[ -n "${FORCING_BASE_REMOTE_TAG}" ]]; then
+        # Build forcing first. NOTE: requires that the ngen Dockerfile has an ARG NGEN_FORCING_IMAGE
+        build_intermediary_image_from_remote_source \
+            "ngen-forcing" \
+            "${FORCING_BASE_REMOTE_TAG}" \
+            "Dockerfile.bmi-forcings" \
+            "ngen-forcing:remote-${FORCING_BASE_REMOTE_TAG}" \
+            ""
+
+        ngen_build_arg="NGEN_FORCING_IMAGE=ngen-forcing:remote-${FORCING_BASE_REMOTE_TAG}"
+    fi
+
+    # Build ngen
+    build_intermediary_image_from_remote_source \
+        "ngen" \
+        "${NGEN_BASE_REMOTE_TAG}" \
+        "Dockerfile" \
+        "${NGEN_BASE_IMAGE}" \
+        "${ngen_build_arg}"
 
 else
     fatal "Not implemented: NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE}"
