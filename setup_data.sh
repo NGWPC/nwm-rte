@@ -66,4 +66,6 @@ aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_Alaska.nc" "${RUN_NGEN_ROOT__H
 aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_Hawaii.nc" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/"
 aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_PuertoRico.nc" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/geo_em_Puerto_Rico.nc"
 
+aws s3 cp "s3://ngwpc-dev/rte-test-data/geogrid/GEOGRID_LDASOUT_Spatial_Metadata_AK.nc" "${RUN_NGEN_ROOT__HOST}/data/GEOGRID_LDASOUT_Spatial_Metadata_AK.nc"
+aws s3 cp "s3://ngwpc-dev/rte-test-data/modified_gages/gauge_15209700.gpkg" "${DATA__HYDROFABRIC__S3_SOURCE}/2.2/Alaska/15209700/GEOPACKAGE/USGS/2025_Mar_14_21_20_29/gauge_15209700.gpkg"
 exit 0
