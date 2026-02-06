@@ -61,7 +61,7 @@ NGEN_BASE_REMOTE_TAG=${NGEN_BASE_REMOTE_TAG:-"development"}
 # NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"build_from_local"}
 
 ### Freeform name tag for image that is built in this process
-TARGET_IMAGE_NAME="ngen_rte:${NGEN_SOURCE_MODE}"
+TARGET_IMAGE_NAME=${TARGET_IMAGE_NAME:-"ngen_rte:${NGEN_SOURCE_MODE}"}
 
 # If you use this for REPOS_COMMON_ROOT__HOST, then the other repos are assumed to be siblings of this repo
 THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
