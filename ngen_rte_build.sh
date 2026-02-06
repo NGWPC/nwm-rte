@@ -121,6 +121,10 @@ fi
 
 ### Build RTE image from ngen base image
 info "Building image: ${TARGET_IMAGE_NAME}"
+
+# Sanitize the image name for the log file (Replace / and : with _)
+SAFE_LOG_NAME=$(echo "${TARGET_IMAGE_NAME}" | tr '/:' '__')
+
 sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target ${STAGE} \
     --build-arg RTE_IMAGE_SOURCE=${RTE_IMAGE_SOURCE} \
     --build-arg RTE_IMAGE_VENDOR=${RTE_IMAGE_VENDOR} \
@@ -138,7 +142,7 @@ sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target
     --build-arg REPO_TAG_VERF="${REPO_TAG_VERF}" \
     --build-arg REPO_TAG_EVAL="${REPO_TAG_EVAL}" \
     ".." \
-    |& tee "docker_logs/build/${TARGET_IMAGE_NAME}-${TIMESTAMP}.log"
+    |& tee "docker_logs/build/${SAFE_LOG_NAME}-${TIMESTAMP}.log"
 
 info "Built image: ${TARGET_IMAGE_NAME}"
 info "Command to start and enter container without executing anything: sudo docker run --entrypoint /bin/bash -it --rm ${TARGET_IMAGE_NAME}"

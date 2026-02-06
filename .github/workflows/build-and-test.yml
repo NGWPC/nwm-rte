@@ -144,16 +144,13 @@ jobs:
       - name: Log in to Registry
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push RTE image
-        env:
-          # Re-declare the variable so it is available in this step
-          TARGET_IMAGE_NAME: ${{ needs.setup.outputs.image_base }}:${{ needs.setup.outputs.test_image_tag }}
         run: |
-          docker push "$TARGET_IMAGE_NAME"
+          docker push "${{ needs.setup.outputs.image_base }}:${{ needs.setup.outputs.test_image_tag }}"
 
       - name: Check remaining space
         if: always()
