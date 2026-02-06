@@ -7,6 +7,14 @@ set -euo pipefail
 ###     e.g. as an OS env var, otherwise they use the string specified in this config file.
 ###         Pattern: VAR_NAME=${VAR_NAME:-"some_string"}
 
+### OCI Standard labels for Dockerfile.rte image
+### See https://specs.opencontainers.org/image-spec/annotations/
+RTE_IMAGE_SOURCE=${RTE_IMAGE_SOURCE:-"https://github.com/NGWPC/nwm-rte"}
+RTE_IMAGE_VENDOR=${RTE_IMAGE_VENDOR:-"NGWPC"}
+RTE_IMAGE_VERSION=${RTE_IMAGE_VERSION:-"latest"}
+RTE_IMAGE_REVISION=${RTE_IMAGE_REVISION:-"unknown"} # git commit SHA
+RTE_IMAGE_CREATED=${RTE_IMAGE_CREATED:-"unknown"} # ISO 8601 format, e.g. 2024-01-01T00:00:00Z
+
 ### Docker cache directive passed to `docker build` call. Choose from: ["--no-cache", ""]
 # NO_CACHE=${NO_CACHE:-"--no-cache"}
 NO_CACHE=${NO_CACHE:-""}
@@ -61,7 +69,7 @@ THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
 ### REPOS_COMMON_ROOT__HOST:
 ###  What this variable is for:
 ###      ./setup_clone_repos.sh sets up this local directory and clones "sister" repos into it
-###      ./setup_data.sh  downloads data into it 
+###      ./setup_data.sh  downloads data into it
 ###      ./ngen_rte_build.sh uses this to find ngen when NGEN_SOURCE_MODE == "build_from_local"
 ###      ./ngen_rte_run.sh mounts various subdirectories and files from this local directory, into the container, during runtime.
 ###
@@ -71,13 +79,13 @@ THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
 ###
 ###      Using ${THIS_SCRIPTS_GRANDPARENT_DIR} guarantees that the setup scripts (`./setup_data.sh` and `./setup_clone_repos.sh`)
 ###      will copy data and clone repos into the same locations where the build script and run script will look for them.
-###     
+###
 REPOS_COMMON_ROOT__HOST=${THIS_SCRIPTS_GRANDPARENT_DIR}
 # REPOS_COMMON_ROOT__HOST="${HOME}/ngwpc"
 # REPOS_COMMON_ROOT__HOST="${HOME}/ngwpc__rte"
 
-RUN_NGEN_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/run_ngen"
-S3_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/s3"
+RUN_NGEN_ROOT__HOST=${RUN_NGEN_ROOT__HOST:-"${REPOS_COMMON_ROOT__HOST}/run_ngen"}
+S3_ROOT__HOST=${S3_ROOT__HOST:-"${REPOS_COMMON_ROOT__HOST}/s3"}
 
 ### Config template mounts from ngen-forcing repo
 ###   e.g. ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/
