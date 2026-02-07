@@ -181,3 +181,147 @@ jobs:
           echo "  1. Build successfully with all dependencies"
           echo "  2. Import all required Python libraries"
           echo "  3. Execute the workflow script in noop mode"
+
+  # run container security scan using Trivy
+  container-scanning:
+    name: container-scanning
+
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'push') ||
+      (github.event_name == 'workflow_dispatch')
+
+    runs-on: ubuntu-latest
+
+    needs:
+      - setup
+      - build-and-test
+
+    steps:
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@v0.2.2
+        with:
+          cache: true
+          version: v0.68.2
+
+      - name: Trivy scan
+        env:
+          TMPDIR: /mnt/trivy-temp
+        run: |
+          sudo mkdir -p $TMPDIR
+          sudo chown -R $USER:$USER $TMPDIR
+
+          trivy image \
+            --format sarif \
+            --output trivy-results.sarif \
+            --severity CRITICAL,HIGH \
+            --scanners vuln \
+            --ignore-unfixed \
+            --timeout 45m \
+            ${{ needs.setup.outputs.image_base }}:${{ needs.setup.outputs.test_image_tag }}
+
+  # promote Docker image tags after successful tests
+  promote-tags:
+    name: Promote Tags
+
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'push') ||
+      (github.event_name == 'repository_dispatch') ||
+      (github.event_name == 'workflow_dispatch')
+
+    runs-on: ubuntu-latest
+
+    needs:
+      - setup
+      - build-and-test
+      - container-scanning
+
+    steps:
+      - name: Tag image with alias and latest
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # ensure skopeo is available for promotion
+          if ! command -v skopeo >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y --no-install-recommends skopeo
+          fi
+
+          IMAGE_BASE="${{ needs.setup.outputs.image_base }}"
+          TEST_TAG="${{ needs.setup.outputs.test_image_tag }}"
+          ALIAS_TAG="${{ needs.setup.outputs.alias_tag }}"
+
+          # apply the primary alias (pr tag or timestamp-branch)
+          skopeo copy \
+            --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+            --dest-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+            --all \
+            "docker://${IMAGE_BASE}:${TEST_TAG}" "docker://${IMAGE_BASE}:${ALIAS_TAG}"
+
+          # additionally tag with 'latest' if on development branch push
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$GITHUB_REF_NAME" = "development" ]; then
+            skopeo copy \
+              --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+              --dest-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+              --all \
+              "docker://${IMAGE_BASE}:${TEST_TAG}" "docker://${IMAGE_BASE}:latest"
+          fi
+
+  # tag official release Docker image with release tag
+  release:
+    name: release
+
+    if: github.event_name == 'release' && github.event.action == 'published'
+
+    runs-on: ubuntu-latest
+
+    needs:
+      - setup
+
+    steps:
+      - name: Get commit sha for the tag
+        id: rev
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          TAG="${{ github.event.release.tag_name }}"
+          REPO="${{ github.repository }}"
+
+          REF_JSON="$(gh api "repos/${REPO}/git/refs/tags/${TAG}")"
+          OBJ_SHA="$(jq -r '.object.sha' <<<"$REF_JSON")"
+          OBJ_TYPE="$(jq -r '.object.type' <<<"$REF_JSON")"
+
+          if [ "$OBJ_TYPE" = "tag" ]; then
+            TAG_OBJ="$(gh api "repos/${REPO}/git/tags/${OBJ_SHA}")"
+            COMMIT_SHA="$(jq -r '.object.sha' <<<"$TAG_OBJ")"
+          else
+            COMMIT_SHA="$OBJ_SHA"
+          fi
+
+          SHORT_SHA="${COMMIT_SHA:0:12}"
+          echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Tag image with release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          IMAGE_BASE="${{ needs.setup.outputs.image_base }}"
+          SHORT_SHA="${{ steps.rev.outputs.short_sha }}"
+          RELEASE_TAG="${{ github.event.release.tag_name }}"
+
+          # ensure skopeo is available
+          if ! command -v skopeo >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y --no-install-recommends skopeo
+          fi
+
+          skopeo copy \
+            --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+            --dest-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+            docker://"${IMAGE_BASE}:${SHORT_SHA}" docker://"${IMAGE_BASE}:${RELEASE_TAG}"

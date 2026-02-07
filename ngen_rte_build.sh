@@ -122,7 +122,7 @@ fi
 ### Build RTE image from ngen base image
 info "Building image: ${TARGET_IMAGE_NAME}"
 
-# Sanitize the image name for the log file (Replace / and : with _)
+# Sanitize the image name for the log file (replace / and : with _)
 SAFE_LOG_NAME=$(echo "${TARGET_IMAGE_NAME}" | tr '/:' '__')
 
 sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target ${STAGE} \
