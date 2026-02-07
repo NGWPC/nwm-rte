@@ -157,8 +157,6 @@ jobs:
         run: df -h
 
       - name: Create minimal test directories
-        env:
-          TARGET_IMAGE_NAME: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
         run: |
           # Source config to get RUN_NGEN_ROOT__HOST
           source config.bashrc
@@ -168,6 +166,8 @@ jobs:
           mkdir -p docker_logs/run
 
       - name: Run RTE in noop mode
+        env:
+          TARGET_IMAGE_NAME: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
         run: |
           # Source the script to get docker_run function and config
           source ./run.sh
