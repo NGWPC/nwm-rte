@@ -23,5 +23,7 @@ docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aor
 # docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -gdomain "Puerto_Rico" --gage_id__gage_vintage "50014800" "2025_Apr_08_15_13_08"
 # docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm" -gdomain "Puerto_Rico" --gage_id__gage_vintage "50014800" "2025_Apr_08_15_13_08"
 
+# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -gdomain "Alaska" --gage_id__gage_vintage "15209700" "2025_Mar_14_21_20_29"
+# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm" -gdomain "Alaska" --gage_id__gage_vintage "15209700" "2025_Mar_14_21_20_29"
 
 exit 0

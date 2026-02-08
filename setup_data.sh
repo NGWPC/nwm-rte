@@ -17,6 +17,7 @@ fi
 
 # TODO if updating these, also need to update run_tests.py
 TEST_GAGE="01123000"
+DOMAIN="CONUS"
 WORKFLOW_INPUT_CONFIG_ROOT="${RUN_NGEN_ROOT__HOST}/configs"
 
 DATA__HYDROFABRIC__S3_SOURCE="s3://ngwpc-hydrofabric"
@@ -42,7 +43,7 @@ aws s3 cp "${DATA__HYDROFABRIC__S3_SOURCE}/snow17_params_2.2.csv" "${DATA__HYDRO
 aws s3 cp "${DATA__HYDROFABRIC__S3_SOURCE}/ueb_deltat_2.2.csv" "${DATA__HYDROFABRIC__HOST}/"
 
 ### Download test gage data using setup_data_one_gage.sh
-./setup_data_one_gage.sh "${TEST_GAGE}"
+./setup_data_one_gage.sh "${TEST_GAGE}" "${DOMAIN}"
 # Also download forcing data for the gage
 aws s3 sync "s3://ngwpc-forcing/aorc_2.2/CONUS/Gage_${TEST_GAGE}/" "${S3_ROOT__HOST}/ngwpc-forcing/aorc_2.2/CONUS/Gage_${TEST_GAGE}/"
 
@@ -66,4 +67,6 @@ aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_Alaska.nc" "${RUN_NGEN_ROOT__H
 aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_Hawaii.nc" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/"
 aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_PuertoRico.nc" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/geo_em_Puerto_Rico.nc"
 
+aws s3 cp "s3://ngwpc-dev/rte-test-data/geogrid/GEOGRID_LDASOUT_Spatial_Metadata_AK.nc" "${RUN_NGEN_ROOT__HOST}/data/GEOGRID_LDASOUT_Spatial_Metadata_AK.nc"
+aws s3 cp "s3://ngwpc-dev/rte-test-data/modified_gages/gauge_15209700.gpkg" "${DATA__HYDROFABRIC__HOST}/2.2/Alaska/15209700/GEOPACKAGE/USGS/2025_Mar_14_21_20_29/gauge_15209700.gpkg"
 exit 0

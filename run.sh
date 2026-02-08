@@ -26,6 +26,7 @@ function docker_run {
         -v "${MNT__RUN_NGEN__HOST}/data/ngen-cal-work:/ngencerf/data/ngen-cal-work" \
         -v "${MNT__RUN_NGEN__HOST}/data/ngen-static-files:/ngencerf/data/ngen-static-files" \
         -v "${MNT__RUN_NGEN__HOST}/kge_dds:/ngen-app/data/run_ngen" \
+        -v "${MNT__RUN_NGEN__HOST}/data/GEOGRID_LDASOUT_Spatial_Metadata_AK.nc:/ngen-app/data/GEOGRID_LDASOUT_Spatial_Metadata_AK.nc" \
         \
         -v "${MNT__NGEN_FORCING__HOST}:${MNT__NGEN_FORCING__CONTAINER_1}" \
         -v "${MNT__NGEN_FORCING__HOST}:${MNT__NGEN_FORCING__CONTAINER_2}" \
