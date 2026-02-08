@@ -90,19 +90,20 @@ def set_vars(options) -> ForecastVars:
     :param options: Namespace object from argparse
     :return: ForecastVars object
     """
+    forcing_provider = options.forcing_provider or c.FORCING_PROVIDER_DEFAULT
     return ForecastVars(
         gage_id=options.gage or c.DEFAULT_GAGE_ID,
         fcst_run_name=options.fcst_run_name or c.DEFAULT_FORECAST_RUN_NAME,
         global_domain=options.global_domain or c.CALIB_GLOBAL_DOMAIN_DEFAULT,
-        formulation_suffix=options.forcing_provider or c.FORCING_PROVIDER_DEFAULT,
+        formulation_suffix=forcing_provider,
         coldstart_start=options.cold_start_datetime,
         coldstart_end=options.cycle_datetime if options.cold_start_datetime else None,
         forecast_initial_cycle_datetime=options.cycle_datetime,
         forcing_configuration=options.forcing_configuration or c.FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT[0],
         nprocs=options.nprocs or c.DEFAULT_NPROCS,
         root_dir = "/ngen-app/data",
-        calib_input_config = "/ngen-app/data/configs/rte_cal_input_bmi.config",
-        forecast_input_config = "/ngen-app/data/configs/forecast_input.config",
+        calib_input_config = f"/ngen-app/data/configs/input_calibration_{forcing_provider}.config",
+        forecast_input_config = "/ngen-app/data/configs/input_forecast.config",
         forecast_rounds = 1,
     )
 
