@@ -174,14 +174,12 @@ if __name__ == "__main__":
             "-n",
             "--nprocs",
             type=int,
-            help=f"""
-Currently only affects Calibration. Replaces default value for nprocs ({repr(c.DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance.
-When nprocs is 1, Calibration's ParallelConfig is: {make_parallel_config(nprocs=1)}.
-When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(nprocs=2)}
-""",
+            help=f"""Not yet supported for forecast. Default={repr(c.DEFAULT_NPROCS)})""",
             default=c.DEFAULT_NPROCS,
         ),
     )
     args = parser.parse_args()
+    if args.nprocs != c.DEFAULT_NPROCS:
+        raise ValueError("--nprocs not yet supported for forecast")
     cfg = RTEForecastConfig(**vars(args))
     main(cfg)
