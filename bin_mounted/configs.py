@@ -110,7 +110,6 @@ class RTEForecastConfig(BaseModel):
 
     delete_scratch_and_mesh_first: bool
     delete_forcing_raw_input_first: bool
-    skip_calibration: bool
     objective_function: c.CalObjective
     optimization_algorithm: c.CalOptimizationAlgo
     gage_id: str
@@ -162,7 +161,7 @@ class RTEForecastConfig(BaseModel):
                     root_dir=self.root_dir,
                     forcing_configuration=self.forcing_configuration,
                     cycle_datetime=self.cycle_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT),
-                    cold_start_datetime=None,
+                    cold_start_datetime=self.cold_start_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT) if self.cold_start_datetime else None,
                     global_domain=self.global_domain,
                     forcing_static_dir=self.forcing_static_dir,
                 )

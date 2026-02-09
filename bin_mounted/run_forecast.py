@@ -16,28 +16,15 @@ print = functools.partial(print, flush=True)
 
 
 def build_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
+    print(f"Building coldstart realization: {cfg.realization_builder_kwargs}, use_cold_start=True")
     rb_cs = RealizationBuilder(**cfg.realization_builder_kwargs, use_cold_start=True)
-
-    cs_update = {
-        "forcing_configuration": cfg.forcing_configuration,
-        "cold_start_datetime": cfg.coldstart_start.strftime(
-            mswm_settings.DEFAULT_DATETIME_FORMAT
-        ),
-        "cycle_datetime": cfg.coldstart_end.strftime(
-            mswm_settings.DEFAULT_DATETIME_FORMAT
-        ),
-    }
-    rb_kwargs = copy.deepcopy(cfg.realization_builder_kwargs)
-    rb_kwargs["config_overrides"].Forcing.update(cs_update)
-
-    print(f"Building coldstart realization: {rb_kwargs['config_overrides']}")
-    rb_cs = RealizationBuilder(**rb_kwargs)
     rb_cs.build_fcst_realization()
     print(f"Wrote: {rb_cs.realization_file}")
     return rb_cs
 
 
 def build_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
+    print(f"Building forecast realization: {cfg.realization_builder_kwargs}, use_cold_start=False")
     rb_fcst = RealizationBuilder(**cfg.realization_builder_kwargs, use_cold_start=False)
     rb_fcst.build_fcst_realization()
     return rb_fcst
@@ -92,11 +79,6 @@ if __name__ == "__main__":
         "--delete_forcing_raw_input_first",
         action="store_true",
         help=f"Delete contents of {repr(c.DIR_FORCING_RAW_INPUT)} before the run, which forces forcing data to be re-downloaded.",
-    )
-    parser.add_argument(
-        "--skip_calibration",
-        action="store_true",
-        help="Causes calibration to be skipped",
     )
     parser.add_argument(
         "-ofunc",
