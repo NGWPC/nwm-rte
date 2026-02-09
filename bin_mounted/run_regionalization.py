@@ -37,42 +37,25 @@ def run_cmd(cmd: list[str], check: bool = True, cwd: str = None, shell: bool = F
 def main(config_dir: str, parreg: bool, formreg: bool, ngen: bool, run_eval: bool):
     if parreg:
         run_cmd(
-            cmd=[
-                "python -um nwm_region_mgr",
-                config_dir,
-                "parreg",
-            ],
+            cmd=[f"python -um nwm_region_mgr {config_dir} parreg"],
             shell=True,
         )
 
     if formreg:
         run_cmd(
-            cmd=[
-                "python -um nwm_region_mgr",
-                config_dir,
-                "formreg",
-            ],
+            cmd=[f"python -um nwm_region_mgr {config_dir} formreg"],
             shell=True,
         )
 
     if ngen:
         run_cmd(
-            cmd=[
-                "python -um nwm_region_mgr",
-                config_dir,
-                "ngen",
-            ],
+            cmd=[f"ulimit -n 65535 && python -um nwm_region_mgr {config_dir} ngen"],
             shell=True,
         )
 
     if run_eval:
         run_cmd(
-            cmd=[
-                EVAL_VERF_PYTHON_BINARY,
-                "-um",
-                "nwm.verf",
-                f"{config_dir}/config_eval.yaml",
-            ],
+            cmd=[f"{EVAL_VERF_PYTHON_BINARY} -um nwm.verf {config_dir}/config_eval.yaml"],
             shell=True,
         )
 
