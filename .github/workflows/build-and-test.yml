@@ -66,7 +66,7 @@ jobs:
 
           # clean ref name and short commit sha
           CLEAN_REF=$(echo "$REAL_REF" | tr '[:upper:]' '[:lower:]' | sed 's/\//-/g')
-          SHORT_SHA="${GITHUB_SHA:0:12}"
+          SHORT_SHA="${GITHUB_SHA:0:7}"
 
           # set variables to use with Docker images
           ORG="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
@@ -303,7 +303,7 @@ jobs:
             COMMIT_SHA="$OBJ_SHA"
           fi
 
-          SHORT_SHA="${COMMIT_SHA:0:12}"
+          SHORT_SHA="${COMMIT_SHA:0:7}"
           echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Tag image with release tag
