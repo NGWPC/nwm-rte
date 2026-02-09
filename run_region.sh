@@ -45,11 +45,11 @@ set -euo pipefail
 WORK_DIR="$(realpath .)"  
 USER_NAME="${USER%%@*}"
 
-# Determine REPOS_DIR (NGWPC repos) based on environment
+# Determine REPOS_COMMON_ROOT__HOST (NGWPC repos) based on environment
 if [[ -d "/ngen-dev/$USER_NAME" ]]; then
-    REPOS_DIR="/ngencerf-app"
+    REPOS_COMMON_ROOT__HOST="/ngencerf-app"
 elif [[ -d "/ngen-oe/$USER_NAME" ]]; then
-    REPOS_DIR="/ngencerf-app"
+    REPOS_COMMON_ROOT__HOST="/ngencerf-app"
 else
     # Resolve USER_DIR (case-insensitive)
     # Note USER_NAME and USER_DIR can be different on some systems
@@ -60,9 +60,9 @@ else
     fi
 
     if [[ -d "$USER_DIR/repos" ]]; then
-        REPOS_DIR="$USER_DIR/repos"
+        REPOS_COMMON_ROOT__HOST="$USER_DIR/repos"
     elif [[ -d "$USER_DIR/ngwpc" ]]; then
-        REPOS_DIR="$USER_DIR/ngwpc"
+        REPOS_COMMON_ROOT__HOST="$USER_DIR/ngwpc"
     fi
 fi
 
@@ -91,7 +91,7 @@ while true; do
         -n|--ngen) ngen=true; shift;;
         -e|--eval) eval=true; shift;;
         -c|--config_dir) CONFIG_DIR="$2"; shift 2;;
-        -r|--repos) REPOS_DIR="$2"; shift 2;;
+        -r|--repos) REPOS_COMMON_ROOT__HOST="$2"; shift 2;;
         -h|--help)
             echo "Usage: $0 [OPTIONS]
 Options:
@@ -121,38 +121,24 @@ if [[ $selected -eq 0 ]]; then
     exit 1
 fi
 
-# make sure REPOS_DIR is set
-if [[ -z "${REPOS_DIR:-}" ]]; then
-    echo "ERROR: REPOS_DIR is not set and could not be auto-detected (/ngencerf-app on INT/EA/UAT; ~/repos or ~/ngwpc in AWS workspace)."
+# make sure REPOS_COMMON_ROOT__HOST is set
+if [[ -z "${REPOS_COMMON_ROOT__HOST:-}" ]]; then
+    echo "ERROR: REPOS_COMMON_ROOT__HOST is not set and could not be auto-detected (/ngencerf-app on INT/EA/UAT; ~/repos or ~/ngwpc in AWS workspace)."
     echo "Please specify with -r or --repos option." >&2
     exit 1
-fi
-
-# Determine RTE repo directory
-RTE_REPO_DIR="$REPOS_DIR/nwm-rte"
-if [[ ! -d "$RTE_REPO_DIR" ]]; then
-    echo "ERROR: RTE repo not found at $RTE_REPO_DIR" >&2
-    return 1 2>/dev/null || exit 1
 fi
 
 # Determine config directory
 CONFIG_DIR="$(realpath "$CONFIG_DIR")"
 if [[ ! -d "$CONFIG_DIR" ]]; then
     echo "ERROR: Config directory not found at $CONFIG_DIR" >&2
-    return 1 2>/dev/null || exit 1
+    exit 1
 fi
 
-# ensure work directory is restored on exit
-trap 'cd "$WORK_DIR"' EXIT
-
-# cd to RTE repo directory and source RTE settings
-cd "$RTE_REPO_DIR"
-source config.bashrc
-
-# Ensure mount directories exist
+# function to create directory if it doesn't exist and set ownership to current user (for docker permissions)
 ensure_dir() {
-    [[ -d "$1" ]] || mkdir -p "$1"
-    sudo chown -R "$(id -u):$(id -g)" "$1"
+    mkdir -p "$1"
+    chown -R "$(id -u):$(id -g)" "$1" 2>/dev/null || true
 }
 
 # Create run-time temporary directory with timestamp to avoid conflicts between simultaneous runs
@@ -172,6 +158,22 @@ ensure_dir "$RUNTIME_DIR_TMP/home"
 
 echo "Created run-time temporary directory: ${RUNTIME_DIR_TMP}. Will be removed after run is complete."
 
+cleanup() {
+  rc=$?
+  if [[ -n "${RUNTIME_DIR_TMP:-}" && -d "${RUNTIME_DIR_TMP}" ]]; then
+    echo "Cleanup (exit=$rc): removing ${RUNTIME_DIR_TMP}"
+    rm -rf "${RUNTIME_DIR_TMP}" || true
+  fi
+}
+
+trap cleanup EXIT
+
+# script to run with docker run
+SCRIPT="${REPOS_COMMON_ROOT__HOST}/nwm-rte/bin_mounted/run_regionalization.py"
+
+# docker image to use
+TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:latest"
+
 # Docker run function
 function docker_run {
     docker run \
@@ -186,18 +188,11 @@ function docker_run {
         -v "${CONFIG_DIR}:${CONFIG_DIR}" \
         -v "${RUNTIME_DIR_TMP}/run_ngen/data:/ngencerf-app/data" \
         -v "${RUNTIME_DIR_TMP}/docker_logs/run:/ngencerf/data/run-logs" \
-        -v "$(pwd)/bin_mounted/:/ngencerf-app/bin/bin_mounted/" \
         --rm ${TARGET_IMAGE_NAME} "$@"
 }
 
 # Run requested workflow steps
-SCRIPT="/ngencerf-app/bin/bin_mounted/run_regionalization.py"
-TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:latest"
-
 $parreg  && docker_run "$SCRIPT" -c "$CONFIG_DIR" --parreg
 $formreg && docker_run "$SCRIPT" -c "$CONFIG_DIR" --formreg
 $ngen    && docker_run "$SCRIPT" -c "$CONFIG_DIR" --ngen
 $eval    && docker_run "$SCRIPT" -c "$CONFIG_DIR" --eval
-
-# clean up run-time directory
-rm -rf "${RUNTIME_DIR_TMP}"
