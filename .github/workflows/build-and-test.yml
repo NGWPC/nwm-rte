@@ -80,7 +80,8 @@ jobs:
           # for workflow_dispatch and pushes, use <timestamp>-<clean-ref-name>
 
           # test tag is always commit short sha
-          TEST_TAG="${SHORT_SHA}"
+          # TEST_TAG="${SHORT_SHA}"
+          TEST_TAG="latest"
 
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             ALIAS="pr-${{ github.event.pull_request.number }}-build"
