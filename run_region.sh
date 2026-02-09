@@ -155,17 +155,22 @@ ensure_dir() {
     sudo chown -R "$(id -u):$(id -g)" "$1"
 }
 
-# Create run-time temporary directories for forcing
-ensure_dir "$WORK_DIR/run_time_tmp/run_ngen/data/scratch"
-ensure_dir "$WORK_DIR/run_time_tmp/run_ngen/data/esmf_mesh"
+# Create run-time temporary directory with timestamp to avoid conflicts between simultaneous runs
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+RUNTIME_DIR_TMP="${WORK_DIR}/run_time_${TIMESTAMP}"
+ensure_dir "$RUNTIME_DIR_TMP"
+
+# create runtime directories for forcing
+ensure_dir "$RUNTIME_DIR_TMP/run_ngen/data/scratch"
+ensure_dir "$RUNTIME_DIR_TMP/run_ngen/data/esmf_mesh"
 
 # create docker logs directory
-ensure_dir "$WORK_DIR/run_time_tmp/docker_logs/run"
+ensure_dir "$RUNTIME_DIR_TMP/docker_logs/run"
 
 # home dir inside container (required for some packages in nwm-verf and nwm-region-mgr)
-ensure_dir "$WORK_DIR/run_time_tmp/home"
+ensure_dir "$RUNTIME_DIR_TMP/home"
 
-echo "Created run-time temporary directory: ${WORK_DIR}/run_time_tmp. Will be removed after run is complete."
+echo "Created run-time temporary directory: ${RUNTIME_DIR_TMP}. Will be removed after run is complete."
 
 # Docker run function
 function docker_run {
@@ -179,14 +184,15 @@ function docker_run {
         -v "${WORK_DIR}:${WORK_DIR}" \
         -v "${REPOS_COMMON_ROOT__HOST}:${REPOS_COMMON_ROOT__HOST}" \
         -v "${CONFIG_DIR}:${CONFIG_DIR}" \
-        -v "${WORK_DIR}/run_time_tmp/run_ngen/data:/ngencerf-app/data" \
-        -v "${WORK_DIR}/run_time_tmp/docker_logs/run:/ngencerf/data/run-logs" \
+        -v "${RUNTIME_DIR_TMP}/run_ngen/data:/ngencerf-app/data" \
+        -v "${RUNTIME_DIR_TMP}/docker_logs/run:/ngencerf/data/run-logs" \
         -v "$(pwd)/bin_mounted/:/ngencerf-app/bin/bin_mounted/" \
         --rm ${TARGET_IMAGE_NAME} "$@"
 }
 
 # Run requested workflow steps
 SCRIPT="/ngencerf-app/bin/bin_mounted/run_regionalization.py"
+TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:latest"
 
 $parreg  && docker_run "$SCRIPT" -c "$CONFIG_DIR" --parreg
 $formreg && docker_run "$SCRIPT" -c "$CONFIG_DIR" --formreg
@@ -194,4 +200,4 @@ $ngen    && docker_run "$SCRIPT" -c "$CONFIG_DIR" --ngen
 $eval    && docker_run "$SCRIPT" -c "$CONFIG_DIR" --eval
 
 # clean up run-time directory
-rm -rf "${WORK_DIR}/run_time_tmp"
+rm -rf "${RUNTIME_DIR_TMP}"

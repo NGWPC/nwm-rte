@@ -137,8 +137,8 @@ SBATCH_SCRIPT=$(cat <<EOF
 #SBATCH --ntasks=${NTASKS}
 #SBATCH --cpus-per-task=${CPUS_PER_TASK}
 #SBATCH --time=240:00:00
-#SBATCH --output=region-${JOB_SUFFIX}-%j.out
-#SBATCH --error=region-${JOB_SUFFIX}-%j.err
+#SBATCH --output=region-${JOB_SUFFIX}-%j.log
+#SBATCH --error=region-${JOB_SUFFIX}-%j.log
 
 set -euo pipefail
 
@@ -147,8 +147,7 @@ echo "Nodes allocated: \$SLURM_JOB_NUM_NODES"
 echo "Running on directory: \$SLURM_SUBMIT_DIR"
 echo "Job ID: \$SLURM_JOB_ID"
 
-cd "${SCRIPT_DIR}"
-./run_region.sh ${OPTION_FLAGS[*]} -c "${CONFIG_DIR}"
+/ngencerf-app/nwm-rte/run_region.sh ${OPTION_FLAGS[*]} -c "${CONFIG_DIR}"
 
 EOF
 )
