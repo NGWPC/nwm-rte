@@ -179,7 +179,7 @@ function docker_run {
         --user "$(id -u):$(id -g)" \
         -e WORK_DIR="${WORK_DIR}" \
         -e REPOS_COMMON_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}" \
-        -e HOME="${WORK_DIR}/run_time_tmp/home" \
+        -e HOME="${RUNTIME_DIR_TMP}/home" \
         -w "${WORK_DIR}" \
         -v "${WORK_DIR}:${WORK_DIR}" \
         -v "${REPOS_COMMON_ROOT__HOST}:${REPOS_COMMON_ROOT__HOST}" \
