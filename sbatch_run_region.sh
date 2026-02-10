@@ -137,8 +137,8 @@ SBATCH_SCRIPT=$(cat <<EOF
 #SBATCH --ntasks=${NTASKS}
 #SBATCH --cpus-per-task=${CPUS_PER_TASK}
 #SBATCH --time=240:00:00
-#SBATCH --output=region-${JOB_SUFFIX}-%j.log
-#SBATCH --error=region-${JOB_SUFFIX}-%j.log
+#SBATCH --output=logs/region-${JOB_SUFFIX}-%j.log
+#SBATCH --error=logs/region-${JOB_SUFFIX}-%j.log
 
 set -euo pipefail
 
