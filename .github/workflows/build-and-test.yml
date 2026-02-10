@@ -18,15 +18,15 @@ on:
       - published
   workflow_dispatch:
     inputs:
-      NGEN_BASE__REMOTE_GHCR_TAG:
-        description: "NGEN_BASE__REMOTE_GHCR_TAG"
-        required: false
-        type: string
       INSTALL_DEBUGGERS:
         description: "INSTALL_DEBUGGERS"
         required: false
         type: boolean
         default: false
+      NGEN_BASE__REMOTE_GHCR_TAG:
+        description: "NGEN_BASE__REMOTE_GHCR_TAG"
+        required: false
+        type: string
       REPO_TAG_FCST_MGR:
         description: "REPO_TAG_FCST_MGR"
         required: false
