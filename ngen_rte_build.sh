@@ -126,11 +126,11 @@ info "Building image: ${TARGET_IMAGE_NAME}"
 SAFE_LOG_NAME=$(echo "${TARGET_IMAGE_NAME}" | tr '/:' '__')
 
 sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target ${STAGE} \
-    --build-arg RTE_IMAGE_SOURCE=${RTE_IMAGE_SOURCE} \
-    --build-arg RTE_IMAGE_VENDOR=${RTE_IMAGE_VENDOR} \
-    --build-arg RTE_IMAGE_VERSION=${RTE_IMAGE_VERSION} \
-    --build-arg RTE_IMAGE_REVISION=${RTE_IMAGE_REVISION} \
-    --build-arg RTE_IMAGE_CREATED=${RTE_IMAGE_CREATED} \
+    --build-arg TARGET_IMAGE_SOURCE=${TARGET_IMAGE_SOURCE} \
+    --build-arg TARGET_IMAGE_VENDOR=${TARGET_IMAGE_VENDOR} \
+    --build-arg TARGET_IMAGE_VERSION=${TARGET_IMAGE_VERSION} \
+    --build-arg TARGET_IMAGE_REVISION=${TARGET_IMAGE_REVISION} \
+    --build-arg TARGET_IMAGE_CREATED=${TARGET_IMAGE_CREATED} \
     --build-arg NGEN_BASE_IMAGE=${NGEN_BASE_IMAGE} \
     --build-arg INSTALL_DEBUGGERS=${INSTALL_DEBUGGERS} \
     --build-arg REPO_TAG_FCST_MGR="${REPO_TAG_FCST_MGR}" \

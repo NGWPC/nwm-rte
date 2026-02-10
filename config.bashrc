@@ -9,11 +9,11 @@ set -euo pipefail
 
 ### OCI Standard labels for Dockerfile.rte image
 ### See https://specs.opencontainers.org/image-spec/annotations/
-RTE_IMAGE_SOURCE=${RTE_IMAGE_SOURCE:-"https://github.com/NGWPC/nwm-rte"}
-RTE_IMAGE_VENDOR=${RTE_IMAGE_VENDOR:-"NGWPC"}
-RTE_IMAGE_VERSION=${RTE_IMAGE_VERSION:-"latest"}
-RTE_IMAGE_REVISION=${RTE_IMAGE_REVISION:-"unknown"} # git commit SHA
-RTE_IMAGE_CREATED=${RTE_IMAGE_CREATED:-"unknown"} # ISO 8601 format, e.g. 2024-01-01T00:00:00Z
+TARGET_IMAGE_SOURCE=${TARGET_IMAGE_SOURCE:-"https://github.com/NGWPC/nwm-rte"}
+TARGET_IMAGE_VENDOR=${TARGET_IMAGE_VENDOR:-"NGWPC"}
+TARGET_IMAGE_VERSION=${TARGET_IMAGE_VERSION:-"latest"}
+TARGET_IMAGE_REVISION=${TARGET_IMAGE_REVISION:-"unknown"} # git commit SHA
+TARGET_IMAGE_CREATED=${TARGET_IMAGE_CREATED:-"unknown"} # ISO 8601 format, e.g. 2024-01-01T00:00:00Z
 
 ### Docker cache directive passed to `docker build` call. Choose from: ["--no-cache", ""]
 # NO_CACHE=${NO_CACHE:-"--no-cache"}
@@ -24,7 +24,7 @@ NO_CACHE=${NO_CACHE:-""}
 STAGE=${STAGE:-"ngen_rte_eval_verf"}
 
 ### Passed to ./install_debuggers.sh, causes pip package `debugpy` and dnf package `gdb` to be installed.
-INSTALL_DEBUGGERS="NO"
+INSTALL_DEBUGGERS=${INSTALL_DEBUGGERS:-"NO"}
 # INSTALL_DEBUGGERS="YES"
 
 

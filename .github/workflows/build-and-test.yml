@@ -17,6 +17,69 @@ on:
     types:
       - published
   workflow_dispatch:
+    inputs:
+      NGEN_BASE__REMOTE_GHCR_TAG:
+        description: >
+          Optionally provide specific NGEN Docker image tag to use as the base image for the RTE build.
+          Use `latest` by default.
+        required: false
+        type: string
+      INSTALL_DEBUGGERS:
+        description: >
+          Passed to ./install_debuggers.sh, causes pip package
+          `debugpy` and dnf package `gdb` to be installed.
+        required: false
+        type: boolean
+        default: false
+      REPO_TAG_FCST_MGR:
+        description: >
+          Optionally provide specific Git tag, branch, or commit SHA for the nwm-fcst-mgr repository
+          to be cloned during the build. Use the development branch by default.
+        required: false
+        type: string
+      REPO_TAG_MSW_MGR:
+        description: >
+          Optionally provide specific Git tag, branch, or commit SHA for the nwm-msw-mgr repository
+          to be cloned during the build. Use the development branch by default.
+        required: false
+        type: string
+      REPO_TAG_CAL_MGR:
+        description: >
+          Optionally provide specific Git tag, branch, or commit SHA for the nwm-cal-mgr repository
+          to be cloned during the build. Use the development branch by default.
+        required: false
+        type: string
+      REPO_TAG_REGION_MGR:
+        description: >
+          Optionally provide specific Git tag, branch, or commit SHA for the nwm-region-mgr repository
+          to be cloned during the build. Use the development branch by default.
+        required: false
+        type: string
+      REPO_TAG_DATA_ASSIM_ENGINE:
+        description: >
+          Optionally provide specific Git tag, branch, or commit SHA for the data-assimilation-engine repository
+          to be cloned during the build. Use the development branch by default.
+        required: false
+        type: string
+      REPO_TAG_NGEN_FORCING:
+        description: >
+          Optionally provide specific Git tag, branch, or commit SHA for the ngen-forcing repository
+          to be cloned during the build. Use the development branch by default.
+        required: false
+        type: string
+      REPO_TAG_VERF:
+        description: >
+          Optionally provide specific Git tag, branch, or commit SHA for the nwm-verf repository
+          to be cloned during the build. Use the development branch by default.
+        required: false
+        type: string
+      REPO_TAG_EVAL:
+        description: >
+          Optionally provide specific Git tag, branch, or commit SHA for the nwm-eval-mgr repository
+          to be cloned during the build. Use the development branch by default.
+        required: false
+        type: string
+
 
 permissions:
   contents: read
@@ -41,12 +104,27 @@ jobs:
       alias_tag: ${{ steps.vars.outputs.alias_tag }}
       build_date: ${{ steps.vars.outputs.build_date }}
       clean_ref: ${{ steps.vars.outputs.clean_ref }}
+      ngen_base_remote_ghcr_tag: ${{ steps.vars.outputs.ngen_base_remote_ghcr_tag }}
+      install_debuggers: ${{ steps.vars.outputs.install_debuggers }}
+      repo_tag_fcst_mgr: ${{ steps.vars.outputs.repo_tag_fcst_mgr }}
+      repo_tag_msw_mgr: ${{ steps.vars.outputs.repo_tag_msw_mgr }}
+      repo_tag_cal_mgr: ${{ steps.vars.outputs.repo_tag_cal_mgr }}
+      repo_tag_region_mgr: ${{ steps.vars.outputs.repo_tag_region_mgr }}
+      repo_tag_data_assim_engine: ${{ steps.vars.outputs.repo_tag_data_assim_engine }}
+      repo_tag_ngen_forcing: ${{ steps.vars.outputs.repo_tag_ngen_forcing }}
+      repo_tag_verf: ${{ steps.vars.outputs.repo_tag_verf }}
+      repo_tag_eval: ${{ steps.vars.outputs.repo_tag_eval }}
     steps:
       - name: Compute image vars
         id: vars
         shell: bash
         run: |
           set -euo pipefail
+
+          # set variables to use with Docker images
+          ORG="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          REPO="$(basename "${GITHUB_REPOSITORY}")"
+          IMAGE_BASE="${REGISTRY}/${ORG}/${REPO}"
 
           # one datetime for all time variables
           NOW=$(date -u +'%Y-%m-%d %H:%M:%S')
@@ -57,21 +135,36 @@ jobs:
           # for Docker image tags
           TIMESTAMP=$(date -u -d "$NOW" +'%Y%m%d%H%M%SZ')
 
-          # logic to get the real branch name even on pull requests
+          # logic to get the real branch name and commit SHA on pull requests
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             REAL_REF="${{ github.head_ref }}"
+            REAL_SHA="${{ github.event.pull_request.head.sha }}"
           else
             REAL_REF="${{ github.ref_name }}"
+            REAL_SHA="${GITHUB_SHA}"
           fi
 
           # clean ref name and short commit sha
           CLEAN_REF=$(echo "$REAL_REF" | tr '[:upper:]' '[:lower:]' | sed 's/\//-/g')
-          SHORT_SHA="${GITHUB_SHA:0:7}"
+          SHORT_SHA="${REAL_SHA:0:7}"
 
-          # set variables to use with Docker images
-          ORG="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
-          REPO="$(basename "${GITHUB_REPOSITORY}")"
-          IMAGE_BASE="${REGISTRY}/${ORG}/${REPO}"
+          # set input variables for optional workflow_dispatch parameters with defaults if not provided
+          NGEN_BASE__REMOTE_GHCR_TAG="${{ github.event.inputs.NGEN_BASE__REMOTE_GHCR_TAG || 'latest' }}"
+          REPO_TAG_FCST_MGR="${{ github.event.inputs.REPO_TAG_FCST_MGR || 'development' }}"
+          REPO_TAG_MSW_MGR="${{ github.event.inputs.REPO_TAG_MSW_MGR || 'development' }}"
+          REPO_TAG_CAL_MGR="${{ github.event.inputs.REPO_TAG_CAL_MGR || 'development' }}"
+          REPO_TAG_REGION_MGR="${{ github.event.inputs.REPO_TAG_REGION_MGR || 'development' }}"
+          REPO_TAG_DATA_ASSIM_ENGINE="${{ github.event.inputs.REPO_TAG_DATA_ASSIM_ENGINE || 'development' }}"
+          REPO_TAG_NGEN_FORCING="${{ github.event.inputs.REPO_TAG_NGEN_FORCING || 'development' }}"
+          REPO_TAG_VERF="${{ github.event.inputs.REPO_TAG_VERF || 'development' }}"
+          REPO_TAG_EVAL="${{ github.event.inputs.REPO_TAG_EVAL || 'development' }}"
+
+          # INSTALL_DEBUGGERS is a boolean input, convert to "YES"/"NO" string for use in build args
+          if [ "${{ github.event.inputs.INSTALL_DEBUGGERS }}" = "true" ]; then
+            INSTALL_DEBUGGERS="YES"
+          else
+            INSTALL_DEBUGGERS="NO"
+          fi
 
           # logic for the tags:
           # test_image_tag: used for the initial build and test
@@ -80,8 +173,8 @@ jobs:
           # for workflow_dispatch and pushes, use <timestamp>-<clean-ref-name>
 
           # test tag is always commit short sha
-          # TEST_TAG="${SHORT_SHA}"
-          TEST_TAG="latest"
+          TEST_TAG="${SHORT_SHA}"
+          # TEST_TAG="latest" # for testing only
 
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             ALIAS="pr-${{ github.event.pull_request.number }}-build"
@@ -97,9 +190,19 @@ jobs:
           echo "build_date=${BUILD_DATE}" >> "$GITHUB_OUTPUT"
           echo "test_image_tag=${TEST_TAG}" >> "$GITHUB_OUTPUT"
           echo "alias_tag=${ALIAS}" >> "$GITHUB_OUTPUT"
-          echo "commit_sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "commit_sha=${REAL_SHA}" >> "$GITHUB_OUTPUT"
           echo "commit_sha_short=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
           echo "clean_ref=${CLEAN_REF}" >> "$GITHUB_OUTPUT"
+          echo "ngen_base_remote_ghcr_tag=${NGEN_BASE__REMOTE_GHCR_TAG}" >> "$GITHUB_OUTPUT"
+          echo "install_debuggers=${INSTALL_DEBUGGERS}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_fcst_mgr=${REPO_TAG_FCST_MGR}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_msw_mgr=${REPO_TAG_MSW_MGR}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_cal_mgr=${REPO_TAG_CAL_MGR}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_region_mgr=${REPO_TAG_REGION_MGR}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_data_assim_engine=${REPO_TAG_DATA_ASSIM_ENGINE}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_ngen_forcing=${REPO_TAG_NGEN_FORCING}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_verf=${REPO_TAG_VERF}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_eval=${REPO_TAG_EVAL}" >> "$GITHUB_OUTPUT"
 
   build-and-test:
     name: build and test
@@ -125,12 +228,22 @@ jobs:
 
       - name: Build RTE image
         env:
-          RTE_IMAGE_SOURCE: https://github.com/${{ github.repository }}
-          RTE_IMAGE_VENDOR: ${{ github.repository_owner }}
-          RTE_IMAGE_VERSION: ${{ needs.setup.outputs.clean_ref }}
-          RTE_IMAGE_REVISION: ${{ github.sha }}
-          RTE_IMAGE_CREATED: ${{ needs.setup.outputs.build_date }}
           TARGET_IMAGE_NAME: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
+          TARGET_IMAGE_SOURCE: https://github.com/${{ github.repository }}
+          TARGET_IMAGE_VENDOR: ${{ github.repository_owner }}
+          TARGET_IMAGE_VERSION: ${{ needs.setup.outputs.clean_ref }}
+          TARGET_IMAGE_REVISION: ${{ github.sha }}
+          TARGET_IMAGE_CREATED: ${{ needs.setup.outputs.build_date }}
+          NGEN_BASE__REMOTE_GHCR_TAG: ${{ needs.setup.outputs.ngen_base_remote_ghcr_tag }}
+          INSTALL_DEBUGGERS: ${{ needs.setup.outputs.install_debuggers }}
+          REPO_TAG_FCST_MGR: ${{ needs.setup.outputs.repo_tag_fcst_mgr }}
+          REPO_TAG_MSW_MGR: ${{ needs.setup.outputs.repo_tag_msw_mgr }}
+          REPO_TAG_CAL_MGR: ${{ needs.setup.outputs.repo_tag_cal_mgr }}
+          REPO_TAG_REGION_MGR: ${{ needs.setup.outputs.repo_tag_region_mgr }}
+          REPO_TAG_DATA_ASSIM_ENGINE: ${{ needs.setup.outputs.repo_tag_data_assim_engine }}
+          REPO_TAG_NGEN_FORCING: ${{ needs.setup.outputs.repo_tag_ngen_forcing }}
+          REPO_TAG_VERF: ${{ needs.setup.outputs.repo_tag_verf }}
+          REPO_TAG_EVAL: ${{ needs.setup.outputs.repo_tag_eval }}
         run: |
           # Create a temporary parent directory structure for the build context
           # The Dockerfile expects to COPY from nwm-rte/* so we need the repo to be in a subdirectory
