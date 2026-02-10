@@ -5,7 +5,6 @@ import functools
 import logging
 import os
 import subprocess
-from typing import Sequence
 
 print = functools.partial(print, flush=True)
 
