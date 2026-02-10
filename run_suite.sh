@@ -14,9 +14,9 @@ sudo rm -rf ~/ngwpc/run_ngen/kge_dds/test_bmi/01123000
 docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -start "2013-07-01 00:00:00" -dur 120
 
 # CONUS forecasts: short range, analysis & assimilation, and medium range
-docker_run python "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --skip_calibration -forcing_configuration "short_range" -cycle_datetime "2025-07-10 04:00:00" --fcst_run_name "fcst_run1_short_range"
-docker_run python "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --skip_calibration -forcing_configuration "standard_ana" -cycle_datetime "2025-07-10 10:00:00" --fcst_run_name "fcst_run1_standard_ana"
-docker_run python "/ngen-app/bin/bin_mounted/forecast_args_workflow.py" --skip_calibration -forcing_configuration "medium_range_blend" -cycle_datetime "2025-07-10 00:00:00" --fcst_run_name "fcst_run1_medium_range_blend"
+docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -fconfig "short_range" -dt "2025-07-10 04:00:00" -rname "fcst_run1_short_range"
+docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -fconfig "standard_ana" -dt "2025-07-10 10:00:00" -rname "fcst_run1_standard_ana"
+docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -fconfig "medium_range_blend" -dt "2025-07-10 00:00:00" -rname "fcst_run1_medium_range_blend"
 
 # PR sample calibration during Hurricane Maria
 sudo rm -rf ~/ngwpc/run_ngen/kge_dds/test_bmi/50027000
