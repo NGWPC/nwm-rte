@@ -5,19 +5,198 @@ on:
     branches:
       - development
       - main
+      - ngwpc-candidate
+      - ngwpc-release
   pull_request:
     branches:
       - development
       - main
+      - ngwpc-candidate
+      - ngwpc-release
+  release:
+    types:
+      - published
   workflow_dispatch:
+    inputs:
+      INSTALL_DEBUGGERS:
+        description: "INSTALL_DEBUGGERS"
+        required: false
+        type: boolean
+        default: false
+      NGEN_BASE__REMOTE_GHCR_TAG:
+        description: "NGEN_BASE__REMOTE_GHCR_TAG"
+        required: false
+        type: string
+      REPO_TAG_FCST_MGR:
+        description: "REPO_TAG_FCST_MGR"
+        required: false
+        type: string
+      REPO_TAG_MSW_MGR:
+        description: "REPO_TAG_MSW_MGR"
+        required: false
+        type: string
+      REPO_TAG_CAL_MGR:
+        description: "REPO_TAG_CAL_MGR"
+        required: false
+        type: string
+      REPO_TAG_REGION_MGR:
+        description: "REPO_TAG_REGION_MGR"
+        required: false
+        type: string
+      REPO_TAG_DATA_ASSIM_ENGINE:
+        description: "REPO_TAG_DATA_ASSIM_ENGINE"
+        required: false
+        type: string
+      REPO_TAG_NGEN_FORCING:
+        description: "REPO_TAG_NGEN_FORCING"
+        required: false
+        type: string
+      REPO_TAG_VERF:
+        description: "REPO_TAG_VERF"
+        required: false
+        type: string
+      REPO_TAG_EVAL:
+        description: "REPO_TAG_EVAL"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+
+env:
+  REGISTRY: ghcr.io
 
 jobs:
-  build-and-test:
+  # set variables for use in other jobs
+  setup:
+    name: setup
     runs-on: ubuntu-latest
+    outputs:
+      org: ${{ steps.vars.outputs.org }}
+      image_base: ${{ steps.vars.outputs.image_base }}
+      pr_tag: ${{ steps.vars.outputs.pr_tag }}
+      commit_sha: ${{ steps.vars.outputs.commit_sha }}
+      commit_sha_short: ${{ steps.vars.outputs.commit_sha_short }}
+      test_image_tag: ${{ steps.vars.outputs.test_image_tag }}
+      alias_tag: ${{ steps.vars.outputs.alias_tag }}
+      build_date: ${{ steps.vars.outputs.build_date }}
+      clean_ref: ${{ steps.vars.outputs.clean_ref }}
+      ngen_base_remote_ghcr_tag: ${{ steps.vars.outputs.ngen_base_remote_ghcr_tag }}
+      install_debuggers: ${{ steps.vars.outputs.install_debuggers }}
+      repo_tag_fcst_mgr: ${{ steps.vars.outputs.repo_tag_fcst_mgr }}
+      repo_tag_msw_mgr: ${{ steps.vars.outputs.repo_tag_msw_mgr }}
+      repo_tag_cal_mgr: ${{ steps.vars.outputs.repo_tag_cal_mgr }}
+      repo_tag_region_mgr: ${{ steps.vars.outputs.repo_tag_region_mgr }}
+      repo_tag_data_assim_engine: ${{ steps.vars.outputs.repo_tag_data_assim_engine }}
+      repo_tag_ngen_forcing: ${{ steps.vars.outputs.repo_tag_ngen_forcing }}
+      repo_tag_verf: ${{ steps.vars.outputs.repo_tag_verf }}
+      repo_tag_eval: ${{ steps.vars.outputs.repo_tag_eval }}
+    steps:
+      - name: Compute image vars
+        id: vars
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # set variables to use with Docker images
+          ORG="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          REPO="$(basename "${GITHUB_REPOSITORY}")"
+          IMAGE_BASE="${REGISTRY}/${ORG}/${REPO}"
+
+          # one datetime for all time variables
+          NOW=$(date -u +'%Y-%m-%d %H:%M:%S')
+
+          # for OCI labels
+          BUILD_DATE=$(date -u -d "$NOW" +'%Y-%m-%dT%H:%M:%SZ')
+
+          # for Docker image tags
+          TIMESTAMP=$(date -u -d "$NOW" +'%Y%m%d%H%M%SZ')
+
+          # logic to get the real branch name and commit SHA on pull requests
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            REAL_REF="${{ github.head_ref }}"
+            REAL_SHA="${{ github.event.pull_request.head.sha }}"
+          else
+            REAL_REF="${{ github.ref_name }}"
+            REAL_SHA="${GITHUB_SHA}"
+          fi
+
+          # clean ref name and short commit sha
+          CLEAN_REF=$(echo "$REAL_REF" | tr '[:upper:]' '[:lower:]' | sed 's/\//-/g')
+          SHORT_SHA="${REAL_SHA:0:7}"
+
+          # set input variables for optional workflow_dispatch parameters with defaults if not provided
+          NGEN_BASE__REMOTE_GHCR_TAG="${{ github.event.inputs.NGEN_BASE__REMOTE_GHCR_TAG || 'latest' }}"
+          REPO_TAG_FCST_MGR="${{ github.event.inputs.REPO_TAG_FCST_MGR || 'development' }}"
+          REPO_TAG_MSW_MGR="${{ github.event.inputs.REPO_TAG_MSW_MGR || 'development' }}"
+          REPO_TAG_CAL_MGR="${{ github.event.inputs.REPO_TAG_CAL_MGR || 'development' }}"
+          REPO_TAG_REGION_MGR="${{ github.event.inputs.REPO_TAG_REGION_MGR || 'development' }}"
+          REPO_TAG_DATA_ASSIM_ENGINE="${{ github.event.inputs.REPO_TAG_DATA_ASSIM_ENGINE || 'development' }}"
+          REPO_TAG_NGEN_FORCING="${{ github.event.inputs.REPO_TAG_NGEN_FORCING || 'development' }}"
+          REPO_TAG_VERF="${{ github.event.inputs.REPO_TAG_VERF || 'development' }}"
+          REPO_TAG_EVAL="${{ github.event.inputs.REPO_TAG_EVAL || 'development' }}"
+
+          # INSTALL_DEBUGGERS is a boolean input, convert to "YES"/"NO" string for use in build args
+          if [ "${{ github.event.inputs.INSTALL_DEBUGGERS }}" = "true" ]; then
+            INSTALL_DEBUGGERS="YES"
+          else
+            INSTALL_DEBUGGERS="NO"
+          fi
+
+          # logic for the tags:
+          # test_image_tag: used for the initial build and test
+          # alias_tag: used for final tagging on successful tests
+          # for pull requests, use pr-<pr-number>-build
+          # for workflow_dispatch and pushes, use <timestamp>-<clean-ref-name>
+
+          # test tag is always commit short sha
+          TEST_TAG="${SHORT_SHA}"
+
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            ALIAS="pr-${{ github.event.pull_request.number }}-build"
+          elif [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] || [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            ALIAS="${TIMESTAMP}-${CLEAN_REF}"
+          else
+            ALIAS="${SHORT_SHA}" # fallback
+          fi
+
+          # save outputs
+          echo "org=${ORG}" >> "$GITHUB_OUTPUT"
+          echo "image_base=${IMAGE_BASE}" >> "$GITHUB_OUTPUT"
+          echo "build_date=${BUILD_DATE}" >> "$GITHUB_OUTPUT"
+          echo "test_image_tag=${TEST_TAG}" >> "$GITHUB_OUTPUT"
+          echo "alias_tag=${ALIAS}" >> "$GITHUB_OUTPUT"
+          echo "commit_sha=${REAL_SHA}" >> "$GITHUB_OUTPUT"
+          echo "commit_sha_short=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "clean_ref=${CLEAN_REF}" >> "$GITHUB_OUTPUT"
+          echo "ngen_base_remote_ghcr_tag=${NGEN_BASE__REMOTE_GHCR_TAG}" >> "$GITHUB_OUTPUT"
+          echo "install_debuggers=${INSTALL_DEBUGGERS}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_fcst_mgr=${REPO_TAG_FCST_MGR}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_msw_mgr=${REPO_TAG_MSW_MGR}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_cal_mgr=${REPO_TAG_CAL_MGR}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_region_mgr=${REPO_TAG_REGION_MGR}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_data_assim_engine=${REPO_TAG_DATA_ASSIM_ENGINE}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_ngen_forcing=${REPO_TAG_NGEN_FORCING}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_verf=${REPO_TAG_VERF}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_eval=${REPO_TAG_EVAL}" >> "$GITHUB_OUTPUT"
+
+  build-and-test:
+    name: build and test
+
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'push') ||
+      (github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+
+    needs:
+      - setup
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -26,6 +205,23 @@ jobs:
         run: ./setup_clone_repos.sh https
 
       - name: Build RTE image
+        env:
+          TARGET_IMAGE_NAME: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
+          TARGET_IMAGE_SOURCE: https://github.com/${{ github.repository }}
+          TARGET_IMAGE_VENDOR: ${{ github.repository_owner }}
+          TARGET_IMAGE_VERSION: ${{ needs.setup.outputs.clean_ref }}
+          TARGET_IMAGE_REVISION: ${{ needs.setup.outputs.commit_sha }}
+          TARGET_IMAGE_CREATED: ${{ needs.setup.outputs.build_date }}
+          NGEN_BASE__REMOTE_GHCR_TAG: ${{ needs.setup.outputs.ngen_base_remote_ghcr_tag }}
+          INSTALL_DEBUGGERS: ${{ needs.setup.outputs.install_debuggers }}
+          REPO_TAG_FCST_MGR: ${{ needs.setup.outputs.repo_tag_fcst_mgr }}
+          REPO_TAG_MSW_MGR: ${{ needs.setup.outputs.repo_tag_msw_mgr }}
+          REPO_TAG_CAL_MGR: ${{ needs.setup.outputs.repo_tag_cal_mgr }}
+          REPO_TAG_REGION_MGR: ${{ needs.setup.outputs.repo_tag_region_mgr }}
+          REPO_TAG_DATA_ASSIM_ENGINE: ${{ needs.setup.outputs.repo_tag_data_assim_engine }}
+          REPO_TAG_NGEN_FORCING: ${{ needs.setup.outputs.repo_tag_ngen_forcing }}
+          REPO_TAG_VERF: ${{ needs.setup.outputs.repo_tag_verf }}
+          REPO_TAG_EVAL: ${{ needs.setup.outputs.repo_tag_eval }}
         run: |
           # Create a temporary parent directory structure for the build context
           # The Dockerfile expects to COPY from nwm-rte/* so we need the repo to be in a subdirectory
@@ -36,6 +232,17 @@ jobs:
           fi
           cd nwm-rte
           ./ngen_rte_build.sh
+
+      - name: Log in to Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push RTE image
+        run: |
+          docker push "${{ needs.setup.outputs.image_base }}:${{ needs.setup.outputs.test_image_tag }}"
 
       - name: Check remaining space
         if: always()
@@ -51,6 +258,8 @@ jobs:
           mkdir -p docker_logs/run
 
       - name: Run RTE in noop mode
+        env:
+          TARGET_IMAGE_NAME: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
         run: |
           # Source the script to get docker_run function and config
           source ./run.sh
@@ -64,3 +273,147 @@ jobs:
           echo "  1. Build successfully with all dependencies"
           echo "  2. Import all required Python libraries"
           echo "  3. Execute the workflow script in noop mode"
+
+  # run container security scan using Trivy
+  container-scanning:
+    name: container-scanning
+
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'push') ||
+      (github.event_name == 'workflow_dispatch')
+
+    runs-on: ubuntu-latest
+
+    needs:
+      - setup
+      - build-and-test
+
+    steps:
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@v0.2.2
+        with:
+          cache: true
+          version: v0.68.2
+
+      - name: Trivy scan
+        env:
+          TMPDIR: /mnt/trivy-temp
+        run: |
+          sudo mkdir -p $TMPDIR
+          sudo chown -R $USER:$USER $TMPDIR
+
+          trivy image \
+            --format sarif \
+            --output trivy-results.sarif \
+            --severity CRITICAL,HIGH \
+            --scanners vuln \
+            --ignore-unfixed \
+            --timeout 45m \
+            ${{ needs.setup.outputs.image_base }}:${{ needs.setup.outputs.test_image_tag }}
+
+  # promote Docker image tags after successful tests
+  promote-tags:
+    name: Promote Tags
+
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'push') ||
+      (github.event_name == 'repository_dispatch') ||
+      (github.event_name == 'workflow_dispatch')
+
+    runs-on: ubuntu-latest
+
+    needs:
+      - setup
+      - build-and-test
+      - container-scanning
+
+    steps:
+      - name: Tag image with alias and latest
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # ensure skopeo is available for promotion
+          if ! command -v skopeo >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y --no-install-recommends skopeo
+          fi
+
+          IMAGE_BASE="${{ needs.setup.outputs.image_base }}"
+          TEST_TAG="${{ needs.setup.outputs.test_image_tag }}"
+          ALIAS_TAG="${{ needs.setup.outputs.alias_tag }}"
+
+          # apply the primary alias (pr tag or timestamp-branch)
+          skopeo copy \
+            --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+            --dest-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+            --all \
+            "docker://${IMAGE_BASE}:${TEST_TAG}" "docker://${IMAGE_BASE}:${ALIAS_TAG}"
+
+          # additionally tag with 'latest' if on development branch push
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$GITHUB_REF_NAME" = "development" ]; then
+            skopeo copy \
+              --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+              --dest-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+              --all \
+              "docker://${IMAGE_BASE}:${TEST_TAG}" "docker://${IMAGE_BASE}:latest"
+          fi
+
+  # tag official release Docker image with release tag
+  release:
+    name: release
+
+    if: github.event_name == 'release' && github.event.action == 'published'
+
+    runs-on: ubuntu-latest
+
+    needs:
+      - setup
+
+    steps:
+      - name: Get commit sha for the tag
+        id: rev
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          TAG="${{ github.event.release.tag_name }}"
+          REPO="${{ github.repository }}"
+
+          REF_JSON="$(gh api "repos/${REPO}/git/refs/tags/${TAG}")"
+          OBJ_SHA="$(jq -r '.object.sha' <<<"$REF_JSON")"
+          OBJ_TYPE="$(jq -r '.object.type' <<<"$REF_JSON")"
+
+          if [ "$OBJ_TYPE" = "tag" ]; then
+            TAG_OBJ="$(gh api "repos/${REPO}/git/tags/${OBJ_SHA}")"
+            COMMIT_SHA="$(jq -r '.object.sha' <<<"$TAG_OBJ")"
+          else
+            COMMIT_SHA="$OBJ_SHA"
+          fi
+
+          SHORT_SHA="${COMMIT_SHA:0:7}"
+          echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Tag image with release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          IMAGE_BASE="${{ needs.setup.outputs.image_base }}"
+          SHORT_SHA="${{ steps.rev.outputs.short_sha }}"
+          RELEASE_TAG="${{ github.event.release.tag_name }}"
+
+          # ensure skopeo is available
+          if ! command -v skopeo >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y --no-install-recommends skopeo
+          fi
+
+          skopeo copy \
+            --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+            --dest-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+            docker://"${IMAGE_BASE}:${SHORT_SHA}" docker://"${IMAGE_BASE}:${RELEASE_TAG}"

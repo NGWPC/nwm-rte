@@ -16,7 +16,7 @@ NO_CACHE=${NO_CACHE:-""}
 STAGE=${STAGE:-"ngen_rte_eval_verf"}
 
 ### Passed to ./install_debuggers.sh, causes pip package `debugpy` and dnf package `gdb` to be installed.
-INSTALL_DEBUGGERS="NO"
+INSTALL_DEBUGGERS=${INSTALL_DEBUGGERS:-"NO"}
 # INSTALL_DEBUGGERS="YES"
 
 
@@ -53,7 +53,15 @@ NGEN_BASE_REMOTE_TAG=${NGEN_BASE_REMOTE_TAG:-"development"}
 # NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"build_from_local"}
 
 ### Freeform name tag for image that is built in this process
-TARGET_IMAGE_NAME="ngen_rte:${NGEN_SOURCE_MODE}"
+TARGET_IMAGE_NAME=${TARGET_IMAGE_NAME:-"ngen_rte:${NGEN_SOURCE_MODE}"}
+
+### OCI Standard labels for Dockerfile.rte image
+### See https://specs.opencontainers.org/image-spec/annotations/
+TARGET_IMAGE_SOURCE=${TARGET_IMAGE_SOURCE:-"https://github.com/NGWPC/nwm-rte"}
+TARGET_IMAGE_VENDOR=${TARGET_IMAGE_VENDOR:-"NGWPC"}
+TARGET_IMAGE_VERSION=${TARGET_IMAGE_VERSION:-"latest"}
+TARGET_IMAGE_REVISION=${TARGET_IMAGE_REVISION:-"unknown"} # git commit SHA
+TARGET_IMAGE_CREATED=${TARGET_IMAGE_CREATED:-"unknown"} # ISO 8601 format, e.g. 2024-01-01T00:00:00Z
 
 # If you use this for REPOS_COMMON_ROOT__HOST, then the other repos are assumed to be siblings of this repo
 THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
@@ -61,7 +69,7 @@ THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
 ### REPOS_COMMON_ROOT__HOST:
 ###  What this variable is for:
 ###      ./setup_clone_repos.sh sets up this local directory and clones "sister" repos into it
-###      ./setup_data.sh  downloads data into it 
+###      ./setup_data.sh  downloads data into it
 ###      ./ngen_rte_build.sh uses this to find ngen when NGEN_SOURCE_MODE == "build_from_local"
 ###      ./ngen_rte_run.sh mounts various subdirectories and files from this local directory, into the container, during runtime.
 ###
@@ -71,13 +79,13 @@ THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
 ###
 ###      Using ${THIS_SCRIPTS_GRANDPARENT_DIR} guarantees that the setup scripts (`./setup_data.sh` and `./setup_clone_repos.sh`)
 ###      will copy data and clone repos into the same locations where the build script and run script will look for them.
-###     
+###
 REPOS_COMMON_ROOT__HOST=${THIS_SCRIPTS_GRANDPARENT_DIR}
 # REPOS_COMMON_ROOT__HOST="${HOME}/ngwpc"
 # REPOS_COMMON_ROOT__HOST="${HOME}/ngwpc__rte"
 
-RUN_NGEN_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/run_ngen"
-S3_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}/s3"
+RUN_NGEN_ROOT__HOST=${RUN_NGEN_ROOT__HOST:-"${REPOS_COMMON_ROOT__HOST}/run_ngen"}
+S3_ROOT__HOST=${S3_ROOT__HOST:-"${REPOS_COMMON_ROOT__HOST}/s3"}
 
 ### Config template mounts from ngen-forcing repo
 ###   e.g. ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/

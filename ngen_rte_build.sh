@@ -1,7 +1,7 @@
 #!/bin/bash
-# 
+#
 # ngen_rte_build.sh
-# 
+#
 # This script builds the ngen base image (or sources it from existing ghcr image), then adds components packages
 # See config.bashrc for configuration. Components can be installed from GitHub, or from local source code, or skipped.
 # Requirements:
@@ -39,7 +39,7 @@ function build_intermediary_image_from_remote_source () {
 
     if test -d ${source_local_tmp}; then
         info "Pulling ref ${repo_tag} and submodules for ${source_local_tmp}"
-        ( 
+        (
         cd ${source_local_tmp}; \
         git fetch; \
         git checkout ${repo_tag}; \
@@ -121,7 +121,16 @@ fi
 
 ### Build RTE image from ngen base image
 info "Building image: ${TARGET_IMAGE_NAME}"
+
+# Sanitize the image name for the log file (replace / and : with _)
+SAFE_LOG_NAME=$(echo "${TARGET_IMAGE_NAME}" | tr '/:' '__')
+
 sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target ${STAGE} \
+    --build-arg TARGET_IMAGE_SOURCE=${TARGET_IMAGE_SOURCE} \
+    --build-arg TARGET_IMAGE_VENDOR=${TARGET_IMAGE_VENDOR} \
+    --build-arg TARGET_IMAGE_VERSION=${TARGET_IMAGE_VERSION} \
+    --build-arg TARGET_IMAGE_REVISION=${TARGET_IMAGE_REVISION} \
+    --build-arg TARGET_IMAGE_CREATED=${TARGET_IMAGE_CREATED} \
     --build-arg NGEN_BASE_IMAGE=${NGEN_BASE_IMAGE} \
     --build-arg INSTALL_DEBUGGERS=${INSTALL_DEBUGGERS} \
     --build-arg REPO_TAG_FCST_MGR="${REPO_TAG_FCST_MGR}" \
@@ -133,7 +142,7 @@ sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target
     --build-arg REPO_TAG_VERF="${REPO_TAG_VERF}" \
     --build-arg REPO_TAG_EVAL="${REPO_TAG_EVAL}" \
     ".." \
-    |& tee "docker_logs/build/${TARGET_IMAGE_NAME}-${TIMESTAMP}.log"
+    |& tee "docker_logs/build/${SAFE_LOG_NAME}-${TIMESTAMP}.log"
 
 info "Built image: ${TARGET_IMAGE_NAME}"
 info "Command to start and enter container without executing anything: sudo docker run --entrypoint /bin/bash -it --rm ${TARGET_IMAGE_NAME}"
