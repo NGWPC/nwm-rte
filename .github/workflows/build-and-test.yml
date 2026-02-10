@@ -80,7 +80,6 @@ on:
         required: false
         type: string
 
-
 permissions:
   contents: read
   packages: write
@@ -174,7 +173,6 @@ jobs:
 
           # test tag is always commit short sha
           TEST_TAG="${SHORT_SHA}"
-          # TEST_TAG="latest" # for testing only
 
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             ALIAS="pr-${{ github.event.pull_request.number }}-build"
@@ -232,7 +230,7 @@ jobs:
           TARGET_IMAGE_SOURCE: https://github.com/${{ github.repository }}
           TARGET_IMAGE_VENDOR: ${{ github.repository_owner }}
           TARGET_IMAGE_VERSION: ${{ needs.setup.outputs.clean_ref }}
-          TARGET_IMAGE_REVISION: ${{ github.sha }}
+          TARGET_IMAGE_REVISION: ${{ needs.setup.outputs.commit_sha }}
           TARGET_IMAGE_CREATED: ${{ needs.setup.outputs.build_date }}
           NGEN_BASE__REMOTE_GHCR_TAG: ${{ needs.setup.outputs.ngen_base_remote_ghcr_tag }}
           INSTALL_DEBUGGERS: ${{ needs.setup.outputs.install_debuggers }}

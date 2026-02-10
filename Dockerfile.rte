@@ -3,6 +3,7 @@ ARG NGEN_BASE_IMAGE="ghcr.io/ngwpc/ngen:latest"
 FROM $NGEN_BASE_IMAGE AS ngen_rte_base
 
 # OCI Metadata Arguments
+ARG TARGET_IMAGE_DESCRIPTION="Docker image for the National Water Model Runtime Environment (NWM RTE) application."
 ARG TARGET_IMAGE_SOURCE="unknown"
 ARG TARGET_IMAGE_VENDOR="unknown"
 ARG TARGET_IMAGE_VERSION="unknown"
@@ -10,7 +11,8 @@ ARG TARGET_IMAGE_REVISION="unknown"
 ARG TARGET_IMAGE_CREATED="unknown"
 
 # OCI Standard Labels
-LABEL org.opencontainers.image.source=$TARGET_IMAGE_SOURCE \
+LABEL org.opencontainers.image.description=$TARGET_IMAGE_DESCRIPTION \
+      org.opencontainers.image.source=$TARGET_IMAGE_SOURCE \
       org.opencontainers.image.vendor=$TARGET_IMAGE_VENDOR \
       org.opencontainers.image.version=$TARGET_IMAGE_VERSION \
       org.opencontainers.image.revision=$TARGET_IMAGE_REVISION \

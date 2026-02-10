@@ -7,14 +7,6 @@ set -euo pipefail
 ###     e.g. as an OS env var, otherwise they use the string specified in this config file.
 ###         Pattern: VAR_NAME=${VAR_NAME:-"some_string"}
 
-### OCI Standard labels for Dockerfile.rte image
-### See https://specs.opencontainers.org/image-spec/annotations/
-TARGET_IMAGE_SOURCE=${TARGET_IMAGE_SOURCE:-"https://github.com/NGWPC/nwm-rte"}
-TARGET_IMAGE_VENDOR=${TARGET_IMAGE_VENDOR:-"NGWPC"}
-TARGET_IMAGE_VERSION=${TARGET_IMAGE_VERSION:-"latest"}
-TARGET_IMAGE_REVISION=${TARGET_IMAGE_REVISION:-"unknown"} # git commit SHA
-TARGET_IMAGE_CREATED=${TARGET_IMAGE_CREATED:-"unknown"} # ISO 8601 format, e.g. 2024-01-01T00:00:00Z
-
 ### Docker cache directive passed to `docker build` call. Choose from: ["--no-cache", ""]
 # NO_CACHE=${NO_CACHE:-"--no-cache"}
 NO_CACHE=${NO_CACHE:-""}
@@ -62,6 +54,14 @@ NGEN_BASE_REMOTE_TAG=${NGEN_BASE_REMOTE_TAG:-"development"}
 
 ### Freeform name tag for image that is built in this process
 TARGET_IMAGE_NAME=${TARGET_IMAGE_NAME:-"ngen_rte:${NGEN_SOURCE_MODE}"}
+
+### OCI Standard labels for Dockerfile.rte image
+### See https://specs.opencontainers.org/image-spec/annotations/
+TARGET_IMAGE_SOURCE=${TARGET_IMAGE_SOURCE:-"https://github.com/NGWPC/nwm-rte"}
+TARGET_IMAGE_VENDOR=${TARGET_IMAGE_VENDOR:-"NGWPC"}
+TARGET_IMAGE_VERSION=${TARGET_IMAGE_VERSION:-"latest"}
+TARGET_IMAGE_REVISION=${TARGET_IMAGE_REVISION:-"unknown"} # git commit SHA
+TARGET_IMAGE_CREATED=${TARGET_IMAGE_CREATED:-"unknown"} # ISO 8601 format, e.g. 2024-01-01T00:00:00Z
 
 # If you use this for REPOS_COMMON_ROOT__HOST, then the other repos are assumed to be siblings of this repo
 THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
