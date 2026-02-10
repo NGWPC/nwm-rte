@@ -3,7 +3,7 @@ ARG NGEN_BASE_IMAGE="ghcr.io/ngwpc/ngen:latest"
 FROM $NGEN_BASE_IMAGE AS ngen_rte_base
 
 # OCI Metadata Arguments
-ARG TARGET_IMAGE_DESCRIPTION="Docker image for the National Water Model Runtime Environment (NWM RTE) application."
+ARG TARGET_IMAGE_DESCRIPTION="Docker image for the National Water Model Runtime Environment (NWM RTE)."
 ARG TARGET_IMAGE_SOURCE="unknown"
 ARG TARGET_IMAGE_VENDOR="unknown"
 ARG TARGET_IMAGE_VERSION="unknown"
