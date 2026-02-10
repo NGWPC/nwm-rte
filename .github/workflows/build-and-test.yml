@@ -19,64 +19,44 @@ on:
   workflow_dispatch:
     inputs:
       NGEN_BASE__REMOTE_GHCR_TAG:
-        description: >
-          Optionally provide specific NGEN Docker image tag to use as the base image for the RTE build.
-          Use `latest` by default.
+        description: "NGEN_BASE__REMOTE_GHCR_TAG"
         required: false
         type: string
       INSTALL_DEBUGGERS:
-        description: >
-          Passed to ./install_debuggers.sh, causes pip package
-          `debugpy` and dnf package `gdb` to be installed.
+        description: "INSTALL_DEBUGGERS"
         required: false
         type: boolean
         default: false
       REPO_TAG_FCST_MGR:
-        description: >
-          Optionally provide specific Git tag, branch, or commit SHA for the nwm-fcst-mgr repository
-          to be cloned during the build. Use the development branch by default.
+        description: "REPO_TAG_FCST_MGR"
         required: false
         type: string
       REPO_TAG_MSW_MGR:
-        description: >
-          Optionally provide specific Git tag, branch, or commit SHA for the nwm-msw-mgr repository
-          to be cloned during the build. Use the development branch by default.
+        description: "REPO_TAG_MSW_MGR"
         required: false
         type: string
       REPO_TAG_CAL_MGR:
-        description: >
-          Optionally provide specific Git tag, branch, or commit SHA for the nwm-cal-mgr repository
-          to be cloned during the build. Use the development branch by default.
+        description: "REPO_TAG_CAL_MGR"
         required: false
         type: string
       REPO_TAG_REGION_MGR:
-        description: >
-          Optionally provide specific Git tag, branch, or commit SHA for the nwm-region-mgr repository
-          to be cloned during the build. Use the development branch by default.
+        description: "REPO_TAG_REGION_MGR"
         required: false
         type: string
       REPO_TAG_DATA_ASSIM_ENGINE:
-        description: >
-          Optionally provide specific Git tag, branch, or commit SHA for the data-assimilation-engine repository
-          to be cloned during the build. Use the development branch by default.
+        description: "REPO_TAG_DATA_ASSIM_ENGINE"
         required: false
         type: string
       REPO_TAG_NGEN_FORCING:
-        description: >
-          Optionally provide specific Git tag, branch, or commit SHA for the ngen-forcing repository
-          to be cloned during the build. Use the development branch by default.
+        description: "REPO_TAG_NGEN_FORCING"
         required: false
         type: string
       REPO_TAG_VERF:
-        description: >
-          Optionally provide specific Git tag, branch, or commit SHA for the nwm-verf repository
-          to be cloned during the build. Use the development branch by default.
+        description: "REPO_TAG_VERF"
         required: false
         type: string
       REPO_TAG_EVAL:
-        description: >
-          Optionally provide specific Git tag, branch, or commit SHA for the nwm-eval-mgr repository
-          to be cloned during the build. Use the development branch by default.
+        description: "REPO_TAG_EVAL"
         required: false
         type: string
 
