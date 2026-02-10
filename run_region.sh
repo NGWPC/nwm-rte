@@ -31,6 +31,12 @@ set -euo pipefail
 #  # Run multiple steps
 #   /ngencerf-app/nwm-rte/run_region.sh --parreg --ngen -c configs
 #
+#  # Run with different repos root directory
+#   /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs -r /ngen-oe/$USER
+#
+#  # Run with different Docker image tag
+#   /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs -t pr-20-build
+#
 # Arguments:
 #   -p, --parreg         Run parameter regionalization (includes formulation)
 #   -f, --formreg        Run formulation regionalization only
@@ -38,6 +44,7 @@ set -euo pipefail
 #   -e, --eval           Run evaluation
 #   -c, --config_dir DIR Set config directory (default: ./configs)
 #   -r, --repos PATH     Set root directory for NGWPC repos (default: auto-detect)
+#   -t, --image-tag TAG  Set Docker image tag (default: latest)
 #   -h, --help           Show this message and exit
 # -----------------------------------------------------------------------------
 
@@ -78,9 +85,10 @@ formreg=false
 ngen=false
 eval=false
 CONFIG_DIR="${WORK_DIR}/configs"
+IMAGE_TAG="latest"
 
 # Parse command line arguments
-ARGS=$(getopt -o pfnehc:r: --long parreg,formreg,ngen,eval,help,config_dir:,repos: -- "$@")
+ARGS=$(getopt -o pfnehc:r:t: --long parreg,formreg,ngen,eval,help,config_dir:,repos:,image-tag: -- "$@")
 if [ $? != 0 ]; then echo "Failed parsing options." >&2; exit 1; fi
 eval set -- "$ARGS"
 
@@ -92,6 +100,7 @@ while true; do
         -e|--eval) eval=true; shift;;
         -c|--config_dir) CONFIG_DIR="$2"; shift 2;;
         -r|--repos) REPOS_COMMON_ROOT__HOST="$2"; shift 2;;
+        -t|--image-tag) IMAGE_TAG="$2"; shift 2;;
         -h|--help)
             echo "Usage: $0 [OPTIONS]
 Options:
@@ -101,6 +110,7 @@ Options:
   -e, --eval           Run evaluation
   -c, --config_dir DIR Set config directory (default: ./configs)
   -r, --repos PATH     Set root directory for NGWPC repos 
+  -t, --image-tag TAG  Set Docker image tag (default: latest)
   -h, --help           Show this message and exit
 " >&2
             exit 0;;
@@ -172,7 +182,7 @@ trap cleanup EXIT
 SCRIPT="${REPOS_COMMON_ROOT__HOST}/nwm-rte/bin_mounted/run_regionalization.py"
 
 # docker image to use
-TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:latest"
+TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:${IMAGE_TAG}"
 
 # Docker run function
 function docker_run {
