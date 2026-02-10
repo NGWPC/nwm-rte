@@ -24,12 +24,23 @@ if not logger.handlers:
     logger.addHandler(ch)
 
 
-def run_cmd(cmd: list[str], check: bool = True, cwd: str = None, shell: bool = False):
+def run_cmd(
+    cmd: list[str] | str,
+    check: bool = True,
+    cwd: str | None = None,
+    shell: bool = False,
+):
+    # Enforce correct cmd type based on shell flag
     if shell:
-        cmd = " ".join(cmd)
+        if not isinstance(cmd, str):
+            raise TypeError("cmd must be a string when shell=True")
+        log_cmd = cmd
+    else:
+        if not isinstance(cmd, list):
+            raise TypeError("cmd must be a list when shell=False")
+        log_cmd = " ".join(cmd)
 
-    msg = f"Running regionalization command: {' '.join(cmd) if isinstance(cmd, (list, tuple)) else str(cmd)}"
-    logger.info(msg)
+    logger.info(f"Running regionalization command: {log_cmd}")
 
     subprocess.run(cmd, check=check, cwd=cwd, shell=shell)
 
@@ -37,42 +48,25 @@ def run_cmd(cmd: list[str], check: bool = True, cwd: str = None, shell: bool = F
 def main(config_dir: str, parreg: bool, formreg: bool, ngen: bool, run_eval: bool):
     if parreg:
         run_cmd(
-            cmd=[
-                "python -um nwm_region_mgr",
-                config_dir,
-                "parreg",
-            ],
+            cmd=f"python -um nwm_region_mgr {config_dir} parreg",
             shell=True,
         )
 
     if formreg:
         run_cmd(
-            cmd=[
-                "python -um nwm_region_mgr",
-                config_dir,
-                "formreg",
-            ],
+            cmd=f"python -um nwm_region_mgr {config_dir} formreg",
             shell=True,
         )
 
     if ngen:
         run_cmd(
-            cmd=[
-                "python -um nwm_region_mgr",
-                config_dir,
-                "ngen",
-            ],
+            cmd=f"ulimit -n 65535 && python -um nwm_region_mgr {config_dir} ngen",
             shell=True,
         )
 
     if run_eval:
         run_cmd(
-            cmd=[
-                EVAL_VERF_PYTHON_BINARY,
-                "-um",
-                "nwm.verf",
-                f"{config_dir}/config_eval.yaml",
-            ],
+            cmd=f"{EVAL_VERF_PYTHON_BINARY} -um nwm.verf {config_dir}/config_eval.yaml",
             shell=True,
         )
 
