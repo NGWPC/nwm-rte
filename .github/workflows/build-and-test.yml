@@ -125,18 +125,18 @@ jobs:
           SHORT_SHA="${REAL_SHA:0:7}"
 
           # set input variables for optional workflow_dispatch parameters with defaults if not provided
-          NGEN_BASE__REMOTE_GHCR_TAG="${{ github.event.inputs.NGEN_BASE__REMOTE_GHCR_TAG || 'latest' }}"
-          REPO_TAG_FCST_MGR="${{ github.event.inputs.REPO_TAG_FCST_MGR || 'development' }}"
-          REPO_TAG_MSW_MGR="${{ github.event.inputs.REPO_TAG_MSW_MGR || 'development' }}"
-          REPO_TAG_CAL_MGR="${{ github.event.inputs.REPO_TAG_CAL_MGR || 'development' }}"
-          REPO_TAG_REGION_MGR="${{ github.event.inputs.REPO_TAG_REGION_MGR || 'development' }}"
-          REPO_TAG_DATA_ASSIM_ENGINE="${{ github.event.inputs.REPO_TAG_DATA_ASSIM_ENGINE || 'development' }}"
-          REPO_TAG_NGEN_FORCING="${{ github.event.inputs.REPO_TAG_NGEN_FORCING || 'development' }}"
-          REPO_TAG_VERF="${{ github.event.inputs.REPO_TAG_VERF || 'development' }}"
-          REPO_TAG_EVAL="${{ github.event.inputs.REPO_TAG_EVAL || 'development' }}"
+          NGEN_BASE__REMOTE_GHCR_TAG="${{ inputs.NGEN_BASE__REMOTE_GHCR_TAG || 'latest' }}"
+          REPO_TAG_FCST_MGR="${{ inputs.REPO_TAG_FCST_MGR || 'development' }}"
+          REPO_TAG_MSW_MGR="${{ inputs.REPO_TAG_MSW_MGR || 'development' }}"
+          REPO_TAG_CAL_MGR="${{ inputs.REPO_TAG_CAL_MGR || 'development' }}"
+          REPO_TAG_REGION_MGR="${{ inputs.REPO_TAG_REGION_MGR || 'development' }}"
+          REPO_TAG_DATA_ASSIM_ENGINE="${{ inputs.REPO_TAG_DATA_ASSIM_ENGINE || 'development' }}"
+          REPO_TAG_NGEN_FORCING="${{ inputs.REPO_TAG_NGEN_FORCING || 'development' }}"
+          REPO_TAG_VERF="${{ inputs.REPO_TAG_VERF || 'development' }}"
+          REPO_TAG_EVAL="${{ inputs.REPO_TAG_EVAL || 'development' }}"
 
           # INSTALL_DEBUGGERS is a boolean input, convert to "YES"/"NO" string for use in build args
-          if [ "${{ github.event.inputs.INSTALL_DEBUGGERS }}" = "true" ]; then
+          if [ "${{ inputs.INSTALL_DEBUGGERS }}" = "true" ]; then
             INSTALL_DEBUGGERS="YES"
           else
             INSTALL_DEBUGGERS="NO"
