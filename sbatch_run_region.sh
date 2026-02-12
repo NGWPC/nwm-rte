@@ -52,9 +52,13 @@ if [[ ! -f "${SCRIPT_DIR}/run_region.sh" ]]; then
   exit 1
 fi
 
-# config_dir is the first argument
-CONFIG_DIR="$(realpath "${1:-configs}")"
-shift
+# config_dir is the first argument ONLY if it is not an option
+if [[ $# -gt 0 && "$1" != -* ]]; then
+  CONFIG_DIR="$(realpath "$1")"
+  shift
+else
+  CONFIG_DIR="$(realpath "configs")"
+fi
 
 # ensure config_dir exists
 if [[ ! -d "${CONFIG_DIR}" ]]; then
