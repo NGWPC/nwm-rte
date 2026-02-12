@@ -16,10 +16,10 @@ set -euo pipefail
 #   ~/ngwpc/nwm-rte/sbatch_run_region.sh CONFIG_DIR [OPTIONS] [--dry-run]
 #
 # Arguments:
-#   CONFIG_DIR : Directory containing configuration YAML files (required)
-#   OPTIONS    : Workflow steps to runs: parreg, formreg, ngen, or eval (optional, default: parreg)
-#   --dry-run  : If provided, print the generated SLURM script instead of submitting (optional)
-#   --image-tag : Docker image tag to use for the RTE (optional, default: latest)
+#   CONFIG_DIR     : Directory containing configuration YAML files (required)
+#   OPTIONS        : Workflow steps to runs: parreg, formreg, ngen, or eval (optional, default: parreg)
+#   --dry-run      : If provided, print the generated SLURM script instead of submitting (optional)
+#   --image-tag TAG: Docker image tag to use for the RTE (optional, default: latest)
 #
 # Examples:
 #   # Do a dry-run to see the generated SLURM script without submitting
@@ -75,6 +75,10 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --image-tag)
+      if [[ $# -lt 2 ]]; then
+        echo "ERROR: --image-tag requires a value." >&2
+        exit 1
+      fi
       IMAGE_TAG="$2"
       shift 2
       ;;
