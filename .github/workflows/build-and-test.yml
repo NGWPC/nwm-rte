@@ -190,6 +190,21 @@ jobs:
     needs:
       - setup
     steps:
+      - name: Free Disk Space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+
+          # remove heavy pre-installed tools
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo docker image prune --all --force
+
+          # clean up Docker system and images
+          echo "Disk space after cleanup:"
+          df -h
       - name: Checkout repository
         uses: actions/checkout@v6
       - name: Set up Docker Buildx
