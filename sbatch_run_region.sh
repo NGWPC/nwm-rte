@@ -19,6 +19,7 @@ set -euo pipefail
 #   CONFIG_DIR : Directory containing configuration YAML files (required)
 #   OPTIONS    : Workflow steps to runs: parreg, formreg, ngen, or eval (optional, default: parreg)
 #   --dry-run  : If provided, print the generated SLURM script instead of submitting (optional)
+#   --image-tag : Docker image tag to use for the RTE (optional, default: latest)
 #
 # Examples:
 #   # Do a dry-run to see the generated SLURM script without submitting
@@ -38,6 +39,8 @@ set -euo pipefail
 #   # Submit evaluation only
 #   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs eval
 #
+#   # Using an RTE image tag other than 'latest'
+#   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --image-tag "069ad0f6d332"
 # -----------------------------------------------------------------------------
 
 # determine parent dir of current run script (assuming run_region.sh is also located here)
@@ -63,14 +66,25 @@ export CONFIG_DIR
 # determine options to run from the remaining arguments
 OPTIONS=()
 DRY_RUN=false
+IMAGE_TAG="latest"
 
-for arg in "$@"; do
-  if [[ "$arg" == "--dry-run" ]]; then
-    DRY_RUN=true
-  else
-    OPTIONS+=("$arg")
-  fi
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry-run)
+      DRY_RUN=true
+      shift
+      ;;
+    --image-tag)
+      IMAGE_TAG="$2"
+      shift 2
+      ;;
+    *)
+      OPTIONS+=("$1")
+      shift
+      ;;
+  esac
 done
+
 
 # Default option
 if [[ ${#OPTIONS[@]} -eq 0 ]]; then
@@ -128,6 +142,7 @@ echo "  ntasks       = $NTASKS"
 echo "  cpus         = $CPUS_PER_TASK"
 echo "  config_dir   = $CONFIG_DIR"
 echo "  script_dir   = $SCRIPT_DIR"
+echo "  image_tag    = $IMAGE_TAG"
 echo
 
 SBATCH_SCRIPT=$(cat <<EOF
@@ -147,7 +162,7 @@ echo "Nodes allocated: \$SLURM_JOB_NUM_NODES"
 echo "Running on directory: \$SLURM_SUBMIT_DIR"
 echo "Job ID: \$SLURM_JOB_ID"
 
-/ngencerf-app/nwm-rte/run_region.sh ${OPTION_FLAGS[*]} -c "${CONFIG_DIR}"
+/ngencerf-app/nwm-rte/run_region.sh ${OPTION_FLAGS[*]} -c "${CONFIG_DIR}" --image-tag "${IMAGE_TAG}"
 
 EOF
 )
