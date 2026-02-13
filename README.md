@@ -4,27 +4,29 @@ A configurable `docker build` and `docker run` sequence for headless end-to-end 
 
 ## Description of Primary Files
 
-[setup_data.sh](setup_data.sh) downloads global data from s3, as well as data for specific test gage(s).
+Most of the shell files source their configuration from [config.bashrc](config.bashrc).
 
-[setup_data_one_gage.sh](setup_data_one_gage.sh) downloads data from s3 for a specific test gage. This is used to optionally download data for non-default gages, and for oCONUS gages.
+[setup_data.sh](setup_data.sh) Downloads global data from s3, as well as data for specific test gage(s).
 
-[setup_clone_repos.sh](setup_clone_repos.sh) sources configuration from [config.bashrc](config.bashrc) and clones repos from GitHub. Includes CLI option for using SSH (for r+w, requires credentials) or HTTPS (for read-only, no credentials required). Includes CLI option for a shallow (`--depth 1`) clone or full clone.
+[setup_data_one_gage.sh](setup_data_one_gage.sh): Downloads data from s3 for a specific test gage. This is used to optionally download data for non-default gages, and for oCONUS gages.
 
-[ngen_rte_build.sh](ngen_rte_build.sh) sources configuration from [config.bashrc](config.bashrc), then builds an image using [Dockerfile.rte](Dockerfile.rte).
+[setup_clone_repos.sh](setup_clone_repos.sh) Clones repos from GitHub. Includes CLI option for using SSH (for r+w, requires credentials) or HTTPS (for read-only, no credentials required). Includes CLI option for a shallow (`--depth 1`) clone or full clone.
 
-[run.sh](run.sh) Defines a bash function `docker_run` that uses a `docker run` call to start an ephemeral container of the new image with various host disk mounts applied. This is intended to be sourced by other shell scripts. The `docker_run` function receives any number of positional arguments. It uses the first argument as the value for `--entrypoint` and passes all subsequent arguments to the container as a command. See [run_calib.sh](run_calib.sh) for an example. If [run.sh](run.sh) is executed as a script e.g. `./run.sh`, then it starts an interactive terminal session in the container.
+[ngen_rte_build.sh](ngen_rte_build.sh) Builds an image using [Dockerfile.rte](Dockerfile.rte).
+
+[run.sh](run.sh) Defines a bash function `docker_run` that uses a `docker run` call to start an ephemeral container of the new image with various host disk mounts applied. This is intended to be sourced by other shell scripts. The `docker_run` function receives any number of positional arguments. It passes its first argument as the value for Docker's `--entrypoint` and passes all subsequent arguments to the container as a command. See [run_calib.sh](run_calib.sh) for an example. If [run.sh](run.sh) is executed as a script e.g. `./run.sh`, then it starts an interactive terminal session in the container.
 
 ### Realization Executables
 
 For the following executables, see commented-out lines in the script for examples of different ways to leverage the CLI args exposed by the various workflows.
 
-[run_calib.sh](run_calib.sh) Builds and runs one calibration realization via CLI args in one call to [bin_mounted/run_calibration.py](bin_mounted/run_calibration.py).
+[run_calib.sh](run_calib.sh) Builds and runs one calibration realization in one call to [bin_mounted/run_calibration.py](bin_mounted/run_calibration.py).
 
-[run_fcst.sh](run_fcst.sh) Builds and runs one forecast realization via CLI args in one call to [bin_mounted/run_forecast.py](bin_mounted/run_forecast.py).
+[run_fcst.sh](run_fcst.sh) Builds and runs one forecast realization in one call to [bin_mounted/run_forecast.py](bin_mounted/run_forecast.py).
 
-[run_suite.sh](run_suite.sh) Builds and runs a series of calibration and forecast realizations via CLI args in a series of calls to [bin_mounted/run_calibration.py](bin_mounted/run_calibration.py) and [bin_mounted/run_forecast.py](bin_mounted/run_forecast.py).
+[run_suite.sh](run_suite.sh) Builds and runs a series of calibration and forecast realizations in a series of calls to [bin_mounted/run_calibration.py](bin_mounted/run_calibration.py) and [bin_mounted/run_forecast.py](bin_mounted/run_forecast.py).
 
-[run_tests.sh](run_tests.sh) Builds and runs a series of calibration and forecast realizations via CLI args in one call to [bin_mounted/run_tests.py](bin_mounted/run_tests.py). If one of the realizations experiences an error, the process will continue to the next realization without halting. This workflow extracts information from the log files of the various realizations, and writes a json structure to disk with certain log lines and status of each realization's build step and run step. By default this workflow allows the realizations run to completion, but also supports modes that cancel the realization after a certain amount of time.
+[run_tests.sh](run_tests.sh) Builds and runs a series of calibration and forecast realizations in one call to [bin_mounted/run_tests.py](bin_mounted/run_tests.py). If one of the realizations experiences an error, the process will continue to the next realization without halting. This workflow extracts information from the log files of the various realizations, and writes a json structure to disk with certain log lines and status of each realization's build step and run step. By default this workflow allows the realizations run to completion, but also supports modes that cancel the realization after a certain amount of time.
 
 ## Configuration Options
 
@@ -45,8 +47,7 @@ Many of the variables in [config.bashrc](config.bashrc) are set to use existing 
 
 This can be any location on your disk, but ~/ngwpc is a standard convention.
 In a later step, a setup script will clone many repos into this location.
-For each clone, if that particular repos already exists on your disk, it will skip that clone.
-Meaning, it will not alter the state of the repos that you already have cloned, but it will clone additional repos as necessary.
+For each clone, if that particular repos already exists on your disk, it will not affect the contents of that existing directory.
 
 ```shell
 mkdir -p ~/ngwpc && cd ~/ngwpc
@@ -100,18 +101,19 @@ time ./setup_data.sh -r
 ```shell
 # This builds a local Docker image of ngen RTE, containing ngen base + component packages.
 # Be ready to supply sudo password if prompted.
-# If sourcing the ngen base image from an existing GHCR image, this is quick, and
-# you may want to `docker pull` if pointing to a tag for the GHCR image (e.g. `latest`)
-# rather than an explicit image hash.
+# If leveraging any remote Docker images (e.g. GHCR), you may want to run one or more `docker pull` commands before building.
+# For example: docker pull ghcr.io/ngwpc/ngen:latest
 time ./ngen_rte_build.sh
 ```
 
 7. Run an example workflow
 
 ```shell
-# This starts an ephemeral container of the ngen RTE image and runs a test workflow script (runs calibrations and forecasts).
+# These start an ephemeral container of the ngen RTE image
+# and run one or more reailzations.
 # Be ready to supply sudo password if prompted.
-# See CLI args in the Python scripts within bin_mounted and the shell scripts that call them.
+# See CLI args in the Python scripts within `bin_mounted/`
+# and additional example calls in the shell scripts listed here.
 ### Atomic execution: build and run one calibration realization, then build and run one forecast realization.
 time ./run_calib.sh
 time ./run_fcst.sh
