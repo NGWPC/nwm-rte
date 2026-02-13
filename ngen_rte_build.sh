@@ -48,7 +48,7 @@ function build_intermediary_image_from_remote_source () {
         )
     else
         info "Cloning ref ${repo_tag} from ${git_url}"
-        git clone --branch ${repo_tag} --recurse-submodules "${git_url}" "${source_local_tmp}"
+        git clone --depth 1 --branch ${repo_tag} --recurse-submodules "${git_url}" "${source_local_tmp}"
     fi
 
     info building image: ${target_image}

@@ -20,6 +20,18 @@ on:
         required: false
         type: boolean
         default: false
+      NGEN_SOURCE_MODE:
+        description: "NGEN_SOURCE_MODE"
+        required: false
+        type: string
+      FORCING_BASE_REMOTE_TAG:
+        description: "FORCING_BASE_REMOTE_TAG"
+        required: false
+        type: string
+      NGEN_BASE_REMOTE_TAG:
+        description: "NGEN_BASE_REMOTE_TAG"
+        required: false
+        type: string
       NGEN_BASE__REMOTE_GHCR_TAG:
         description: "NGEN_BASE__REMOTE_GHCR_TAG"
         required: false
@@ -80,6 +92,9 @@ jobs:
       alias_tag: ${{ steps.vars.outputs.alias_tag }}
       build_date: ${{ steps.vars.outputs.build_date }}
       clean_ref: ${{ steps.vars.outputs.clean_ref }}
+      ngen_source_mode: ${{ steps.vars.outputs.ngen_source_mode }}
+      forcing_base_remote_tag: ${{ steps.vars.outputs.forcing_base_remote_tag }}
+      ngen_base_remote_tag: ${{ steps.vars.outputs.ngen_base_remote_tag }}
       ngen_base_remote_ghcr_tag: ${{ steps.vars.outputs.ngen_base_remote_ghcr_tag }}
       install_debuggers: ${{ steps.vars.outputs.install_debuggers }}
       repo_tag_fcst_mgr: ${{ steps.vars.outputs.repo_tag_fcst_mgr }}
@@ -125,6 +140,9 @@ jobs:
           SHORT_SHA="${REAL_SHA:0:7}"
 
           # set input variables for optional workflow_dispatch parameters with defaults if not provided
+          NGEN_SOURCE_MODE="${{ inputs.NGEN_SOURCE_MODE || 'ghcr' }}"
+          FORCING_BASE_REMOTE_TAG="${{ inputs.FORCING_BASE_REMOTE_TAG || 'development' }}"
+          NGEN_BASE_REMOTE_TAG="${{ inputs.NGEN_BASE_REMOTE_TAG || 'development' }}"
           NGEN_BASE__REMOTE_GHCR_TAG="${{ inputs.NGEN_BASE__REMOTE_GHCR_TAG || 'latest' }}"
           REPO_TAG_FCST_MGR="${{ inputs.REPO_TAG_FCST_MGR || 'development' }}"
           REPO_TAG_MSW_MGR="${{ inputs.REPO_TAG_MSW_MGR || 'development' }}"
@@ -169,6 +187,9 @@ jobs:
           echo "commit_sha=${REAL_SHA}" >> "$GITHUB_OUTPUT"
           echo "commit_sha_short=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
           echo "clean_ref=${CLEAN_REF}" >> "$GITHUB_OUTPUT"
+          echo "ngen_source_mode=${NGEN_SOURCE_MODE}" >> "$GITHUB_OUTPUT"
+          echo "forcing_base_remote_tag=${FORCING_BASE_REMOTE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "ngen_base_remote_tag=${NGEN_BASE_REMOTE_TAG}" >> "$GITHUB_OUTPUT"
           echo "ngen_base_remote_ghcr_tag=${NGEN_BASE__REMOTE_GHCR_TAG}" >> "$GITHUB_OUTPUT"
           echo "install_debuggers=${INSTALL_DEBUGGERS}" >> "$GITHUB_OUTPUT"
           echo "repo_tag_fcst_mgr=${REPO_TAG_FCST_MGR}" >> "$GITHUB_OUTPUT"
@@ -190,12 +211,27 @@ jobs:
     needs:
       - setup
     steps:
+      - name: Free Disk Space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+
+          # remove heavy pre-installed tools
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo docker image prune --all --force
+
+          # clean up Docker system and images
+          echo "Disk space after cleanup:"
+          df -h
       - name: Checkout repository
         uses: actions/checkout@v6
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Clone required repositories
-        run: ./setup_clone_repos.sh https
+        run: ./setup_clone_repos.sh https shallow
       - name: Build RTE image
         env:
           TARGET_IMAGE_NAME: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
@@ -204,6 +240,9 @@ jobs:
           TARGET_IMAGE_VERSION: ${{ needs.setup.outputs.clean_ref }}
           TARGET_IMAGE_REVISION: ${{ needs.setup.outputs.commit_sha }}
           TARGET_IMAGE_CREATED: ${{ needs.setup.outputs.build_date }}
+          NGEN_SOURCE_MODE: ${{ needs.setup.outputs.ngen_source_mode }}
+          FORCING_BASE_REMOTE_TAG: ${{ needs.setup.outputs.forcing_base_remote_tag }}
+          NGEN_BASE_REMOTE_TAG: ${{ needs.setup.outputs.ngen_base_remote_tag }}
           NGEN_BASE__REMOTE_GHCR_TAG: ${{ needs.setup.outputs.ngen_base_remote_ghcr_tag }}
           INSTALL_DEBUGGERS: ${{ needs.setup.outputs.install_debuggers }}
           REPO_TAG_FCST_MGR: ${{ needs.setup.outputs.repo_tag_fcst_mgr }}
