@@ -22,18 +22,24 @@ class TestPaths:
     global_domain: str
     forcing_provider: str
 
-    def update_obj_func_and_optim_algo(self, obj_func: c.CalObjective, optim_algo: c.CalOptimizationAlgo) -> None:
+    def update_obj_func_and_optim_algo(
+        self, obj_func: c.CalObjective, optim_algo: c.CalOptimizationAlgo
+    ) -> None:
         self.obj_func = obj_func
         self.optim_algo = optim_algo
 
     @property
     def fpp(self):
-        return ForcingProviderPaths(global_domain=self.global_domain, forcing_provider=self.forcing_provider)
+        return ForcingProviderPaths(
+            global_domain=self.global_domain, forcing_provider=self.forcing_provider
+        )
 
     @property
     def dir_base(self) -> str:
         if not (self.obj_func and self.optim_algo):
-            raise ValueError("obj_func and optim_algo must be set before calling this method")
+            raise ValueError(
+                "obj_func and optim_algo must be set before calling this method"
+            )
         return f"{c.DEFAULT_MAIN_DIR}/{self.obj_func.value}_{self.optim_algo.value}/{self.fpp.formulation_name}/{self.gage_id}"
 
     @property
@@ -50,7 +56,9 @@ class TestPaths:
 
     @property
     def calib_config_file(self) -> str:
-        return f"{self.dir_base}/configs/input_calibration_{self.forcing_provider}.config"
+        return (
+            f"{self.dir_base}/configs/input_calibration_{self.forcing_provider}.config"
+        )
         # return f"{self.dir_base}/configs/input_calibration_{self.forcing_provider}_short.config"
 
     @property
@@ -79,6 +87,7 @@ class RTECalibConfig(BaseModel):
     forcing_source: str
     global_domain: str
     forcing_provider: str
+    realization_only__one_iter: bool
 
     # Set after init
     gage_id: str = Field(init=False, default=None)
@@ -131,7 +140,9 @@ class RTETestConfig(BaseModel):
     def model_post_init(self, __context) -> None:
         errors = []
 
-        gage_id, gage_vintage, errors_extend = parse_gage_id__gage_vintage(self.gage_id__gage_vintage)
+        gage_id, gage_vintage, errors_extend = parse_gage_id__gage_vintage(
+            self.gage_id__gage_vintage
+        )
         errors.extend(errors_extend)
 
         errors_extend = parse_fcst_run_name(self.fcst_run_name)
@@ -156,7 +167,9 @@ class RTETestConfig(BaseModel):
         self.gage_id = gage_id
         self.gage_vintage = gage_vintage
 
-    def get_calib_permutations(self) -> list[tuple[c.CalObjective, c.CalOptimizationAlgo, TestPaths]]:
+    def get_calib_permutations(
+        self,
+    ) -> list[tuple[c.CalObjective, c.CalOptimizationAlgo, TestPaths]]:
         """Returns the permutations of objective function and optimization algorithm specified in the config, as well as a TestPaths instance for each.
         If only_first, then only the first permutation will be returned. Else all permutations will be returned."""
         ret = []
@@ -185,16 +198,22 @@ class RTETestConfig(BaseModel):
         return ret
 
 
-def parse_gage_id__gage_vintage(gage_id__gage_vintage: tuple[str, str]) -> tuple[str | None, str | None, list[Exception]]:
+def parse_gage_id__gage_vintage(
+    gage_id__gage_vintage: tuple[str, str],
+) -> tuple[str | None, str | None, list[Exception]]:
     errors: list[Exception] = []
     gage_id, gage_vintage = gage_id__gage_vintage
 
     if gage_id != gage_id.strip():
-        errors.append(ValueError(f"Whitespace found on end of gage_id: {repr(gage_id)}"))
+        errors.append(
+            ValueError(f"Whitespace found on end of gage_id: {repr(gage_id)}")
+        )
         gage_id = None
 
     if gage_vintage != gage_vintage.strip():
-        errors.append(ValueError(f"Whitespace found on end of gage_vintage: {repr(gage_vintage)}"))
+        errors.append(
+            ValueError(f"Whitespace found on end of gage_vintage: {repr(gage_vintage)}")
+        )
         gage_vintage = None
 
     return gage_id, gage_vintage, errors
@@ -203,7 +222,11 @@ def parse_gage_id__gage_vintage(gage_id__gage_vintage: tuple[str, str]) -> tuple
 def parse_fcst_run_name(fcst_run_name: str) -> list[Exception]:
     errors: list[Exception] = []
     if fcst_run_name != fcst_run_name.strip():
-        errors.append(ValueError(f"Whitespace found on end of fcst_run_name: {repr(fcst_run_name)}"))
+        errors.append(
+            ValueError(
+                f"Whitespace found on end of fcst_run_name: {repr(fcst_run_name)}"
+            )
+        )
     return errors
 
 
@@ -215,8 +238,12 @@ class ForcingProviderPaths(BaseModel):
     def get_forcing_dir(self, gage_id: str | None) -> str | None:
         if self.forcing_provider == "csv":
             if not gage_id:
-                raise ValueError("Gage ID must be provided when forcing_provider == 'csv'")
-            return c.CSV_FORCING_DIR_FORMAT.format(global_domain=self.global_domain, gage_id=gage_id)
+                raise ValueError(
+                    "Gage ID must be provided when forcing_provider == 'csv'"
+                )
+            return c.CSV_FORCING_DIR_FORMAT.format(
+                global_domain=self.global_domain, gage_id=gage_id
+            )
         elif self.forcing_provider == "bmi":
             return None
         else:
@@ -230,20 +257,27 @@ class ForcingProviderPaths(BaseModel):
 class CalibTimeWindows(BaseModel):
     """Calibration time windows defined by a start time
     and some timedelta offsets."""
+
     calib_sim_start: datetime = Field(default=c.CALIB_SIM_START_DEFAULT)
     calib_sim_duration: timedelta = Field(default=c.CALIB_SIM_DURATION_DEFAULT)
-    calib_eval_delayment: timedelta = Field(default=c.CALIB_EVAL_DELAYMENT_DEFAULT)  # Delayed start from calibration simulation, for warmup
-    valid_sim_advancement: timedelta = Field(default=c.VALID_SIM_ADVANCEMENT_DEFAULT)  # Validation simulation starts before calibration simulation, by this amount
-    valid_eval_curtailment: timedelta = Field(default=c.VALID_EVAL_CURTAILMENT_DEFAULT)  # Valid eval window cut short by this amount
+    calib_eval_delayment: timedelta = Field(
+        default=c.CALIB_EVAL_DELAYMENT_DEFAULT
+    )  # Delayed start from calibration simulation, for warmup
+    valid_sim_advancement: timedelta = Field(
+        default=c.VALID_SIM_ADVANCEMENT_DEFAULT
+    )  # Validation simulation starts before calibration simulation, by this amount
+    valid_eval_curtailment: timedelta = Field(
+        default=c.VALID_EVAL_CURTAILMENT_DEFAULT
+    )  # Valid eval window cut short by this amount
 
     @property
     def calib_sim_end(self) -> datetime:
         return self.calib_sim_start + self.calib_sim_duration
-    
+
     @property
     def calib_eval_start(self) -> datetime:
         return self.calib_sim_start + self.calib_eval_delayment
-    
+
     @property
     def calib_eval_end(self) -> datetime:
         return self.calib_sim_end
@@ -251,19 +285,19 @@ class CalibTimeWindows(BaseModel):
     @property
     def valid_sim_start(self) -> datetime:
         return self.calib_sim_start - self.valid_sim_advancement
-    
+
     @property
     def valid_sim_end(self) -> datetime:
         return self.calib_sim_end
-    
+
     @property
     def valid_eval_start(self) -> datetime:
         return self.calib_sim_start
-    
+
     @property
     def valid_eval_end(self) -> datetime:
         return self.calib_sim_end - self.valid_eval_curtailment
-    
+
     @property
     def full_eval_start(self) -> datetime:
         return self.calib_sim_start
