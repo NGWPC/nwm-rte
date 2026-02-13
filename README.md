@@ -4,21 +4,39 @@ A configurable `docker build` and `docker run` sequence for headless end-to-end 
 
 ## Description of Primary Files
 
-[setup_data.sh](setup_data.sh) sources configuration from [config.bashrc](config.bashrc) and downloads data from s3.
+[setup_data.sh](setup_data.sh) downloads global data from s3, as well as data for specific test gage(s).
 
-[setup_clone_repos.sh](setup_clone_repos.sh) sources configuration from [config.bashrc](config.bashrc) and clones repos from GitHub.
+[setup_data_one_gage.sh](setup_data_one_gage.sh) downloads data from s3 for a specific test gage. This is used to optionally download data for non-default gages, and for oCONUS gages.
+
+[setup_clone_repos.sh](setup_clone_repos.sh) sources configuration from [config.bashrc](config.bashrc) and clones repos from GitHub. Includes CLI option for using SSH (for r+w, requires credentials) or HTTPS (for read-only, no credentials required). Includes CLI option for a shallow (`--depth 1`) clone or full clone.
 
 [ngen_rte_build.sh](ngen_rte_build.sh) sources configuration from [config.bashrc](config.bashrc), then builds an image using [Dockerfile.rte](Dockerfile.rte).
 
-[ngen_rte_run.sh](ngen_rte_run.sh) uses `docker run` to start an ephemeral container of the new image with various host disk mounts applied, and runs a Python script in that container.  By default it runs [run_tests.py](bin_mounted/run_tests.py).  Some data is mounted from cloned repos.  Other data is mounted from non-repo locations.
+[run.sh](run.sh) Defines a bash function `docker_run` that uses a `docker run` call to start an ephemeral container of the new image with various host disk mounts applied. This is intended to be sourced by other shell scripts. The `docker_run` function receives any number of positional arguments. It uses the first argument as the value for `--entrypoint` and passes all subsequent arguments to the container as a command. See [run_calib.sh](run_calib.sh) for an example. If [run.sh](run.sh) is executed as a script e.g. `./run.sh`, then it starts an interactive terminal session in the container.
+
+### Realization Executables
+
+For the following executables, see commented-out lines in the script for examples of different ways to leverage the CLI args exposed by the various workflows.
+
+[run_calib.sh](run_calib.sh) Builds and runs one calibration realization via CLI args in one call to [bin_mounted/run_calibration.py](bin_mounted/run_calibration.py).
+
+[run_fcst.sh](run_fcst.sh) Builds and runs one forecast realization via CLI args in one call to [bin_mounted/run_forecast.py](bin_mounted/run_forecast.py).
+
+[run_suite.sh](run_suite.sh) Builds and runs a series of calibration and forecast realizations via CLI args in a series of calls to [bin_mounted/run_calibration.py](bin_mounted/run_calibration.py) and [bin_mounted/run_forecast.py](bin_mounted/run_forecast.py).
+
+[run_tests.sh](run_tests.sh) Builds and runs a series of calibration and forecast realizations via CLI args in one call to [bin_mounted/run_tests.py](bin_mounted/run_tests.py). If one of the realizations experiences an error, the process will continue to the next realization without halting. This workflow extracts information from the log files of the various realizations, and writes a json structure to disk with certain log lines and status of each realization's build step and run step. By default this workflow allows the realizations run to completion, but also supports modes that cancel the realization after a certain amount of time.
 
 ## Configuration Options
 
-The ngen base image can be specified as a ghcr image, or as local source code (build from existing clone), or as remote source code (clone fresh or pull, then build).
+See notes within [config.bashrc](config.bashrc) for additional details.
 
-The manager packages can be specified as local source code, or as remote source code (specifying a tag/branch/commit).  To switch the "sourcing mode" of the manager packages s.t. they install from local instead of from GitHub or vice-versa, currently it is required to comment/uncomment blocks of code in [Dockerfile.rte](Dockerfile.rte).
+The ngen base image (which in turn has `ngen-forcing` as its base) can be an existing ghcr image, an existing local Docker image, or be built from source using remote code or existing code already on disk.
 
-See notes in the files for additional details.
+The manager packages can be installed from remote code or existing code already on disk.
+
+The tags and branch names of source code repositories and/or existing GHCR images are configurable.
+
+Many of the variables in [config.bashrc](config.bashrc) are set to use existing values if pre-defined, effectively allowing for OS environment variables to override what is in the file.
 
 
 ## Steps to Get Started
@@ -49,7 +67,7 @@ git clone https://github.com/NGWPC/nwm-rte.git && cd nwm-rte
 git checkout development
 ```
 
-3. Review [config.bashrc](config.bashrc), edit variables as needed, in particular: `REPOS_COMMON_ROOT__HOST`, `NGEN_SOURCE_MODE`, `NGEN_BASE__REMOTE_GHCR_TAG`, and the branch choices for various packages.
+3. Review [config.bashrc](config.bashrc) and edit variables as needed for your desired build configuration. Note that many of the variables' values are set to use existing environment variables if they are already defined, rather than the value set in the [config.bashrc](config.bashrc) file.
 
 4. Clone other repos
 
@@ -58,7 +76,7 @@ git checkout development
 # This script has two positional arguments, for specifying whether you wish to clone via SSH or via HTTPS, and whether to perform a shallow clone. The second argument is optional, and defaults to 'full' if not provided.
 ### Via SSH (use your GitHub auth, for read-write access)
 ### Be ready to provide git credentials several times if prompted.
-time ./setup_clone_repos.sh ssh shallow
+time ./setup_clone_repos.sh ssh
 ### Or via HTTPS (no auth required, for read-only access)
 time ./setup_clone_repos.sh https
 ```
@@ -93,13 +111,12 @@ time ./ngen_rte_build.sh
 ```shell
 # This starts an ephemeral container of the ngen RTE image and runs a test workflow script (runs calibrations and forecasts).
 # Be ready to supply sudo password if prompted.
-# See CLI args in the example workflow script for details on behavior, and alternate test modes.
-# Different ways of calling the example workflow script are provided as commented-out lines near the bottom of ngen_rte_run.sh
-# After setting up RTE, the first run must be a calibration, to produce some files that are used by forecasts. After the first calibration run, subsequent forecasts can be ran without needing to re-run calibration.
-time ./ngen_rte_run.sh
+# See CLI args in the Python scripts within bin_mounted and the shell scripts that call them.
+### Atomic execution: build and run one calibration realization, then build and run one forecast realization.
+time ./run_calib.sh
+time ./run_fcst.sh
+### Build and run several calibration and forecast realizations in series.
+time ./run_suite.sh
+### Run many realizations in series and report results, continuing through the list if one experiences an error.
+time ./run_tests.sh
 ```
-
-
-## Additional Usage Notes
-
-It should work to use s3fs if desired (host mounts s3, container mounts host), if not wanting to copy s3 data to the local disk.
