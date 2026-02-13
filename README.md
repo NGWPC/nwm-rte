@@ -58,7 +58,7 @@ git checkout development
 # This script has two positional arguments, for specifying whether you wish to clone via SSH or via HTTPS, and whether to perform a shallow clone. The second argument is optional, and defaults to 'full' if not provided.
 ### Via SSH (use your GitHub auth, for read-write access)
 ### Be ready to provide git credentials several times if prompted.
-time ./setup_clone_repos.sh ssh shallow
+time ./setup_clone_repos.sh ssh
 ### Or via HTTPS (no auth required, for read-only access)
 time ./setup_clone_repos.sh https
 ```

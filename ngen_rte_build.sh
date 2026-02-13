@@ -25,6 +25,9 @@ TIMESTAMP=`date '+%Y%m%d%H%M%S'`
 
 
 function build_intermediary_image_from_remote_source () {
+    ### If the repo does not already exist in the tmp location, do a shallow clone of the desired tag/branch.
+    ### If the repo does exist already, make the clone unshallow, and then check out the desired tag/branch.
+
     # target_image="ngen:${NGEN_SOURCE_MODE}"
     repo_name=$1  # e.g. "ngen-forcing"
     repo_tag=$2  # e.g. "development" or "3.1.2.1.0"
@@ -39,12 +42,21 @@ function build_intermediary_image_from_remote_source () {
 
     if test -d ${source_local_tmp}; then
         info "Pulling ref ${repo_tag} and submodules for ${source_local_tmp}"
+
+        is_shallow=`git -C "${source_local_tmp}" rev-parse --is-shallow-repository`
+        if [[ ${is_shallow} == "true" ]]; then
+            # It was cloned as shallow earlier, make it unshallow
+            ( cd "${source_local_tmp}"; git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"; git fetch --unshallow; )
+        fi
         (
-        cd ${source_local_tmp}; \
-        git fetch; \
-        git checkout ${repo_tag}; \
-        git pull --recurse-submodules; \
-        git submodule update --init --recursive \
+            cd "${source_local_tmp}"
+            git fetch
+            git checkout "${repo_tag}"
+            if git symbolic-ref -q HEAD >/dev/null; then
+                # On a branch (not a detached head)
+                git pull --recurse-submodules
+            fi
+            git submodule update --init --recursive
         )
     else
         info "Cloning ref ${repo_tag} from ${git_url}"
