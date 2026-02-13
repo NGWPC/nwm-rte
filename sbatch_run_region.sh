@@ -20,6 +20,7 @@ set -euo pipefail
 #   OPTIONS        : Workflow steps to runs: parreg, formreg, ngen, or eval (optional, default: parreg)
 #   --dry-run      : If provided, print the generated SLURM script instead of submitting (optional)
 #   --image-tag TAG: Docker image tag to use for the RTE (optional, default: latest)
+#   --pull-image   : Pull the latest Docker image before running (optional)  
 #
 # Examples:
 #   # Do a dry-run to see the generated SLURM script without submitting
@@ -41,6 +42,9 @@ set -euo pipefail
 #
 #   # Using an RTE image tag other than 'latest'
 #   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --image-tag "069ad0f6d332"
+#
+#  # Pull the latest RTE image before running
+#   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --pull-image
 # -----------------------------------------------------------------------------
 
 # determine parent dir of current run script (assuming run_region.sh is also located here)
@@ -71,6 +75,7 @@ export CONFIG_DIR
 OPTIONS=()
 DRY_RUN=false
 IMAGE_TAG="latest"
+PULL_IMAGE=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -85,6 +90,10 @@ while [[ $# -gt 0 ]]; do
       fi
       IMAGE_TAG="$2"
       shift 2
+      ;;
+    --pull-image)
+      PULL_IMAGE=true
+      shift
       ;;
     *)
       OPTIONS+=("$1")
@@ -141,6 +150,11 @@ for opt in "${OPTIONS[@]}"; do
   OPTION_FLAGS+=("--$opt")
 done
 
+# Add --pull-image if requested
+if $PULL_IMAGE; then
+  OPTION_FLAGS+=("--pull-image")
+fi
+
 JOB_SUFFIX=$(IFS=-; echo "${OPTIONS[*]}")
 
 echo "Submitting job:"
@@ -151,6 +165,7 @@ echo "  cpus         = $CPUS_PER_TASK"
 echo "  config_dir   = $CONFIG_DIR"
 echo "  script_dir   = $SCRIPT_DIR"
 echo "  image_tag    = $IMAGE_TAG"
+echo "  pull_image   = $PULL_IMAGE"
 echo
 
 SBATCH_SCRIPT=$(cat <<EOF
@@ -170,8 +185,11 @@ echo "Nodes allocated: \$SLURM_JOB_NUM_NODES"
 echo "Running on directory: \$SLURM_SUBMIT_DIR"
 echo "Job ID: \$SLURM_JOB_ID"
 
-/ngencerf-app/nwm-rte/run_region.sh ${OPTION_FLAGS[*]} -c "${CONFIG_DIR}" --image-tag "${IMAGE_TAG}"
+echo "Command to run:"
+echo "${SCRIPT_DIR}/run_region.sh" "${OPTION_FLAGS[@]}" -c "${CONFIG_DIR}" --image-tag "${IMAGE_TAG}"
+echo
 
+/ngencerf-app/nwm-rte/run_region.sh ${OPTION_FLAGS[@]} -c "${CONFIG_DIR}" --image-tag "${IMAGE_TAG}"
 EOF
 )
 
