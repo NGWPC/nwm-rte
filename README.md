@@ -122,3 +122,7 @@ time ./run_suite.sh
 ### Run many realizations in series and report results, continuing through the list if one experiences an error.
 time ./run_tests.sh
 ```
+
+## Regionalization Workflows
+
+Regionalization workflows are ran via [run_region.sh](run_region.sh) and associated Python script(s) that are called. For more information, see the documentation of the `nwm-region-mgr` repository.
