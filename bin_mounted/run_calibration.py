@@ -5,10 +5,18 @@ import json
 import subprocess
 import sys
 import time
+import yaml
 
 from mswm.build_inputs import RealizationBuilder
 
-from utils import datetime_from_str, str_from_datetime, timedelta_from_effective_days, effective_days_from_timedelta, timedelta_from_pandas_str, get_calibration_log_file_overwrite_path
+from utils import (
+    datetime_from_str,
+    str_from_datetime,
+    timedelta_from_effective_days,
+    effective_days_from_timedelta,
+    timedelta_from_pandas_str,
+    get_calibration_log_file_overwrite_path,
+)
 import utils_testing_setup
 from execution_tests import (
     get_test_configs__calibration,
@@ -42,27 +50,58 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
         forcing_provider=cfg.forcing_provider,
         windows=windows,
     )
-    assert len(all_config_overrides) == 1  # Can be > 1 in test runner, not in atomic calibration runner
+    assert (
+        len(all_config_overrides) == 1
+    )  # Can be > 1 in test runner, not in atomic calibration runner
     config_overrides = all_config_overrides[0]
 
     rb_kwargs = {"config_overrides": config_overrides}
     rb = RealizationBuilder(**rb_kwargs)
     rb.build_calib_realization()
 
-    log_path = get_calibration_log_file_overwrite_path(rb)
-    cmd = [
-        "calibration",
-        str(rb.calib_config_file),
-        "--log_path_overwrite",
-        log_path,
-        # "--worker_name",
-        # "000test",
-    ]
-
-    print(f"\n\nStarting calibration with configuration: {cfg.model_dump_json(indent=2)}\nand logging to: {log_path}\n\nvia command args: {cmd}")
     start = time.perf_counter()
-    proc = subprocess.run(cmd, check=False)
-    print(f"\nFinished calibration with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nLog path: {log_path}\nReturn code {proc.returncode}.")
+
+    if cfg.realization_only__one_iter:
+        with open(rb.calib_config_file) as f:
+            calib_py_config = yaml.safe_load(f.read())
+        cmd = [
+            calib_py_config["model"]["binary"],
+            calib_py_config["model"]["catchments"],
+            "all",
+            calib_py_config["model"]["nexus"],
+            "all",
+            calib_py_config["model"]["realization"],
+        ]
+        if cfg.nprocs:
+            cmd = ["mpirun", "-n", f"{cfg.nprocs}"] + cmd + [rb.part_file]
+
+        print(
+            f"\n\nStarting a 1-iteration realization with configuration: {cfg.model_dump_json(indent=2)}\n\nvia command args: {cmd}"
+        )
+        proc = subprocess.run(cmd, cwd=rb.work_dir, check=False)
+        print(
+            f"\nFinished a 1-iteration realization with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nReturn code {proc.returncode}."
+        )
+
+    else:
+        log_path = get_calibration_log_file_overwrite_path(rb)
+        cmd = [
+            "calibration",
+            str(rb.calib_config_file),
+            "--log_path_overwrite",
+            log_path,
+            # "--worker_name",
+            # "000test",
+        ]
+
+        print(
+            f"\n\nStarting calibration with configuration: {cfg.model_dump_json(indent=2)}\nand logging to: {log_path}\n\nvia command args: {cmd}"
+        )
+        proc = subprocess.run(cmd, check=False)
+        print(
+            f"\nFinished calibration with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nLog path: {log_path}\nReturn code {proc.returncode}."
+        )
+
     proc.check_returncode()
 
 
@@ -180,6 +219,12 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         default=c.FORCING_PROVIDER_DEFAULT,
         choices=c.FORCING_PROVIDER_CHOICES,
         help=f"Forcing provider. Default={c.FORCING_PROVIDER_DEFAULT}",
+    )
+    parser.add_argument(
+        "-r1",
+        "--realization_only__one_iter",
+        action="store_true",
+        help="If provided, a full calibration will not be ran.  The initial realization will be built and ran standalone without calibration.py.",
     )
     args = parser.parse_args()
     cfg = RTECalibConfig(**vars(args))
