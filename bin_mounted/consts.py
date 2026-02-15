@@ -37,7 +37,7 @@ DEFAULT_MAIN_DIR = "/ngwpc/run_ngen"
 ### .config section [Calibration]
 CALIB_OBJECTIVE_FUNCTION = CalObjective.kge
 CALIB_OPTIMIZATION_ALGO = CalOptimizationAlgo.dds
-CALIB_PARAMETERS_DIR = "/ngwpc/run_ngen/data/calib_params_tab_delimited"
+CALIB_PARAMETERS_DIR = f"{DEFAULT_MAIN_DIR}/data/calib_params_tab_delimited"
 CALIB_ITER_START = 0
 CALIB_ITER_COUNT = 2
 CALIB_SAVE_PLOT_ITER_FREQ = 1
@@ -114,7 +114,7 @@ DATAFILE_LIBS = {
     "lstm_parameter_dir": f"{MODULE_PARAMETER_FILES_DIR}/lstm",
     "sac_sma_parameter_dir": HYDROFABRIC_DIR,
     "snow_17_parameter_dir": HYDROFABRIC_DIR,
-    "attributes_file": "/ngwpc/run_ngen/data/conus_model_attributes.parquet",
+    "attributes_file": f"{DEFAULT_MAIN_DIR}/data/conus_model_attributes.parquet",
     "ngen_exe_file": f"{NGEN_DIR}/cmake_build/ngen",
     "sloth_lib": f"{NGEN_DIR}/extern/sloth/cmake_build/libslothmodel.so",
     "cfe_lib": f"{NGEN_DIR}/extern/cfe/cmake_build/libcfebmi.so",
