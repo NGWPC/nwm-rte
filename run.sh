@@ -4,6 +4,7 @@ set -euo pipefail
 
 source config.bashrc
 
+# TODO replace specific kge_dds mount below with a more generic mount, or remove
 
 function docker_run {
     entrypoint=$1
