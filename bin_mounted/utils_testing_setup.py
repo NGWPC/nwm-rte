@@ -28,7 +28,7 @@ def delete_forcing_raw_inputs() -> None:
 
 
 def delete_scratch_and_esmf_outputs(cfg: RTETestConfig) -> None:
-    dirs_to_delete = [f"{c.DEFAULT_MAIN_DIR}/data/scratch/NWM"]
+    dirs_to_delete = [f"{c.DEFAULT_MAIN_DIR}/data/scratch"]
     for d in dirs_to_delete:
         if os.path.exists(d):
             print(f"Deleting: {d}")
