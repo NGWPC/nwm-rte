@@ -160,7 +160,7 @@ class RTEForecastConfig(BaseModel):
                 Forcing=ForcingConfig(
                     forcing_provider=fpp.forcing_provider,
                     forcing_dir=fpp.get_forcing_dir(gage_id=self.gage_id),
-                    forcing_template_dir="/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/",
+                    forcing_template_dir=c.FORCING_TEMPLATE_DIR,
                     root_dir=c.FORCING_ROOT_DIR,
                     forcing_configuration=self.forcing_configuration,
                     cycle_datetime=self.cycle_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT),
