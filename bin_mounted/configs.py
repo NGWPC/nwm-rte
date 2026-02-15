@@ -135,6 +135,7 @@ class RTEForecastConfig(BaseModel):
 
     def model_post_init(self, __context) -> None:
         self.root_dir = "/ngen-app/data"
+        # TODO consolidate `/ngen-app/data/run_ngen` here vs `/ngwpc/run_ngen` from consts.py
         self.run_dir_base = f"{self.root_dir}/run_ngen/test_{self.forcing_provider}/{self.gage_id}"
         self.run_dir_input = f"{self.run_dir_base}/Input"
         self.run_dir_output = f"{self.run_dir_base}/Output"
