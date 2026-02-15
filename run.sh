@@ -4,7 +4,7 @@ set -euo pipefail
 
 source config.bashrc
 
-# TODO replace specific kge_dds mount below with a more generic mount, or remove
+# TODO replace specific kge_dds mount below with a more generic mount, or remove. See note in class RTEForecastConfig
 
 function docker_run {
     entrypoint=$1

@@ -136,6 +136,9 @@ class RTEForecastConfig(BaseModel):
     def model_post_init(self, __context) -> None:
         self.root_dir = "/ngen-app/data"
         # TODO consolidate `/ngen-app/data/run_ngen` here vs `/ngwpc/run_ngen` from consts.py
+        # and leverage `objective_function` and `optimization_algorithm` so that the forecast
+        # run inherits from the proper type of calibration run. Currently this is effectively
+        # hard-coded to source from kge_dds via a run.sh mount.
         self.run_dir_base = f"{self.root_dir}/run_ngen/test_{self.forcing_provider}/{self.gage_id}"
         self.run_dir_input = f"{self.run_dir_base}/Input"
         self.run_dir_output = f"{self.run_dir_base}/Output"
