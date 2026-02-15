@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from dataclasses import dataclass
+import os
 from typing import Literal
 
 from mswm.utils.input_configuration import (
@@ -123,7 +124,6 @@ class RTEForecastConfig(BaseModel):
     nprocs: int = Field(ge=1)
 
     # Derived paths (not passed to __init__)
-    root_dir: str = Field(init=False, default=None)
     run_dir_base: str = Field(init=False, default=None)
     run_dir_input: str = Field(init=False, default=None)
     run_dir_output: str = Field(init=False, default=None)
@@ -134,12 +134,11 @@ class RTEForecastConfig(BaseModel):
     realization_builder_kwargs: dict = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
-        self.root_dir = "/ngen-app/data"
-        # TODO consolidate `/ngen-app/data/run_ngen` here vs `/ngwpc/run_ngen` from consts.py
-        # and leverage `objective_function` and `optimization_algorithm` so that the forecast
-        # run inherits from the proper type of calibration run. Currently this is effectively
-        # hard-coded to source from kge_dds via a run.sh mount.
-        self.run_dir_base = f"{self.root_dir}/run_ngen/test_{self.forcing_provider}/{self.gage_id}"
+        self.run_dir_base = f"{c.DEFAULT_MAIN_DIR}/{self.objective_function.value}_{self.optimization_algorithm.value}/test_{self.forcing_provider}/{self.gage_id}"
+        if not os.path.isdir(self.run_dir_base):
+            msg = f"Not a directory: {repr(self.run_dir_base)}. Please review choices for objective function, optimization algorithm, and gage, which affect this path."
+            raise NotADirectoryError(msg)
+        
         self.run_dir_input = f"{self.run_dir_base}/Input"
         self.run_dir_output = f"{self.run_dir_base}/Output"
         self.ngen_log_file = f"{self.run_dir_base}/logs/ngen.log"
@@ -162,7 +161,7 @@ class RTEForecastConfig(BaseModel):
                     forcing_provider=fpp.forcing_provider,
                     forcing_dir=fpp.get_forcing_dir(gage_id=self.gage_id),
                     forcing_template_dir="/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/",
-                    root_dir=self.root_dir,
+                    root_dir=c.FORCING_ROOT_DIR,
                     forcing_configuration=self.forcing_configuration,
                     cycle_datetime=self.cycle_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT),
                     cold_start_datetime=self.cold_start_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT) if self.cold_start_datetime else None,
