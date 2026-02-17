@@ -125,4 +125,4 @@ time ./run_tests.sh
 
 ## Regionalization Workflows
 
-Regionalization workflows are ran via [run_region.sh](run_region.sh) and associated Python script(s) that are called. For more information, see the documentation of the `nwm-region-mgr` repository.
+Regionalization workflows are ran via [run_region.sh](run_region.sh) and associated Python script(s) that are called. See the header section of the script for usage help. For more information, see the documentation of the `nwm-region-mgr` repository.
