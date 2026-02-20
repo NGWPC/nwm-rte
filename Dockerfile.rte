@@ -12,11 +12,11 @@ ARG TARGET_IMAGE_CREATED="unknown"
 
 # OCI Standard Labels
 LABEL org.opencontainers.image.description=$TARGET_IMAGE_DESCRIPTION \
-      org.opencontainers.image.source=$TARGET_IMAGE_SOURCE \
-      org.opencontainers.image.vendor=$TARGET_IMAGE_VENDOR \
-      org.opencontainers.image.version=$TARGET_IMAGE_VERSION \
-      org.opencontainers.image.revision=$TARGET_IMAGE_REVISION \
-      org.opencontainers.image.created=$TARGET_IMAGE_CREATED
+    org.opencontainers.image.source=$TARGET_IMAGE_SOURCE \
+    org.opencontainers.image.vendor=$TARGET_IMAGE_VENDOR \
+    org.opencontainers.image.version=$TARGET_IMAGE_VERSION \
+    org.opencontainers.image.revision=$TARGET_IMAGE_REVISION \
+    org.opencontainers.image.created=$TARGET_IMAGE_CREATED
 
 ### Static args
 ARG PYTHON_ENV="/ngen-app/ngen-python/bin"
@@ -69,6 +69,7 @@ RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/inst
 
 ## ngen-forcing package is included with the starting base image,
 ## but it can be reinstalled from another branch or from local.
+## See README.md for caveats.
 ARG REPO_TAG_NGEN_FORCING
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
     --mount=type=bind,src=ngen-forcing,dst=/src_ngwpc/ngen-forcing \

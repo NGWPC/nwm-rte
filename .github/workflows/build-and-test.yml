@@ -56,6 +56,7 @@ on:
         description: "REPO_TAG_DATA_ASSIM_ENGINE"
         required: false
         type: string
+      # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
       REPO_TAG_NGEN_FORCING:
         description: "REPO_TAG_NGEN_FORCING"
         required: false
@@ -102,6 +103,7 @@ jobs:
       repo_tag_cal_mgr: ${{ steps.vars.outputs.repo_tag_cal_mgr }}
       repo_tag_region_mgr: ${{ steps.vars.outputs.repo_tag_region_mgr }}
       repo_tag_data_assim_engine: ${{ steps.vars.outputs.repo_tag_data_assim_engine }}
+      # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
       repo_tag_ngen_forcing: ${{ steps.vars.outputs.repo_tag_ngen_forcing }}
       repo_tag_verf: ${{ steps.vars.outputs.repo_tag_verf }}
       repo_tag_eval: ${{ steps.vars.outputs.repo_tag_eval }}
@@ -149,6 +151,7 @@ jobs:
           REPO_TAG_CAL_MGR="${{ inputs.REPO_TAG_CAL_MGR || 'development' }}"
           REPO_TAG_REGION_MGR="${{ inputs.REPO_TAG_REGION_MGR || 'development' }}"
           REPO_TAG_DATA_ASSIM_ENGINE="${{ inputs.REPO_TAG_DATA_ASSIM_ENGINE || 'development' }}"
+          # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
           REPO_TAG_NGEN_FORCING="${{ inputs.REPO_TAG_NGEN_FORCING || 'development' }}"
           REPO_TAG_VERF="${{ inputs.REPO_TAG_VERF || 'development' }}"
           REPO_TAG_EVAL="${{ inputs.REPO_TAG_EVAL || 'development' }}"
@@ -197,6 +200,7 @@ jobs:
           echo "repo_tag_cal_mgr=${REPO_TAG_CAL_MGR}" >> "$GITHUB_OUTPUT"
           echo "repo_tag_region_mgr=${REPO_TAG_REGION_MGR}" >> "$GITHUB_OUTPUT"
           echo "repo_tag_data_assim_engine=${REPO_TAG_DATA_ASSIM_ENGINE}" >> "$GITHUB_OUTPUT"
+          # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
           echo "repo_tag_ngen_forcing=${REPO_TAG_NGEN_FORCING}" >> "$GITHUB_OUTPUT"
           echo "repo_tag_verf=${REPO_TAG_VERF}" >> "$GITHUB_OUTPUT"
           echo "repo_tag_eval=${REPO_TAG_EVAL}" >> "$GITHUB_OUTPUT"
@@ -250,6 +254,7 @@ jobs:
           REPO_TAG_CAL_MGR: ${{ needs.setup.outputs.repo_tag_cal_mgr }}
           REPO_TAG_REGION_MGR: ${{ needs.setup.outputs.repo_tag_region_mgr }}
           REPO_TAG_DATA_ASSIM_ENGINE: ${{ needs.setup.outputs.repo_tag_data_assim_engine }}
+          # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
           REPO_TAG_NGEN_FORCING: ${{ needs.setup.outputs.repo_tag_ngen_forcing }}
           REPO_TAG_VERF: ${{ needs.setup.outputs.repo_tag_verf }}
           REPO_TAG_EVAL: ${{ needs.setup.outputs.repo_tag_eval }}
