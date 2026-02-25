@@ -186,7 +186,7 @@ echo "Running on directory: \$SLURM_SUBMIT_DIR"
 echo "Job ID: \$SLURM_JOB_ID"
 
 echo "Command to run:"
-echo "${SCRIPT_DIR}/run_region.sh" "${OPTION_FLAGS[@]}" -c "${CONFIG_DIR}" --image-tag "${IMAGE_TAG}"
+echo "/ngencerf-app/nwm-rte/run_region.sh" "${OPTION_FLAGS[@]}" -c "${CONFIG_DIR}" --image-tag "${IMAGE_TAG}"
 echo
 
 /ngencerf-app/nwm-rte/run_region.sh ${OPTION_FLAGS[@]} -c "${CONFIG_DIR}" --image-tag "${IMAGE_TAG}"

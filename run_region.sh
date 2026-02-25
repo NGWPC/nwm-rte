@@ -117,7 +117,7 @@ Options:
   -c, --config_dir DIR Set config directory (default: ./configs)
   -r, --repos PATH     Set root directory for NGWPC repos 
   -t, --image-tag TAG  Set Docker image tag (default: latest)
-  -i, --pull-image     Pull the latest Docker image before running (optional)
+  -i, --pull-image     Pull the latest Docker image (with tag "latest" or as specified by --image-tag) before running (optional)
   -h, --help           Show this message and exit
 " >&2
             exit 0;;
