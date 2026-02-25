@@ -11,6 +11,17 @@ set -euo pipefail
 #   cd [working_directory, e.g., /ngen-oe/$USER/run_region, /ngen-dev/$USER/run_region, or ~/run_region]
 #   [NWM-RTE_ROOT]/run_region.sh [OPTIONS]
 #
+# Arguments:
+#   -p, --parreg         Run parameter regionalization (includes formulation)
+#   -f, --formreg        Run formulation regionalization only
+#   -n, --ngen           Run NGEN simulation
+#   -e, --eval           Run evaluation
+#   -c, --config_dir DIR Set config directory (default: ./configs)
+#   -r, --repos PATH     Set root directory for NGWPC repos (default: auto-detect)
+#   -t, --image-tag TAG  Set Docker image tag (default: latest)
+#   -i, --pull-image     Pull the latest Docker image before running (optional)
+#   -h, --help           Show this message and exit
+#
 # Examples:
 #   # Run parameter regionalization
 #   # Sample config files can be found in nwm-region-mgr repo under configs directory
@@ -37,15 +48,8 @@ set -euo pipefail
 #  # Run with different Docker image tag
 #   /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs -t pr-20-build
 #
-# Arguments:
-#   -p, --parreg         Run parameter regionalization (includes formulation)
-#   -f, --formreg        Run formulation regionalization only
-#   -n, --ngen           Run NGEN simulation
-#   -e, --eval           Run evaluation
-#   -c, --config_dir DIR Set config directory (default: ./configs)
-#   -r, --repos PATH     Set root directory for NGWPC repos (default: auto-detect)
-#   -t, --image-tag TAG  Set Docker image tag (default: latest)
-#   -h, --help           Show this message and exit
+#  # Run with pulling the latest Docker image before running
+#  /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs -i
 # -----------------------------------------------------------------------------
 
 # Initial context
@@ -86,9 +90,10 @@ ngen=false
 eval=false
 CONFIG_DIR="${WORK_DIR}/configs"
 IMAGE_TAG="latest"
+PULL_IMAGE=false
 
 # Parse command line arguments
-ARGS=$(getopt -o pfnehc:r:t: --long parreg,formreg,ngen,eval,help,config_dir:,repos:,image-tag: -- "$@")
+ARGS=$(getopt -o pfnehc:r:t:i --long parreg,formreg,ngen,eval,help,config_dir:,repos:,image-tag:,pull-image -- "$@")
 if [ $? != 0 ]; then echo "Failed parsing options." >&2; exit 1; fi
 eval set -- "$ARGS"
 
@@ -101,6 +106,7 @@ while true; do
         -c|--config_dir) CONFIG_DIR="$2"; shift 2;;
         -r|--repos) REPOS_COMMON_ROOT__HOST="$2"; shift 2;;
         -t|--image-tag) IMAGE_TAG="$2"; shift 2;;
+        -i|--pull-image) PULL_IMAGE=true; shift;;
         -h|--help)
             echo "Usage: $0 [OPTIONS]
 Options:
@@ -111,6 +117,7 @@ Options:
   -c, --config_dir DIR Set config directory (default: ./configs)
   -r, --repos PATH     Set root directory for NGWPC repos 
   -t, --image-tag TAG  Set Docker image tag (default: latest)
+  -i, --pull-image     Pull the latest Docker image (with tag "latest" or as specified by --image-tag) before running (optional)
   -h, --help           Show this message and exit
 " >&2
             exit 0;;
@@ -120,16 +127,17 @@ Options:
 done
 
 # Validate workflow selection
-selected=0
-$parreg  && selected=$((selected + 1))
-$formreg && selected=$((selected + 1))
-$ngen    && selected=$((selected + 1))
-$eval    && selected=$((selected + 1))
+selected_workflows=()
+$parreg  && selected_workflows+=("parreg")
+$formreg && selected_workflows+=("formreg")
+$ngen    && selected_workflows+=("ngen")
+$eval    && selected_workflows+=("eval")
 
-if [[ $selected -eq 0 ]]; then
+if [[ ${#selected_workflows[@]} -eq 0 ]]; then
     echo "ERROR: No workflow specified to run. Use -h or --help for usage information." >&2
     exit 1
 fi
+echo "Selected workflows: ${selected_workflows[*]}"
 
 # make sure REPOS_COMMON_ROOT__HOST is set
 if [[ -z "${REPOS_COMMON_ROOT__HOST:-}" ]]; then
@@ -184,6 +192,12 @@ SCRIPT="${REPOS_COMMON_ROOT__HOST}/nwm-rte/bin_mounted/run_regionalization.py"
 # docker image to use
 TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:${IMAGE_TAG}"
 
+# pull the latest image if requested
+if $PULL_IMAGE || ! docker image inspect "${TARGET_IMAGE_NAME}" >/dev/null 2>&1; then
+    echo "Pulling Docker image: ${TARGET_IMAGE_NAME}"
+    docker pull "${TARGET_IMAGE_NAME}"
+fi
+
 # Docker run function
 function docker_run {
     docker run \
@@ -206,3 +220,6 @@ $parreg  && docker_run "$SCRIPT" -c "$CONFIG_DIR" --parreg
 $formreg && docker_run "$SCRIPT" -c "$CONFIG_DIR" --formreg
 $ngen    && docker_run "$SCRIPT" -c "$CONFIG_DIR" --ngen
 $eval    && docker_run "$SCRIPT" -c "$CONFIG_DIR" --eval
+
+echo "All requested workflows (${selected_workflows[*]}) completed successfully."
+exit 0
