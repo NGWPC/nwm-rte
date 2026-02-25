@@ -159,6 +159,13 @@ ensure_dir() {
     chown -R "$(id -u):$(id -g)" "$1" 2>/dev/null || true
 }
 
+# ensure static data directory exists on host (currently required for ngen-forcing)
+ensure_dir "${REPOS_COMMON_ROOT__HOST}/run_ngen/data"
+
+# ensure ngen-forcing config template folder exists on host
+forcing_config_dir="${REPOS_COMMON_ROOT__HOST}/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates"
+ensure_dir "${forcing_config_dir}"
+
 # Create run-time temporary directory with timestamp to avoid conflicts between simultaneous runs
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 RUNTIME_DIR_TMP="${WORK_DIR}/run_time_${TIMESTAMP}"
@@ -191,6 +198,7 @@ SCRIPT="${REPOS_COMMON_ROOT__HOST}/nwm-rte/bin_mounted/run_regionalization.py"
 
 # docker image to use
 TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:${IMAGE_TAG}"
+echo "Using Docker image: ${TARGET_IMAGE_NAME}"
 
 # pull the latest image if requested
 if $PULL_IMAGE || ! docker image inspect "${TARGET_IMAGE_NAME}" >/dev/null 2>&1; then
@@ -199,6 +207,7 @@ if $PULL_IMAGE || ! docker image inspect "${TARGET_IMAGE_NAME}" >/dev/null 2>&1;
 fi
 
 # Docker run function
+# To run ngen-forcing with debug log, add below: -e "FORCING_LOGLEVEL=DEBUG" \
 function docker_run {
     docker run \
         --entrypoint python \
@@ -209,8 +218,10 @@ function docker_run {
         -w "${WORK_DIR}" \
         -v "${WORK_DIR}:${WORK_DIR}" \
         -v "${REPOS_COMMON_ROOT__HOST}:${REPOS_COMMON_ROOT__HOST}" \
+        -v "${REPOS_COMMON_ROOT__HOST}/run_ngen/data:/ngencerf-app/static_data" \
+        -v "${forcing_config_dir}:/ngencerf-app/forcing_config_templates" \
         -v "${CONFIG_DIR}:${CONFIG_DIR}" \
-        -v "${RUNTIME_DIR_TMP}/run_ngen/data:/ngencerf-app/data" \
+        -v "${RUNTIME_DIR_TMP}/run_ngen/data:/ngencerf-app/runtime_data" \
         -v "${RUNTIME_DIR_TMP}/docker_logs/run:/ngencerf/data/run-logs" \
         --rm ${TARGET_IMAGE_NAME} "$@"
 }
