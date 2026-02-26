@@ -153,18 +153,28 @@ if [[ ! -d "$CONFIG_DIR" ]]; then
     exit 1
 fi
 
-# function to create directory if it doesn't exist and set ownership to current user (for docker permissions)
+# function to create runtime directory if it doesn't exist and set ownership to current user (for docker permissions)
 ensure_dir() {
     mkdir -p "$1"
     chown -R "$(id -u):$(id -g)" "$1" 2>/dev/null || true
 }
 
+# function to make sure directory already exists on host; error out if otherwise
+require_dir() {
+    local dir="$1"
+
+    if [ ! -d "$dir" ]; then
+        echo "Error: Required directory does not exist: $dir" >&2
+        exit 1
+    fi
+}
+
 # ensure static data directory exists on host (currently required for ngen-forcing)
-ensure_dir "${REPOS_COMMON_ROOT__HOST}/run_ngen/data"
+require_dir "${REPOS_COMMON_ROOT__HOST}/run_ngen/data"
 
 # ensure ngen-forcing config template folder exists on host
 forcing_config_dir="${REPOS_COMMON_ROOT__HOST}/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates"
-ensure_dir "${forcing_config_dir}"
+require_dir "${forcing_config_dir}"
 
 # Create run-time temporary directory with timestamp to avoid conflicts between simultaneous runs
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
@@ -197,7 +207,9 @@ trap cleanup EXIT
 SCRIPT="${REPOS_COMMON_ROOT__HOST}/nwm-rte/bin_mounted/run_regionalization.py"
 
 # docker image to use
-TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:${IMAGE_TAG}"
+#TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:${IMAGE_TAG}"
+TARGET_IMAGE_NAME=ngen_rte:ghcr # Using local image for testing
+
 echo "Using Docker image: ${TARGET_IMAGE_NAME}"
 
 # pull the latest image if requested
