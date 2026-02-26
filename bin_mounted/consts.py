@@ -101,6 +101,7 @@ CALIB_GLOBAL_DOMAIN_CHOICES = [
     "Alaska",
     "Hawaii",
     "Puerto_Rico",
+    "GL",  # Guam / Luta
 ]
 
 # For construction of DataFileConfig
