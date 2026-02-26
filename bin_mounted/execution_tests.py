@@ -72,6 +72,7 @@ def get_test_configs__calibration(
         output_precip=True,
         output_swe=True,
         output_sm=True,
+        domain=global_domain.lower(),
     )
 
     calibration = CalibConfig(
