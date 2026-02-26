@@ -207,8 +207,8 @@ trap cleanup EXIT
 SCRIPT="${REPOS_COMMON_ROOT__HOST}/nwm-rte/bin_mounted/run_regionalization.py"
 
 # docker image to use
-#TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:${IMAGE_TAG}"
-TARGET_IMAGE_NAME=ngen_rte:ghcr # Using local image for testing
+TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:${IMAGE_TAG}"
+#TARGET_IMAGE_NAME=ngen_rte:ghcr # Using local image for testing
 
 echo "Using Docker image: ${TARGET_IMAGE_NAME}"
 
