@@ -52,11 +52,13 @@ def get_test_configs__calibration(
     forcing_config_types = c.CALIB_FORCING_CONFIGURATION_TYPES,
     global_domain: str = c.CALIB_GLOBAL_DOMAIN_DEFAULT,
     forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
+    forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
     windows: CalibTimeWindows = CalibTimeWindows(),
 ) -> list[InputConfig]:
     fpp = ForcingProviderPaths(
         forcing_provider=forcing_provider,
         global_domain=global_domain,
+        forcing_static_dir=forcing_static_dir,
     )
 
     configs: list[InputConfig] = []
@@ -121,6 +123,7 @@ def get_test_configs__calibration(
             cycle_datetime=c.DT_START_FORECAST.strftime(DDF),
             cold_start_datetime=None,
             global_domain=global_domain,
+            forcing_static_dir=forcing_static_dir,
         )
         configs.append(
             InputConfig(General=general, Calibration=calibration, Forcing=forcing, DataFile=datafile, Parallel=parallel)
@@ -135,11 +138,13 @@ def get_test_configs__forecast(
     gage_id: str = c.DEFAULT_GAGE_ID,
     global_domain: str = c.CALIB_GLOBAL_DOMAIN_DEFAULT,
     forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
+    forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
     # nprocs: int = DEFAULT_NPROCS,
 ) -> list[InputConfig]:
     fpp = ForcingProviderPaths(
         forcing_provider=forcing_provider,
         global_domain=global_domain,
+        forcing_static_dir=forcing_static_dir,
     )
 
     configs: list[InputConfig] = []

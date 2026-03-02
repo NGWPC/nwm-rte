@@ -104,6 +104,8 @@ CALIB_GLOBAL_DOMAIN_CHOICES = [
     "GL",  # Guam / Luta
 ]
 
+FORCING_STATIC_DIR_DEFAULT = "/ngen-app/data"
+
 # For construction of DataFileConfig
 DATAFILE_LIBS = {
     "noah_parameter_dir": f"{MODULE_PARAMETER_FILES_DIR}/noah-owp-modular",
