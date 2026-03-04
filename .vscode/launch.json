@@ -57,6 +57,20 @@
             "console": "integratedTerminal",
             "python": "${command:python.interpreterPath}"
         },
+        {
+            "name": "run_bmi_model_test_regrid",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "cwd": "${workspaceFolder}/src/ngen-forcing",
+            "env": {
+                // "FORCING_PYTEST_WRITE_TEST_EXPECTED_DATA": "TRUE"
+                "FORCING_PYTEST_WRITE_TEST_EXPECTED_DATA": "FALSE"
+            },
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "python": "${command:python.interpreterPath}"
+        }
         ////////////////////
         // BEGIN _run_ngen_nompi 
         // {
