@@ -177,8 +177,7 @@ forcing_config_dir="${REPOS_COMMON_ROOT__HOST}/ngen-forcing/NextGen_Forcings_Eng
 require_dir "${forcing_config_dir}"
 
 # Create run-time temporary directory with timestamp to avoid conflicts between simultaneous runs
-TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-RUNTIME_DIR_TMP="${WORK_DIR}/run_time_${TIMESTAMP}"
+RUNTIME_DIR_TMP=$(mktemp -d "${WORK_DIR}/run_time_XXXXXXXX")
 ensure_dir "$RUNTIME_DIR_TMP"
 
 # create runtime directories for forcing
