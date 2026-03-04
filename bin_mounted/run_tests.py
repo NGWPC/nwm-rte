@@ -35,6 +35,7 @@ def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
             optim_algo=optim_algo,
             global_domain=cfg.global_domain,
             forcing_provider=cfg.forcing_provider,
+            forcing_static_dir=cfg.forcing_static_dir,
         ):
             fc = config_overrides.Forcing.forcing_configuration
             msg_prefix = f"Calibration {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
@@ -69,6 +70,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
             gage_id=cfg.gage_id,
             global_domain=cfg.global_domain,
             forcing_provider=cfg.forcing_provider,
+            forcing_static_dir=cfg.forcing_static_dir,
         )
         for tc in test_configs:
             if cfg.quit_forecast_after_forcing_running and tc.Forcing.forcing_configuration != "short_range":
@@ -266,6 +268,13 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         default=c.CALIB_GLOBAL_DOMAIN_DEFAULT,
         choices=c.CALIB_GLOBAL_DOMAIN_CHOICES,
         help=f"Region of forcing data. Default={c.CALIB_GLOBAL_DOMAIN_DEFAULT}",
+    )
+    parser.add_argument(
+        "-fstatic",
+        "--forcing_static_dir",
+        type=str,
+        default=c.FORCING_STATIC_DIR_DEFAULT,
+        help=f"Directory for static forcing files, used when forcing_provider is 'bmi'. Default={c.FORCING_STATIC_DIR_DEFAULT}",
     )
     parser.add_argument(
         "-fprovider",
