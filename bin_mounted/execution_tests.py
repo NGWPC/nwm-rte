@@ -15,6 +15,7 @@ from mswm.build_inputs import RealizationBuilder
 from mswm.utils.input_configuration import (
     InputConfig,
     GeneralConfig,
+    ModulePropertiesConfig,
     CalibConfig,
     ForcingConfig,
     DataFileConfig,
@@ -75,6 +76,8 @@ def get_test_configs__calibration(
         domain=global_domain.lower(),
     )
 
+    module_properties = ModulePropertiesConfig()
+
     calibration = CalibConfig(
         optimization_algorithm=optim_algo,
         swarm_size=c.CALIB_SWARM_SIZE,
@@ -123,7 +126,14 @@ def get_test_configs__calibration(
             global_domain=global_domain,
         )
         configs.append(
-            InputConfig(General=general, Calibration=calibration, Forcing=forcing, DataFile=datafile, Parallel=parallel)
+            InputConfig(
+                General=general,
+                ModuleProperties=module_properties,
+                Calibration=calibration,
+                Forcing=forcing,
+                DataFile=datafile,
+                Parallel=parallel,
+            )
         )
 
     return configs
