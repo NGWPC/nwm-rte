@@ -1,12 +1,12 @@
 // Compound configuration for mpirun -n 2 was adapted from: https://gist.github.com/xangma/b2bc310e595f7abf61ff1e19f3fd63f5
 // It starts individual debugpy instances to attach to each MPI rank after the C++ debugger (cppdbg) has started them with mpirun.
-// 
+//
 // The python code must include this after MpiConfig communicator has initialized.
 //   debugpy.listen(('localhost', 5678 + self.rank))
 //   debugpy.wait_for_client()
-// 
+//
 // Breakpoints in the python code can be set in the VS Code margins, and/or coded like: `debugpy.breakpoint()`
-// 
+//
 {
     "version": "0.2.0",
     "compounds": [
@@ -16,6 +16,16 @@
                 "_run_bmi_model_mpi_n2",
                 "_python_attach_rank_0",
                 "_python_attach_rank_1",
+            ],
+            "stopAll": true
+        },
+        {
+            "name": "run_bmi_model_mpi_n3",
+            "configurations": [
+                "_run_bmi_model_mpi_n3",
+                "_python_attach_rank_0",
+                "_python_attach_rank_1",
+                "_python_attach_rank_2",
             ],
             "stopAll": true
         },
@@ -72,7 +82,7 @@
             "python": "${command:python.interpreterPath}"
         }
         ////////////////////
-        // BEGIN _run_ngen_nompi 
+        // BEGIN _run_ngen_nompi
         // {
         //     "name": "_run_ngen_nompi",
         //     "type": "cppdbg",
@@ -98,9 +108,9 @@
         //         "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/01123000_partition_config.json",
         //     ],
         // },
-        // END _run_ngen_nompi 
+        // END _run_ngen_nompi
         ////////////////////
-        // BEGIN _run_bmi_model_mpi_n2 
+        // BEGIN _run_bmi_model_mpi_n2
         {
             "name": "_run_bmi_model_mpi_n2",
             "type": "cppdbg",
@@ -109,7 +119,10 @@
             "cwd": "${workspaceFolder}",
             "environment": [
                 // { "name": "OMP_NUM_THREADS", "value": "2" },
-                { "name": "WAIT_FOR_DEBUGPY", "value": "TRUE" },
+                {
+                    "name": "WAIT_FOR_DEBUGPY",
+                    "value": "TRUE"
+                },
             ],
             "linux": {
                 "MIMode": "gdb",
@@ -142,8 +155,54 @@
             ],
         },
         // END _run_bmi_model_mpi_n2
+        // BEGIN _run_bmi_model_mpi_n3
+        {
+            "name": "_run_bmi_model_mpi_n3",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/lib64/openmpi/bin/mpirun",
+            "cwd": "${workspaceFolder}",
+            "environment": [
+                // { "name": "OMP_NUM_THREADS", "value": "2" },
+                {
+                    "name": "WAIT_FOR_DEBUGPY",
+                    "value": "TRUE"
+                },
+            ],
+            "linux": {
+                "MIMode": "gdb",
+                "setupCommands": [
+                    {
+                        "description": "Enable pretty-printing for gdb",
+                        "text": "-enable-pretty-printing",
+                        "ignoreFailures": true
+                    }
+                ]
+            },
+            "args": [
+                "--oversubscribe",
+                "-n",
+                "3",
+                // "--bind-to",
+                // "none",
+                "python",
+                "-um",
+                "mpi4py",
+                "-m",
+                "NextGen_Forcings_Engine_BMI.run_bmi_model",
+                "2013-07-25 00:00:00",
+                "2013-07-25 23:00:00",
+                "-config_path",
+                "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/forcing_config/aorc_config.yml",
+                "-b_date",
+                "201307250000",
+                "-output_path",
+                "/ngen-app/bin/bin_mounted/bmi_model_forcing_output_mpi_n3.nc",
+            ],
+        },
+        // END _run_bmi_model_mpi_n3
         ////////////////////
-        // BEGIN _run_ngen_mpi_n2 
+        // BEGIN _run_ngen_mpi_n2
         // {
         //     "name": "_run_ngen_mpi_n2",
         //     "type": "cppdbg",
@@ -180,7 +239,7 @@
         //         "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/01123000_partition_config.json",
         //     ],
         // },
-        // END _run_ngen_mpi_n2 
+        // END _run_ngen_mpi_n2
         ////////////////////
         // BEGIN python attachers
         {
@@ -201,6 +260,17 @@
             "connect": {
                 "host": "localhost",
                 "port": 5679
+            },
+            "preLaunchTask": "sleep",
+            "justMyCode": false
+        },
+        {
+            "name": "_python_attach_rank_2",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5680
             },
             "preLaunchTask": "sleep",
             "justMyCode": false
