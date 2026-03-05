@@ -85,14 +85,14 @@ if __name__ == "__main__":
         "--objective_function",
         type=c.CalObjective,
         default=c.CALIB_OBJECTIVE_FUNCTION,
-        help=f"Objective function for calibration. Default: {c.CALIB_OBJECTIVE_FUNCTION}",
+        help=f"Objective function of previously-ran calibration realization for basis of forecast. Affects directory path. Default: {c.CALIB_OBJECTIVE_FUNCTION}",
     )
     parser.add_argument(
         "-optalgo",
         "--optimization_algorithm",
         type=c.CalOptimizationAlgo,
         default=c.CALIB_OPTIMIZATION_ALGO,
-        help=f"Optimization algorithm for calibration. Default: {c.CALIB_OPTIMIZATION_ALGO}",
+        help=f"Optimization algorithm of previously-ran calibration realization for basis of forecast. Affects directory path. Default: {c.CALIB_OPTIMIZATION_ALGO}",
     )
     parser.add_argument(
         "-g",

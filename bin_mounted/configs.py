@@ -111,6 +111,7 @@ class RTEForecastConfig(BaseModel):
 
     delete_scratch_and_mesh_first: bool
     delete_forcing_raw_input_first: bool
+    ### These calibration parameters affect directory path
     objective_function: c.CalObjective
     optimization_algorithm: c.CalOptimizationAlgo
     gage_id: str
