@@ -29,7 +29,11 @@ REPO_TAG_MSW_MGR=${REPO_TAG_MSW_MGR:-"development"}
 REPO_TAG_CAL_MGR=${REPO_TAG_CAL_MGR:-"development"}
 REPO_TAG_REGION_MGR=${REPO_TAG_REGION_MGR:-"development"}
 REPO_TAG_DATA_ASSIM_ENGINE=${REPO_TAG_DATA_ASSIM_ENGINE:-"development"}
-REPO_TAG_NGEN_FORCING=${REPO_TAG_NGEN_FORCING:-""}  # For reinstall of ngen-forcing Python package}
+# NOTE: REPO_TAG_NGEN_FORCING is optional. It causes a "reinstall" of ngen-forcing Python package only, for development and testing.
+# See README.md for caveats.
+# This does not affect the base image, does not reflect changes to C++ code nor changes to `ngen-forcing/Dockerfile.bmi-forcings`, nor changes to other ngen-forcing build instructions.
+# It only causes an optional `pip install` call to be executed on the ngen-forcing Python package, after the manager packages have been installed on top of the ngen base image.
+REPO_TAG_NGEN_FORCING=${REPO_TAG_NGEN_FORCING:-""}  # Optional. For reinstall of ngen-forcing Python package. See README.md for caveats.
 REPO_TAG_VERF=${REPO_TAG_VERF:-"development"}
 REPO_TAG_EVAL=${REPO_TAG_EVAL:-"development"}
 
