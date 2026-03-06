@@ -104,13 +104,15 @@ CALIB_GLOBAL_DOMAIN_CHOICES = [
     "GL",  # Guam / Luta
 ]
 
+FORCING_STATIC_DIR_DEFAULT = "/ngen-app/data"
+
 # For construction of DataFileConfig
 DATAFILE_LIBS = {
     "noah_parameter_dir": f"{MODULE_PARAMETER_FILES_DIR}/noah-owp-modular",
     "ueb_parameter_dir": f"{MODULE_PARAMETER_FILES_DIR}/ueb",
     "lasam_parameter_dir": f"{MODULE_PARAMETER_FILES_DIR}/lasam",
     "lstm_parameter_dir": f"{MODULE_PARAMETER_FILES_DIR}/lstm",
-    "sac_parameter_dir": HYDROFABRIC_DIR,
+    "sac_sma_parameter_dir": HYDROFABRIC_DIR,
     "snow_17_parameter_dir": HYDROFABRIC_DIR,
     "attributes_file": "/ngwpc/run_ngen/data/conus_model_attributes.parquet",
     "ngen_exe_file": f"{NGEN_DIR}/cmake_build/ngen",

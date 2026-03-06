@@ -40,6 +40,7 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
         forcing_config_types=[cfg.forcing_source],
         global_domain=cfg.global_domain,
         forcing_provider=cfg.forcing_provider,
+        forcing_static_dir=cfg.forcing_static_dir,
         windows=windows,
     )
     assert len(all_config_overrides) == 1  # Can be > 1 in test runner, not in atomic calibration runner
@@ -180,6 +181,13 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         default=c.FORCING_PROVIDER_DEFAULT,
         choices=c.FORCING_PROVIDER_CHOICES,
         help=f"Forcing provider. Default={c.FORCING_PROVIDER_DEFAULT}",
+    )
+    parser.add_argument(
+        "-fstatic",
+        "--forcing_static_dir",
+        type=str,
+        default=c.FORCING_STATIC_DIR_DEFAULT,
+        help=f"Directory for static forcing files, used when forcing_provider is 'bmi'. Default={c.FORCING_STATIC_DIR_DEFAULT}",
     )
     args = parser.parse_args()
     cfg = RTECalibConfig(**vars(args))

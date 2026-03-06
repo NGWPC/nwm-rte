@@ -21,6 +21,7 @@ class TestPaths:
     optim_algo: c.CalOptimizationAlgo | None
     global_domain: str
     forcing_provider: str
+    forcing_static_dir: str
 
     def update_obj_func_and_optim_algo(self, obj_func: c.CalObjective, optim_algo: c.CalOptimizationAlgo) -> None:
         self.obj_func = obj_func
@@ -28,7 +29,7 @@ class TestPaths:
 
     @property
     def fpp(self):
-        return ForcingProviderPaths(global_domain=self.global_domain, forcing_provider=self.forcing_provider)
+        return ForcingProviderPaths(global_domain=self.global_domain, forcing_provider=self.forcing_provider, forcing_static_dir=self.forcing_static_dir)
 
     @property
     def dir_base(self) -> str:
@@ -79,6 +80,7 @@ class RTECalibConfig(BaseModel):
     forcing_source: str
     global_domain: str
     forcing_provider: str
+    forcing_static_dir: str
 
     # Set after init
     gage_id: str = Field(init=False, default=None)
@@ -122,6 +124,7 @@ class RTETestConfig(BaseModel):
     gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
     global_domain: str
     forcing_provider: str
+    forcing_static_dir: str
     noop: bool
 
     # Set after init
@@ -179,6 +182,7 @@ class RTETestConfig(BaseModel):
                             optim_algo,
                             self.global_domain,
                             self.forcing_provider,
+                            self.forcing_static_dir,
                         ),
                     )
                 )
@@ -211,6 +215,7 @@ class ForcingProviderPaths(BaseModel):
     model_config = ConfigDict(strict=True)
     forcing_provider: Literal["csv", "bmi"]
     global_domain: str  # e.g. CONUS. TODO restrict choices
+    forcing_static_dir: str
 
     def get_forcing_dir(self, gage_id: str | None) -> str | None:
         if self.forcing_provider == "csv":
@@ -218,7 +223,7 @@ class ForcingProviderPaths(BaseModel):
                 raise ValueError("Gage ID must be provided when forcing_provider == 'csv'")
             return c.CSV_FORCING_DIR_FORMAT.format(global_domain=self.global_domain, gage_id=gage_id)
         elif self.forcing_provider == "bmi":
-            return None
+            return self.forcing_static_dir
         else:
             raise ValueError(f"Unexpected forcing_provider: {self.forcing_provider}")
 

@@ -42,6 +42,7 @@ class ForecastVars:
     gage_id: str
     fcst_run_name: str
     global_domain: str
+    forcing_static_dir: str
     formulation_suffix: str
     root_dir: str
     calib_input_config: str
@@ -95,6 +96,7 @@ def set_vars(options) -> ForecastVars:
         fcst_run_name=options.fcst_run_name or c.DEFAULT_FORECAST_RUN_NAME,
         global_domain=options.global_domain or c.CALIB_GLOBAL_DOMAIN_DEFAULT,
         formulation_suffix=options.forcing_provider or c.FORCING_PROVIDER_DEFAULT,
+        forcing_static_dir=options.forcing_static_dir or c.FORCING_STATIC_DIR_DEFAULT,
         coldstart_start=options.cold_start_datetime,
         coldstart_end=options.cycle_datetime if options.cold_start_datetime else None,
         forecast_initial_cycle_datetime=options.cycle_datetime,
@@ -115,6 +117,7 @@ def create_kwargs(forecast_vars) -> dict:
     fpp = ForcingProviderPaths(
         forcing_provider=forecast_vars.formulation_suffix,
         global_domain=forecast_vars.global_domain,
+        forcing_static_dir=forecast_vars.forcing_static_dir,
     )
 
     realization_kwargs = {
@@ -131,6 +134,7 @@ def create_kwargs(forecast_vars) -> dict:
                 cycle_datetime=cycle_datetime,
                 cold_start_datetime=None,
                 global_domain=forecast_vars.global_domain,
+                forcing_static_dir=forecast_vars.forcing_static_dir,
             )
         )
     }
@@ -202,6 +206,13 @@ def get_options(args_list=None):
         default=c.CALIB_GLOBAL_DOMAIN_DEFAULT,
         choices=c.CALIB_GLOBAL_DOMAIN_CHOICES,
         help=f"Global domain/region of forcing data. Default={c.CALIB_GLOBAL_DOMAIN_DEFAULT}",
+    )
+    parser.add_argument(
+        "-fstatic",
+        "--forcing_static_dir",
+        type=str,
+        default=c.FORCING_STATIC_DIR_DEFAULT,
+        help=f"Directory for static forcing files, used when forcing_provider is 'bmi'. Default={c.FORCING_STATIC_DIR_DEFAULT}",
     )
     parser.add_argument('-forcing_provider',
                         type=str,
