@@ -28,7 +28,7 @@ def delete_forcing_raw_inputs() -> None:
 
 
 def delete_scratch_and_esmf_outputs(cfg: RTETestConfig) -> None:
-    dirs_to_delete = ["/ngwpc/run_ngen/data/scratch/NWM"]
+    dirs_to_delete = [f"{c.DEFAULT_MAIN_DIR}/data/scratch"]
     for d in dirs_to_delete:
         if os.path.exists(d):
             print(f"Deleting: {d}")
@@ -37,7 +37,7 @@ def delete_scratch_and_esmf_outputs(cfg: RTETestConfig) -> None:
             print(f"Did not exist: {d}")
 
     files_to_delete = [
-        f"/ngwpc/run_ngen/data/esmf_mesh/gauge_{cfg.gage_id}_ESMF_Mesh.nc",
+        f"{c.DEFAULT_MAIN_DIR}/data/esmf_mesh/gauge_{cfg.gage_id}_ESMF_Mesh.nc",
         f"/ngen-app/data/esmf_mesh/gauge_{cfg.gage_id}_ESMF_Mesh.nc",
     ]
     for f in files_to_delete:

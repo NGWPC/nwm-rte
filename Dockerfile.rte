@@ -18,6 +18,8 @@ LABEL org.opencontainers.image.description=$TARGET_IMAGE_DESCRIPTION \
     org.opencontainers.image.revision=$TARGET_IMAGE_REVISION \
     org.opencontainers.image.created=$TARGET_IMAGE_CREATED
 
+# ENV FORCING_LOGLEVEL=DEBUG
+
 ### Static args
 ARG PYTHON_ENV="/ngen-app/ngen-python/bin"
 ARG PYTHON_VERSION_STR="python3.11"
