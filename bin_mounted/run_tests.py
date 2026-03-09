@@ -47,7 +47,9 @@ def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
 
             # Build the realization, trapping exceptions into class attrs
             print(f"### {msg_prefix}: building realization")
-            t.make_realization_builder__build_realization(build_method="build_calib_realization")
+            t.make_realization_builder__build_realization(
+                build_method="build_calib_realization"
+            )
 
             if t.rb_stat == TestStat.PASS:
                 # Execute the realization via ngen, trapping exceptions and logs into class attrs
@@ -73,16 +75,17 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
             forcing_static_dir=cfg.forcing_static_dir,
         )
         for tc in test_configs:
-            if cfg.quit_forecast_after_forcing_running and tc.Forcing.forcing_configuration != "short_range":
+            if (
+                cfg.quit_forecast_after_forcing_running
+                and tc.Forcing.forcing_configuration != "short_range"
+            ):
                 raise NotImplementedError(
                     f"quit_forecast_after_forcing_running not yet tested for forcing_configuration = {repr(tc.Forcing.forcing_configuration)}"
                 )
 
         for config_overrides in test_configs:
             fc = config_overrides.Forcing.forcing_configuration
-            msg_prefix = (
-                f"Forecast {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
-            )
+            msg_prefix = f"Forecast {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
             rb_kwargs = {
                 # "input_path": test_paths.dir_input,
                 "valid_yaml": test_paths.valid_yaml,
@@ -90,17 +93,23 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
                 "config_overrides": config_overrides,
                 "use_cold_start": cs,
             }
-            print(f"\n\n##########\n### {msg_prefix}: setting up test with rb_kwargs = {rb_kwargs}")
+            print(
+                f"\n\n##########\n### {msg_prefix}: setting up test with rb_kwargs = {rb_kwargs}"
+            )
 
             run_type = "Cold_Start_Run" if cs else "Forecast_Run"
             t = ForecastTest(
                 rb_kwargs=rb_kwargs,
-                ngen_log=LogParser(path=f"{test_paths.dir_output}/{run_type}/{cfg.fcst_run_name}/logs/ngen.log"),
+                ngen_log=LogParser(
+                    path=f"{test_paths.dir_output}/{run_type}/{cfg.fcst_run_name}/logs/ngen.log"
+                ),
             )
 
             # Build the realization, trapping exceptions into class attrs
             print(f"### {msg_prefix}: building realization")
-            t.make_realization_builder__build_realization(build_method="build_fcst_realization")
+            t.make_realization_builder__build_realization(
+                build_method="build_fcst_realization"
+            )
 
             if t.rb_stat == TestStat.PASS:
                 # Execute the realization via ngen, trapping exceptions and logs into class attrs

@@ -30,18 +30,26 @@ class TestPaths:
     forcing_provider: str
     forcing_static_dir: str
 
-    def update_obj_func_and_optim_algo(self, obj_func: c.CalObjective, optim_algo: c.CalOptimizationAlgo) -> None:
+    def update_obj_func_and_optim_algo(
+        self, obj_func: c.CalObjective, optim_algo: c.CalOptimizationAlgo
+    ) -> None:
         self.obj_func = obj_func
         self.optim_algo = optim_algo
 
     @property
     def fpp(self):
-        return ForcingProviderPaths(global_domain=self.global_domain, forcing_provider=self.forcing_provider, forcing_static_dir=self.forcing_static_dir)
+        return ForcingProviderPaths(
+            global_domain=self.global_domain,
+            forcing_provider=self.forcing_provider,
+            forcing_static_dir=self.forcing_static_dir,
+        )
 
     @property
     def dir_base(self) -> str:
         if not (self.obj_func and self.optim_algo):
-            raise ValueError("obj_func and optim_algo must be set before calling this method")
+            raise ValueError(
+                "obj_func and optim_algo must be set before calling this method"
+            )
         return f"{c.DEFAULT_MAIN_DIR}/{self.obj_func.value}_{self.optim_algo.value}/{self.fpp.formulation_name}/{self.gage_id}"
 
     @property
@@ -58,7 +66,9 @@ class TestPaths:
 
     @property
     def calib_config_file(self) -> str:
-        return f"{self.dir_base}/configs/input_calibration_{self.forcing_provider}.config"
+        return (
+            f"{self.dir_base}/configs/input_calibration_{self.forcing_provider}.config"
+        )
         # return f"{self.dir_base}/configs/input_calibration_{self.forcing_provider}_short.config"
 
     @property
@@ -96,7 +106,9 @@ class RTECalibConfig(BaseModel):
     def model_post_init(self, __context) -> None:
         errors = []
 
-        gage_id, gage_vintage, errors_extend = parse_gage_id__gage_vintage(self.gage_id__gage_vintage)
+        gage_id, gage_vintage, errors_extend = parse_gage_id__gage_vintage(
+            self.gage_id__gage_vintage
+        )
         errors.extend(errors_extend)
 
         if errors:
@@ -139,7 +151,7 @@ class RTEForecastConfig(BaseModel):
         if not os.path.isdir(self.run_dir_base):
             msg = f"Not a directory: {repr(self.run_dir_base)}. Please review choices for objective function, optimization algorithm, and gage, which affect this path."
             raise NotADirectoryError(msg)
-        
+
         self.run_dir_input = f"{self.run_dir_base}/Input"
         self.run_dir_output = f"{self.run_dir_base}/Output"
         self.ngen_log_file = f"{self.run_dir_base}/logs/ngen.log"
@@ -151,7 +163,7 @@ class RTEForecastConfig(BaseModel):
         fpp = ForcingProviderPaths(
             forcing_provider=self.forcing_provider,
             global_domain=self.global_domain,
-            forcing_static_dir=self.forcing_static_dir
+            forcing_static_dir=self.forcing_static_dir,
         )
         realization_kwargs = {
             # "input_path": forecast_vars.forecast_input_config,
@@ -164,8 +176,14 @@ class RTEForecastConfig(BaseModel):
                     forcing_template_dir=c.FORCING_TEMPLATE_DIR,
                     root_dir=c.FORCING_ROOT_DIR,
                     forcing_configuration=self.forcing_configuration,
-                    cycle_datetime=self.cycle_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT),
-                    cold_start_datetime=self.cold_start_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT) if self.cold_start_datetime else None,
+                    cycle_datetime=self.cycle_datetime.strftime(
+                        mswm_settings.DEFAULT_DATETIME_FORMAT
+                    ),
+                    cold_start_datetime=self.cold_start_datetime.strftime(
+                        mswm_settings.DEFAULT_DATETIME_FORMAT
+                    )
+                    if self.cold_start_datetime
+                    else None,
                     global_domain=self.global_domain,
                     forcing_static_dir=self.forcing_static_dir,
                 )
@@ -207,7 +225,9 @@ class RTETestConfig(BaseModel):
     def model_post_init(self, __context) -> None:
         errors = []
 
-        gage_id, gage_vintage, errors_extend = parse_gage_id__gage_vintage(self.gage_id__gage_vintage)
+        gage_id, gage_vintage, errors_extend = parse_gage_id__gage_vintage(
+            self.gage_id__gage_vintage
+        )
         errors.extend(errors_extend)
 
         errors_extend = parse_fcst_run_name(self.fcst_run_name)
@@ -232,7 +252,9 @@ class RTETestConfig(BaseModel):
         self.gage_id = gage_id
         self.gage_vintage = gage_vintage
 
-    def get_calib_permutations(self) -> list[tuple[c.CalObjective, c.CalOptimizationAlgo, TestPaths]]:
+    def get_calib_permutations(
+        self,
+    ) -> list[tuple[c.CalObjective, c.CalOptimizationAlgo, TestPaths]]:
         """Returns the permutations of objective function and optimization algorithm specified in the config, as well as a TestPaths instance for each.
         If only_first, then only the first permutation will be returned. Else all permutations will be returned."""
         ret = []
@@ -269,11 +291,15 @@ def parse_gage_id__gage_vintage(
     gage_id, gage_vintage = gage_id__gage_vintage
 
     if gage_id != gage_id.strip():
-        errors.append(ValueError(f"Whitespace found on end of gage_id: {repr(gage_id)}"))
+        errors.append(
+            ValueError(f"Whitespace found on end of gage_id: {repr(gage_id)}")
+        )
         gage_id = None
 
     if gage_vintage != gage_vintage.strip():
-        errors.append(ValueError(f"Whitespace found on end of gage_vintage: {repr(gage_vintage)}"))
+        errors.append(
+            ValueError(f"Whitespace found on end of gage_vintage: {repr(gage_vintage)}")
+        )
         gage_vintage = None
 
     return gage_id, gage_vintage, errors
@@ -282,7 +308,11 @@ def parse_gage_id__gage_vintage(
 def parse_fcst_run_name(fcst_run_name: str) -> list[Exception]:
     errors: list[Exception] = []
     if fcst_run_name != fcst_run_name.strip():
-        errors.append(ValueError(f"Whitespace found on end of fcst_run_name: {repr(fcst_run_name)}"))
+        errors.append(
+            ValueError(
+                f"Whitespace found on end of fcst_run_name: {repr(fcst_run_name)}"
+            )
+        )
     return errors
 
 
@@ -295,8 +325,12 @@ class ForcingProviderPaths(BaseModel):
     def get_forcing_dir(self, gage_id: str | None) -> str | None:
         if self.forcing_provider == "csv":
             if not gage_id:
-                raise ValueError("Gage ID must be provided when forcing_provider == 'csv'")
-            return c.CSV_FORCING_DIR_FORMAT.format(global_domain=self.global_domain, gage_id=gage_id)
+                raise ValueError(
+                    "Gage ID must be provided when forcing_provider == 'csv'"
+                )
+            return c.CSV_FORCING_DIR_FORMAT.format(
+                global_domain=self.global_domain, gage_id=gage_id
+            )
         elif self.forcing_provider == "bmi":
             return self.forcing_static_dir
         else:

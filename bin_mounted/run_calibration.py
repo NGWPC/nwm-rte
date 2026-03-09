@@ -8,7 +8,14 @@ import time
 
 from mswm.build_inputs import RealizationBuilder
 
-from utils import datetime_from_str, str_from_datetime, timedelta_from_effective_days, effective_days_from_timedelta, timedelta_from_pandas_str, get_calibration_log_file_overwrite_path
+from utils import (
+    datetime_from_str,
+    str_from_datetime,
+    timedelta_from_effective_days,
+    effective_days_from_timedelta,
+    timedelta_from_pandas_str,
+    get_calibration_log_file_overwrite_path,
+)
 import utils_testing_setup
 from execution_tests import (
     get_test_configs__calibration,
@@ -43,7 +50,9 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
         forcing_static_dir=cfg.forcing_static_dir,
         windows=windows,
     )
-    assert len(all_config_overrides) == 1  # Can be > 1 in test runner, not in atomic calibration runner
+    assert (
+        len(all_config_overrides) == 1
+    )  # Can be > 1 in test runner, not in atomic calibration runner
     config_overrides = all_config_overrides[0]
 
     rb_kwargs = {"config_overrides": config_overrides}
@@ -60,10 +69,14 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
         # "000test",
     ]
 
-    print(f"\n\nStarting calibration with configuration: {cfg.model_dump_json(indent=2)}\nand logging to: {log_path}\n\nvia command args: {cmd}")
+    print(
+        f"\n\nStarting calibration with configuration: {cfg.model_dump_json(indent=2)}\nand logging to: {log_path}\n\nvia command args: {cmd}"
+    )
     start = time.perf_counter()
     proc = subprocess.run(cmd, check=False)
-    print(f"\nFinished calibration with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nLog path: {log_path}\nReturn code {proc.returncode}.")
+    print(
+        f"\nFinished calibration with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nLog path: {log_path}\nReturn code {proc.returncode}."
+    )
     proc.check_returncode()
 
 

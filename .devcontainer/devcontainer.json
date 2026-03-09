@@ -31,7 +31,7 @@
         // Mounts for replicating ngencerf environment (for running realizations originating on ngencerf):
         "source=${localWorkspaceFolder}/../run_ngen/data,target=/ngencerf/data/bmi_forcing_work,type=bind",
         "source=${localWorkspaceFolder}/../run_ngen/data/ngen-cal-work,target=/ngencerf/data/ngen-cal-work,type=bind",
-        "source=${localWorkspaceFolder}/../run_ngen/data/ngen-static-files,target=/ngencerf/data/ngen-static-files,type=bind",
+        "source=${localWorkspaceFolder}/../run_ngen/data/ngen-static-files,target=/ngencerf/data/ngen-static-files,type=bind"
     ],
     "remoteUser": "root",
     // (Re)install ngen-forcing in editable mode.

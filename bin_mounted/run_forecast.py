@@ -16,7 +16,9 @@ print = functools.partial(print, flush=True)
 
 
 def build_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
-    print(f"Building coldstart realization: {cfg.realization_builder_kwargs}, use_cold_start=True")
+    print(
+        f"Building coldstart realization: {cfg.realization_builder_kwargs}, use_cold_start=True"
+    )
     rb_cs = RealizationBuilder(**cfg.realization_builder_kwargs, use_cold_start=True)
     rb_cs.build_fcst_realization()
     print(f"Wrote: {rb_cs.realization_file}")
@@ -24,7 +26,9 @@ def build_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
 
 
 def build_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
-    print(f"Building forecast realization: {cfg.realization_builder_kwargs}, use_cold_start=False")
+    print(
+        f"Building forecast realization: {cfg.realization_builder_kwargs}, use_cold_start=False"
+    )
     rb_fcst = RealizationBuilder(**cfg.realization_builder_kwargs, use_cold_start=False)
     rb_fcst.build_fcst_realization()
     return rb_fcst
