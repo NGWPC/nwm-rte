@@ -50,7 +50,7 @@ def get_test_configs__calibration(
     gage_vintage: str = c.DEFAULT_GAGE_VINTAGE,
     obj_func: c.CalObjective = c.CALIB_OBJECTIVE_FUNCTION,
     optim_algo: c.CalOptimizationAlgo = c.CALIB_OPTIMIZATION_ALGO,
-    forcing_config_types = c.CALIB_FORCING_CONFIGURATION_TYPES,
+    forcing_config_types=c.CALIB_FORCING_CONFIGURATION_TYPES,
     global_domain: str = c.CALIB_GLOBAL_DOMAIN_DEFAULT,
     forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
     forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
@@ -240,7 +240,9 @@ class ForecastTest(BaseModel):
     ##########
     ### Excluded attributes
     rb: RealizationBuilder = Field(exclude=True, init=False, default=None)
-    fcst_exe_mgr: ForecastExecutionManager = Field(exclude=True, init=False, default=None)
+    fcst_exe_mgr: ForecastExecutionManager = Field(
+        exclude=True, init=False, default=None
+    )
     fcst_exe_excep: Exception | None = Field(exclude=True, init=False, default=None)
     rb_excep: Exception | None = Field(exclude=True, init=False, default=None)
 
@@ -299,12 +301,18 @@ class ForecastTest(BaseModel):
             # Also set forecast execution to fail, since it can't run if realization failed to build
             self.fcst_exe_stat = TestStat.FAIL
 
-    def execute_calibration(self, quit_calibration_after_duration: float | None) -> None:
+    def execute_calibration(
+        self, quit_calibration_after_duration: float | None
+    ) -> None:
         if self.rb_stat != TestStat.PASS:
-            raise RuntimeError(f"Cannot run calibration when realization did not build (self.rb_stat: {self.rb_stat})")
+            raise RuntimeError(
+                f"Cannot run calibration when realization did not build (self.rb_stat: {self.rb_stat})"
+            )
 
         current_time = datetime.now(timezone.utc).strftime(r"%Y%m%d_%H%M%S")
-        calib_log_path_overwrite = os.path.join(self.rb.work_dir, "logs", f"calibration_{current_time}.log")
+        calib_log_path_overwrite = os.path.join(
+            self.rb.work_dir, "logs", f"calibration_{current_time}.log"
+        )
         self.calib_log = LogParser(path=calib_log_path_overwrite)
 
         print(f"Running calibration, will log to: {repr(self.calib_log.path)}")
@@ -348,7 +356,9 @@ class ForecastTest(BaseModel):
         quit_forecast_after_duration: float | None,  # seconds
     ) -> None:
         if self.rb_stat != TestStat.PASS:
-            raise RuntimeError(f"Cannot run forecast when realization did not build (self.rb_stat: {self.rb_stat})")
+            raise RuntimeError(
+                f"Cannot run forecast when realization did not build (self.rb_stat: {self.rb_stat})"
+            )
 
         if quit_forecast_after_forcing_running:
             assert quit_forecast_after_duration is None
@@ -356,7 +366,9 @@ class ForecastTest(BaseModel):
 
         elif quit_forecast_after_duration is not None:
             assert not quit_forecast_after_forcing_running
-            async_waiter = functools.partial(self.wait_for_duration, wait_duration_sec=quit_forecast_after_duration)
+            async_waiter = functools.partial(
+                self.wait_for_duration, wait_duration_sec=quit_forecast_after_duration
+            )
 
         else:
             async_waiter = None
@@ -379,7 +391,9 @@ class ForecastTest(BaseModel):
         except NgenIntentionallyStoppedError as e:
             # Raised when stop flag is manually set, or when context manager ends before ngen finishes.
             # The latter is happening intentionally here under certain types of tests.
-            print(f"Caught NgenIntentionallyStoppedError in main thread. Not reraising.")
+            print(
+                f"Caught NgenIntentionallyStoppedError in main thread. Not reraising."
+            )
             fcst_exe_excep = None
         except Exception as e:
             print(
@@ -415,7 +429,9 @@ class ForecastTest(BaseModel):
     def wait_for_duration(self, wait_duration_sec: float):
         start = time.perf_counter()
         poll_freq_seconds = 2
-        print(f"Polling ngen process every {poll_freq_seconds} seconds up to {wait_duration_sec} sec total duration...")
+        print(
+            f"Polling ngen process every {poll_freq_seconds} seconds up to {wait_duration_sec} sec total duration..."
+        )
         while True:
             self.fcst_exe_mgr.poll_ngen_flush_log()
             duration_sec = time.perf_counter() - start
@@ -435,7 +451,9 @@ class ForecastTest(BaseModel):
             duration_sec = time.perf_counter() - start
             self.fcst_exe_mgr.poll_ngen_flush_log()
             if duration_sec > 10 and self.infer_from_log__forcing_is_running():
-                print(f"After {duration_sec:.1f} seconds, ngen log indicates forcing is running successfully")
+                print(
+                    f"After {duration_sec:.1f} seconds, ngen log indicates forcing is running successfully"
+                )
                 break
             if self.fcst_exe_mgr._status == RunStatus.EXECUTION_SUCCESS:
                 print(f"After {duration_sec:.1f} seconds, ngen finished running")
@@ -455,7 +473,10 @@ class ForecastTest(BaseModel):
         # TODO improve this and confirm that it works for types other than short_range
         if (
             self.ngen_log.content.lower().count("processing forecast cycle") > 1
-            and self.ngen_log.content.lower().count("writing output forcing file for timestamp") > 0
+            and self.ngen_log.content.lower().count(
+                "writing output forcing file for timestamp"
+            )
+            > 0
         ):
             return True
         else:
@@ -469,7 +490,12 @@ class TestResultsSums(BaseModel):
 
     def model_post_init(self, __context) -> None:
         self.any_failed = (
-            True if (self.rb_statcount[TestStat.FAIL] or self.fcst_exe_statcount[TestStat.FAIL]) else False
+            True
+            if (
+                self.rb_statcount[TestStat.FAIL]
+                or self.fcst_exe_statcount[TestStat.FAIL]
+            )
+            else False
         )
 
 
@@ -495,7 +521,9 @@ class TestsManager(BaseModel):
         )
 
     def evaluate_test_results(self) -> None:
-        test_results_file = os.path.join(os.path.dirname(__file__), "forecast_tests_results.json")
+        test_results_file = os.path.join(
+            os.path.dirname(__file__), "forecast_tests_results.json"
+        )
         msg = f"\n\n###### FORECAST TEST RESULTS ######\nWriting to: {test_results_file}\n{json.dumps(self.fcst_stat_sums, indent=2, default=pydantic_encoder)}"
         print(msg)
         with open(test_results_file, "w") as f:

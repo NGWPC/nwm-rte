@@ -42,13 +42,15 @@ CALIB_ITER_START = 0
 CALIB_ITER_COUNT = 2
 CALIB_SAVE_PLOT_ITER_FREQ = 1
 # Only needed for optimization algo PSO and GWO
-CALIB_SWARM_SIZE=3
-# Only needed for optimization algo PSO 
-CALIB_PSO_C1=2
-CALIB_PSO_C2=2
-CALIB_PSO_W=0.7
+CALIB_SWARM_SIZE = 3
+# Only needed for optimization algo PSO
+CALIB_PSO_C1 = 2
+CALIB_PSO_C2 = 2
+CALIB_PSO_W = 0.7
 # Timing
-CALIB_SIM_START_DEFAULT = datetime(year=2013, month=7, day=25, hour=0, minute=0, second=0)
+CALIB_SIM_START_DEFAULT = datetime(
+    year=2013, month=7, day=25, hour=0, minute=0, second=0
+)
 CALIB_SIM_DURATION_DEFAULT = timedelta(hours=47)
 CALIB_EVAL_DELAYMENT_DEFAULT = timedelta(hours=0)  # Gets added
 VALID_SIM_ADVANCEMENT_DEFAULT = timedelta(hours=0)  # Gets subtracted
@@ -67,7 +69,11 @@ DEFAULT_NPROCS = 1
 
 ### Test settings
 ### See this for full list of forcing configuration types: mswm.utils.input_configuration.mswm_valid_configs
-FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range", "standard_ana", "medium_range_blend"]
+FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = [
+    "short_range",
+    "standard_ana",
+    "medium_range_blend",
+]
 # FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range"]
 FORECAST_FORCING_CONFIGURATION_TYPES__ALL = [
     "standard_ana",

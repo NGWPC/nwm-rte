@@ -14,11 +14,15 @@ GH_ORG = "NGWPC"
 def run(cmd: str, cwd: str) -> str:
     """Run a command and return stdout"""
     print(f"From {repr(cwd)} running command: {repr(cmd)}")
-    p = subprocess.run(cmd, cwd=cwd, shell=True, capture_output=True, text=True, check=False)
+    p = subprocess.run(
+        cmd, cwd=cwd, shell=True, capture_output=True, text=True, check=False
+    )
     try:
         p.check_returncode()
     except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"ERROR: failed to run cmd: {cmd}\n\nSTDERR={p.stderr}\n\nSTDOUT={p.stdout}\n\nERROR")
+        raise RuntimeError(
+            f"ERROR: failed to run cmd: {cmd}\n\nSTDERR={p.stderr}\n\nSTDOUT={p.stdout}\n\nERROR"
+        )
     return p.stdout.rstrip()  # remove trailing whitespace
 
 
@@ -51,7 +55,7 @@ def fetch_github_commit_info(repo_name: str, branch: str) -> dict:
     try:
         req = urllib.request.Request(api_url)
         # Add user agent to avoid GitHub API rate limiting issues
-        req.add_header('User-Agent', 'nwm-rte-build-script')
+        req.add_header("User-Agent", "nwm-rte-build-script")
 
         with urllib.request.urlopen(req) as response:
             data = json.loads(response.read().decode())
@@ -77,13 +81,20 @@ class GitInfoBuilder:
             d["repo_name"] = get_repo_name(local_repo_path)
             d["commit_hash"] = run("git rev-parse HEAD", cwd=local_repo_path)
             d["branch"] = run("git rev-parse --abbrev-ref HEAD", cwd=local_repo_path)
-            d["tags"] = run("git tag --points-at HEAD | tr '\n' ' '", cwd=local_repo_path)
+            d["tags"] = run(
+                "git tag --points-at HEAD | tr '\n' ' '", cwd=local_repo_path
+            )
             d["author"] = run("git log -1 --pretty=format:'%an'", cwd=local_repo_path)
             d["commit_date"] = run(
-                "date -u -d @$(git log -1 --pretty=format:'%ct') +'%Y-%m-%d %H:%M:%S UTC'", cwd=local_repo_path
+                "date -u -d @$(git log -1 --pretty=format:'%ct') +'%Y-%m-%d %H:%M:%S UTC'",
+                cwd=local_repo_path,
             )
-            d["message"] = run("git log -1 --pretty=format:'%s' | tr '\n' ';'", cwd=local_repo_path)
-            d["build_date"] = run("date -u +'%Y-%m-%d %H:%M:%S UTC'", cwd=local_repo_path)
+            d["message"] = run(
+                "git log -1 --pretty=format:'%s' | tr '\n' ';'", cwd=local_repo_path
+            )
+            d["build_date"] = run(
+                "date -u +'%Y-%m-%d %H:%M:%S UTC'", cwd=local_repo_path
+            )
 
         elif remote_repo_name and remote_branch:
             # Fetch commit info from GitHub API
@@ -96,12 +107,14 @@ class GitInfoBuilder:
             d["tags"] = ""  # Tags not easily available from this API endpoint
             d["author"] = commit_data["commit"]["author"]["name"]
             d["commit_date"] = commit_data["commit"]["author"]["date"]
-            d["message"] = commit_data["commit"]["message"].split('\n')[0]  # First line only
+            d["message"] = commit_data["commit"]["message"].split("\n")[
+                0
+            ]  # First line only
             d["build_date"] = subprocess.run(
                 ["date", "-u", "+%Y-%m-%d %H:%M:%S UTC"],
                 capture_output=True,
                 text=True,
-                check=True
+                check=True,
             ).stdout.rstrip()
         else:
             raise ValueError("Incompatible args combo")
@@ -110,7 +123,9 @@ class GitInfoBuilder:
         self.output_dir = output_dir
 
     def write_json_file(self):
-        json_file = os.path.join(self.output_dir, f"{self.d['repo_name']}_git_info.json")
+        json_file = os.path.join(
+            self.output_dir, f"{self.d['repo_name']}_git_info.json"
+        )
 
         print(f"Writing: {json_file}")
         with open(json_file, "w") as f:
@@ -122,7 +137,11 @@ def main():
     parser.add_argument("--local_repo_path", required=False)
     parser.add_argument("--remote_repo_name", required=False)
     parser.add_argument("--remote_branch", required=False)
-    parser.add_argument("--output_dir", required=True, help="Directory to write the gitinfo json file into")
+    parser.add_argument(
+        "--output_dir",
+        required=True,
+        help="Directory to write the gitinfo json file into",
+    )
     args = parser.parse_args()
 
     builder = GitInfoBuilder(**vars(args))

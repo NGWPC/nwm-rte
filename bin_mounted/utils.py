@@ -36,7 +36,9 @@ def effective_days_from_timedelta(td: timedelta) -> int:
     hours = seconds / (60 * 60)
 
     rem = hours % 24
-    if rem != 23:  # timedelta should technically be one hour less than a full day, to account for the final timestep.
+    if (
+        rem != 23
+    ):  # timedelta should technically be one hour less than a full day, to account for the final timestep.
         raise ValueError(f"Expected rem to be 23, got {rem}")
 
     effective_hours = hours + 1
@@ -54,5 +56,7 @@ def timedelta_from_pandas_str(td_str: str | timedelta) -> timedelta:
 
 def get_calibration_log_file_overwrite_path(rb: RealizationBuilder) -> str:
     current_time = datetime.now(timezone.utc).strftime(r"%Y%m%d_%H%M%S")
-    calib_log_path_overwrite = os.path.join(rb.work_dir, "logs", f"calibration_{current_time}.log")
+    calib_log_path_overwrite = os.path.join(
+        rb.work_dir, "logs", f"calibration_{current_time}.log"
+    )
     return calib_log_path_overwrite
