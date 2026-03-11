@@ -16,6 +16,7 @@ print = functools.partial(print, flush=True)
 
 
 def build_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
+    """Build and return a coldstart forecast realization"""
     print(
         f"Building coldstart realization: {cfg.realization_builder_kwargs}, use_cold_start=True"
     )
@@ -26,6 +27,7 @@ def build_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
 
 
 def build_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
+    """Build and return a non-coldstart forecast realization"""
     print(
         f"Building forecast realization: {cfg.realization_builder_kwargs}, use_cold_start=False"
     )
@@ -35,6 +37,7 @@ def build_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
 
 
 def datetime_type(datetime_str) -> datetime:
+    """Helper function for munging CLI string arguments into datetime type."""
     return datetime.strptime(datetime_str, mswm_settings.DEFAULT_DATETIME_FORMAT)
 
 
