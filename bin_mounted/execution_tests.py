@@ -1,5 +1,6 @@
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+# ruff: noqa: E741
+
+from datetime import datetime, timezone
 from enum import StrEnum
 import functools
 import json
@@ -391,18 +392,18 @@ class ForecastTest(BaseModel):
                 else:
                     self.fcst_exe_mgr.execute(wait=True, log_file_open_mode="w")
         except KeyboardInterrupt as e:
-            print(f"Caught KeyboardInterrupt in main thread. Reraising.")
+            print("Caught KeyboardInterrupt in main thread. Reraising.")
             raise e
         except NgenIntentionallyStoppedError as e:
             # Raised when stop flag is manually set, or when context manager ends before ngen finishes.
             # The latter is happening intentionally here under certain types of tests.
             print(
-                f"Caught NgenIntentionallyStoppedError in main thread. Not reraising."
+                f"Caught NgenIntentionallyStoppedError in main thread. Not reraising: {e}"
             )
             fcst_exe_excep = None
         except Exception as e:
             print(
-                f"Caught unexpected exception in main thread while executing forecast: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
+                "Caught unexpected exception in main thread while executing forecast: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
             )
             fcst_exe_excep = e
             self.fcst_exe_excep_tb = traceback.format_exc().splitlines()
