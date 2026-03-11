@@ -102,20 +102,25 @@ class RTECalibConfig(BaseModel):
     # Set after init
     gage_id: str = Field(init=False, default=None)
     gage_vintage: str = Field(init=False, default=None)
+    ### For LSTM
+    obs_dir: str | None = Field(init=False, default=None)
+    nwmretro_file: str | None = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
         errors = []
 
-        gage_id, gage_vintage, errors_extend = parse_gage_id__gage_vintage(
+        self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
             self.gage_id__gage_vintage
+        )
+        errors.extend(errors_extend)
+
+        self.obs_dir, self.nwmretro_file, errors_extend = get_data_paths_for_lstm(
+            self.gage_id
         )
         errors.extend(errors_extend)
 
         if errors:
             raise RuntimeError(errors)
-
-        self.gage_id = gage_id
-        self.gage_vintage = gage_vintage
 
 
 class RTEForecastConfig(BaseModel):
@@ -225,7 +230,7 @@ class RTETestConfig(BaseModel):
     def model_post_init(self, __context) -> None:
         errors = []
 
-        gage_id, gage_vintage, errors_extend = parse_gage_id__gage_vintage(
+        self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
             self.gage_id__gage_vintage
         )
         errors.extend(errors_extend)
@@ -248,9 +253,6 @@ class RTETestConfig(BaseModel):
 
         if errors:
             raise RuntimeError(errors)
-
-        self.gage_id = gage_id
-        self.gage_vintage = gage_vintage
 
     def get_calib_permutations(
         self,
@@ -389,3 +391,47 @@ class CalibTimeWindows(BaseModel):
     @property
     def full_eval_end(self) -> datetime:
         return self.calib_sim_end
+
+
+def get_data_paths_for_lstm(
+    gage_id: str,
+) -> tuple[str | None, str | None, list[Exception]]:
+    """Build and return two data paths needed for LSTM model,
+    as well as a list of errors encountered during this function.
+    Return None for obs_dir and nwmretro_file if not LSTM."""
+
+    errors: list[Exception] = []
+
+    if "lstm" in c.MODELS.lower():
+        obs_dir = find_obs_dir(gage_id)
+        nwmretro_file = f"{c.NWM_RETRO_STREAMFLOW_DIR}/{gage_id}.csv"
+        if not os.path.exists(obs_dir):
+            errors.append(NotADirectoryError(obs_dir))
+        if not os.path.exists(nwmretro_file):
+            errors.append(FileNotFoundError(nwmretro_file))
+    else:
+        obs_dir = None
+        nwmretro_file = None
+
+    return obs_dir, nwmretro_file, errors
+
+
+def find_obs_dir(gage_id: str) -> str:
+    """Search the grandparent directory of observational flow csv files to determine
+    the directory that contains one of them.  Assert that only one such csv file is found.
+    If multiple are found, then this function needs to be reworked to handle more complex
+    situations, such as multiple vintages of this data existing on disk."""
+    grandparent = f"{c.HYDROFABRIC_DIR}/2.1/CONUS/{gage_id}/OBSERVATIONAL/USGS"
+    candidate_csvs = []
+    for root, dirs, files in os.walk(grandparent):
+        dirs.sort()
+        files.sort()
+        for fn in files:
+            if fn.endswith(".csv"):
+                candidate_csvs.append(os.path.join(root, fn))
+    if len(candidate_csvs) != 1:
+        raise ValueError(
+            f"Expected to find 1 candidate csv for observational forcing, got {len(candidate_csvs)}: {candidate_csvs}"
+        )
+    obs_dir = os.path.dirname(candidate_csvs[0])
+    return obs_dir

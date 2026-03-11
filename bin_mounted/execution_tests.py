@@ -55,6 +55,9 @@ def get_test_configs__calibration(
     forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
     forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
     windows: CalibTimeWindows = CalibTimeWindows(),
+    ### For LSTM
+    obs_dir: str | None = None,
+    nwmretro_file: str | None = None,
 ) -> list[InputConfig]:
     fpp = ForcingProviderPaths(
         forcing_provider=forcing_provider,
@@ -110,7 +113,9 @@ def get_test_configs__calibration(
         **(
             c.DATAFILE_LIBS
             | {
-                "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{global_domain}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg"
+                "obs_dir": obs_dir,
+                "nwmretro_file": nwmretro_file,
+                "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{global_domain}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg",
             }
         ),
     )
