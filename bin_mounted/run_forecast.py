@@ -1,4 +1,3 @@
-import copy
 from datetime import datetime
 import functools
 import argparse
@@ -7,7 +6,6 @@ from mswm.build_inputs import RealizationBuilder
 from mswm.utils import settings as mswm_settings
 from nwm_fcst_mgr.forecast import run_fcst
 
-from execution_tests import make_parallel_config
 import consts as c
 from configs import RTEForecastConfig
 import utils_testing_setup
