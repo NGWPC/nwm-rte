@@ -115,7 +115,8 @@ class RTECalibConfig(BaseModel):
         errors.extend(errors_extend)
 
         self.obs_dir, self.nwmretro_file, errors_extend = get_data_paths_for_lstm(
-            self.gage_id
+            self.global_domain,
+            self.gage_id,
         )
         errors.extend(errors_extend)
 
@@ -394,6 +395,7 @@ class CalibTimeWindows(BaseModel):
 
 
 def get_data_paths_for_lstm(
+    global_domain: str,
     gage_id: str,
 ) -> tuple[str | None, str | None, list[Exception]]:
     """Build and return two data paths needed for LSTM model,
@@ -403,7 +405,7 @@ def get_data_paths_for_lstm(
     errors: list[Exception] = []
 
     if "lstm" in c.MODELS.lower():
-        obs_dir = find_obs_dir(gage_id)
+        obs_dir = find_obs_dir(global_domain, gage_id)
         nwmretro_file = f"{c.NWM_RETRO_STREAMFLOW_DIR}/{gage_id}.csv"
         if not os.path.exists(obs_dir):
             errors.append(NotADirectoryError(obs_dir))
@@ -416,12 +418,14 @@ def get_data_paths_for_lstm(
     return obs_dir, nwmretro_file, errors
 
 
-def find_obs_dir(gage_id: str) -> str:
+def find_obs_dir(global_domain: str, gage_id: str) -> str:
     """Search the grandparent directory of observational flow csv files to determine
     the directory that contains one of them.  Assert that only one such csv file is found.
     If multiple are found, then this function needs to be reworked to handle more complex
     situations, such as multiple vintages of this data existing on disk."""
-    grandparent = f"{c.HYDROFABRIC_DIR}/2.1/CONUS/{gage_id}/OBSERVATIONAL/USGS"
+    grandparent = (
+        f"{c.HYDROFABRIC_DIR}/2.1/{global_domain}/{gage_id}/OBSERVATIONAL/USGS"
+    )
     candidate_csvs = []
     for root, dirs, files in os.walk(grandparent):
         dirs.sort()
