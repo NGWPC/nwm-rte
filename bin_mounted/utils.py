@@ -25,10 +25,10 @@ def timedelta_from_effective_days(effective_days: int | str) -> timedelta:
     if isinstance(effective_days, int):
         pass
     elif isinstance(effective_days, str):
-        assert not "." in effective_days  # not a float
+        assert "." not in effective_days  # not a float
         effective_days = int(effective_days)
     else:
-        raise TypeError(type(efective_days))
+        raise TypeError(type(effective_days))
     hours_raw = effective_days * 24
     return timedelta(hours=hours_raw - 1)
 
