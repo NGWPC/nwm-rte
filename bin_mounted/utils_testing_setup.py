@@ -6,6 +6,7 @@ from configs import RTETestConfig
 
 
 def delete_test_output_dir(cfg: RTETestConfig) -> None:
+    """Delete the test outputs directory"""
     for _, _, test_paths in cfg.get_calib_permutations():
         print(f"Deleting if exists: {test_paths.dir_output}")
         try:
@@ -15,6 +16,7 @@ def delete_test_output_dir(cfg: RTETestConfig) -> None:
 
 
 def delete_forcing_raw_inputs() -> None:
+    """Delete the forcing raw inputs directory (clear forcing data cache)"""
     dir_raw_input = c.DIR_FORCING_RAW_INPUT
     print(f"Listing: {c.DIR_FORCING_RAW_INPUT}")
     for bn in os.listdir(dir_raw_input):
@@ -28,6 +30,7 @@ def delete_forcing_raw_inputs() -> None:
 
 
 def delete_scratch_and_esmf_outputs(cfg: RTETestConfig) -> None:
+    """Delete the scratch dir and ESMF mesh outputs."""
     dirs_to_delete = [f"{c.DEFAULT_MAIN_DIR}/data/scratch"]
     for d in dirs_to_delete:
         if os.path.exists(d):
@@ -49,6 +52,7 @@ def delete_scratch_and_esmf_outputs(cfg: RTETestConfig) -> None:
 
 
 def assert_paths__core(cfg: RTETestConfig) -> None:
+    """Assert that various paths exist"""
     file_paths = [
         f"/s3/ngwpc-hydrofabric/2.2/{cfg.global_domain}/{cfg.gage_id}/GEOPACKAGE/USGS/{cfg.gage_vintage}/gauge_{cfg.gage_id}.gpkg",
         "/ngen-app/ngen/cmake_build/ngen",
@@ -78,6 +82,7 @@ def assert_paths__core(cfg: RTETestConfig) -> None:
 
 
 def assert_paths__raw_config(cfg: RTETestConfig) -> None:
+    """Assert that various paths exist"""
     for _, _, test_paths in cfg.get_calib_permutations():
         for fp in [
             test_paths.calib_config_file,

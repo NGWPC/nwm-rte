@@ -1,10 +1,8 @@
 import argparse
-from datetime import datetime
 import functools
 import json
 import sys
 
-from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
 import utils_testing_setup
 from execution_tests import (
@@ -19,7 +17,7 @@ from execution_tests import (
 from pydantic.json import pydantic_encoder
 
 import consts as c
-from configs import RTETestConfig, TestPaths
+from configs import RTETestConfig
 
 print = functools.partial(print, flush=True)
 
@@ -177,7 +175,7 @@ if __name__ == "__main__":
         "-nofcst",
         "--skip_forecast",
         action="store_true",
-        help=f"Skip building and running forecasts. Incompatible with --do_all_forcing_configs and --do_coldstart",
+        help="Skip building and running forecasts. Incompatible with --do_all_forcing_configs and --do_coldstart",
     )
     parser.add_argument(
         "--quit_forecast_after_forcing_running",

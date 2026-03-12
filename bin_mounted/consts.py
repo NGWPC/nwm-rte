@@ -31,6 +31,7 @@ DEFAULT_GAGE_VINTAGE = "2025_Mar_14_21_14_37"
 
 MODELS = "noah-owp-modular,cfe-s"
 # MODELS = "snow-17,noah-owp-modular,smp,lasam,t-route"
+# MODELS = "lstm"
 DEFAULT_MAIN_DIR = "/ngwpc/run_ngen"
 
 
@@ -61,6 +62,7 @@ VALID_EVAL_CURTAILMENT_DEFAULT = timedelta(hours=0)  # Gets subtracted
 MODULE_PARAMETER_FILES_DIR = "/ngen-app/nwm-msw-mgr/src/mswm/module_parameter_files"
 NGEN_DIR = "/ngen-app/ngen"
 HYDROFABRIC_DIR = "/s3/ngwpc-hydrofabric"
+NWM_RETRO_STREAMFLOW_DIR = "/s3/ngwpc-dev/ngen-static-files/nwm_retrospective"
 
 
 ### .config section [Parallel]
@@ -112,7 +114,8 @@ CALIB_GLOBAL_DOMAIN_CHOICES = [
 
 FORCING_STATIC_DIR_DEFAULT = "/ngen-app/data"
 
-# For construction of DataFileConfig
+### For construction of DataFileConfig
+### NOTE: obs_dir, nwmretro_file, and hydrofab_file are dynamic and added on the fly
 DATAFILE_LIBS = {
     "noah_parameter_dir": f"{MODULE_PARAMETER_FILES_DIR}/noah-owp-modular",
     "ueb_parameter_dir": f"{MODULE_PARAMETER_FILES_DIR}/ueb",

@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 import os
+import re
 from typing import Literal
 
 from mswm.utils.input_configuration import (
@@ -33,11 +34,13 @@ class TestPaths:
     def update_obj_func_and_optim_algo(
         self, obj_func: c.CalObjective, optim_algo: c.CalOptimizationAlgo
     ) -> None:
+        """Informal setter for obj_func and optim_algo"""
         self.obj_func = obj_func
         self.optim_algo = optim_algo
 
     @property
     def fpp(self):
+        """Build and return a ForcingProviderPaths instance to assist with setup."""
         return ForcingProviderPaths(
             global_domain=self.global_domain,
             forcing_provider=self.forcing_provider,
@@ -46,6 +49,7 @@ class TestPaths:
 
     @property
     def dir_base(self) -> str:
+        """The base directory of the model (can contain calibrations and forecasts)."""
         if not (self.obj_func and self.optim_algo):
             raise ValueError(
                 "obj_func and optim_algo must be set before calling this method"
@@ -54,18 +58,22 @@ class TestPaths:
 
     @property
     def dir_input(self) -> str:
+        """The Input directory of the model"""
         return f"{self.dir_base}/Input"
 
     @property
     def dir_output(self) -> str:
+        """The Output directory of the model"""
         return f"{self.dir_base}/Output"
 
     @property
     def ngen_log_file(self) -> str:
+        """The ngen.log file of the model"""
         return f"{self.dir_base}/logs/ngen.log"
 
     @property
     def calib_config_file(self) -> str:
+        """Path to example input calibration config file"""
         return (
             f"{self.dir_base}/configs/input_calibration_{self.forcing_provider}.config"
         )
@@ -73,14 +81,18 @@ class TestPaths:
 
     @property
     def fcst_config_file(self) -> str:
+        """Path to example input forecast config file"""
         return f"{self.dir_base}/configs/input_forecast.config"
 
     @property
     def valid_yaml(self) -> str:
+        """Path to validation yaml config file"""
         return f"{self.dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
 
 
 class RTECalibConfig(BaseModel):
+    """Configuration class for building and running one calibration realization."""
+
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
     delete_scratch_and_mesh_first: bool
@@ -102,23 +114,30 @@ class RTECalibConfig(BaseModel):
     # Set after init
     gage_id: str = Field(init=False, default=None)
     gage_vintage: str = Field(init=False, default=None)
+    obs_dir: str | None = Field(init=False, default=None)
+    nwmretro_file: str | None = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
         errors = []
 
-        gage_id, gage_vintage, errors_extend = parse_gage_id__gage_vintage(
+        self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
             self.gage_id__gage_vintage
+        )
+        errors.extend(errors_extend)
+
+        self.obs_dir, self.nwmretro_file, errors_extend = get_data_paths_for_lstm(
+            self.global_domain,
+            self.gage_id,
         )
         errors.extend(errors_extend)
 
         if errors:
             raise RuntimeError(errors)
 
-        self.gage_id = gage_id
-        self.gage_vintage = gage_vintage
-
 
 class RTEForecastConfig(BaseModel):
+    """Configuration class for building and running one forecast realization."""
+
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
     delete_scratch_and_mesh_first: bool
@@ -160,6 +179,7 @@ class RTEForecastConfig(BaseModel):
         self.realization_builder_kwargs = self._make_realization_builder_kwargs()
 
     def _make_realization_builder_kwargs(self) -> dict:
+        """Build and return a dictionary for creating a RealizationBuilder instance."""
         fpp = ForcingProviderPaths(
             forcing_provider=self.forcing_provider,
             global_domain=self.global_domain,
@@ -193,6 +213,8 @@ class RTEForecastConfig(BaseModel):
 
 
 class RTETestConfig(BaseModel):
+    """Configuration class for building and running a set of test realizations."""
+
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
     delete_scratch_and_mesh_first: bool
@@ -225,7 +247,7 @@ class RTETestConfig(BaseModel):
     def model_post_init(self, __context) -> None:
         errors = []
 
-        gage_id, gage_vintage, errors_extend = parse_gage_id__gage_vintage(
+        self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
             self.gage_id__gage_vintage
         )
         errors.extend(errors_extend)
@@ -248,9 +270,6 @@ class RTETestConfig(BaseModel):
 
         if errors:
             raise RuntimeError(errors)
-
-        self.gage_id = gage_id
-        self.gage_vintage = gage_vintage
 
     def get_calib_permutations(
         self,
@@ -287,6 +306,7 @@ class RTETestConfig(BaseModel):
 def parse_gage_id__gage_vintage(
     gage_id__gage_vintage: tuple[str, str],
 ) -> tuple[str | None, str | None, list[Exception]]:
+    """Parse the provided string and split it into two strings: gage_id and gage_vintage"""
     errors: list[Exception] = []
     gage_id, gage_vintage = gage_id__gage_vintage
 
@@ -306,6 +326,7 @@ def parse_gage_id__gage_vintage(
 
 
 def parse_fcst_run_name(fcst_run_name: str) -> list[Exception]:
+    """Validate the provided forecast run name, and return a list of errors."""
     errors: list[Exception] = []
     if fcst_run_name != fcst_run_name.strip():
         errors.append(
@@ -317,6 +338,8 @@ def parse_fcst_run_name(fcst_run_name: str) -> list[Exception]:
 
 
 class ForcingProviderPaths(BaseModel):
+    """Helper class for managing model paths."""
+
     model_config = ConfigDict(strict=True)
     forcing_provider: Literal["csv", "bmi"]
     global_domain: str  # e.g. CONUS. TODO restrict choices
@@ -338,6 +361,7 @@ class ForcingProviderPaths(BaseModel):
 
     @property
     def formulation_name(self) -> str:
+        """Formulation name, as a part of the model path."""
         return f"test_{self.forcing_provider}"
 
 
@@ -356,36 +380,92 @@ class CalibTimeWindows(BaseModel):
 
     @property
     def calib_sim_end(self) -> datetime:
+        """End of the calibration simulation window."""
         return self.calib_sim_start + self.calib_sim_duration
 
     @property
     def calib_eval_start(self) -> datetime:
+        """Start of the calibration evaluation window."""
         return self.calib_sim_start + self.calib_eval_delayment
 
     @property
     def calib_eval_end(self) -> datetime:
+        """End of the calibration evaluation window."""
         return self.calib_sim_end
 
     @property
     def valid_sim_start(self) -> datetime:
+        """Start of the validation simulation window."""
         return self.calib_sim_start - self.valid_sim_advancement
 
     @property
     def valid_sim_end(self) -> datetime:
+        """End of the validation simulation window."""
         return self.calib_sim_end
 
     @property
     def valid_eval_start(self) -> datetime:
+        """Start of the validation evaluation window."""
         return self.calib_sim_start
 
     @property
     def valid_eval_end(self) -> datetime:
+        """End of the validation evaluation window."""
         return self.calib_sim_end - self.valid_eval_curtailment
 
     @property
     def full_eval_start(self) -> datetime:
+        """Start of the full evaluation window"""
         return self.calib_sim_start
 
     @property
     def full_eval_end(self) -> datetime:
+        """End of the full evaluation window"""
         return self.calib_sim_end
+
+
+def get_data_paths_for_lstm(
+    global_domain: str,
+    gage_id: str,
+) -> tuple[str | None, str | None, list[Exception]]:
+    """Build and return two data paths needed for LSTM model,
+    as well as a list of errors encountered during this function.
+    Return None for obs_dir and nwmretro_file if not LSTM."""
+
+    errors: list[Exception] = []
+
+    if "lstm" in c.MODELS.lower():
+        obs_dir = find_obs_dir(global_domain, gage_id)
+        nwmretro_file = f"{c.NWM_RETRO_STREAMFLOW_DIR}/{gage_id}.csv"
+        if not os.path.exists(obs_dir):
+            errors.append(NotADirectoryError(obs_dir))
+        if not os.path.exists(nwmretro_file):
+            errors.append(FileNotFoundError(nwmretro_file))
+    else:
+        obs_dir = None
+        nwmretro_file = None
+
+    return obs_dir, nwmretro_file, errors
+
+
+def find_obs_dir(global_domain: str, gage_id: str) -> str:
+    """Search the grandparent directory of observed flow csv files to determine
+    the directory that contains one of them.  Assert that only one such csv file is found.
+    If multiple are found, then this function needs to be reworked to handle more complex
+    situations, such as multiple vintages of this data existing on disk."""
+    grandparent = f"{c.DEFAULT_MAIN_DIR}/data/streamflow_observations/{global_domain}"
+    print(f"Searching directory for observed flow files: {grandparent}")
+    candidate_csvs = []
+    for root, dirs, files in os.walk(grandparent):
+        dirs.sort()
+        files.sort()
+        for fn in files:
+            pattern = f"^{gage_id}_hourly_discharge.csv$"
+            if re.fullmatch(pattern, fn):
+                candidate_csvs.append(os.path.join(root, fn))
+    if len(candidate_csvs) != 1:
+        raise ValueError(
+            f"Expected to find 1 candidate csv for observed flow for global_domain={global_domain}, gage_id={gage_id}, but found {len(candidate_csvs)} when searching from {repr(grandparent)}: {candidate_csvs}"
+        )
+    obs_dir = os.path.dirname(candidate_csvs[0])
+    return obs_dir

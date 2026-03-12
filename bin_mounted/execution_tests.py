@@ -1,5 +1,6 @@
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+# ruff: noqa: E741
+
+from datetime import datetime, timezone
 from enum import StrEnum
 import functools
 import json
@@ -33,6 +34,7 @@ print = functools.partial(print, flush=True)
 
 
 def make_parallel_config(nprocs: int) -> ParallelConfig:
+    """Build and return the ParallelConfig instance."""
     if nprocs and nprocs > 1:
         parallel = ParallelConfig(
             parallel_ngen_exe="/ngen-app/ngen/cmake_build/ngen",
@@ -55,7 +57,10 @@ def get_test_configs__calibration(
     forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
     forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
     windows: CalibTimeWindows = CalibTimeWindows(),
+    obs_dir: str | None = None,
+    nwmretro_file: str | None = None,
 ) -> list[InputConfig]:
+    """Build and return a list of InputConfig instances to be used for building calibration realizations."""
     fpp = ForcingProviderPaths(
         forcing_provider=forcing_provider,
         global_domain=global_domain,
@@ -110,7 +115,9 @@ def get_test_configs__calibration(
         **(
             c.DATAFILE_LIBS
             | {
-                "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{global_domain}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg"
+                "obs_dir": obs_dir,
+                "nwmretro_file": nwmretro_file,
+                "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{global_domain}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg",
             }
         ),
     )
@@ -151,6 +158,7 @@ def get_test_configs__forecast(
     forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
     # nprocs: int = DEFAULT_NPROCS,
 ) -> list[InputConfig]:
+    """Build and return a list of InputConfig instances to be used for building forecast realizations."""
     fpp = ForcingProviderPaths(
         forcing_provider=forcing_provider,
         global_domain=global_domain,
@@ -190,6 +198,8 @@ def get_test_configs__forecast(
 
 
 class TestStat(StrEnum):
+    """Status enumerator for test execution"""
+
     NOSTATUS = "NOSTATUS"
     PASS = "PASS"
     FAIL = "FAIL"
@@ -197,6 +207,8 @@ class TestStat(StrEnum):
 
 
 class LogParser(BaseModel):
+    """Helper class that reads various ngen log files and reports certain messages from them"""
+
     path: str
     # Don't include the entire file content when dumping this model
     content: str = Field(exclude=True, init=False, default=None)
@@ -225,6 +237,10 @@ class LogParser(BaseModel):
 
 class ForecastTest(BaseModel):
     """
+    For managed execution of a set of realizations, with error trapping.
+    Covers forecasts and calibrations.
+    Use with the TestsManager class.
+
     Required attributes:
         rb_kwargs: dict
 
@@ -304,6 +320,7 @@ class ForecastTest(BaseModel):
     def execute_calibration(
         self, quit_calibration_after_duration: float | None
     ) -> None:
+        """Run the calibration realization, optionally stopping ngen after `quit_calibration_after_duration` seconds."""
         if self.rb_stat != TestStat.PASS:
             raise RuntimeError(
                 f"Cannot run calibration when realization did not build (self.rb_stat: {self.rb_stat})"
@@ -355,6 +372,8 @@ class ForecastTest(BaseModel):
         quit_forecast_after_forcing_running: bool,
         quit_forecast_after_duration: float | None,  # seconds
     ) -> None:
+        """Run the forecast, optionally quitting after forcing has begun,
+        optionally quitting after a certain duration in seconds"""
         if self.rb_stat != TestStat.PASS:
             raise RuntimeError(
                 f"Cannot run forecast when realization did not build (self.rb_stat: {self.rb_stat})"
@@ -386,18 +405,18 @@ class ForecastTest(BaseModel):
                 else:
                     self.fcst_exe_mgr.execute(wait=True, log_file_open_mode="w")
         except KeyboardInterrupt as e:
-            print(f"Caught KeyboardInterrupt in main thread. Reraising.")
+            print("Caught KeyboardInterrupt in main thread. Reraising.")
             raise e
         except NgenIntentionallyStoppedError as e:
             # Raised when stop flag is manually set, or when context manager ends before ngen finishes.
             # The latter is happening intentionally here under certain types of tests.
             print(
-                f"Caught NgenIntentionallyStoppedError in main thread. Not reraising."
+                f"Caught NgenIntentionallyStoppedError in main thread. Not reraising: {e}"
             )
             fcst_exe_excep = None
         except Exception as e:
             print(
-                f"Caught unexpected exception in main thread while executing forecast: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
+                "Caught unexpected exception in main thread while executing forecast: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
             )
             fcst_exe_excep = e
             self.fcst_exe_excep_tb = traceback.format_exc().splitlines()
@@ -423,10 +442,12 @@ class ForecastTest(BaseModel):
             self.fcst_exe_stat = TestStat.FAIL
 
     def read_logs(self) -> None:
+        """Read and parse the log files"""
         self.exe_log.read_and_parse()
         self.ngen_log.read_and_parse()
 
     def wait_for_duration(self, wait_duration_sec: float):
+        """Asynchronous loop while ngen in running. Stop ngen after wait_duration_sec seconds."""
         start = time.perf_counter()
         poll_freq_seconds = 2
         print(
@@ -444,6 +465,7 @@ class ForecastTest(BaseModel):
             time.sleep(poll_freq_seconds)
 
     def wait_for_forcing_is_running(self):
+        """Loop until log file indicates that the forcing engine is running."""
         start = time.perf_counter()
         poll_freq_seconds = 10
         print(f"Polling ngen process every {poll_freq_seconds} seconds...")
@@ -484,6 +506,8 @@ class ForecastTest(BaseModel):
 
 
 class TestResultsSums(BaseModel):
+    """Helper class for running a managed set of test realizations."""
+
     rb_statcount: dict[str, int]  # Status counts for RealizationBuilder events
     fcst_exe_statcount: dict[str, int]  # Status counts for forecast execution events
     any_failed: bool = Field(init=False, default=None)
@@ -500,6 +524,8 @@ class TestResultsSums(BaseModel):
 
 
 class TestsManager(BaseModel):
+    """Helper class for running a managed set of test realizations."""
+
     forecast_tests: list[ForecastTest] = Field(init=False, default=[])
 
     @validate_call
@@ -508,6 +534,7 @@ class TestsManager(BaseModel):
 
     @property
     def fcst_stat_sums(self) -> TestResultsSums:
+        """Build and return a TestResultsSums instance, to assist with evaluating test results."""
         # Initialize these to 0 count for each status option, then increment based on result from tests.
         rb_statcount = {status: 0 for status in TestStat}
         fcst_exe_statcount = {status: 0 for status in TestStat}
@@ -521,6 +548,7 @@ class TestsManager(BaseModel):
         )
 
     def evaluate_test_results(self) -> None:
+        """Inspect the test results json file, and if any failed, raise an error."""
         test_results_file = os.path.join(
             os.path.dirname(__file__), "forecast_tests_results.json"
         )
