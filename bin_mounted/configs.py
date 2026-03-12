@@ -114,7 +114,6 @@ class RTECalibConfig(BaseModel):
     # Set after init
     gage_id: str = Field(init=False, default=None)
     gage_vintage: str = Field(init=False, default=None)
-    ### For LSTM
     obs_dir: str | None = Field(init=False, default=None)
     nwmretro_file: str | None = Field(init=False, default=None)
 
@@ -450,7 +449,7 @@ def get_data_paths_for_lstm(
 
 
 def find_obs_dir(global_domain: str, gage_id: str) -> str:
-    """Search the grandparent directory of observational flow csv files to determine
+    """Search the grandparent directory of observed flow csv files to determine
     the directory that contains one of them.  Assert that only one such csv file is found.
     If multiple are found, then this function needs to be reworked to handle more complex
     situations, such as multiple vintages of this data existing on disk."""
@@ -466,7 +465,7 @@ def find_obs_dir(global_domain: str, gage_id: str) -> str:
                 candidate_csvs.append(os.path.join(root, fn))
     if len(candidate_csvs) != 1:
         raise ValueError(
-            f"Expected to find 1 candidate csv for observational forcing for global_domain={global_domain}, gage_id={gage_id}, but found {len(candidate_csvs)} when searching from {repr(grandparent)}: {candidate_csvs}"
+            f"Expected to find 1 candidate csv for observed flow for global_domain={global_domain}, gage_id={gage_id}, but found {len(candidate_csvs)} when searching from {repr(grandparent)}: {candidate_csvs}"
         )
     obs_dir = os.path.dirname(candidate_csvs[0])
     return obs_dir

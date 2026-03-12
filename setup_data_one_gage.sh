@@ -23,11 +23,9 @@ SRC_URL_STREAMFLOW_OBS="http://edfs.test.nextgenwaterprediction.com/api/${EDFS_A
 SRC_PREFIX_2p2_GPKG="${SRC_BUCKET_HYDROFABRIC}/2.2/${DOMAIN}/${GAGE_ID}/GEOPACKAGE/USGS"
 TGT_DIR_2p2_GPKG="${S3_ROOT__HOST}/${SRC_PREFIX_2p2_GPKG}"
 
-### For LSTM
 # SRC_PREFIX_2p1_OBS_FLOW="${SRC_BUCKET_HYDROFABRIC}/2.1/${DOMAIN}/${GAGE_ID}/OBSERVATIONAL/USGS"  # s3 source replaced by EDFS server
 TGT_DIR_OBS_FLOW="${RUN_NGEN_ROOT__HOST}/data/streamflow_observations/${DOMAIN}/edfs_api_${EDFS_API_VERSION}"
 TGT_FILE_OBS_FLOW="${TGT_DIR_OBS_FLOW}/${GAGE_ID}_hourly_discharge.csv"
-### For LSTM
 SRC_FILE_NWM_RETRO="${SRC_BUCKET_DEV}/ngen-static-files/nwm_retrospective/${GAGE_ID}.csv"
 TGT_DIR_NWM_RETRO="${S3_ROOT__HOST}/$(dirname "$SRC_FILE_NWM_RETRO")"
 
@@ -48,7 +46,6 @@ function s3_copy() {
 }
 
 s3_test_exists "${SRC_PREFIX_2p2_GPKG}"
-### Needed only for LSTM
 # s3_test_exists "${SRC_PREFIX_2p1_OBS_FLOW}"  # s3 source replaced by EDFS server
 s3_test_exists "${SRC_FILE_NWM_RETRO}"
 

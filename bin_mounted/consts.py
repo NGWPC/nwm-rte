@@ -62,7 +62,6 @@ VALID_EVAL_CURTAILMENT_DEFAULT = timedelta(hours=0)  # Gets subtracted
 MODULE_PARAMETER_FILES_DIR = "/ngen-app/nwm-msw-mgr/src/mswm/module_parameter_files"
 NGEN_DIR = "/ngen-app/ngen"
 HYDROFABRIC_DIR = "/s3/ngwpc-hydrofabric"
-### For LSTM
 NWM_RETRO_STREAMFLOW_DIR = "/s3/ngwpc-dev/ngen-static-files/nwm_retrospective"
 
 

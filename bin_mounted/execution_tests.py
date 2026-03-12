@@ -57,7 +57,6 @@ def get_test_configs__calibration(
     forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
     forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
     windows: CalibTimeWindows = CalibTimeWindows(),
-    ### For LSTM
     obs_dir: str | None = None,
     nwmretro_file: str | None = None,
 ) -> list[InputConfig]:
