@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 import os
+import re
 from typing import Literal
 
 from mswm.utils.input_configuration import (
@@ -453,19 +454,19 @@ def find_obs_dir(global_domain: str, gage_id: str) -> str:
     the directory that contains one of them.  Assert that only one such csv file is found.
     If multiple are found, then this function needs to be reworked to handle more complex
     situations, such as multiple vintages of this data existing on disk."""
-    grandparent = (
-        f"{c.HYDROFABRIC_DIR}/2.1/{global_domain}/{gage_id}/OBSERVATIONAL/USGS"
-    )
+    grandparent = f"{c.DEFAULT_MAIN_DIR}/data/streamflow_observations/{global_domain}"
+    print(f"Searching directory for observed flow files: {grandparent}")
     candidate_csvs = []
     for root, dirs, files in os.walk(grandparent):
         dirs.sort()
         files.sort()
         for fn in files:
-            if fn.endswith(".csv"):
+            pattern = f"^{gage_id}_hourly_discharge.csv$"
+            if re.fullmatch(pattern, fn):
                 candidate_csvs.append(os.path.join(root, fn))
     if len(candidate_csvs) != 1:
         raise ValueError(
-            f"Expected to find 1 candidate csv for observational forcing, got {len(candidate_csvs)}: {candidate_csvs}"
+            f"Expected to find 1 candidate csv for observational forcing for global_domain={global_domain}, gage_id={gage_id}, but found {len(candidate_csvs)} when searching from {repr(grandparent)}: {candidate_csvs}"
         )
     obs_dir = os.path.dirname(candidate_csvs[0])
     return obs_dir
