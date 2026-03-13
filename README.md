@@ -162,7 +162,7 @@ Here are steps for making the RTE image using a custom version of `ngen`. These 
 2. Edit `config.bashrc` to use: `NGEN_SOURCE_MODE="build_from_local"`
 3. Check out the desired code for ngen and its submodules.  For example, to use `ngen`'s `development` branch but change the version of `t-route`:
 
-```
+```shell
 ### From the ~/ngwpc/ngen repository root:
 git checkout development
 git pull
@@ -179,7 +179,7 @@ git submodule update --init --recursive
 
 5. Build the RTE image
 
-```
+```shell
 ### From the ~/ngwpc/nwm-rte repository root:
 ./ngen_rte_build.sh
 ```
