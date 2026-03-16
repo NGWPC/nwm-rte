@@ -17,10 +17,9 @@ from utils import (
 import utils_testing_setup
 from execution_tests import (
     get_test_configs__calibration,
-    make_parallel_config,
 )
 import consts as c
-from configs import RTECalibConfig, CalibTimeWindows
+from configs import RTECalibConfig, CalibTimeWindows, make_parallel_config
 
 print = functools.partial(print, flush=True)
 

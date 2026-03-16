@@ -171,7 +171,5 @@ if __name__ == "__main__":
         ),
     )
     args = parser.parse_args()
-    if args.nprocs != c.DEFAULT_NPROCS:
-        raise ValueError("--nprocs not yet supported for forecast")
     cfg = RTEForecastConfig(**vars(args))
     main(cfg)

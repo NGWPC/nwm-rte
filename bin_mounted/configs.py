@@ -15,6 +15,9 @@ from pydantic import BaseModel, ConfigDict, Field
 import consts as c
 
 
+from mswm.utils.input_configuration import ParallelConfig
+
+
 @dataclass
 class TestPaths:
     """
@@ -206,7 +209,8 @@ class RTEForecastConfig(BaseModel):
                     else None,
                     global_domain=self.global_domain,
                     forcing_static_dir=self.forcing_static_dir,
-                )
+                ),
+                Parallel=make_parallel_config(self.nprocs),
             ),
         }
         return realization_kwargs
@@ -308,6 +312,19 @@ class RTETestConfig(BaseModel):
                     )
                 )
         return ret
+
+
+def make_parallel_config(nprocs: int) -> ParallelConfig:
+    """Build and return the ParallelConfig instance."""
+    if nprocs and nprocs > 1:
+        parallel = ParallelConfig(
+            parallel_ngen_exe="/ngen-app/ngen/cmake_build/ngen",
+            partition_generator_exe="/ngen-app/ngen/cmake_build/partitionGenerator",
+            nprocs=nprocs,
+        )
+    else:
+        parallel = ParallelConfig(nprocs=nprocs)
+    return parallel
 
 
 def parse_gage_id__gage_vintage(

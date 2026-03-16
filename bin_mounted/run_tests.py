@@ -12,12 +12,11 @@ from execution_tests import (
     TestsManager,
     get_test_configs__forecast,
     get_test_configs__calibration,
-    make_parallel_config,
 )
 from pydantic.json import pydantic_encoder
 
 import consts as c
-from configs import RTETestConfig
+from configs import RTETestConfig, make_parallel_config
 
 print = functools.partial(print, flush=True)
 
@@ -72,6 +71,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
             global_domain=cfg.global_domain,
             forcing_provider=cfg.forcing_provider,
             forcing_static_dir=cfg.forcing_static_dir,
+            nprocs=cfg.nprocs,
         )
         for tc in test_configs:
             if (
