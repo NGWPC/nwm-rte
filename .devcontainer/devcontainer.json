@@ -28,6 +28,10 @@
         "source=${localWorkspaceFolder}/.devcontainer/tmp,target=/tmp,type=bind",
         // Mount ngen-forcing source code so that it can be (re)installed in editable mode.
         "source=${localWorkspaceFolder}/../ngen-forcing,target=/workspaces/nwm-rte/src/ngen-forcing,type=bind",
+        // Mounts for running nwm-msw-mgr in debugger
+        "source=${localWorkspaceFolder}/../ngen-forcing,target=/ngwpc/ngen-forcing,type=bind",
+        // Mount nwm-msw-mgr source code so that it can be (re)installed in editable mode and breakpoints can be set on source code.
+        "source=${localWorkspaceFolder}/../nwm-msw-mgr,target=/workspaces/nwm-rte/src/nwm-msw-mgr,type=bind",
         // Mounts for replicating ngencerf environment (for running realizations originating on ngencerf):
         "source=${localWorkspaceFolder}/../run_ngen/data,target=/ngencerf/data/bmi_forcing_work,type=bind",
         "source=${localWorkspaceFolder}/../run_ngen/data/ngen-cal-work,target=/ngencerf/data/ngen-cal-work,type=bind",
@@ -37,4 +41,5 @@
     // (Re)install ngen-forcing in editable mode.
     // "postStartCommand": "python -m pip install -e ./src/ngen-forcing"
     "postStartCommand": "python -m pip install -e ./src/ngen-forcing && python -m pip install -e ./src/ngen-forcing/nextgen_forcings_ewts"
+    // "postStartCommand": "python -m pip install -e ./src/nwm-msw-mgr"
 }
