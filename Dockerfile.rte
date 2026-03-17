@@ -66,8 +66,8 @@ RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/inst
 
 ARG REPO_TAG_DATA_ASSIM_ENGINE
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
-    --mount=type=bind,src=data-assimilation-engine,dst=/src_ngwpc/data-assimilation-engine \
-    "/src_ngwpc/nwm-rte/install_package.sh" "python" "data-assimilation-engine" "${REPO_TAG_DATA_ASSIM_ENGINE}" ""
+    --mount=type=bind,src=nwm-data-assimilation,dst=/src_ngwpc/nwm-data-assimilation \
+    "/src_ngwpc/nwm-rte/install_package.sh" "python" "nwm-data-assimilation" "${REPO_TAG_DATA_ASSIM_ENGINE}" ""
 
 ## ngen-forcing package is included with the starting base image,
 ## but it can be reinstalled from another branch or from local.
