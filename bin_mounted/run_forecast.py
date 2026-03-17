@@ -24,6 +24,10 @@ def build_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
     print(f"Wrote: {rb_cs.realization_file}")
     # From existing fcst mgr conventions, e.g. ### Set environment variable NGEN_RESULTS_DIR to: /ngwpc/run_ngen/kge_dds/test_bmi/01123000/Output/Forecast_Run/fcst_run1_short_range
     configure_ngen_log(rb_cs.input_dir, "cs")
+    if cfg.nprocs > 1 and not rb_cs.part_file:
+        raise ValueError(
+            f"Expected partition file since cfg.nprocs > 1 ({cfg.nprocs}), but it is {repr(rb_cs.part_file)}"
+        )
     return rb_cs
 
 
@@ -36,6 +40,11 @@ def build_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
     rb_fcst.build_fcst_realization()
     # From existing fcst mgr conventions, e.g. ### Set environment variable NGEN_RESULTS_DIR to: /ngwpc/run_ngen/kge_dds/test_bmi/01123000/Output/Forecast_Run/fcst_run1_short_range
     configure_ngen_log(rb_fcst.input_dir, "fcst")
+    print(f"Wrote: {rb_fcst.realization_file}")
+    if cfg.nprocs > 1 and not rb_fcst.part_file:
+        raise ValueError(
+            f"Expected partition file since cfg.nprocs > 1 ({cfg.nprocs}), but it is {repr(rb_fcst.part_file)}"
+        )
     return rb_fcst
 
 
@@ -65,6 +74,7 @@ def main(cfg: RTEForecastConfig):
         run_fcst(
             valid_yaml=cfg.valid_best_yaml,
             real_path=str(rb_cs.realization_file),
+            partition_file=rb_cs.part_file if hasattr(rb_cs, "part_file") else None,
         )
 
     if cfg.cycle_datetime:
@@ -73,6 +83,7 @@ def main(cfg: RTEForecastConfig):
         run_fcst(
             valid_yaml=cfg.valid_best_yaml,
             real_path=str(rb_fcst.realization_file),
+            partition_file=rb_fcst.part_file if hasattr(rb_fcst, "part_file") else None,
         )
 
 
