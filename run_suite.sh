@@ -15,6 +15,7 @@ docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aor
 
 # CONUS forecasts: short range, analysis & assimilation, and medium range
 docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -fconfig "short_range" -dt "2025-07-10 04:00:00" -rname "fcst_run1_short_range"
+# docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -fconfig "short_range" -dt "2025-07-10 04:00:00" -rname "fcst_run1_short_range_n2" -n 2
 docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -fconfig "standard_ana" -dt "2025-07-10 10:00:00" -rname "fcst_run1_standard_ana"
 docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -fconfig "medium_range_blend" -dt "2025-07-10 00:00:00" -rname "fcst_run1_medium_range_blend"
 
