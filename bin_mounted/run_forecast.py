@@ -172,14 +172,12 @@ if __name__ == "__main__":
         help=f"Forecast run name. Default: {repr(c.DEFAULT_FORECAST_RUN_NAME)}",
         default=c.DEFAULT_FORECAST_RUN_NAME,
     )
-    (
-        parser.add_argument(
-            "-n",
-            "--nprocs",
-            type=int,
-            help=f"""Not yet supported for forecast. Default={repr(c.DEFAULT_NPROCS)})""",
-            default=c.DEFAULT_NPROCS,
-        ),
+    parser.add_argument(
+        "-n",
+        "--nprocs",
+        type=int,
+        default=c.DEFAULT_NPROCS,
+        help=f"""Replaces default value for nprocs ({repr(c.DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance that is passed to MSWM.""",
     )
     args = parser.parse_args()
     cfg = RTEForecastConfig(**vars(args))

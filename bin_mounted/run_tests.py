@@ -257,11 +257,7 @@ if __name__ == "__main__":
         "--nprocs",
         type=int,
         default=c.DEFAULT_NPROCS,
-        help=f"""
-Currently only affects Calibration. Replaces default value for nprocs ({repr(c.DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance.
-When nprocs is 1, Calibration's ParallelConfig is: {make_parallel_config(nprocs=1)}.
-When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(nprocs=2)}
-""",
+        help=f"""Replaces default value for nprocs ({repr(c.DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance that is passed to MSWM.""",
     )
     parser.add_argument(
         "-g",
