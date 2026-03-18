@@ -21,6 +21,7 @@ set -euo pipefail
 #   --dry-run      : If provided, print the generated SLURM script instead of submitting (optional)
 #   --image-tag TAG: Docker image tag to use for the RTE (optional, default: latest)
 #   --pull-image   : Pull the latest Docker image before running (optional)  
+#   --delete-runtime-dir: Delete runtime directory after completion (default: keep for debugging)
 #
 # Examples:
 #   # Do a dry-run to see the generated SLURM script without submitting
@@ -45,6 +46,9 @@ set -euo pipefail
 #
 #  # Pull the latest RTE image before running
 #   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --pull-image
+#
+#   Delete runtime directory after completion (default is to keep it for debugging)
+#   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --pull-image --delete-runtime-dir
 # -----------------------------------------------------------------------------
 
 # determine parent dir of current run script (assuming run_region.sh is also located here)
@@ -76,6 +80,7 @@ OPTIONS=()
 DRY_RUN=false
 IMAGE_TAG="latest"
 PULL_IMAGE=false
+DELETE_RUNTIME_DIR=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -93,6 +98,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --pull-image)
       PULL_IMAGE=true
+      shift
+      ;;
+    --delete-runtime-dir)
+      DELETE_RUNTIME_DIR=true
       shift
       ;;
     *)
@@ -126,24 +135,6 @@ for valid in "${VALID_OPTIONS[@]}"; do
 done
 OPTIONS=("${SORTED_OPTIONS[@]}")
 
-# Determine SLURM resources
-read NODES NTASKS CPUS_PER_TASK <<< $(
-python3 - <<'EOF'
-import math, yaml, os
-from pathlib import Path
-
-cfg = yaml.safe_load((Path(os.environ["CONFIG_DIR"]) / "config_general.yaml").read_text())
-
-n_procs = int(cfg["general"].get("n_procs", 0))
-cores_per_node = int(os.environ.get("CORES_PER_NODE", 36))
-
-if n_procs <= 0:
-    n_procs = cores_per_node
-
-print(math.ceil(n_procs / cores_per_node), n_procs, 1)
-EOF
-)
-
 # Build combined option flags
 OPTION_FLAGS=()
 for opt in "${OPTIONS[@]}"; do
@@ -155,25 +146,61 @@ if $PULL_IMAGE; then
   OPTION_FLAGS+=("--pull-image")
 fi
 
-JOB_SUFFIX=$(IFS=-; echo "${OPTIONS[*]}")
+# Add --delete-runtime-dir if requested
+if $DELETE_RUNTIME_DIR; then
+  OPTION_FLAGS+=("--delete-runtime-dir")
+fi
 
-echo "Submitting job:"
-echo "  options      = ${OPTIONS[*]}"
-echo "  nodes        = $NODES"
-echo "  ntasks       = $NTASKS"
-echo "  cpus         = $CPUS_PER_TASK"
-echo "  config_dir   = $CONFIG_DIR"
-echo "  script_dir   = $SCRIPT_DIR"
-echo "  image_tag    = $IMAGE_TAG"
-echo "  pull_image   = $PULL_IMAGE"
+# Determine total number of tasks (n_procs)
+read NTASKS <<< $(
+python3 - <<'EOF'
+import yaml, os
+from pathlib import Path
+
+cfg = yaml.safe_load((Path(os.environ["CONFIG_DIR"]) / "config_general.yaml").read_text())
+n_procs = int(cfg["general"].get("n_procs", 0))
+print(max(n_procs, 1))
+
+EOF
+)
+
+# Get all idle nodes and their CPU counts
+IDLE_NODES=$(sinfo -h -t idle -N -o "%N %c %P")
+
+# Filter nodes that have at least NTASKS CPUs and sort by CPU count (ascending)
+NODE_INFO=$(echo "$IDLE_NODES" | awk -v n="$NTASKS" '$2 >= n {print}' | sort -k2n | head -n1)
+
+# Extract node name, CPU count, and partition
+NODE_NAME=$(echo "$NODE_INFO" | awk '{print $1}')
+NODE_CPUS=$(echo "$NODE_INFO" | awk '{print $2}')
+NODE_PART=$(echo "$NODE_INFO" | awk '{print $3}' | sed 's/\*$//')
+if [[ -z "$NODE_NAME" ]]; then
+    echo "ERROR: No idle node has enough CPUs for NTASKS=$NTASKS" >&2
+    exit 1
+fi
+
+echo "Submitting job with the following parameters:"
+echo "  options       = ${OPTIONS[*]}"
+echo "  ntasks        = $NTASKS"
+echo "  nodes         = 1"
+echo "  node          = $NODE_NAME"
+echo "  partition     = $NODE_PART"
+echo "  cpus-per-task = 1"
+echo "  config_dir    = $CONFIG_DIR"
+echo "  script_dir    = $SCRIPT_DIR"
+echo "  image_tag     = $IMAGE_TAG"
 echo
+
+JOB_SUFFIX=$(IFS=-; echo "${OPTIONS[*]}")
 
 SBATCH_SCRIPT=$(cat <<EOF
 #!/bin/bash
 #SBATCH --job-name=region-${JOB_SUFFIX}
-#SBATCH --nodes=${NODES}
-#SBATCH --ntasks=${NTASKS}
-#SBATCH --cpus-per-task=${CPUS_PER_TASK}
+#SBATCH --nodes=1
+#SBATCH --ntasks=$NTASKS
+#SBATCH --cpus-per-task=1
+#SBATCH --nodelist=$NODE_NAME
+#SBATCH --partition=$NODE_PART
 #SBATCH --time=240:00:00
 #SBATCH --output=logs/region-${JOB_SUFFIX}-%j.log
 #SBATCH --error=logs/region-${JOB_SUFFIX}-%j.log
@@ -184,10 +211,6 @@ echo "Job started on nodes: \$SLURM_JOB_NODELIST"
 echo "Nodes allocated: \$SLURM_JOB_NUM_NODES"
 echo "Running on directory: \$SLURM_SUBMIT_DIR"
 echo "Job ID: \$SLURM_JOB_ID"
-
-echo "Command to run:"
-echo "/ngencerf-app/nwm-rte/run_region.sh" "${OPTION_FLAGS[@]}" -c "${CONFIG_DIR}" --image-tag "${IMAGE_TAG}"
-echo
 
 /ngencerf-app/nwm-rte/run_region.sh ${OPTION_FLAGS[@]} -c "${CONFIG_DIR}" --image-tag "${IMAGE_TAG}"
 EOF
