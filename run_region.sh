@@ -20,6 +20,7 @@ set -euo pipefail
 #   -r, --repos PATH     Set root directory for NGWPC repos (default: auto-detect)
 #   -t, --image-tag TAG  Set Docker image tag (default: latest)
 #   -i, --pull-image     Pull the latest Docker image before running (optional)
+#   -d, --delete-runtime-dir     Delete runtime directory after completion (default: keep for debugging)
 #   -h, --help           Show this message and exit
 #
 # Examples:
@@ -50,6 +51,9 @@ set -euo pipefail
 #
 #  # Run with pulling the latest Docker image before running
 #  /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs -i
+#
+#  # Delete runtime directory after completion (default: keep for debugging)
+#  /ngencerf-app/nwm-rte/run_region.sh -c configs -p -n -e -d
 # -----------------------------------------------------------------------------
 
 # Initial context
@@ -91,9 +95,10 @@ eval=false
 CONFIG_DIR="${WORK_DIR}/configs"
 IMAGE_TAG="latest"
 PULL_IMAGE=false
+DELETE_RUNTIME_DIR=false
 
 # Parse command line arguments
-ARGS=$(getopt -o pfnehc:r:t:i --long parreg,formreg,ngen,eval,help,config_dir:,repos:,image-tag:,pull-image -- "$@")
+ARGS=$(getopt -o pfnehc:r:t:i:d --long parreg,formreg,ngen,eval,help,config_dir:,repos:,image-tag:,pull-image,delete-runtime-dir -- "$@")
 if [ $? != 0 ]; then echo "Failed parsing options." >&2; exit 1; fi
 eval set -- "$ARGS"
 
@@ -107,6 +112,7 @@ while true; do
         -r|--repos) REPOS_COMMON_ROOT__HOST="$2"; shift 2;;
         -t|--image-tag) IMAGE_TAG="$2"; shift 2;;
         -i|--pull-image) PULL_IMAGE=true; shift;;
+        -d|--delete-runtime-dir) DELETE_RUNTIME_DIR=true; shift;;
         -h|--help)
             echo "Usage: $0 [OPTIONS]
 Options:
@@ -118,6 +124,7 @@ Options:
   -r, --repos PATH     Set root directory for NGWPC repos 
   -t, --image-tag TAG  Set Docker image tag (default: latest)
   -i, --pull-image     Pull the latest Docker image (with tag "latest" or as specified by --image-tag) before running (optional)
+  -d, --delete-runtime-dir     Delete runtime directory after completion (default: keep for debugging)
   -h, --help           Show this message and exit
 " >&2
             exit 0;;
@@ -179,6 +186,7 @@ require_dir "${forcing_config_dir}"
 # Create run-time temporary directory with timestamp to avoid conflicts between simultaneous runs
 RUNTIME_DIR_TMP=$(mktemp -d "${WORK_DIR}/run_time_XXXXXXXX")
 ensure_dir "$RUNTIME_DIR_TMP"
+echo "Created run-time temporary directory: ${RUNTIME_DIR_TMP}."
 
 # create runtime directories for forcing
 ensure_dir "$RUNTIME_DIR_TMP/run_ngen/data/scratch"
@@ -190,8 +198,6 @@ ensure_dir "$RUNTIME_DIR_TMP/docker_logs/run"
 # home dir inside container (required for some packages in nwm-verf and nwm-region-mgr)
 ensure_dir "$RUNTIME_DIR_TMP/home"
 
-echo "Created run-time temporary directory: ${RUNTIME_DIR_TMP}. Will be removed after run is complete."
-
 cleanup() {
   rc=$?
   if [[ -n "${RUNTIME_DIR_TMP:-}" && -d "${RUNTIME_DIR_TMP}" ]]; then
@@ -200,7 +206,10 @@ cleanup() {
   fi
 }
 
-trap cleanup EXIT
+if $DELETE_RUNTIME_DIR; then
+    echo "Runtime directory will be deleted after completion as requested."
+    trap cleanup EXIT
+fi
 
 # script to run with docker run
 SCRIPT="${REPOS_COMMON_ROOT__HOST}/nwm-rte/bin_mounted/run_regionalization.py"
