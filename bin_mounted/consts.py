@@ -137,3 +137,10 @@ DATAFILE_LIBS = {
     "topmodel_lib": f"{NGEN_DIR}/extern/topmodel/cmake_build/libtopmodelbmi.so",
     "ueb_lib": f"{NGEN_DIR}/extern/ueb-bmi/cmake_build/src/libbmiuebcxx.so",
 }
+
+
+SRC_LOG_CONFIG_JSON = "/ngen-app/bin/bin_mounted/ngen_logging.json"
+# Must match config.bashrc
+RTE_NGEN_LOG_BEHAVIOR_KEY = "NGEN_LOG_TO_RTE"
+# Must match EWTS, nwm-cal-mgr, and nwm-fcst-mgr
+NGEN_LOG_DIR_KEY = "NGEN_RESULTS_DIR"

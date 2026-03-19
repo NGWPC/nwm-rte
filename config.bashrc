@@ -19,6 +19,8 @@ STAGE=${STAGE:-"ngen_rte_eval_verf"}
 INSTALL_DEBUGGERS=${INSTALL_DEBUGGERS:-"NO"}
 # INSTALL_DEBUGGERS="YES"
 
+### NGEN_LOG_TO_RTE: when this is true, ngen's log files will get written to ./ngen_logs rather than to the realization's dir.
+NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE:-"false"}
 
 ### Sources of component packages.
 ### If empty string, package will be skipped (not installed at all).

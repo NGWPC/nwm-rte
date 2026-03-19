@@ -9,6 +9,7 @@ from nwm_fcst_mgr.forecast import run_fcst
 import consts as c
 from configs import RTEForecastConfig
 import utils_testing_setup
+from utils import configure_ngen_log
 
 print = functools.partial(print, flush=True)
 
@@ -21,6 +22,8 @@ def build_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
     rb_cs = RealizationBuilder(**cfg.realization_builder_kwargs, use_cold_start=True)
     rb_cs.build_fcst_realization()
     print(f"Wrote: {rb_cs.realization_file}")
+    # From existing fcst mgr conventions, e.g. ### Set environment variable NGEN_RESULTS_DIR to: /ngwpc/run_ngen/kge_dds/test_bmi/01123000/Output/Forecast_Run/fcst_run1_short_range
+    configure_ngen_log(rb_cs.input_dir, "cs")
     return rb_cs
 
 
@@ -31,6 +34,8 @@ def build_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
     )
     rb_fcst = RealizationBuilder(**cfg.realization_builder_kwargs, use_cold_start=False)
     rb_fcst.build_fcst_realization()
+    # From existing fcst mgr conventions, e.g. ### Set environment variable NGEN_RESULTS_DIR to: /ngwpc/run_ngen/kge_dds/test_bmi/01123000/Output/Forecast_Run/fcst_run1_short_range
+    configure_ngen_log(rb_fcst.input_dir, "fcst")
     return rb_fcst
 
 

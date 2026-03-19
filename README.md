@@ -26,6 +26,23 @@ Most of the shell files source their configuration from [config.bashrc](config.b
 
 [run.sh](run.sh) Defines a bash function `docker_run` that uses a `docker run` call to start an ephemeral container of the new image with various host disk mounts applied. This is intended to be sourced by other shell scripts. The `docker_run` function receives any number of positional arguments. It passes its first argument as the value for Docker's `--entrypoint` and passes all subsequent arguments to the container as a command. See [run_calib.sh](run_calib.sh) for an example. If [run.sh](run.sh) is executed as a script e.g. `./run.sh`, then it starts an interactive terminal session in the container.
 
+## `ngen` Logs
+
+The log levels of `ngen` and its various modules is set via `./bin_mounted/ngen_logging.json`. When RTE builds a realization, it copies this file into a location where `ngen` finds it during its run.
+
+The OS environment variable `NGEN_RESULTS_DIR` dictates where this json file should be when `ngen` starts, and also controls where the output log files are written.
+
+### `NGEN_LOG_TO_RTE`
+
+RTE exposes an optional variable `NGEN_LOG_TO_RTE` in `config.bashrc`.
+
+When this is set to `true` then RTE will set `NGEN_RESULTS_DIR` before it calls the calibration manager module or the forecast manager module. It will set it to a location within the RTE repository directory: `ngen_logs/{YYYYMMDD-HHMMSS}_{description}/` where the time is the current UTC time, and the description is defined ad hoc.
+
+When `NGEN_LOG_TO_RTE` is `false` or unset, this will cause RTE to set `NGEN_RESULTS_DIR` to a path within the realization's directory, after building the realization. This mimics the behavior of the calibration manager module and the forecast manager module when those are ran from the alternate ngenCERF environment (those modules set `NGEN_RESULTS_DIR` automatically if it is not set).
+
+For RTE, in all cases, RTE copies `./bin_mounted/ngen_logging.json` into `NGEN_RESULTS_DIR`, after it defines `NGEN_RESULTS_DIR` and before starting ngen.
+
+
 ### Realization Executables
 
 For the following executables, see commented-out lines in the script for examples of different ways to leverage the CLI args exposed by the various workflows.
