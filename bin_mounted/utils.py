@@ -27,7 +27,7 @@ def configure_ngen_log(fallback_log_dir: str | pathlib.Path, description: str) -
             Used to build the timestamped dir name.
     """
     fallback_log_dir = str(fallback_log_dir)  # In case it arrived as a pathlib.Path
-    now_str = datetime.now(timezone.utc).strftime(r"%Y%m%d_%H%M%S")
+    now_str = datetime.now(timezone.utc).strftime(r"%Y%m%d_%H%M%S_%f")
     # Confirm that it's valid json content
     print(f"Reading: {c.SRC_LOG_CONFIG_JSON}")
     with open(c.SRC_LOG_CONFIG_JSON) as f:
