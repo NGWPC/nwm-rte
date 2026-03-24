@@ -12,6 +12,7 @@ from utils import (
     effective_days_from_timedelta,
     timedelta_from_pandas_str,
     get_calibration_log_file_overwrite_path,
+    configure_ngen_log,
 )
 import utils_testing_setup
 from execution_tests import (
@@ -57,6 +58,7 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
     rb_kwargs = {"config_overrides": config_overrides}
     rb = RealizationBuilder(**rb_kwargs)
     rb.build_calib_realization()
+    configure_ngen_log(rb.work_dir, "cal")
 
     log_path = get_calibration_log_file_overwrite_path(rb)
     cmd = [

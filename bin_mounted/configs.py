@@ -247,6 +247,13 @@ class RTETestConfig(BaseModel):
     def model_post_init(self, __context) -> None:
         errors = []
 
+        if self.quit_forecast_after_forcing_running:
+            errors.append(
+                RuntimeError(
+                    "quit_forecast_after_forcing_running is currently not allowed, pending updates."
+                )
+            )
+
         self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
             self.gage_id__gage_vintage
         )

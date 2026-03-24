@@ -3,7 +3,7 @@ import functools
 import json
 import sys
 
-
+from utils import configure_ngen_log
 import utils_testing_setup
 from execution_tests import (
     TestStat,
@@ -50,6 +50,7 @@ def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
             )
 
             if t.rb_stat == TestStat.PASS:
+                configure_ngen_log(t.rb.work_dir, "cal_test")
                 # Execute the realization via ngen, trapping exceptions and logs into class attrs
                 print(f"### {msg_prefix}: executing calibration realization")
                 t.execute_calibration(cfg.quit_calibration_after_duration)
@@ -98,9 +99,10 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
             run_type = "Cold_Start_Run" if cs else "Forecast_Run"
             t = ForecastTest(
                 rb_kwargs=rb_kwargs,
-                ngen_log=LogParser(
-                    path=f"{test_paths.dir_output}/{run_type}/{cfg.fcst_run_name}/logs/ngen.log"
-                ),
+                ### TODO update this to work with new EWTS per-rank logs, and new RTE log paths
+                # ngen_log=LogParser(
+                #     path=f"{test_paths.dir_output}/{run_type}/{cfg.fcst_run_name}/logs/ngen.log"
+                # ),
             )
 
             # Build the realization, trapping exceptions into class attrs
@@ -111,6 +113,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
 
             if t.rb_stat == TestStat.PASS:
                 # Execute the realization via ngen, trapping exceptions and logs into class attrs
+                configure_ngen_log(t.rb.input_dir, "fcst_test")
                 print(f"### {msg_prefix}: executing realization via ngen")
                 t.execute_forecast(
                     quit_forecast_after_forcing_running=cfg.quit_forecast_after_forcing_running,
@@ -180,7 +183,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--quit_forecast_after_forcing_running",
         action="store_true",
-        help="Instead of waiting for each forecast to finish, quit after the ngen log file indicates that forcing is running successfully.",
+        help="THIS IS CURRENTLY NOT ALLOWED, pending updates. Instead of waiting for each forecast to finish, quit after the ngen log file indicates that forcing is running successfully.",
     )
     parser.add_argument(
         "-quitfcdur",

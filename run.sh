@@ -34,8 +34,10 @@ function docker_run {
         -v "${MNT__MODULE_PARAM_FILES_DIR__HOST}:${MNT__MODULE_PARAM_FILES_DIR__CONTAINER_1}" \
         -v "${MNT__MODULE_PARAM_FILES_DIR__HOST}:${MNT__MODULE_PARAM_FILES_DIR__CONTAINER_2}" \
         -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
+        -v "$(pwd)/ngen_logs:/ngen-app/rte_ngen_logs" \
         -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
         -v "$(pwd)/.devcontainer/tmp:/tmp" \
+        -e NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE} \
         \
         --rm ${TARGET_IMAGE_NAME} "${@:2}"
 }
