@@ -4,7 +4,7 @@ import argparse
 
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils import settings as mswm_settings
-from nwm_fcst_mgr.forecast import run_fcst
+from nwm_fcst_mgr.forecast import run_forecast as run_fcst
 
 import consts as c
 from configs import RTEForecastConfig
