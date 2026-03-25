@@ -1,5 +1,6 @@
 import argparse
 import functools
+import os
 import subprocess
 import time
 
@@ -25,7 +26,7 @@ from configs import RTECalibConfig, CalibTimeWindows
 print = functools.partial(print, flush=True)
 
 
-def calibration__build_and_run(cfg: RTECalibConfig) -> None:
+def build_and_run(cfg: RTECalibConfig) -> None:
     """Build calibration realizations and run them as tests."""
 
     windows = CalibTimeWindows(
@@ -49,6 +50,7 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
         windows=windows,
         obs_dir=cfg.obs_dir,
         nwmretro_file=cfg.nwmretro_file,
+        run_type="default" if cfg.default_realization else "calibration",
     )
     assert (
         len(all_config_overrides) == 1
@@ -57,26 +59,59 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
 
     rb_kwargs = {"config_overrides": config_overrides}
     rb = RealizationBuilder(**rb_kwargs)
-    rb.build_calib_realization()
-    configure_ngen_log(rb.work_dir, "cal")
 
-    log_path = get_calibration_log_file_overwrite_path(rb)
-    cmd = [
-        "calibration",
-        str(rb.calib_config_file),
-        "--log_path_overwrite",
-        log_path,
-        # "--worker_name",
-        # "000test",
-    ]
+    if not cfg.default_realization:
+        # Calibration realization
+        rb.build_calib_realization()
+        ngen_log_description = "cal"
+        log_path = get_calibration_log_file_overwrite_path(rb)
+        cmd = [
+            "calibration",
+            str(rb.calib_config_file),
+            "--log_path_overwrite",
+            log_path,
+        ]
+        if cfg.worker_name:
+            cmd.extend(["--worker_name", cfg.worker_name])
+        cwd = None
+        msg_suffix = f" Log path: {log_path}"
 
+    else:
+        # Default realization
+        rb.build_default_realization()
+        ngen_log_description = "default"
+        cmd = [
+            os.path.join(rb.input_dir, "ngen"),
+            rb.cat_file,
+            "all",
+            rb.nexus_file,
+            "all",
+            rb.realization_file,
+        ]
+        if cfg.nprocs > 1:
+            cmd = ["mpirun", "-n", f"{cfg.nprocs}"] + cmd + [rb.part_file]
+        output_dir = os.path.join(rb.work_dir, "Output", "Default_Run")
+        cwd = output_dir
+        output_ngen_stdout_stderr_log = os.path.join(
+            output_dir, c.NGEN_STDOUT_STDERR_LOG_FILE_BASENAME
+        )
+        msg_suffix = ""
+
+    configure_ngen_log(rb.work_dir, ngen_log_description)
     print(
-        f"\n\nStarting calibration with configuration: {cfg.model_dump_json(indent=2)}\nand logging to: {log_path}\n\nvia command args: {cmd}"
+        f"\n\nStarting {ngen_log_description} with configuration: {cfg.model_dump_json(indent=2)}\n\nvia command args: {cmd} with cwd={cwd}.{msg_suffix}"
     )
     start = time.perf_counter()
-    proc = subprocess.run(cmd, check=False)
+    if not cfg.default_realization:
+        # Calibration realization
+        proc = subprocess.run(cmd, check=False, cwd=cwd)
+    else:
+        # Default realization
+        os.makedirs(output_dir, exist_ok=True)
+        with open(output_ngen_stdout_stderr_log, "a+") as f:
+            proc = subprocess.run(cmd, check=False, cwd=cwd, stdout=f, stderr=f)
     print(
-        f"\nFinished calibration with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nLog path: {log_path}\nReturn code {proc.returncode}."
+        f"\nFinished {ngen_log_description} with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nReturn code {proc.returncode}.\nCommand was: {cmd}, with cwd={cwd}.{msg_suffix}"
     )
     proc.check_returncode()
 
@@ -86,12 +121,19 @@ def main(cfg: RTECalibConfig):
         utils_testing_setup.delete_scratch_and_esmf_outputs(cfg)
     if cfg.delete_forcing_raw_input_first:
         utils_testing_setup.delete_forcing_raw_inputs()
-
-    calibration__build_and_run(cfg)
+    build_and_run(cfg)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="Script for building historical / retrospective forcing realizations: 'calibration' as well as 'default'"
+    )
+    parser.add_argument(
+        "-def",
+        "--default_realization",
+        action="store_true",
+        help="If provided, will run a default realization instead of a calibration, using the provided forcing source.",
+    )
     parser.add_argument(
         "-delscratch",
         "--delete_scratch_and_mesh_first",
@@ -202,6 +244,12 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         type=str,
         default=c.FORCING_STATIC_DIR_DEFAULT,
         help=f"Directory for static forcing files, used when forcing_provider is 'bmi'. Default={c.FORCING_STATIC_DIR_DEFAULT}",
+    )
+    parser.add_argument(
+        "-wrkr",
+        "--worker_name",
+        type=str,
+        help="If provided, will be used as the worker name, instead of letting cal mgr choose a random worker name. Only allowed for Optimization Algorithm DDS, which uses single instances of ngen. Does not affect 'default' realization (which is not a calibration).",
     )
     args = parser.parse_args()
     cfg = RTECalibConfig(**vars(args))

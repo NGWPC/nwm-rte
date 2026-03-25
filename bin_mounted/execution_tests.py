@@ -59,8 +59,12 @@ def get_test_configs__calibration(
     windows: CalibTimeWindows = CalibTimeWindows(),
     obs_dir: str | None = None,
     nwmretro_file: str | None = None,
+    run_type: str = "calibration",
 ) -> list[InputConfig]:
     """Build and return a list of InputConfig instances to be used for building calibration realizations."""
+    if run_type not in ("calibration", "default"):
+        raise ValueError(f"Unexpected run_type: {run_type}")
+
     fpp = ForcingProviderPaths(
         forcing_provider=forcing_provider,
         global_domain=global_domain,
@@ -71,7 +75,7 @@ def get_test_configs__calibration(
 
     general = GeneralConfig(
         basin=gage_id,
-        run_type="calibration",
+        run_type=run_type,
         models=c.MODELS,
         formulation=fpp.formulation_name,
         main_dir=c.DEFAULT_MAIN_DIR,

@@ -95,6 +95,7 @@ class RTECalibConfig(BaseModel):
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
+    default_realization: bool
     delete_scratch_and_mesh_first: bool
     delete_forcing_raw_input_first: bool
     objective_function: c.CalObjective
@@ -110,6 +111,7 @@ class RTECalibConfig(BaseModel):
     global_domain: str
     forcing_provider: str
     forcing_static_dir: str
+    worker_name: str | None
 
     # Set after init
     gage_id: str = Field(init=False, default=None)

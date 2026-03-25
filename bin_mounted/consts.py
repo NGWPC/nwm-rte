@@ -144,3 +144,5 @@ SRC_LOG_CONFIG_JSON = "/ngen-app/bin/bin_mounted/ngen_logging.json"
 RTE_NGEN_LOG_BEHAVIOR_KEY = "NGEN_LOG_TO_RTE"
 # Must match EWTS, nwm-cal-mgr, and nwm-fcst-mgr
 NGEN_LOG_DIR_KEY = "NGEN_RESULTS_DIR"
+
+NGEN_STDOUT_STDERR_LOG_FILE_BASENAME = "ngen_stdout_stderr.log"
