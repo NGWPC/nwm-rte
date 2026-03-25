@@ -320,7 +320,7 @@ jobs:
         uses: aquasecurity/setup-trivy@v0.2.6
         with:
           cache: true
-          version: v0.68.2
+          version: v0.69.3
       - name: Trivy scan
         env:
           TMPDIR: /mnt/trivy-temp
