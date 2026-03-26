@@ -24,7 +24,7 @@ from mswm.utils.input_configuration import (
 )
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 
-from nwm_fcst_mgr.forecast import ForecastExecutionManager, RunStatus
+from nwm_fcst_mgr.forecast import ForecastExecutionManager, ConfigCache, RunStatus
 from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
 
 from configs import ForcingProviderPaths, CalibTimeWindows
@@ -394,9 +394,11 @@ class ForecastTest(BaseModel):
             async_waiter = None
 
         try:
+            config_cache = ConfigCache(self.rb.valid_yaml)
             with ForecastExecutionManager(
                 valid_yaml=self.rb.valid_yaml,
                 real_path=str(self.rb.realization_file),
+                config_cache=config_cache,
             ) as self.fcst_exe_mgr:
                 self.fcst_exe_mgr.preprocess()
                 if async_waiter:
@@ -417,7 +419,7 @@ class ForecastTest(BaseModel):
             fcst_exe_excep = None
         except Exception as e:
             print(
-                "Caught unexpected exception in main thread while executing forecast: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
+                f"Caught unexpected exception in main thread while executing forecast: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising.\nTraceback was: {traceback.format_exc()}"
             )
             fcst_exe_excep = e
             self.fcst_exe_excep_tb = traceback.format_exc().splitlines()
