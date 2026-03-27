@@ -72,6 +72,7 @@
             "type": "debugpy",
             "request": "launch",
             "module": "pytest",
+            "args":["tests/esmf_regrid/test_esmf_regrid.py::test_regrid"],
             "cwd": "${workspaceFolder}/src/ngen-forcing",
             "env": {
                 // "FORCING_PYTEST_WRITE_TEST_EXPECTED_DATA": "TRUE"
@@ -80,7 +81,37 @@
             "justMyCode": false,
             "console": "integratedTerminal",
             "python": "${command:python.interpreterPath}"
-        }
+        },
+        {
+            "name": "run_bmi_model_test_geomod",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args":["tests/geomod/test_geomod.py::test_geomod"],
+            "cwd": "${workspaceFolder}/src/ngen-forcing",
+            "env": {
+                // "FORCING_PYTEST_WRITE_TEST_EXPECTED_DATA": "TRUE",
+                "FORCING_PYTEST_WRITE_TEST_EXPECTED_DATA": "FALSE"
+            },
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "python": "${command:python.interpreterPath}"
+        },
+        {
+            "name": "run_bmi_model_test_input_forcings",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args":["tests/input_forcing/test_input_forcing.py::test_input_forcing"],
+            "cwd": "${workspaceFolder}/src/ngen-forcing",
+            "env": {
+                // "FORCING_PYTEST_WRITE_TEST_EXPECTED_DATA": "TRUE",
+                "FORCING_PYTEST_WRITE_TEST_EXPECTED_DATA": "FALSE"
+            },
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "python": "${command:python.interpreterPath}"
+        },
         ////////////////////
         // BEGIN _run_ngen_nompi
         // {
