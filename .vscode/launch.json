@@ -80,7 +80,26 @@
             "justMyCode": false,
             "console": "integratedTerminal",
             "python": "${command:python.interpreterPath}"
-        }
+        },
+        {
+            "name": "run_forecast.py -n 2",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "./bin_mounted/run_forecast.py",
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "python": "${command:python.interpreterPath}",
+            "args": [
+                "-dt",
+                "2025-09-15 00:00:00",
+                "-rname",
+                "fcst_debug_short",
+                "-fconfig",
+                "short_range",
+                "-n",
+                "2",
+            ],
+        },
         ////////////////////
         // BEGIN _run_ngen_nompi
         // {

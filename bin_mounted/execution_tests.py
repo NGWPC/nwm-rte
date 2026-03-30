@@ -20,30 +20,16 @@ from mswm.utils.input_configuration import (
     CalibConfig,
     ForcingConfig,
     DataFileConfig,
-    ParallelConfig,
 )
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 
 from nwm_fcst_mgr.forecast import ForecastExecutionManager, ConfigCache, RunStatus
 from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
 
-from configs import ForcingProviderPaths, CalibTimeWindows
+from configs import ForcingProviderPaths, CalibTimeWindows, make_parallel_config
 import consts as c
 
 print = functools.partial(print, flush=True)
-
-
-def make_parallel_config(nprocs: int) -> ParallelConfig:
-    """Build and return the ParallelConfig instance."""
-    if nprocs and nprocs > 1:
-        parallel = ParallelConfig(
-            parallel_ngen_exe="/ngen-app/ngen/cmake_build/ngen",
-            partition_generator_exe="/ngen-app/ngen/cmake_build/partitionGenerator",
-            nprocs=nprocs,
-        )
-    else:
-        parallel = ParallelConfig(nprocs=nprocs)
-    return parallel
 
 
 def get_test_configs__calibration(
@@ -156,7 +142,7 @@ def get_test_configs__forecast(
     global_domain: str = c.CALIB_GLOBAL_DOMAIN_DEFAULT,
     forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
     forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
-    # nprocs: int = DEFAULT_NPROCS,
+    nprocs: int = c.DEFAULT_NPROCS,
 ) -> list[InputConfig]:
     """Build and return a list of InputConfig instances to be used for building forecast realizations."""
     fpp = ForcingProviderPaths(
@@ -190,8 +176,7 @@ def get_test_configs__forecast(
             cycle_datetime=cycle_datetime,
             cold_start_datetime=cold_start_datetime,
         )
-        # parallel = make_parallel_config(nprocs)  # TODO adjust forecast manager to use this
-        parallel = None
+        parallel = make_parallel_config(nprocs)
         configs.append(InputConfig(General=general, Forcing=forcing, Parallel=parallel))
 
     return configs
