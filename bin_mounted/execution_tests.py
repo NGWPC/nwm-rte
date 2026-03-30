@@ -134,7 +134,7 @@ def get_test_configs__calibration(
             forcing_template_dir=c.FORCING_TEMPLATE_DIR,
             root_dir=c.FORCING_ROOT_DIR,
             forcing_configuration=fct,
-            cycle_datetime=c.DT_START_FORECAST.strftime(DDF),
+            cycle_datetime=windows.calib_sim_start.strftime(DDF),
             cold_start_datetime=None,
             global_domain=global_domain,
             forcing_static_dir=forcing_static_dir,

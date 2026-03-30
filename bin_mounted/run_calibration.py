@@ -62,6 +62,10 @@ def build_and_run(cfg: RTECalibConfig) -> None:
 
     if not cfg.default_realization:
         # Calibration realization
+        if cfg.forcing_source not in c.CALIB_FORCING_CONFIGURATION_TYPES:
+            raise ValueError(
+                f"cfg.default_realization = {cfg.default_realization} (calibration), but cfg.forcing_source {cfg.forcing_source} not in c.CALIB_FORCING_CONFIGURATION_TYPES {c.CALIB_FORCING_CONFIGURATION_TYPES}"
+            )
         rb.build_calib_realization()
         ngen_log_description = "cal"
         log_path = get_calibration_log_file_overwrite_path(rb)
@@ -219,8 +223,8 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         "--forcing_source",
         type=str,
         default=c.CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT,
-        choices=c.CALIB_FORCING_CONFIGURATION_TYPES,
-        help=f"Source of forcing data. Default={c.CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT}",
+        choices=c.ALL_FORCING_CONFIGURATION_TYPES,
+        help=f"Source of forcing data. Default={c.CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT}. Choices for calibration: {c.CALIB_FORCING_CONFIGURATION_TYPES}",
     )
     parser.add_argument(
         "-gdomain",
