@@ -1,15 +1,13 @@
-from datetime import datetime
 import functools
 import argparse
 
 from mswm.build_inputs import RealizationBuilder
-from mswm.utils import settings as mswm_settings
 from nwm_fcst_mgr.forecast import run_forecast as run_fcst
 
 import consts as c
 from configs import RTEForecastConfig
 import utils_testing_setup
-from utils import configure_ngen_log
+from utils import configure_ngen_log, datetime_type
 
 print = functools.partial(print, flush=True)
 
@@ -37,11 +35,6 @@ def build_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
     # From existing fcst mgr conventions, e.g. ### Set environment variable NGEN_RESULTS_DIR to: /ngwpc/run_ngen/kge_dds/test_bmi/01123000/Output/Forecast_Run/fcst_run1_short_range
     configure_ngen_log(rb_fcst.input_dir, "fcst")
     return rb_fcst
-
-
-def datetime_type(datetime_str) -> datetime:
-    """Helper function for munging CLI string arguments into datetime type."""
-    return datetime.strptime(datetime_str, mswm_settings.DEFAULT_DATETIME_FORMAT)
 
 
 def main(cfg: RTEForecastConfig):

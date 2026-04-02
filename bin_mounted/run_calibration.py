@@ -1,6 +1,5 @@
 import argparse
 import functools
-import os
 import subprocess
 import time
 
@@ -50,7 +49,7 @@ def build_and_run(cfg: RTECalibConfig) -> None:
         windows=windows,
         obs_dir=cfg.obs_dir,
         nwmretro_file=cfg.nwmretro_file,
-        run_type="default" if cfg.default_realization else "calibration",
+        run_type="calibration",
     )
     assert (
         len(all_config_overrides) == 1
@@ -60,60 +59,30 @@ def build_and_run(cfg: RTECalibConfig) -> None:
     rb_kwargs = {"config_overrides": config_overrides}
     rb = RealizationBuilder(**rb_kwargs)
 
-    if not cfg.default_realization:
-        # Calibration realization
-        if cfg.forcing_source not in c.CALIB_FORCING_CONFIGURATION_TYPES:
-            raise ValueError(
-                f"cfg.default_realization = {cfg.default_realization} (calibration), but cfg.forcing_source {cfg.forcing_source} not in c.CALIB_FORCING_CONFIGURATION_TYPES {c.CALIB_FORCING_CONFIGURATION_TYPES}"
-            )
-        rb.build_calib_realization()
-        ngen_log_description = "cal"
-        log_path = get_calibration_log_file_overwrite_path(rb)
-        cmd = [
-            "calibration",
-            str(rb.calib_config_file),
-            "--log_path_overwrite",
-            log_path,
-        ]
-        if cfg.worker_name:
-            cmd.extend(["--worker_name", cfg.worker_name])
-        cwd = None
-        msg_suffix = f" Log path: {log_path}"
-
-    else:
-        # Default realization
-        rb.build_default_realization()
-        ngen_log_description = "default"
-        cmd = [
-            os.path.join(rb.input_dir, "ngen"),
-            rb.cat_file,
-            "all",
-            rb.nexus_file,
-            "all",
-            rb.realization_file,
-        ]
-        if cfg.nprocs > 1:
-            cmd = ["mpirun", "-n", f"{cfg.nprocs}"] + cmd + [rb.part_file]
-        output_dir = os.path.join(rb.work_dir, "Output", "Default_Run")
-        cwd = output_dir
-        output_ngen_stdout_stderr_log = os.path.join(
-            output_dir, c.NGEN_STDOUT_STDERR_LOG_FILE_BASENAME
+    if cfg.forcing_source not in c.CALIB_FORCING_CONFIGURATION_TYPES:
+        raise ValueError(
+            f"cfg.default_realization = {cfg.default_realization} (calibration), but cfg.forcing_source {cfg.forcing_source} not in c.CALIB_FORCING_CONFIGURATION_TYPES {c.CALIB_FORCING_CONFIGURATION_TYPES}"
         )
-        msg_suffix = ""
+    rb.build_calib_realization()
+    ngen_log_description = "cal"
+    log_path = get_calibration_log_file_overwrite_path(rb)
+    cmd = [
+        "calibration",
+        str(rb.calib_config_file),
+        "--log_path_overwrite",
+        log_path,
+    ]
+    if cfg.worker_name:
+        cmd.extend(["--worker_name", cfg.worker_name])
+    cwd = None
+    msg_suffix = f" Log path: {log_path}"
 
     configure_ngen_log(rb.work_dir, ngen_log_description)
     print(
         f"\n\nStarting {ngen_log_description} with configuration: {cfg.model_dump_json(indent=2)}\n\nvia command args: {cmd} with cwd={cwd}.{msg_suffix}"
     )
     start = time.perf_counter()
-    if not cfg.default_realization:
-        # Calibration realization
-        proc = subprocess.run(cmd, check=False, cwd=cwd)
-    else:
-        # Default realization
-        os.makedirs(output_dir, exist_ok=True)
-        with open(output_ngen_stdout_stderr_log, "a+") as f:
-            proc = subprocess.run(cmd, check=False, cwd=cwd, stdout=f, stderr=f)
+    proc = subprocess.run(cmd, check=False, cwd=cwd)
     print(
         f"\nFinished {ngen_log_description} with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nReturn code {proc.returncode}.\nCommand was: {cmd}, with cwd={cwd}.{msg_suffix}"
     )
@@ -130,13 +99,7 @@ def main(cfg: RTECalibConfig):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Script for building historical / retrospective forcing realizations: 'calibration' as well as 'default'"
-    )
-    parser.add_argument(
-        "-def",
-        "--default_realization",
-        action="store_true",
-        help="If provided, will run a default realization instead of a calibration, using the provided forcing source.",
+        description="Script for building and running calibration realizations using historical / retrospective forcing."
     )
     parser.add_argument(
         "-delscratch",
@@ -223,7 +186,7 @@ When nprocs > 1, Calibration's ParallelConfig is like: {make_parallel_config(npr
         "--forcing_source",
         type=str,
         default=c.CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT,
-        choices=c.ALL_FORCING_CONFIGURATION_TYPES,
+        choices=c.CALIB_FORCING_CONFIGURATION_TYPES,
         help=f"Source of forcing data. Default={c.CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT}. Choices for calibration: {c.CALIB_FORCING_CONFIGURATION_TYPES}",
     )
     parser.add_argument(

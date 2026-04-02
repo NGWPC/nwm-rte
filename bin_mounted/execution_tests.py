@@ -20,30 +20,16 @@ from mswm.utils.input_configuration import (
     CalibConfig,
     ForcingConfig,
     DataFileConfig,
-    ParallelConfig,
 )
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 
 from nwm_fcst_mgr.forecast import ForecastExecutionManager, RunStatus
 from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
 
-from configs import ForcingProviderPaths, CalibTimeWindows
+from configs import ForcingProviderPaths, CalibTimeWindows, make_parallel_config
 import consts as c
 
 print = functools.partial(print, flush=True)
-
-
-def make_parallel_config(nprocs: int) -> ParallelConfig:
-    """Build and return the ParallelConfig instance."""
-    if nprocs and nprocs > 1:
-        parallel = ParallelConfig(
-            parallel_ngen_exe="/ngen-app/ngen/cmake_build/ngen",
-            partition_generator_exe="/ngen-app/ngen/cmake_build/partitionGenerator",
-            nprocs=nprocs,
-        )
-    else:
-        parallel = ParallelConfig(nprocs=nprocs)
-    return parallel
 
 
 def get_test_configs__calibration(

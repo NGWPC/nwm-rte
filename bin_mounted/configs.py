@@ -6,9 +6,14 @@ from typing import Literal
 
 from mswm.utils.input_configuration import (
     InputConfig,
+    GeneralConfig,
+    ModulePropertiesConfig,
     ForcingConfig,
+    DataFileConfig,
+    ParallelConfig,
 )
 from mswm.utils import settings as mswm_settings
+from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -90,12 +95,144 @@ class TestPaths:
         return f"{self.dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
 
 
+class RTEDefaultConfig(BaseModel):
+    """Configuration class for building and running one default realization
+    (realtime forcing configuration or historical / retrospective forcing configuration)."""
+
+    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
+
+    delete_scratch_and_mesh_first: bool
+    delete_forcing_raw_input_first: bool
+    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
+    global_domain: str
+    forcing_static_dir: str
+    forcing_provider: str
+    cycle_datetime: datetime
+    historical_sim_duration: timedelta | None
+    forcing_configuration: str
+    fcst_run_name: str
+    nprocs: int = Field(ge=1)
+
+    # Set after init
+    gage_id: str = Field(init=False, default=None)
+    gage_vintage: str = Field(init=False, default=None)
+    obs_dir: str | None = Field(init=False, default=None)
+    nwmretro_file: str | None = Field(init=False, default=None)
+    realtime_mode: bool = Field(init=False, default=None)
+
+    # Other derived attrs (not passed to __init__)
+    realization_builder_kwargs: dict = Field(init=False, default=None)
+
+    def model_post_init(self, __context) -> None:
+        errors = []
+
+        if (
+            self.forcing_configuration
+            not in c.FORECAST_FORCING_CONFIGURATION_TYPES__ALL
+        ):
+            self.realtime_mode = False
+        else:
+            self.realtime_mode = True
+
+        self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
+            self.gage_id__gage_vintage
+        )
+        errors.extend(errors_extend)
+
+        self.obs_dir, self.nwmretro_file, errors_extend = get_data_paths_for_lstm(
+            self.global_domain,
+            self.gage_id,
+        )
+        errors.extend(errors_extend)
+
+        if (not self.realtime_mode) and (not self.historical_sim_duration):
+            errors.extend(
+                [
+                    f"Forcing configuration {repr(self.forcing_configuration)} is *not* realtime, and requires that CLI arg -dur aka --historical_sim_duration is provided, but it was not."
+                ]
+            )
+        if self.realtime_mode and self.historical_sim_duration:
+            errors.extend(
+                [
+                    f"Forcing configuration {repr(self.forcing_configuration)} *is* realtime, but CLI arg -dur aka --historical_sim_duration was also provided (it should not be)."
+                ]
+            )
+
+        if errors:
+            raise RuntimeError(errors)
+
+        self.realization_builder_kwargs = self._make_realization_builder_kwargs()
+
+    def _make_realization_builder_kwargs(self) -> dict:
+        """Build and return a dictionary for creating a RealizationBuilder instance."""
+        fpp = ForcingProviderPaths(
+            forcing_provider=self.forcing_provider,
+            global_domain=self.global_domain,
+            forcing_static_dir=self.forcing_static_dir,
+        )
+
+        windows = CalibTimeWindows(
+            calib_sim_start=self.cycle_datetime,
+            calib_sim_duration=self.historical_sim_duration
+            if self.historical_sim_duration
+            else c.CALIB_SIM_DURATION_DEFAULT,
+            calib_eval_delayment=c.CALIB_EVAL_DELAYMENT_DEFAULT,
+            valid_sim_advancement=c.VALID_SIM_ADVANCEMENT_DEFAULT,
+            valid_eval_curtailment=c.VALID_EVAL_CURTAILMENT_DEFAULT,
+        )
+
+        realization_kwargs = {
+            # "input_path": forecast_vars.forecast_input_config,
+            "fcst_run_name": self.fcst_run_name,
+            "config_overrides": InputConfig(
+                General=GeneralConfig(
+                    basin=self.gage_id,
+                    run_type="default",
+                    models=c.MODELS,
+                    formulation=fpp.formulation_name,
+                    main_dir=c.DEFAULT_MAIN_DIR,
+                    start_period=windows.calib_eval_start.strftime(DDF),
+                    end_period=windows.calib_eval_end.strftime(DDF),
+                    output_precip=True,
+                    output_swe=True,
+                    output_sm=True,
+                    domain=self.global_domain.lower(),
+                ),
+                ModuleProperties=ModulePropertiesConfig(),
+                Forcing=ForcingConfig(
+                    forcing_provider=fpp.forcing_provider,
+                    forcing_dir=fpp.get_forcing_dir(gage_id=self.gage_id),
+                    forcing_template_dir=c.FORCING_TEMPLATE_DIR,
+                    root_dir=c.FORCING_ROOT_DIR,
+                    forcing_configuration=self.forcing_configuration,
+                    cycle_datetime=self.cycle_datetime.strftime(
+                        mswm_settings.DEFAULT_DATETIME_FORMAT
+                    ),
+                    cold_start_datetime=None,
+                    global_domain=self.global_domain,
+                    forcing_static_dir=self.forcing_static_dir,
+                ),
+                DataFile=DataFileConfig(
+                    **(
+                        c.DATAFILE_LIBS
+                        | {
+                            "obs_dir": self.obs_dir,
+                            "nwmretro_file": self.nwmretro_file,
+                            "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{self.global_domain}/{self.gage_id}/GEOPACKAGE/USGS/{self.gage_vintage}/gauge_{self.gage_id}.gpkg",
+                        }
+                    ),
+                ),
+                Parallel=make_parallel_config(self.nprocs),
+            ),
+        }
+        return realization_kwargs
+
+
 class RTECalibConfig(BaseModel):
     """Configuration class for building and running one calibration realization."""
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
-    default_realization: bool
     delete_scratch_and_mesh_first: bool
     delete_forcing_raw_input_first: bool
     objective_function: c.CalObjective
@@ -478,3 +615,16 @@ def find_obs_dir(global_domain: str, gage_id: str) -> str:
         )
     obs_dir = os.path.dirname(candidate_csvs[0])
     return obs_dir
+
+
+def make_parallel_config(nprocs: int) -> ParallelConfig:
+    """Build and return the ParallelConfig instance."""
+    if nprocs and nprocs > 1:
+        parallel = ParallelConfig(
+            parallel_ngen_exe="/ngen-app/ngen/cmake_build/ngen",
+            partition_generator_exe="/ngen-app/ngen/cmake_build/partitionGenerator",
+            nprocs=nprocs,
+        )
+    else:
+        parallel = ParallelConfig(nprocs=nprocs)
+    return parallel

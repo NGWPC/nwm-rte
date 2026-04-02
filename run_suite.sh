@@ -13,10 +13,6 @@ docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm
 sudo rm -rf ~/ngwpc/run_ngen/kge_dds/test_bmi/01123000
 docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -start "2013-07-01 00:00:00" -dur 120
 
-# CONUS "default" realization using AORC forcing
-sudo rm -rf ~/ngwpc/run_ngen/default/test_bmi/01123000
-docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" --default_realization -n 2 -fsrc "aorc" -start "2013-07-15 00:00:00" -dur 20
-
 # CONUS forecasts: short range, analysis & assimilation, and medium range
 docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -fconfig "short_range" -dt "2025-07-10 04:00:00" -rname "fcst_run1_short_range"
 docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -fconfig "standard_ana" -dt "2025-07-10 10:00:00" -rname "fcst_run1_standard_ana"
