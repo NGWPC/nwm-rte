@@ -25,7 +25,7 @@ from configs import RTECalibConfig, CalibTimeWindows
 print = functools.partial(print, flush=True)
 
 
-def build_and_run(cfg: RTECalibConfig) -> None:
+def calibration__build_and_run(cfg: RTECalibConfig) -> None:
     """Build calibration realizations and run them as tests."""
 
     windows = CalibTimeWindows(
@@ -64,7 +64,6 @@ def build_and_run(cfg: RTECalibConfig) -> None:
             f"cfg.default_realization = {cfg.default_realization} (calibration), but cfg.forcing_source {cfg.forcing_source} not in c.CALIB_FORCING_CONFIGURATION_TYPES {c.CALIB_FORCING_CONFIGURATION_TYPES}"
         )
     rb.build_calib_realization()
-    ngen_log_description = "cal"
     log_path = get_calibration_log_file_overwrite_path(rb)
     cmd = [
         "calibration",
@@ -77,14 +76,14 @@ def build_and_run(cfg: RTECalibConfig) -> None:
     cwd = None
     msg_suffix = f" Log path: {log_path}"
 
-    configure_ngen_log(rb.work_dir, ngen_log_description)
+    configure_ngen_log(rb.work_dir, "cal")
     print(
-        f"\n\nStarting {ngen_log_description} with configuration: {cfg.model_dump_json(indent=2)}\n\nvia command args: {cmd} with cwd={cwd}.{msg_suffix}"
+        f"\n\nStarting calibration with configuration: {cfg.model_dump_json(indent=2)}\n\nvia command args: {cmd} with cwd={cwd}.{msg_suffix}"
     )
     start = time.perf_counter()
     proc = subprocess.run(cmd, check=False, cwd=cwd)
     print(
-        f"\nFinished {ngen_log_description} with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nReturn code {proc.returncode}.\nCommand was: {cmd}, with cwd={cwd}.{msg_suffix}"
+        f"\nFinished calibration with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nReturn code {proc.returncode}.\nCommand was: {cmd}, with cwd={cwd}.{msg_suffix}"
     )
     proc.check_returncode()
 
@@ -94,7 +93,7 @@ def main(cfg: RTECalibConfig):
         utils_testing_setup.delete_scratch_and_esmf_outputs(cfg)
     if cfg.delete_forcing_raw_input_first:
         utils_testing_setup.delete_forcing_raw_inputs()
-    build_and_run(cfg)
+    calibration__build_and_run(cfg)
 
 
 if __name__ == "__main__":
