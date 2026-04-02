@@ -1,4 +1,5 @@
 #!/bin/bash
+### Example commands for running default realizations
 
 set -euo pipefail
 
