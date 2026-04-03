@@ -181,6 +181,17 @@ class RTEDefaultConfig(BaseModel):
             valid_eval_curtailment=c.VALID_EVAL_CURTAILMENT_DEFAULT,
         )
 
+        if self.realtime_mode:
+            start_period = None
+            end_period = None
+            cycle_datetime = self.cycle_datetime.strftime(
+                mswm_settings.DEFAULT_DATETIME_FORMAT
+            )
+        else:
+            start_period = windows.calib_eval_start.strftime(DDF)
+            end_period = windows.calib_eval_end.strftime(DDF)
+            cycle_datetime = None
+
         realization_kwargs = {
             # "input_path": forecast_vars.forecast_input_config,
             "fcst_run_name": self.fcst_run_name,
@@ -191,8 +202,8 @@ class RTEDefaultConfig(BaseModel):
                     models=c.MODELS,
                     formulation=fpp.formulation_name,
                     main_dir=c.DEFAULT_MAIN_DIR,
-                    start_period=windows.calib_eval_start.strftime(DDF),
-                    end_period=windows.calib_eval_end.strftime(DDF),
+                    start_period=start_period,
+                    end_period=end_period,
                     output_precip=True,
                     output_swe=True,
                     output_sm=True,
@@ -205,9 +216,7 @@ class RTEDefaultConfig(BaseModel):
                     forcing_template_dir=c.FORCING_TEMPLATE_DIR,
                     root_dir=c.FORCING_ROOT_DIR,
                     forcing_configuration=self.forcing_configuration,
-                    cycle_datetime=self.cycle_datetime.strftime(
-                        mswm_settings.DEFAULT_DATETIME_FORMAT
-                    ),
+                    cycle_datetime=cycle_datetime,
                     cold_start_datetime=None,
                     global_domain=self.global_domain,
                     forcing_static_dir=self.forcing_static_dir,
