@@ -184,13 +184,13 @@ class RTEDefaultConfig(BaseModel):
         if self.realtime_mode:
             start_period = None
             end_period = None
-            cycle_datetime = self.cycle_datetime.strftime(
-                mswm_settings.DEFAULT_DATETIME_FORMAT
-            )
         else:
             start_period = windows.calib_eval_start.strftime(DDF)
             end_period = windows.calib_eval_end.strftime(DDF)
-            cycle_datetime = None
+
+        cycle_datetime = self.cycle_datetime.strftime(
+            mswm_settings.DEFAULT_DATETIME_FORMAT
+        )
 
         realization_kwargs = {
             # "input_path": forecast_vars.forecast_input_config,
