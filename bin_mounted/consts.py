@@ -151,12 +151,12 @@ NGEN_LOG_DIR_KEY = "NGEN_RESULTS_DIR"
 NGEN_STDOUT_STDERR_LOG_FILE_BASENAME = "ngen_stdout_stderr.log"
 
 ### These for WCOSS paths
-# SCRATCH_DIR_OVERRIDE: str | None = None
-# INPUT_FORCING_DIRS_OVERRIDE_ROOT: str | None = None
-# FORCING_PRODUCT_VERSIONS_PATH: str | None = None
-SCRATCH_DIR_OVERRIDE: str | None = "/foo/bar/scratch"
-INPUT_FORCING_DIRS_OVERRIDE_ROOT: str | None = "/foo/bar/forcing_input"
-FORCING_PRODUCT_VERSIONS_PATH: str | None = "/ngen-app/bin/bin_mounted/ngen_forcing_vers.json"
+SCRATCH_DIR_OVERRIDE: str | None = None
+INPUT_FORCING_DIRS_OVERRIDE_ROOT: str | None = None
+FORCING_PRODUCT_VERSIONS_PATH: str | None = None
+# SCRATCH_DIR_OVERRIDE: str | None = "/foo/bar/scratch"
+# INPUT_FORCING_DIRS_OVERRIDE_ROOT: str | None = "/foo/bar/forcing_input"
+# FORCING_PRODUCT_VERSIONS_PATH: str | None = "/ngen-app/bin/bin_mounted/ngen_forcing_vers.json"
 ### Parsing the json file if provided
 if FORCING_PRODUCT_VERSIONS_PATH is not None:
     with open(FORCING_PRODUCT_VERSIONS_PATH, "r") as f:
