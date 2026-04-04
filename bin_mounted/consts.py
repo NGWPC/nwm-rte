@@ -1,12 +1,11 @@
 from datetime import datetime, timedelta
+import json
+import os
 
 from calib.strategy import (
     Objective as CalObjective,
     Algorithm as CalOptimizationAlgo,
 )
-
-
-DIR_FORCING_RAW_INPUT = "/ngen-app/data/raw_input"
 
 
 ### .config section [Forcing]
@@ -20,6 +19,7 @@ CSV_FORCING_DIR_FORMAT = "/s3/ngwpc-forcing/aorc_2.2/{global_domain}/Gage_{gage_
 # For BMI forcing
 FORCING_TEMPLATE_DIR = "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
 FORCING_ROOT_DIR = "/ngen-app/data"
+DIR_FORCING_RAW_INPUT = os.path.join(FORCING_ROOT_DIR, "raw_input")
 DT_START_FORECAST = datetime(year=2025, month=9, day=15, hour=0, minute=0, second=0)
 DT_START_COLDSTART = DT_START_FORECAST - timedelta(days=2)
 DT_END_COLDSTART = DT_START_FORECAST
@@ -148,5 +148,18 @@ SRC_LOG_CONFIG_JSON = "/ngen-app/bin/bin_mounted/ngen_logging.json"
 RTE_NGEN_LOG_BEHAVIOR_KEY = "NGEN_LOG_TO_RTE"
 # Must match EWTS, nwm-cal-mgr, and nwm-fcst-mgr
 NGEN_LOG_DIR_KEY = "NGEN_RESULTS_DIR"
-
 NGEN_STDOUT_STDERR_LOG_FILE_BASENAME = "ngen_stdout_stderr.log"
+
+### These for WCOSS paths
+# SCRATCH_DIR_OVERRIDE: str | None = None
+# INPUT_FORCING_DIRS_OVERRIDE_ROOT: str | None = None
+# FORCING_PRODUCT_VERSIONS_PATH: str | None = None
+SCRATCH_DIR_OVERRIDE: str | None = "/foo/bar/scratch"
+INPUT_FORCING_DIRS_OVERRIDE_ROOT: str | None = "/foo/bar/forcing_input"
+FORCING_PRODUCT_VERSIONS_PATH: str | None = "/ngen-app/bin/bin_mounted/ngen_forcing_vers.json"
+### Parsing the json file if provided
+if FORCING_PRODUCT_VERSIONS_PATH is not None:
+    with open(FORCING_PRODUCT_VERSIONS_PATH, "r") as f:
+        FORCING_PRODUCT_VERSIONS_DICT = json.load(f)
+else:
+    FORCING_PRODUCT_VERSIONS_DICT = None
