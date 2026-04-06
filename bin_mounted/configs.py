@@ -116,8 +116,6 @@ class RTEDefaultConfig(BaseModel):
     # Set after init
     gage_id: str = Field(init=False, default=None)
     gage_vintage: str = Field(init=False, default=None)
-    obs_dir: str | None = Field(init=False, default=None)
-    nwmretro_file: str | None = Field(init=False, default=None)
     realtime_mode: bool = Field(init=False, default=None)
 
     # Other derived attrs (not passed to __init__)
@@ -136,12 +134,6 @@ class RTEDefaultConfig(BaseModel):
 
         self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
             self.gage_id__gage_vintage
-        )
-        errors.extend(errors_extend)
-
-        self.obs_dir, self.nwmretro_file, errors_extend = get_data_paths_for_lstm(
-            self.global_domain,
-            self.gage_id,
         )
         errors.extend(errors_extend)
 
@@ -225,8 +217,6 @@ class RTEDefaultConfig(BaseModel):
                     **(
                         c.DATAFILE_LIBS
                         | {
-                            "obs_dir": self.obs_dir,
-                            "nwmretro_file": self.nwmretro_file,
                             "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{self.global_domain}/{self.gage_id}/GEOPACKAGE/USGS/{self.gage_vintage}/gauge_{self.gage_id}.gpkg",
                         }
                     ),
