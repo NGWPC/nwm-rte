@@ -12,6 +12,12 @@ import pandas as pd
 
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
+from mswm.utils import settings as mswm_settings
+
+
+def datetime_type(datetime_str) -> datetime:
+    """Helper function for munging CLI string arguments into datetime type."""
+    return datetime.strptime(datetime_str, mswm_settings.DEFAULT_DATETIME_FORMAT)
 
 
 def configure_ngen_log(fallback_log_dir: str | pathlib.Path, description: str) -> None:

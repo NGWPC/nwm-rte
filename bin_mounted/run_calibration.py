@@ -48,6 +48,7 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
         windows=windows,
         obs_dir=cfg.obs_dir,
         nwmretro_file=cfg.nwmretro_file,
+        run_type="calibration",
     )
     assert (
         len(all_config_overrides) == 1
@@ -56,26 +57,32 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
 
     rb_kwargs = {"config_overrides": config_overrides}
     rb = RealizationBuilder(**rb_kwargs)
-    rb.build_calib_realization()
-    configure_ngen_log(rb.work_dir, "cal")
 
+    if cfg.forcing_source not in c.CALIB_FORCING_CONFIGURATION_TYPES:
+        raise ValueError(
+            f"cfg.default_realization = {cfg.default_realization} (calibration), but cfg.forcing_source {cfg.forcing_source} not in c.CALIB_FORCING_CONFIGURATION_TYPES {c.CALIB_FORCING_CONFIGURATION_TYPES}"
+        )
+    rb.build_calib_realization()
     log_path = get_calibration_log_file_overwrite_path(rb)
     cmd = [
         "calibration",
         str(rb.calib_config_file),
         "--log_path_overwrite",
         log_path,
-        # "--worker_name",
-        # "000test",
     ]
+    if cfg.worker_name:
+        cmd.extend(["--worker_name", cfg.worker_name])
+    cwd = None
+    msg_suffix = f" Log path: {log_path}"
 
+    configure_ngen_log(rb.work_dir, "cal")
     print(
-        f"\n\nStarting calibration with configuration: {cfg.model_dump_json(indent=2)}\nand logging to: {log_path}\n\nvia command args: {cmd}"
+        f"\n\nStarting calibration with configuration: {cfg.model_dump_json(indent=2)}\n\nvia command args: {cmd} with cwd={cwd}.{msg_suffix}"
     )
     start = time.perf_counter()
-    proc = subprocess.run(cmd, check=False)
+    proc = subprocess.run(cmd, check=False, cwd=cwd)
     print(
-        f"\nFinished calibration with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nLog path: {log_path}\nReturn code {proc.returncode}."
+        f"\nFinished calibration with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nReturn code {proc.returncode}.\nCommand was: {cmd}, with cwd={cwd}.{msg_suffix}"
     )
     proc.check_returncode()
 
@@ -85,12 +92,13 @@ def main(cfg: RTECalibConfig):
         utils_testing_setup.delete_scratch_and_esmf_outputs(cfg)
     if cfg.delete_forcing_raw_input_first:
         utils_testing_setup.delete_forcing_raw_inputs()
-
     calibration__build_and_run(cfg)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="Script for building and running calibration realizations using historical / retrospective forcing."
+    )
     parser.add_argument(
         "-delscratch",
         "--delete_scratch_and_mesh_first",
@@ -173,7 +181,7 @@ if __name__ == "__main__":
         type=str,
         default=c.CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT,
         choices=c.CALIB_FORCING_CONFIGURATION_TYPES,
-        help=f"Source of forcing data. Default={c.CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT}",
+        help=f"Source of forcing data. Default={c.CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT}. Choices for calibration: {c.CALIB_FORCING_CONFIGURATION_TYPES}",
     )
     parser.add_argument(
         "-gdomain",
@@ -197,6 +205,12 @@ if __name__ == "__main__":
         type=str,
         default=c.FORCING_STATIC_DIR_DEFAULT,
         help=f"Directory for static forcing files, used when forcing_provider is 'bmi'. Default={c.FORCING_STATIC_DIR_DEFAULT}",
+    )
+    parser.add_argument(
+        "-wrkr",
+        "--worker_name",
+        type=str,
+        help="If provided, will be used as the worker name, instead of letting cal mgr choose a random worker name. Only allowed for Optimization Algorithm DDS, which uses single instances of ngen. Does not affect 'default' realization (which is not a calibration).",
     )
     args = parser.parse_args()
     cfg = RTECalibConfig(**vars(args))

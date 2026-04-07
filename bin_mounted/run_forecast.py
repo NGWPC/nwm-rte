@@ -1,15 +1,13 @@
-from datetime import datetime
 import functools
 import argparse
 
 from mswm.build_inputs import RealizationBuilder
-from mswm.utils import settings as mswm_settings
 from nwm_fcst_mgr.forecast import run_forecast as run_fcst
 
 import consts as c
 from configs import RTEForecastConfig
 import utils_testing_setup
-from utils import configure_ngen_log
+from utils import configure_ngen_log, datetime_type
 
 print = functools.partial(print, flush=True)
 
@@ -46,11 +44,6 @@ def build_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
             f"Expected partition file since cfg.nprocs > 1 ({cfg.nprocs}), but it is {repr(rb_fcst.part_file)}"
         )
     return rb_fcst
-
-
-def datetime_type(datetime_str) -> datetime:
-    """Helper function for munging CLI string arguments into datetime type."""
-    return datetime.strptime(datetime_str, mswm_settings.DEFAULT_DATETIME_FORMAT)
 
 
 def main(cfg: RTEForecastConfig):
