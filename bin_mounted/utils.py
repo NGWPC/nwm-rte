@@ -15,6 +15,23 @@ from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 from mswm.utils import settings as mswm_settings
 
 
+def make_symlink(link_path: str, target_path: str) -> None:
+    """Create a symlink"""
+    print(
+        f"Creating symlink, writing {repr(link_path)} to point to {repr(target_path)}"
+    )
+    if not os.path.exists(target_path):
+        raise FileNotFoundError(target_path)
+    os.makedirs(os.path.dirname(link_path), exist_ok=True)
+    os.symlink(target_path, link_path)
+
+
+def make_wcoss_path_symlinks() -> None:
+    """Create symlinks for various WCOSS paths"""
+    make_symlink(c.NGEN_BIN__LINK, c.NGEN_BIN__TARGET)
+    make_symlink(c.PARTITION_GENERATOR_BIN__LINK, c.PARTITION_GENERATOR_BIN__TARGET)
+
+
 def datetime_type(datetime_str) -> datetime:
     """Helper function for munging CLI string arguments into datetime type."""
     return datetime.strptime(datetime_str, mswm_settings.DEFAULT_DATETIME_FORMAT)

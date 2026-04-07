@@ -18,9 +18,7 @@ from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 from pydantic import BaseModel, ConfigDict, Field
 
 import consts as c
-
-
-from mswm.utils.input_configuration import ParallelConfig
+from utils import make_wcoss_path_symlinks
 
 
 @dataclass
@@ -98,7 +96,16 @@ class TestPaths:
         return f"{self.dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
 
 
-class RTEDefaultConfig(BaseModel):
+class RTESetup(BaseModel):
+    """Used to set up a RTE run. Triggers certain setup actions, such as creation of WCOSS-path symlinks.
+    Classes that inherit from this should call super().model_post_init(__context) inside their own
+    model_post_init() method, if they have that method also defined in the child."""
+
+    def model_post_init(self, __context) -> None:
+        make_wcoss_path_symlinks()
+
+
+class RTEDefaultConfig(RTESetup):
     """Configuration class for building and running one default realization
     (realtime forcing configuration or historical / retrospective forcing configuration)."""
 
@@ -125,6 +132,8 @@ class RTEDefaultConfig(BaseModel):
     realization_builder_kwargs: dict = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
+        super().model_post_init(__context)  # Call RTESetup's post init
+
         errors = []
 
         if (
@@ -233,7 +242,7 @@ class RTEDefaultConfig(BaseModel):
         return realization_kwargs
 
 
-class RTECalibConfig(BaseModel):
+class RTECalibConfig(RTESetup):
     """Configuration class for building and running one calibration realization."""
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
@@ -262,6 +271,8 @@ class RTECalibConfig(BaseModel):
     nwmretro_file: str | None = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
+        super().model_post_init(__context)  # Call RTESetup's post init
+
         errors = []
 
         self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
@@ -279,7 +290,7 @@ class RTECalibConfig(BaseModel):
             raise RuntimeError(errors)
 
 
-class RTEForecastConfig(BaseModel):
+class RTEForecastConfig(RTESetup):
     """Configuration class for building and running one forecast realization."""
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
@@ -310,6 +321,8 @@ class RTEForecastConfig(BaseModel):
     realization_builder_kwargs: dict = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
+        super().model_post_init(__context)  # Call RTESetup's post init
+
         self.run_dir_base = f"{c.DEFAULT_MAIN_DIR}/{self.objective_function.value}_{self.optimization_algorithm.value}/test_{self.forcing_provider}/{self.gage_id}"
         if not os.path.isdir(self.run_dir_base):
             msg = f"Not a directory: {repr(self.run_dir_base)}. Please review choices for objective function, optimization algorithm, and gage, which affect this path."
@@ -360,7 +373,7 @@ class RTEForecastConfig(BaseModel):
         return realization_kwargs
 
 
-class RTETestConfig(BaseModel):
+class RTETestConfig(RTESetup):
     """Configuration class for building and running a set of test realizations."""
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
@@ -393,6 +406,8 @@ class RTETestConfig(BaseModel):
     gage_vintage: str = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
+        super().model_post_init(__context)  # Call RTESetup's post init
+
         errors = []
 
         if self.quit_forecast_after_forcing_running:
@@ -462,8 +477,8 @@ def make_parallel_config(nprocs: int) -> ParallelConfig:
     """Build and return the ParallelConfig instance."""
     if nprocs and nprocs > 1:
         parallel = ParallelConfig(
-            parallel_ngen_exe="/ngen-app/ngen/cmake_build/ngen",
-            partition_generator_exe="/ngen-app/ngen/cmake_build/partitionGenerator",
+            parallel_ngen_exe=c.NGEN_BIN__LINK,
+            partition_generator_exe=c.PARTITION_GENERATOR_BIN__LINK,
             nprocs=nprocs,
         )
     else:

@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import getpass
 import json
 import os
 
@@ -118,6 +119,20 @@ CALIB_GLOBAL_DOMAIN_CHOICES = [
 
 FORCING_STATIC_DIR_DEFAULT = "/ngen-app/data"
 
+### This is where the ngen Dockerfile writes its binary executables
+NGEN_BIN__TARGET = f"{NGEN_DIR}/cmake_build/ngen"
+PARTITION_GENERATOR_BIN__TARGET = f"{NGEN_DIR}/cmake_build/partitionGenerator"
+### This is where we create symlinks that point to the above paths
+WCOSS_LOG_NAME = getpass.getuser()
+WCOSS_NWM_VERS = "vX.Y.Z"
+# Pattern from: https://www.nco.ncep.noaa.gov/idsb/implementation_standards/ImplementationStandards.v11.0.0.pdf
+NGEN_EXE_DIR = (
+    f"/lfs/h1/owp/nwm/noscrub/{WCOSS_LOG_NAME}/test/packages/nwm.{WCOSS_NWM_VERS}/exec"
+)
+NGEN_BIN__LINK = f"{NGEN_EXE_DIR}/ngen"
+PARTITION_GENERATOR_BIN__LINK = f"{NGEN_EXE_DIR}/partitionGenerator"
+
+
 ### For construction of DataFileConfig
 ### NOTE: obs_dir, nwmretro_file, and hydrofab_file are dynamic and added on the fly
 DATAFILE_LIBS = {
@@ -128,7 +143,7 @@ DATAFILE_LIBS = {
     "sac_sma_parameter_dir": HYDROFABRIC_DIR,
     "snow_17_parameter_dir": HYDROFABRIC_DIR,
     "attributes_file": f"{DEFAULT_MAIN_DIR}/data/conus_model_attributes.parquet",
-    "ngen_exe_file": f"{NGEN_DIR}/cmake_build/ngen",
+    "ngen_exe_file": NGEN_BIN__LINK,
     "sloth_lib": f"{NGEN_DIR}/extern/sloth/cmake_build/libslothmodel.so",
     "cfe_lib": f"{NGEN_DIR}/extern/cfe/cmake_build/libcfebmi.so",
     "lasam_lib": f"{NGEN_DIR}/extern/LASAM/cmake_build/liblasambmi.so",
