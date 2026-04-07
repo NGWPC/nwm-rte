@@ -637,16 +637,3 @@ def find_obs_dir(global_domain: str, gage_id: str) -> str:
         )
     obs_dir = os.path.dirname(candidate_csvs[0])
     return obs_dir
-
-
-def make_parallel_config(nprocs: int) -> ParallelConfig:
-    """Build and return the ParallelConfig instance."""
-    if nprocs and nprocs > 1:
-        parallel = ParallelConfig(
-            parallel_ngen_exe="/ngen-app/ngen/cmake_build/ngen",
-            partition_generator_exe="/ngen-app/ngen/cmake_build/partitionGenerator",
-            nprocs=nprocs,
-        )
-    else:
-        parallel = ParallelConfig(nprocs=nprocs)
-    return parallel
