@@ -1,7 +1,13 @@
 {
     "name": "ngen_rte_pytest",
-    // This gets overridden during GHA workflow
-    "image": "ngen_rte:ghcr",
+    // "runArgs": [
+    //     "--pull",
+    //     "never"
+    // ],
+    // Use OS env var TARGET_IMAGE_NAME if it is set, otherwise default to "ngen_rte_ghcr".
+    // GHA workflow leverages OS env var TARGET_IMAGE_NAME.
+    // "image": "ngen_rte:ghcr",
+    "image": "${localEnv:TARGET_IMAGE_NAME:ngen_rte_ghcr}",
     "customizations": {
         "vscode": {
             "extensions": [

@@ -306,9 +306,13 @@ jobs:
 
       - name: Run pytest in devcontainer
         uses: devcontainers/ci@v0.3
+        env:
+          TARGET_IMAGE_NAME: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
         with:
           configFile: .devcontainer/pytest/devcontainer.json
-          imageName: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
+          ### NOTE: using environment variables to override "image" in devcontainer.json,
+          ### rather than using "imageName" here.
+          # imageName: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
           runCmd: pytest
 
   # run container security scan using Trivy
