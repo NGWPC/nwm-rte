@@ -7,6 +7,49 @@ repo_name: NGWPC/nwm-rte
 repo_url: https://github.com/NGWPC/nwm-rte
 edit_uri: ""
 
+nav:
+- Home: index.md  ### Symlink to README.md
+- License: LICENSE
+
+plugins:
+- search
+# - mike:
+#     alias_type: symlink
+#     canonical_version: stable
+- redirects:
+    redirect_maps:
+      'index.md': 'UNDER_CONSTRUCTION.md'
+- mkdocstrings:
+    default_handler: python
+    handlers:
+      python:
+        paths:
+        - bin_mounted
+        options:
+          docstring_style: google
+          docstring_section_style: spacy
+          show_source: true
+          show_root_heading: true
+          show_root_full_path: false
+          show_symbol_type_heading: true
+          show_symbol_type_toc: true
+          members_order: source
+          merge_init_into_class: true
+          separate_signature: true
+          signature_crossrefs: true
+
+# exclude_docs: |
+
+# hooks:
+# - docs/hooks.py
+
+extra:
+  # version:
+  #   provider: mike
+  social:
+  - icon: fontawesome/brands/github
+    link: https://github.com/NGWPC/nwm-rte
+
 theme:
   name: materialx
   topbar_style: primary
@@ -59,35 +102,6 @@ theme:
   - toc.follow
   - toc.integrate
 
-# exclude_docs: |
-
-# hooks:
-# - docs/hooks.py
-
-plugins:
-- search
-# - mike:
-#     alias_type: symlink
-#     canonical_version: stable
-- mkdocstrings:
-    default_handler: python
-    handlers:
-      python:
-        paths:
-        - bin_mounted
-        options:
-          docstring_style: google
-          docstring_section_style: spacy
-          show_source: true
-          show_root_heading: true
-          show_root_full_path: false
-          show_symbol_type_heading: true
-          show_symbol_type_toc: true
-          members_order: source
-          merge_init_into_class: true
-          separate_signature: true
-          signature_crossrefs: true
-
 markdown_extensions:
 - abbr
 - admonition
@@ -130,15 +144,3 @@ markdown_extensions:
 - pymdownx.tasklist:
     custom_checkbox: true
 - pymdownx.tilde
-
-extra:
-  # version:
-  #   provider: mike
-  social:
-  - icon: fontawesome/brands/github
-    link: https://github.com/NGWPC/nwm-rte
-
-nav:
-### Symlink to README.md
-- Home: index.md
-- License: LICENSE
