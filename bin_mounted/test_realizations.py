@@ -1,6 +1,7 @@
 """Tests for building and running ngen realizations."""
 
 import logging
+import os
 
 from mswm.build_inputs import RealizationBuilder
 
@@ -20,7 +21,11 @@ def test_run_default_realization():
 
     logging.info(f"Reading: {output_ngen_stdout_stderr_log}")
     with open(output_ngen_stdout_stderr_log) as f:
-        log_lines = f.read().splitlines()
+        log_content = f.read()
+        log_lines = log_content.splitlines()
+
+    for i, line in enumerate(log_lines):
+        logging.info(f"Line {i} of {repr(os.path.basename(output_ngen_stdout_stderr_log))}: {line}")
 
     critical_lines = [x for x in log_lines if "CRITICAL" in x]
     fatal_lines = [x for x in log_lines if "FATAL" in x]
