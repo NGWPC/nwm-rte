@@ -4,4 +4,8 @@
         <loc>https://NGWPC.github.io/nwm-rte/</loc>
         <changefreq>daily</changefreq>
     </url>
+    <url>
+        <loc>https://NGWPC.github.io/nwm-rte/UNDER_CONSTRUCTION/</loc>
+        <changefreq>daily</changefreq>
+    </url>
 </urlset>
