@@ -7,6 +7,8 @@ repo_name: NGWPC/nwm-rte
 repo_url: https://github.com/NGWPC/nwm-rte
 edit_uri: ""
 
+copyright: Copyright &copy; 2025 Raytheon Company. BSD-2-Clause License.
+
 nav:
 - Home: index.md  ### Symlink to README.md
 - License: LICENSE
