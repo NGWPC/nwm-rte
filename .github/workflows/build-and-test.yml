@@ -288,6 +288,7 @@ jobs:
           mkdir -p "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh"
           mkdir -p "${RUN_NGEN_ROOT__HOST}/data/scratch"
           mkdir -p docker_logs/run
+
       - name: Run RTE in noop mode
         env:
           TARGET_IMAGE_NAME: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
@@ -296,13 +297,19 @@ jobs:
           source ./run.sh
           # Call docker_run with --noop flag
           docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --noop
-      - name: Verify success
-        run: |
+          # Report out
           echo "Build and noop test completed successfully"
           echo "The container was able to:"
           echo "  1. Build successfully with all dependencies"
           echo "  2. Import all required Python libraries"
           echo "  3. Execute the workflow script in noop mode"
+
+      - name: Run pytest in devcontainer
+        uses: devcontainers/ci@v0.3
+        with:
+          configFile: .devcontainer/pytest/devcontainer.json
+          imageName: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
+          runCmd: pytest
 
   # run container security scan using Trivy
   container-scanning:
