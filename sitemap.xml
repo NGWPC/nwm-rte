@@ -5,6 +5,10 @@
         <changefreq>daily</changefreq>
     </url>
     <url>
+        <loc>https://NGWPC.github.io/nwm-rte/LICENSE/</loc>
+        <changefreq>daily</changefreq>
+    </url>
+    <url>
         <loc>https://NGWPC.github.io/nwm-rte/UNDER_CONSTRUCTION/</loc>
         <changefreq>daily</changefreq>
     </url>
