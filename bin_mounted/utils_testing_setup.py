@@ -55,7 +55,7 @@ def assert_paths__core(cfg: RTETestConfig) -> None:
     """Assert that various paths exist"""
     file_paths = [
         f"/s3/ngwpc-hydrofabric/2.2/{cfg.global_domain}/{cfg.gage_id}/GEOPACKAGE/USGS/{cfg.gage_vintage}/gauge_{cfg.gage_id}.gpkg",
-        "/ngen-app/ngen/cmake_build/ngen",
+        c.NGEN_BIN__LINK,
         "/ngen-app/ngen/extern/sloth/cmake_build/libslothmodel.so",
         "/ngen-app/ngen/extern/cfe/cmake_build/libcfebmi.so",
         "/ngen-app/ngen/extern/LASAM/cmake_build/liblasambmi.so",

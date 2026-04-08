@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
+import getpass
+import json
+import os
 
 from calib.strategy import (
     Objective as CalObjective,
     Algorithm as CalOptimizationAlgo,
 )
-
-
-DIR_FORCING_RAW_INPUT = "/ngen-app/data/raw_input"
 
 
 ### .config section [Forcing]
@@ -20,6 +20,7 @@ CSV_FORCING_DIR_FORMAT = "/s3/ngwpc-forcing/aorc_2.2/{global_domain}/Gage_{gage_
 # For BMI forcing
 FORCING_TEMPLATE_DIR = "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
 FORCING_ROOT_DIR = "/ngen-app/data"
+DIR_FORCING_RAW_INPUT = os.path.join(FORCING_ROOT_DIR, "raw_input")
 DT_START_FORECAST = datetime(year=2025, month=9, day=15, hour=0, minute=0, second=0)
 DT_START_COLDSTART = DT_START_FORECAST - timedelta(days=2)
 DT_END_COLDSTART = DT_START_FORECAST
@@ -118,6 +119,20 @@ CALIB_GLOBAL_DOMAIN_CHOICES = [
 
 FORCING_STATIC_DIR_DEFAULT = "/ngen-app/data"
 
+### This is where the ngen Dockerfile writes its binary executables
+NGEN_BIN__TARGET = f"{NGEN_DIR}/cmake_build/ngen"
+PARTITION_GENERATOR_BIN__TARGET = f"{NGEN_DIR}/cmake_build/partitionGenerator"
+### This is where we create symlinks that point to the above paths
+WCOSS_LOG_NAME = getpass.getuser()
+WCOSS_NWM_VERS = "vX.Y.Z"
+# Pattern from: https://www.nco.ncep.noaa.gov/idsb/implementation_standards/ImplementationStandards.v11.0.0.pdf
+NGEN_EXE_DIR = (
+    f"/lfs/h1/owp/nwm/noscrub/{WCOSS_LOG_NAME}/test/packages/nwm.{WCOSS_NWM_VERS}/exec"
+)
+NGEN_BIN__LINK = f"{NGEN_EXE_DIR}/ngen"
+PARTITION_GENERATOR_BIN__LINK = f"{NGEN_EXE_DIR}/partitionGenerator"
+
+
 ### For construction of DataFileConfig
 ### NOTE: obs_dir, nwmretro_file, and hydrofab_file are dynamic and added on the fly
 DATAFILE_LIBS = {
@@ -128,7 +143,7 @@ DATAFILE_LIBS = {
     "sac_sma_parameter_dir": HYDROFABRIC_DIR,
     "snow_17_parameter_dir": HYDROFABRIC_DIR,
     "attributes_file": f"{DEFAULT_MAIN_DIR}/data/conus_model_attributes.parquet",
-    "ngen_exe_file": f"{NGEN_DIR}/cmake_build/ngen",
+    "ngen_exe_file": NGEN_BIN__LINK,
     "sloth_lib": f"{NGEN_DIR}/extern/sloth/cmake_build/libslothmodel.so",
     "cfe_lib": f"{NGEN_DIR}/extern/cfe/cmake_build/libcfebmi.so",
     "lasam_lib": f"{NGEN_DIR}/extern/LASAM/cmake_build/liblasambmi.so",
@@ -148,5 +163,18 @@ SRC_LOG_CONFIG_JSON = "/ngen-app/bin/bin_mounted/ngen_logging.json"
 RTE_NGEN_LOG_BEHAVIOR_KEY = "NGEN_LOG_TO_RTE"
 # Must match EWTS, nwm-cal-mgr, and nwm-fcst-mgr
 NGEN_LOG_DIR_KEY = "NGEN_RESULTS_DIR"
-
 NGEN_STDOUT_STDERR_LOG_FILE_BASENAME = "ngen_stdout_stderr.log"
+
+### These for WCOSS paths
+SCRATCH_DIR_OVERRIDE: str | None = None
+INPUT_FORCING_DIRS_OVERRIDE_ROOT: str | None = None
+FORCING_PRODUCT_VERSIONS_PATH: str | None = None
+# SCRATCH_DIR_OVERRIDE: str | None = "/foo/bar/scratch"
+# INPUT_FORCING_DIRS_OVERRIDE_ROOT: str | None = "/foo/bar/forcing_input"
+# FORCING_PRODUCT_VERSIONS_PATH: str | None = "/ngen-app/bin/bin_mounted/ngen_forcing_vers.json"
+### Parsing the json file if provided
+if FORCING_PRODUCT_VERSIONS_PATH is not None:
+    with open(FORCING_PRODUCT_VERSIONS_PATH, "r") as f:
+        FORCING_PRODUCT_VERSIONS_DICT = json.load(f)
+else:
+    FORCING_PRODUCT_VERSIONS_DICT = None
