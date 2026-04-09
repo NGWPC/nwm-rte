@@ -309,6 +309,10 @@ class RTEForecastConfig(RTESetup):
     forcing_configuration: str
     fcst_run_name: str
     nprocs: int = Field(ge=1)
+    # For lagged ensemble
+    le__open_loop_state__closed_loop_state: list[str] | None = Field(
+        min_length=2, max_length=2
+    )
 
     # Derived paths (not passed to __init__)
     run_dir_base: str = Field(init=False, default=None)
@@ -316,6 +320,10 @@ class RTEForecastConfig(RTESetup):
     run_dir_output: str = Field(init=False, default=None)
     ngen_log_file: str = Field(init=False, default=None)
     valid_best_yaml: str = Field(init=False, default=None)
+    # For lagged ensemble
+    lagged_ensemble: bool | None = Field(init=False, default=False)
+    le__open_loop_state: str | None = Field(init=False, default=None)
+    le__closed_loop_state: str | None = Field(init=False, default=None)
 
     # Other derived attrs (not passed to __init__)
     realization_builder_kwargs: dict = Field(init=False, default=None)
@@ -333,10 +341,11 @@ class RTEForecastConfig(RTESetup):
         self.ngen_log_file = f"{self.run_dir_base}/logs/ngen.log"
         self.valid_best_yaml = f"{self.run_dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
 
-        self.realization_builder_kwargs = self._make_realization_builder_kwargs()
+        self._set_lagged_ensemble_args()
+        self._make_realization_builder_kwargs()
 
-    def _make_realization_builder_kwargs(self) -> dict:
-        """Build and return a dictionary for creating a RealizationBuilder instance."""
+    def _make_realization_builder_kwargs(self) -> None:
+        """Build and set a dictionary for creating a RealizationBuilder instance."""
         fpp = ForcingProviderPaths(
             forcing_provider=self.forcing_provider,
             global_domain=self.global_domain,
@@ -370,7 +379,24 @@ class RTEForecastConfig(RTESetup):
                 Parallel=make_parallel_config(self.nprocs),
             ),
         }
-        return realization_kwargs
+        self.realization_builder_kwargs = realization_kwargs
+
+    def _set_lagged_ensemble_args(self):
+        """Break up the multipart arg into 2 distinct args and set them."""
+        if self.le__open_loop_state__closed_loop_state:
+            open_ls, closed_ls = self.le__open_loop_state__closed_loop_state
+            self.lagged_ensemble = True
+            self.le__open_loop_state = open_ls if open_ls.strip() else None
+            self.le__closed_loop_state = closed_ls if closed_ls.strip() else None
+        else:
+            self.lagged_ensemble = False
+            self.le__open_loop_state = None
+            self.le__closed_loop_state = None
+
+        if self.le__open_loop_state or self.le__closed_loop_state:
+            raise NotImplementedError(
+                "Lagged ensemble args for Open Loop State and Closed Loop State are not yet implemented in nwm-rte (should be provided as empty strings for now)"
+            )
 
 
 class RTETestConfig(RTESetup):

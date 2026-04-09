@@ -20,5 +20,7 @@ docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -dt "2025-09-15 00
 # docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_ana" -fconfig standard_ana
 
 # docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr" -fconfig medium_range
+### Lagged ensemble
+docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -n 2 -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr_le" -fconfig medium_range -le "" ""
 
 exit 0
