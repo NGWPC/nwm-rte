@@ -19,6 +19,7 @@ optional-dependencies.docs = [
   "mkdocs-materialx>=10.1.1",
   "mkdocs-redirects",
   "mkdocstrings[python]>=0.27",
+  "mkdocstrings-shell",
   "ruff",
 ]
 

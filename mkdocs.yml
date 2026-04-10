@@ -11,6 +11,17 @@ copyright: Copyright &copy; 2025-2026 Raytheon Company. BSD-2-Clause License.
 
 nav:
 - Home: index.md  ### Symlink to README.md
+- Build Architecture: build-architecture.md
+- Getting Started: getting-started.md
+- User Guide:
+  - Configuration: user-guide/configuration.md
+  - Setup: user-guide/setup.md
+  - Building: user-guide/building.md
+  - Running: user-guide/running.md
+  - Caveats: user-guide/caveats.md
+- Reference:
+  - Shell Reference: reference/shell.md
+  - Python Reference: reference/python.md
 - License: LICENSE.md
 
 plugins:
@@ -32,13 +43,14 @@ plugins:
           docstring_section_style: spacy
           show_source: true
           show_root_heading: true
-          show_root_full_path: false
+          show_root_full_path: true
           show_symbol_type_heading: true
           show_symbol_type_toc: true
           members_order: source
-          merge_init_into_class: true
+          merge_init_into_class: false
           separate_signature: true
           signature_crossrefs: true
+          show_signature_annotations: true
 
 # exclude_docs: |
 
