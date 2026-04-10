@@ -197,10 +197,10 @@ if __name__ == "__main__":
         dest="le__open_loop_state__closed_loop_state",
         type=str,
         nargs=2,
-        help="""If provided, a lagged ensemble will be performed. Only for the regular forecast (non-cold-start).
-                This takes 2 optional arguments: open_loop_state, closed_loop_state.
-                Each optional argument is a file path. See nwm-fcst-mgr function `run_lagged_ensemble` for details.
-                To run a lagged ensemble without these args, provide them as empty strings e.g. `-le '' ''`.""",
+        help="""If provided, a lagged ensemble will be performed. Not applicable to the cold-start realization.
+                This argument has 2 positional parts, which are optional: open_loop_state, closed_loop_state.
+                To run a lagged ensemble without the optional parts, provide them as empty strings e.g. `-le '' ''`.
+                Each optional part is a file path. See nwm-fcst-mgr function `run_lagged_ensemble` for details.""",
     )
     parser.add_argument(
         "-fconfig",
