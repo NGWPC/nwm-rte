@@ -120,7 +120,8 @@ def main(cfg: RTEForecastConfig):
         run_realization(rb_fcst, cfg)
 
 
-if __name__ == "__main__":
+def cli_arg_parser() -> argparse.ArgumentParser:
+    """Build and return the CLI argument parser"""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-delscratch",
@@ -223,6 +224,12 @@ if __name__ == "__main__":
         default=c.DEFAULT_NPROCS,
         help=f"""Replaces default value for nprocs ({repr(c.DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance that is passed to MSWM.""",
     )
+
+    return parser
+
+
+if __name__ == "__main__":
+    parser = cli_arg_parser()
     args = parser.parse_args()
     cfg = RTEForecastConfig(**vars(args))
     main(cfg)
