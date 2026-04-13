@@ -20,8 +20,9 @@ nav:
   - Running: user-guide/running.md
   - Caveats: user-guide/caveats.md
 - Reference:
-  - Shell Reference: reference/shell.md
-  - Python Reference: reference/python.md
+  - Reference Home: reference/home.md
+  - Shell: reference/shell.md
+  - Python: reference/python.md
 - Contributing: CONTRIBUTING.md
 - Terms: TERMS.md
 - License: LICENSE.md

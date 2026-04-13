@@ -1,11 +1,11 @@
-# Shell Code Reference
+# Shell Reference
 
-# Configuration
+## Configuration
 
 ::: config.bashrc
     handler: shell
 
-# Setup
+## Setup
 
 ::: setup_clone_repos.sh
     handler: shell
@@ -16,17 +16,17 @@
 ::: setup_data_one_gage.sh
     handler: shell
 
-# Build
+## Build
 
 ::: ngen_rte_build.sh
     handler: shell
 
-# Enter the Container Interactively
+## Enter the Container Interactively
 
 ::: run.sh
     handler: shell
 
-# Run Forecasts and Calibrations
+## Run Forecasts and Calibrations
 
 ::: run_default.sh
     handler: shell
@@ -40,7 +40,7 @@
 ::: run_suite.sh
     handler: shell
 
-# Run Regionalization Workflows
+## Run Regionalization Workflows
 
 ::: run_region.sh
     handler: shell
@@ -48,7 +48,7 @@
 ::: sbatch_run_region.sh
     handler: shell
 
-# Additional Utiltities (called by others)
+## Additional Utiltities (called by others)
 
 ::: install_debuggers.sh
     handler: shell
