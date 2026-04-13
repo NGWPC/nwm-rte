@@ -30,3 +30,18 @@ unit tests that validate implemented features and the presence or lack of defect
 Additionally, the code should follow any stylistic and architectural guidelines
 prescribed by the project. In the absence of such guidelines, mimic the styles
 and patterns in the existing code-base.
+
+### Code Formatting and Linting
+
+#### Python Code
+
+For auto-formatting Python code, please use `black` with default line length (88), or equivalent such as `Ruff`.
+
+For linting, please follow PEP 8 guidelines, using `Ruff` or equivalent.
+
+Please include type hints and docstrings on all classes, methods, and functions.  For docstring formatting, please follow the `numpy` style.  `MkDocs` has been configured to parse this style via the `mkdocstrings` package.
+
+
+#### Shell Code
+
+Please follow the `shellman` style for in-file documentation. `MkDocs` has been configured to parse this style of docstring via the `mkdocstrings-shell` package.
