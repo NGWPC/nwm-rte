@@ -1,6 +1,6 @@
 # Reference
 
-This contains references for the Python and Shell aspects of the codebase.
+This contains references for the [Python](python.md) and [Shell](shell.md) aspects of the codebase.
 
 For Python scripts that have a command-line interface (CLI), their --help text is provided.
 

@@ -40,18 +40,19 @@
 ::: run_suite.sh
     handler: shell
 
+## Additional Utiltities
+
+::: install_debuggers.sh
+    handler: shell
+
+::: install_package.sh
+    handler: shell
+
+
 ## Run Regionalization Workflows
 
 ::: run_region.sh
     handler: shell
 
 ::: sbatch_run_region.sh
-    handler: shell
-
-## Additional Utiltities (called by others)
-
-::: install_debuggers.sh
-    handler: shell
-
-::: install_package.sh
     handler: shell
