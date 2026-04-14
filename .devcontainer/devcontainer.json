@@ -48,6 +48,8 @@
         "source=${localWorkspaceFolder}/../run_ngen/data/ngen-static-files,target=/ngencerf/data/ngen-static-files,type=bind",
         //////
         ////// (Optional) for local code of component packages, allowing convenient debugger interaction ("editable" pip installs, VS Code editor breakpoints, etc)
+        // ngen
+        "source=${localWorkspaceFolder}/../ngen,target=/workspaces/nwm-rte/src/ngen,type=bind",
         // Forcing
         "source=${localWorkspaceFolder}/../ngen-forcing,target=/workspaces/nwm-rte/src/ngen-forcing,type=bind",
         // Forecast Manager
