@@ -4,6 +4,7 @@
         // This is used by a compound debugger configuration.
         // Python debuggers (debugpy) sleep before trying to attach to the MPI ranks (via C++ debugger cppdbg).
         // From: https://gist.github.com/xangma/b2bc310e595f7abf61ff1e19f3fd63f5
+        // RTE must be built with INSTALL_DEBUGGERS=YES in config.bashrc for this to work
         {
             "label": "sleep",
             "type": "shell",
