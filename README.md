@@ -36,9 +36,9 @@ The OS environment variable `NGEN_RESULTS_DIR` dictates where this json file sho
 
 RTE exposes an optional variable `NGEN_LOG_TO_RTE` in `config.bashrc`.
 
-When this is set to `true` then RTE will set `NGEN_RESULTS_DIR` before it calls the calibration manager module or the forecast manager module. It will set it to a location within the RTE repository directory: `ngen_logs/{YYYYMMDD_HHMMSS_FFFFFF}_{description}/` where the time is the current UTC time to microseconds, and the description is defined ad hoc.
+When this is set to `YES` then RTE will set `NGEN_RESULTS_DIR` before it calls the calibration manager module or the forecast manager module. It will set it to a location within the RTE repository directory: `ngen_logs/{YYYYMMDD_HHMMSS_FFFFFF}_{description}/` where the time is the current UTC time to microseconds, and the description is defined ad hoc.
 
-When `NGEN_LOG_TO_RTE` is `false` or unset, this will cause RTE to set `NGEN_RESULTS_DIR` to a path within the realization's directory, after building the realization. This mimics the behavior of the calibration manager module and the forecast manager module when those are ran from the alternate ngenCERF environment (those modules set `NGEN_RESULTS_DIR` automatically if it is not set).
+When `NGEN_LOG_TO_RTE` is `NO` or unset, this will cause RTE to set `NGEN_RESULTS_DIR` to a path within the realization's directory, after building the realization. This mimics the behavior of the calibration manager module and the forecast manager module when those are ran from the alternate ngenCERF environment (those modules set `NGEN_RESULTS_DIR` automatically if it is not set).
 
 For RTE, in all cases, RTE copies `./bin_mounted/ngen_logging.json` into `NGEN_RESULTS_DIR`, after it defines `NGEN_RESULTS_DIR` and before starting ngen.
 

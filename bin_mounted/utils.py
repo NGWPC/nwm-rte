@@ -63,13 +63,13 @@ def configure_ngen_log(fallback_log_dir: str | pathlib.Path, description: str) -
 
     # Decide the dir
     setting_val = os.environ.get(c.RTE_NGEN_LOG_BEHAVIOR_KEY, "").lower().strip()
-    if setting_val == "true":
+    if setting_val == "yes":
         log_dir = os.path.join("/ngen-app/rte_ngen_logs", f"{now_str}_{description}")
-    elif setting_val == "false":
+    elif setting_val == "no":
         log_dir = fallback_log_dir
     else:
         raise ValueError(
-            f"Invalid value for key {repr(c.RTE_NGEN_LOG_BEHAVIOR_KEY)}: {repr(setting_val)}"
+            f"Invalid value for key {repr(c.RTE_NGEN_LOG_BEHAVIOR_KEY)}: {repr(setting_val)} (expected YES or NO)"
         )
 
     # Make the dir, copy the log json config into it, and set the OS env var for ngen to be able to find it.
