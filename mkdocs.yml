@@ -42,7 +42,7 @@ plugins:
         paths:
         - bin_mounted
         options:
-          docstring_style: google
+          docstring_style: numpy
           docstring_section_style: spacy
           show_source: true
           show_root_heading: true
