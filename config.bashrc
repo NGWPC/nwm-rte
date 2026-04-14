@@ -54,11 +54,11 @@ REPO_TAG_MSW_MGR=${REPO_TAG_MSW_MGR:-"development"}
 ## \env REPO_TAG_CAL_MGR Source for `nwm-cal-mgr`.
 REPO_TAG_CAL_MGR=${REPO_TAG_CAL_MGR:-"development"}
 ## \env REPO_TAG_REGION_MGR Source for `nwm-region-mgr`.
-REPO_TAG_REGION_MGR=${REPO_TAG_REGION_MGR:-""}
+REPO_TAG_REGION_MGR=${REPO_TAG_REGION_MGR:-"development"}
 ## \env REPO_TAG_DATA_ASSIM_ENGINE Source for `nwm-data-assimilation`.
-REPO_TAG_DATA_ASSIM_ENGINE=${REPO_TAG_DATA_ASSIM_ENGINE:-""}
+REPO_TAG_DATA_ASSIM_ENGINE=${REPO_TAG_DATA_ASSIM_ENGINE:-"development"}
 ## \env REPO_TAG_NGEN_FORCING (Optional). Source for *re-installing* `ngen-forcing` Python package. Note that this does not affect the sourcing of the base image.
-REPO_TAG_NGEN_FORCING=${REPO_TAG_NGEN_FORCING:-"LOCAL"}
+REPO_TAG_NGEN_FORCING=${REPO_TAG_NGEN_FORCING:-""}
 ## \env REPO_TAG_VERF Source for `nwm-verf`.
 REPO_TAG_VERF=${REPO_TAG_VERF:-"development"}
 ## \env REPO_TAG_EVAL Source for `nwm-eval-mgr`.
