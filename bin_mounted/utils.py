@@ -66,9 +66,9 @@ def configure_ngen_log(fallback_log_dir: str | pathlib.Path, description: str) -
 
     # Decide the dir
     setting_val = os.environ.get(c.RTE_NGEN_LOG_BEHAVIOR_KEY, "").lower().strip()
-    if setting_val == "yes":
+    if setting_val in ("yes", "true"):
         log_dir = os.path.join("/ngen-app/rte_ngen_logs", f"{now_str}_{description}")
-    elif setting_val in ("no", ""):
+    elif setting_val in ("no", "false", ""):
         log_dir = fallback_log_dir
     else:
         raise ValueError(
