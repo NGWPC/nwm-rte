@@ -11,14 +11,15 @@ copyright: Copyright &copy; 2025-2026 Raytheon Company. BSD-2-Clause License.
 
 nav:
 - Home: index.md  ### Symlink to README.md
-- Build Architecture: build-architecture.md
-- Getting Started: getting-started.md
 - User Guide:
+  - Getting Started: user-guide/getting-started.md
+  - Build Architecture: user-guide/build-architecture.md
   - Configuration: user-guide/configuration.md
   - Setup: user-guide/setup.md
   - Building: user-guide/building.md
   - Running: user-guide/running.md
   - Caveats: user-guide/caveats.md
+  - DevContainer and Debugger: user-guide/devcon-debug.md
 - Reference:
   - Reference Home: reference/home.md
   - Shell: reference/shell.md
