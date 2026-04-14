@@ -10,7 +10,7 @@ edit_uri: ""
 copyright: Copyright &copy; 2025-2026 Raytheon Company. BSD-2-Clause License.
 
 nav:
-- Home: index.md  ### Symlink to README.md
+- Home: README.md
 - User Guide:
   - Getting Started: user-guide/getting-started.md
   - Build Architecture: user-guide/build-architecture.md
@@ -35,7 +35,7 @@ plugins:
 #     canonical_version: stable
 - redirects:
     redirect_maps:
-      'index.md': 'UNDER_CONSTRUCTION.md'
+      'README.md': 'UNDER_CONSTRUCTION.md'
 - mkdocstrings:
     default_handler: python
     handlers:
