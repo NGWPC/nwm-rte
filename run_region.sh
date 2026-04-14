@@ -6,41 +6,43 @@ set -euo pipefail
 #
 ## \brief
 ## Script to run NWM regionalization, NGEN simulation, and evaluation workflows based on command line options.
-
+## 
+## \desc
+## Has 0 positional arguments and many named arguments.
+## 
 ## \usage cd [working_directory, e.g., /ngen-oe/$USER/run_region, /ngen-dev/$USER/run_region, or ~/run_region]
 ## [NWM-RTE_ROOT]/run_region.sh [OPTIONS]
-
-# Arguments:
 ## 
+# Arguments:
 ## \option -p, --parreg
-##      Run parameter regionalization (includes formulation)
+## Run parameter regionalization (includes formulation)
 ## \option -f, --formreg
-##      Run formulation regionalization only
+## Run formulation regionalization only
 ## \option -n, --ngen
-##      Run NGEN simulation
+## Run NGEN simulation
 ## \option -e, --eval
-##      Run evaluation
+## Run evaluation
 ## \option -c, --config_dir DIR
-##      Set config directory (default: ./configs)
+## (default: `"./configs"`) Set config directory
 ## \option -r, --repos PATH
-##      Set root directory for NGWPC repos (default: auto-detect)
+## (default: auto-detect) Set root directory for NGWPC repos
 ## \option -t, --image-tag TAG
-##      Set Docker image tag (default: latest)
+## (default: `"latest"`) Set Docker image tag
 ## \option -i, --pull-image
-##      Pull the latest Docker image before running (optional)
+## (optional switch) Pull the latest Docker image before running
 ## \option -d, --delete-runtime-dir
-##      Delete runtime directory after completion (default: keep for debugging)
+## (optional switch) Delete runtime directory after completion
 ## \option -h, --help
-##      Show this message and exit
+## Show this message and exit
 ## 
 # Examples:
 ## \example Run parameter regionalization
 ## \example-code bash
-##   # Sample config files can be found in nwm-region-mgr repo under configs directory
-##   /ngencerf-app/nwm-rte/run_region.sh --parreg -c configs
-##   ~/ngwpc/nwm-rte/run_region.sh --parreg -c configs
-##   ~/ngwpc/nwm-rte/run_region.sh -p -c configs
-##   ~/ngwpc/nwm-rte/run_region.sh -p -c ~/ngwpc/nwm-region-mgr/configs
+## # Sample config files can be found in nwm-region-mgr repo under configs directory
+## /ngencerf-app/nwm-rte/run_region.sh --parreg -c configs
+## ~/ngwpc/nwm-rte/run_region.sh --parreg -c configs
+## ~/ngwpc/nwm-rte/run_region.sh -p -c configs
+## ~/ngwpc/nwm-rte/run_region.sh -p -c ~/ngwpc/nwm-region-mgr/configs
 ##
 ## \example Run formulation regionalization only
 ## \example-code bash
@@ -48,31 +50,31 @@ set -euo pipefail
 ##
 ## \example Run NGEN simulation
 ## \example-code bash
-##   /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs
+## /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs
 ##
 ## \example Run evaluation
 ## \example-code bash
-##   /ngencerf-app/nwm-rte/run_region.sh --eval -c configs
+## /ngencerf-app/nwm-rte/run_region.sh --eval -c configs
 ##
 ## \example Run multiple steps
 ## \example-code bash
-##   /ngencerf-app/nwm-rte/run_region.sh --parreg --ngen -c configs
+## /ngencerf-app/nwm-rte/run_region.sh --parreg --ngen -c configs
 ##
 ## \example Run with different repos root directory
 ## \example-code bash
-##   /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs -r /ngen-oe/$USER
+## /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs -r /ngen-oe/$USER
 ##
 ## \example Run with different Docker image tag
 ## \example-code bash
-##   /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs -t pr-20-build
+## /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs -t pr-20-build
 ##
 ## \example Run with pulling the latest Docker image before running
 ## \example-code bash
-##  /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs -i
+## /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs -i
 ##
 ## \example Delete runtime directory after completion (default: keep for debugging)
 ## \example-code bash
-##  /ngencerf-app/nwm-rte/run_region.sh -c configs -p -n -e -d
+## /ngencerf-app/nwm-rte/run_region.sh -c configs -p -n -e -d
 ## 
 # -----------------------------------------------------------------------------
 

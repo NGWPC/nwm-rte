@@ -11,63 +11,62 @@ set -euo pipefail
 ## Usage:
 ## 
 ##     1. First cd to working directory, e.g., /ngen-oe/$USER/run_region, /ngen-dev/$USER/run_region, or ~/run_region.
-##
 ##     2. Copy sample configs (nwm-region-mgr/configs) to working directory and edit as needed. You can also use the sample configs directly for testing purposes.
-##
 ##     3. Then run one of the following commands depending on your setup:
-##
-## \usage /ngencerf-app/nwm-rte/sbatch_run_region.sh CONFIG_DIR [OPTIONS] [--dry-run]
-## \usage ~/ngwpc/nwm-rte/sbatch_run_region.sh CONFIG_DIR [OPTIONS] [--dry-run]
-
+##          /ngencerf-app/nwm-rte/sbatch_run_region.sh CONFIG_DIR [OPTIONS] [--dry-run]
+##          ~/ngwpc/nwm-rte/sbatch_run_region.sh CONFIG_DIR [OPTIONS] [--dry-run]
+## 
+## Has 2 positional arguments and some named arguments.
+## 
 # Arguments:
 ## 
 ## \option CONFIG_DIR
-##   Directory containing configuration YAML files (required)
+## (required) Directory containing configuration YAML files
 ## \option OPTIONS
-##   Workflow steps to runs: parreg, formreg, ngen, or eval (optional, default: parreg)
+## (optional, default: `"parreg"`) Workflow steps to runs: parreg, formreg, ngen, or eval
 ## \option --dry-run
-##   If provided, print the generated SLURM script instead of submitting (optional)
+## (optional switch) If provided, print the generated SLURM script instead of submitting
 ## \option --image-tag TAG
-##   Docker image tag to use for the RTE (optional, default: latest)
+## (optional, default: `"latest"`) Docker image tag to use for the RTE
 ## \option --pull-image
-##   Pull the latest Docker image before running (optional)  
+## (optional switch) Pull the latest Docker image before running
 ## \option --delete-runtime-dir
-##   Delete runtime directory after completion (default: keep for debugging)
+## (optional switch) Delete runtime directory after completion
 #
 # Examples:
 ## \example Do a dry-run to see the generated SLURM script without submitting
 ## \example-code bash
-##   ~/ngwpc/nwm-rte/sbatch_run_region.sh ~/ngwpc/nwm-region-mgr/configs parreg ngen eval --dry-run
-##   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs parreg ngen eval --dry-run
+## ~/ngwpc/nwm-rte/sbatch_run_region.sh ~/ngwpc/nwm-region-mgr/configs parreg ngen eval --dry-run
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh configs parreg ngen eval --dry-run
 ## 
 ## \example Submit parameter regionalization
 ## \example-code bash
-##   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs parreg
-##   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh configs parreg
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh configs
 ## 
 ## \example Submit formulation regionalization only
 ## \example-code bash
-##   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs formreg
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh configs formreg
 ## 
 ## \example Submit NGEN simulation with a different config directory
 ## \example-code bash
-##   /ngencerf-app/nwm-rte/sbatch_run_region.sh /ngen-oe/$USER/myconfigs ngen
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh /ngen-oe/$USER/myconfigs ngen
 ## 
 ## \example Submit evaluation only
 ## \example-code bash
-##   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs eval
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh configs eval
 ## 
 ## \example Using an RTE image tag other than 'latest'
 ## \example-code bash
-##   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --image-tag "069ad0f6d332"
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --image-tag "069ad0f6d332"
 ## 
 ## \example Pull the latest RTE image before running
 ## \example-code bash
-##   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --pull-image
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --pull-image
 ## 
 ## \example Delete runtime directory after completion (default is to keep it for debugging)
 ## \example-code bash
-##   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --pull-image --delete-runtime-dir
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --pull-image --delete-runtime-dir
 ## 
 # -----------------------------------------------------------------------------
 
