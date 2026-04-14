@@ -15,20 +15,20 @@
     "version": "0.2.0",
     "compounds": [
         {
-            "name": "run_bmi_model_mpi_n2",
+            "name": "forcing_mpi_n2",
             // Private configurations that support the public compound
             "configurations": [
-                "__run_bmi_model_mpi_n2",
+                "__forcing_mpi_n2",
                 "__python_attach_rank_0",
                 "__python_attach_rank_1",
             ],
             "stopAll": true
         },
         {
-            "name": "run_bmi_model_mpi_n3",
+            "name": "forcing_mpi_n3",
             // Private configurations that support the public compound
             "configurations": [
-                "__run_bmi_model_mpi_n3",
+                "__forcing_mpi_n3",
                 "__python_attach_rank_0",
                 "__python_attach_rank_1",
                 "__python_attach_rank_2",
@@ -38,7 +38,7 @@
     ],
     "configurations": [
         {
-            "name": "run_bmi_model_nompi",
+            "name": "forcing_nompi",
             "type": "debugpy",
             "request": "launch",
             "module": "NextGen_Forcings_Engine_BMI.run_bmi_model",
@@ -57,7 +57,7 @@
             "python": "${command:python.interpreterPath}"
         },
         {
-            "name": "run_bmi_model_test_regrid",
+            "name": "forcing_test_regrid",
             "type": "debugpy",
             "request": "launch",
             "module": "pytest",
@@ -93,7 +93,7 @@
         //// BEGIN private configurations
         //// 
         {
-            "name": "__run_bmi_model_mpi_n2",
+            "name": "__forcing_mpi_n2",
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/lib64/openmpi/bin/mpirun",
@@ -133,7 +133,7 @@
             ],
         },
         {
-            "name": "__run_bmi_model_mpi_n3",
+            "name": "__forcing_mpi_n3",
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/lib64/openmpi/bin/mpirun",
