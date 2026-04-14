@@ -18,6 +18,9 @@ LABEL org.opencontainers.image.description=$TARGET_IMAGE_DESCRIPTION \
     org.opencontainers.image.revision=$TARGET_IMAGE_REVISION \
     org.opencontainers.image.created=$TARGET_IMAGE_CREATED
 
+### FORCING_LOGLEVEL is a vestige of an earlier version of ngen-forcing which used this OS var to
+### control its log level. In later versions of ngen-forcing, the universal EWTS package is used,
+### and log level is controlled by `./bin_mounted/ngen_logging.json`.
 # ENV FORCING_LOGLEVEL=DEBUG
 
 ### Static args
