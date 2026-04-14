@@ -1,3 +1,13 @@
+"""
+Command-line executable to build and run a "forecast" realization, optionally with a coldstart.
+
+This runs inside the ngen runtime environment.
+The CLI structure is mimicked in part by `configs.RTEForecastConfig`.
+For settings that are not exposed by CLI arguments, see primarily `consts.py`.
+
+See `run_fcst.sh` for example calls.
+"""
+
 import functools
 import argparse
 

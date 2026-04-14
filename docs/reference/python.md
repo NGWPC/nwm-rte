@@ -24,6 +24,8 @@ To update these, run: `./docs/update_python_cli_ref.sh`
 
 ::: run_forecast
 
+::: run_tests
+
 ::: run_regionalization
 
 ## Configuration Classes
