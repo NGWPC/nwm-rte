@@ -4,26 +4,26 @@
 
 The ngen runtime environment (RTE) OS image is built via image inheritance:
 
-`ngen-forcing/Dockerfile.bmi-forcings`: Base image with `ngen-forcing` code and `ewts` package
+`ngen-forcing/Dockerfile.bmi-forcings`: Base image with packages `NextGen_Forcings_Engine_BMI` and `ewts`
 
 &emsp; &emsp; <span style="font-size: 24px;">&darr;</span>
 
-`ngen/Dockerfile`: `ngen` and packages from its `extern` submodules
+`ngen/Dockerfile`: `ngen`, `partitionGenerator`, and various `extern` submodule packages
 
 &emsp; &emsp; <span style="font-size: 24px;">&darr;</span>
 
-`nwm-rte/Dockerfile.rte`: RTE layers
+`nwm-rte/Dockerfile.rte`: RTE component packages
 
-## RTE Layers
+## RTE Component Packages
 
-The RTE layers include the following component packages:
+The RTE component Python packages include:
 
-| Code Repository<br>(each includes 1 or more packages) | Python Virtual Environment |
+| Code Repository<br>(each includes 1+ packages) | Python<br>Virtual Environment |
 | ----------------------------------------------------- | -------------------------- |
-| nwm-fcst-mgr                                          | ngen-python (default)     |
-| nwm-msw-mgr                                           | ngen-python (default)     |
-| nwm-cal-mgr                                           | ngen-python (default)     |
-| nwm-region-mgr                                        | ngen-python (default)     |
-| nwm-data-assimilation                                 | ngen-python (default)     |
-| nwm-verf                                              | eval_verf                  |
-| nwm-eval-mgr                                          | eval_verf                  |
+| `nwm-fcst-mgr`                                          | `ngen-python` (default)     |
+| `nwm-msw-mgr`                                           | `ngen-python` (default)     |
+| `nwm-cal-mgr`                                           | `ngen-python` (default)     |
+| `nwm-region-mgr`                                        | `ngen-python` (default)     |
+| `nwm-data-assimilation`                                 | `ngen-python` (default)     |
+| `nwm-verf`                                              | `eval_verf`                  |
+| `nwm-eval-mgr`                                          | `eval_verf`                  |
