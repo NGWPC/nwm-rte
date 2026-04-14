@@ -1,9 +1,35 @@
 #!/bin/bash
-#
-# To be ran from docker build context where ngwpc source code (repositories) have been mounted to /src_ngwpc/
-#
 
 set -euo pipefail
+
+## 
+## \brief
+## Install a Python package, with options, and write git info json. Used by `Dockerfile.rte`
+## 
+## \desc
+## Install a Python package, with options for the python environment, local vs remote, tag, and "extras". Used by `Dockerfile.rte`.
+## 
+## Also call `add_git_info.py` to dump the package's git info to a json file.
+## 
+## Treats ngen-forcing reinstall as special since it necessarily is already installed in the base image,
+## so if it is specified here, it receives a `--force-reinstall` flag.
+## 
+## Has 4 positional arguments and 0 named arguments.
+## 
+## \option python_exe
+## The python executable to use for installation
+## 
+## \option repo_name
+## The name of the repository to be installed
+## 
+## \option repo_remote_tag
+## If "LOCAL", then install from local code. If empty string, skip installation. If other string, install that ref (tag, branch, or commit) from GitHub.
+## 
+## \option extras
+## Optional extras to include in the pip install directive, e.g. `pip install package_name[extras]`
+## 
+## \usage ./install_package.sh python nwm-region-mgr development "[parreg]"
+## 
 
 python_exe=$1
 repo_name=$2

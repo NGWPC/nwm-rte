@@ -1,9 +1,28 @@
 #!/bin/bash
 
 set -euo pipefail
-
 source run.sh
 set -x
+
+## 
+## \brief
+## Run realizations of various types.
+## 
+## \desc
+## Source `./run.sh` to call its `docker_run` command for running realizations of various types ("default", "calibration", and "forecast").  It requires that the ngen runtime environment image has already been built using `./ngen_rte_build.sh`.
+## 
+## Various OS env vars are applied from `config.bashrc`. Notably `TARGET_IMAGE_NAME` is the image that is sourced (must have already been built) and launched as a container. Various data mount paths are also applied from `config.bashrc`.
+## 
+## Has 0 positional arguments and 0 named arguments.
+## 
+## <u>Requirements:</u>
+## 
+## The `ngen` runtime environment image (defined by `TARGET_IMAGE_NAME`) has already been built.
+## 
+## The various repositories and input data needed to run are available and mountable (see `./setup_clone_repos.sh`, `./setup_data.sh`, `./setup_data_one_gage.sh`).
+## 
+## \usage ./run_suite.sh
+## 
 
 # CONUS NWM calibration using a short duration
 sudo rm -rf ~/ngwpc/run_ngen/kge_dds/test_bmi/01123000

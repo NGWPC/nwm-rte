@@ -1,15 +1,29 @@
 #!/bin/bash
-# 
-# This downloads all hydrofabric geopackages (all vintages) associated with one USGS gage.
-# 
-# Usage:
-#   Run from RTE repo root, providing gage ID as single argument, e.g.: ./setup_data_one_gage.sh "01121330" "CONUS"
-# 
-
 
 set -euo pipefail
-
 source config.bashrc
+
+## 
+## \brief
+## Download input data for one gage.
+## 
+## \desc
+## Download input hydrofabric data from S3 and from APIs, for one USGS gage.
+## Not needed for the "default" gage at the "default" realization, since those inputs are included in the repository.
+## Downloads all vintages of hydrofabric associated with one gage ID.
+##
+## Uses various OS env vars from `config.bashrc`.
+## 
+## Has 2 positional arguments and 0 named arguments.
+## 
+## \option GAGE_ID
+## The USGS gage ID to be downloaded, e.g. `"01121330"`
+## 
+## \option DOMAIN
+## The domain that the gage ID resides in, e.g. `"CONUS"`
+## 
+## \usage ./setup_data_one_gage.sh "01121330" "CONUS"
+## 
 
 GAGE_ID="$1"
 DOMAIN="$2"
