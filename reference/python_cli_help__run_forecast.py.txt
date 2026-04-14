@@ -1,0 +1,51 @@
+usage: run_forecast.py [-h] [-delscratch] [-delraw]
+                       [-ofunc OBJECTIVE_FUNCTION]
+                       [-optalgo OPTIMIZATION_ALGORITHM] [-g GAGE_ID]
+                       [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
+                       [-fstatic FORCING_STATIC_DIR] [-fprov FORCING_PROVIDER]
+                       [-dt CYCLE_DATETIME] [-csdt COLD_START_DATETIME]
+                       [-fconfig FORCING_CONFIGURATION] [-rname FCST_RUN_NAME]
+                       [-n NPROCS]
+
+options:
+  -h, --help            show this help message and exit
+  -delscratch, --delete_scratch_and_mesh_first
+                        Delete scratch dir and ESMF mesh files before the run,
+                        which forces ESMF and NetCDF actions to occur.
+  -delraw, --delete_forcing_raw_input_first
+                        Delete contents of '/ngen-app/data/raw_input' before
+                        the run, which forces forcing data to be re-
+                        downloaded.
+  -ofunc OBJECTIVE_FUNCTION, --objective_function OBJECTIVE_FUNCTION
+                        Objective function of previously-ran calibration
+                        realization for basis of forecast. Affects directory
+                        path. Default: Objective.kge
+  -optalgo OPTIMIZATION_ALGORITHM, --optimization_algorithm OPTIMIZATION_ALGORITHM
+                        Optimization algorithm of previously-ran calibration
+                        realization for basis of forecast. Affects directory
+                        path. Default: Algorithm.dds
+  -g GAGE_ID, --gage_id GAGE_ID
+                        Gage ID to run the forecast for. Default: '01123000'
+  -gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}, --global_domain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}
+                        Global domain/region of forcing data. Default=CONUS
+  -fstatic FORCING_STATIC_DIR, --forcing_static_dir FORCING_STATIC_DIR
+                        Directory for static forcing files, used when
+                        forcing_provider is 'bmi'. Default=/ngen-app/data
+  -fprov FORCING_PROVIDER, --forcing_provider FORCING_PROVIDER
+                        Forcing provider to use, e.g., 'bmi' or 'csv'.
+                        Default: 'bmi'
+  -dt CYCLE_DATETIME, --cycle_datetime CYCLE_DATETIME
+                        start date/time for the forecast cycle (also the end
+                        of cold-start if chosen), format= 'YYYY-MM-DD
+                        HH:mm:ss'. If omitted, a forecast will not be ran.
+  -csdt COLD_START_DATETIME, --cold_start_datetime COLD_START_DATETIME
+                        start date/time for cold-start, format= 'YYYY-MM-DD
+                        HH:mm:ss'. If omitted, a cold-start will not be used.
+  -fconfig FORCING_CONFIGURATION, --forcing_configuration FORCING_CONFIGURATION
+                        Forcing configuration to use, e.g., 'short_range',
+                        'standard_ana', etc. Default: 'short_range'
+  -rname FCST_RUN_NAME, --fcst_run_name FCST_RUN_NAME
+                        Forecast run name. Default: 'fcst_run1'
+  -n NPROCS, --nprocs NPROCS
+                        Replaces default value for nprocs (1) and subsequently
+                        the ParallelConfig instance that is passed to MSWM.

@@ -2,14 +2,82 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
         <loc>https://NGWPC.github.io/nwm-rte/</loc>
+        <lastmod>2026-04-14</lastmod>
+        <changefreq>daily</changefreq>
+    </url>
+    <url>
+        <loc>https://NGWPC.github.io/nwm-rte/CONTRIBUTING/</loc>
+        <lastmod>2026-04-14</lastmod>
         <changefreq>daily</changefreq>
     </url>
     <url>
         <loc>https://NGWPC.github.io/nwm-rte/LICENSE/</loc>
+        <lastmod>2026-04-14</lastmod>
+        <changefreq>daily</changefreq>
+    </url>
+    <url>
+        <loc>https://NGWPC.github.io/nwm-rte/TERMS/</loc>
+        <lastmod>2026-04-14</lastmod>
         <changefreq>daily</changefreq>
     </url>
     <url>
         <loc>https://NGWPC.github.io/nwm-rte/UNDER_CONSTRUCTION/</loc>
+        <lastmod>2026-04-14</lastmod>
+        <changefreq>daily</changefreq>
+    </url>
+    <url>
+        <loc>https://NGWPC.github.io/nwm-rte/reference/home/</loc>
+        <lastmod>2026-04-14</lastmod>
+        <changefreq>daily</changefreq>
+    </url>
+    <url>
+        <loc>https://NGWPC.github.io/nwm-rte/reference/python/</loc>
+        <lastmod>2026-04-14</lastmod>
+        <changefreq>daily</changefreq>
+    </url>
+    <url>
+        <loc>https://NGWPC.github.io/nwm-rte/reference/shell/</loc>
+        <lastmod>2026-04-14</lastmod>
+        <changefreq>daily</changefreq>
+    </url>
+    <url>
+        <loc>https://NGWPC.github.io/nwm-rte/user-guide/build-architecture/</loc>
+        <lastmod>2026-04-14</lastmod>
+        <changefreq>daily</changefreq>
+    </url>
+    <url>
+        <loc>https://NGWPC.github.io/nwm-rte/user-guide/building/</loc>
+        <lastmod>2026-04-14</lastmod>
+        <changefreq>daily</changefreq>
+    </url>
+    <url>
+        <loc>https://NGWPC.github.io/nwm-rte/user-guide/caveats/</loc>
+        <lastmod>2026-04-14</lastmod>
+        <changefreq>daily</changefreq>
+    </url>
+    <url>
+        <loc>https://NGWPC.github.io/nwm-rte/user-guide/configuration/</loc>
+        <lastmod>2026-04-14</lastmod>
+        <changefreq>daily</changefreq>
+    </url>
+    <url>
+        <loc>https://NGWPC.github.io/nwm-rte/user-guide/devcon-debug/</loc>
+        <lastmod>2026-04-14</lastmod>
+        <changefreq>daily</changefreq>
+    </url>
+    <url>
+        <loc>https://NGWPC.github.io/nwm-rte/user-guide/getting-started/</loc>
+        <lastmod>2026-04-14</lastmod>
+        <changefreq>daily</changefreq>
+    </url>
+    <url>
+        <loc>https://NGWPC.github.io/nwm-rte/user-guide/running/</loc>
+        <lastmod>2026-04-14</lastmod>
+        <changefreq>daily</changefreq>
+    </url>
+    <url>
+        <loc>https://NGWPC.github.io/nwm-rte/user-guide/setup/</loc>
+        <lastmod>2026-04-14</lastmod>
         <changefreq>daily</changefreq>
     </url>
 </urlset>

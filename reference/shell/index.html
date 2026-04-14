@@ -1,0 +1,2563 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Runtime Environment for the National Water Model (NWM) Next Generation Water Prediction Capability Framework (NGWPC ngen)">
+      
+      
+        <meta name="author" content="Max Kipp">
+      
+      
+        <link rel="canonical" href="https://NGWPC.github.io/nwm-rte/reference/shell/">
+      
+      
+        <link rel="prev" href="../home/">
+      
+      
+        <link rel="next" href="../python/">
+      
+      
+        
+      
+      
+      
+        
+        
+        
+          <link rel="icon" href="../../assets/images/favicon.png">
+        
+      
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-materialx-10.1.3">
+    
+    
+      
+        <title>Shell - ngen RTE: Runtime Environment for the NWM NextGen Framework</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4dadc26f.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.204eaadb.min.css">
+      
+    
+    
+
+    
+
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" data-mx-topbar="primary">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="toc" type="checkbox" id="__toc" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <label class="md-overlay" for="__toc"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#shell-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="ngen RTE: Runtime Environment for the NWM NextGen Framework" class="md-header__button md-logo" aria-label="ngen RTE: Runtime Environment for the NWM NextGen Framework" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ngen RTE: Runtime Environment for the NWM NextGen Framework
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Shell
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="black"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.25 2a8.25 8.25 0 0 1 6.34 13.53l5.69 5.69a.749.749 0 0 1-.326 1.275.75.75 0 0 1-.734-.215l-5.69-5.69A8.25 8.25 0 1 1 10.25 2M3.5 10.25a6.75 6.75 0 1 0 13.5 0 6.75 6.75 0 0 0-13.5 0"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.25 2a8.25 8.25 0 0 1 6.34 13.53l5.69 5.69a.749.749 0 0 1-.326 1.275.75.75 0 0 1-.734-.215l-5.69-5.69A8.25 8.25 0 1 1 10.25 2M3.5 10.25a6.75 6.75 0 1 0 13.5 0 6.75 6.75 0 0 0-13.5 0"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 5.5a3.498 3.498 0 0 1-6.062 2.385l-5.112 3.021a3.5 3.5 0 0 1 0 2.188l5.112 3.021a3.5 3.5 0 1 1-.764 1.29l-5.112-3.02a3.499 3.499 0 1 1-3.843-5.642 3.5 3.5 0 0 1 3.843.872l5.112-3.021A3.5 3.5 0 1 1 20 5.5m-1.5 13a2 2 0 1 0-3.999-.001 2 2 0 0 0 3.999.001m0-13a2 2 0 1 0-3.999-.001A2 2 0 0 0 18.5 5.5M5.5 14a2 2 0 1 0 .001-3.999A2 2 0 0 0 5.5 14"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0">
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/NGWPC/nwm-rte" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    NGWPC/nwm-rte
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../user-guide/getting-started/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../home/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../CONTRIBUTING/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TERMS/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Terms
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../LICENSE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  License
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="ngen RTE: Runtime Environment for the NWM NextGen Framework" class="md-nav__button md-logo" aria-label="ngen RTE: Runtime Environment for the NWM NextGen Framework" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ngen RTE: Runtime Environment for the NWM NextGen Framework
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/NGWPC/nwm-rte" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    NGWPC/nwm-rte
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list">
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/build-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/building/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/running/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/caveats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Caveats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/devcon-debug/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DevContainer and Debugger
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../home/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shell
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shell
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc">
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#config.bashrc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        config.bashrc
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="config.bashrc">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#config.bashrc--component-packages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Component Packages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#config.bashrc--sourcing-of-ngen-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sourcing of ngen Base
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#config.bashrc--target-image-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Target Image Name
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#config.bashrc--misc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Misc
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup_clone_repos.sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        setup_clone_repos.sh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup_data.sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        setup_data.sh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup_data_one_gage.sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        setup_data_one_gage.sh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ngen_rte_build.sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ngen_rte_build.sh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enter-the-container-interactively" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enter the Container Interactively
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run.sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="run.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run.sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        docker_run
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-forecasts-and-calibrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Forecasts and Calibrations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run_default.sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_default.sh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run_calib.sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_calib.sh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run_fcst.sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_fcst.sh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run_suite.sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_suite.sh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-utiltities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional Utiltities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#install_debuggers.sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install_debuggers.sh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#install_package.sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        install_package.sh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-regionalization-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Regionalization Workflows
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run_region.sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_region.sh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sbatch_run_region.sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sbatch_run_region.sh
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CONTRIBUTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TERMS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LICENSE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../home/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Reference
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+<h1 id="shell-reference">Shell Reference<a class="headerlink" href="#shell-reference" title="Permanent link">#</a></h1>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
+
+
+
+<h2 id="config.bashrc">config.bashrc<a href="#config.bashrc" class="headerlink" title="Permanent link">#</a></h2>
+  <p>Configuration file for building and running <code>nwm-rte</code>.</p>
+
+
+  <strong>Description</strong>
+      <p>This file is <code>source</code>'d by multiple shell scripts within <code>nwm-rte</code>,
+and its variables control various aspects of the installation / setup / build
+as well as the runtime environment itself (e.g. mount paths).</p>
+    <p><u>Choices of Component Packages:</u></p>
+<p>For each component package (<code>nwm-msw-mgr</code>, <code>nwm-fcst-mgr</code>, etc), you can choose from an empty string (<code>""</code>), or <code>"LOCAL"</code>, or any other string.</p>
+<ul>
+<li>
+<p>If an empty string <code>""</code> is provided, the package will be skipped (will not be installed).</p>
+</li>
+<li>
+<p>If <code>"LOCAL"</code> is provided, the package will install from the code currently on disk.</p>
+</li>
+<li>
+<p>If any other string is provided, the package will install from GitHub, and the string must be a valid tag, branch, or commit.</p>
+</li>
+</ul>
+
+
+
+  <strong>Environment Variables</strong>
+    <ul>
+      <li>
+        <code>NO_CACHE</code>:
+        <div class="doc doc-md-description">
+          <p>Docker cache directive passed to <code>docker build</code> call. Choose from: <code>["--no-cache", ""]</code></p>
+        </div>
+      </li>
+      <li>
+        <code>STAGE</code>:
+        <div class="doc doc-md-description">
+          <p>The stage of the docker build sequence to stop at. Choose from: <code>["ngen_rte_base", "ngen_rte_eval_verf"]</code>.  See <code>Dockerfile.rte</code> for more information</p>
+        </div>
+      </li>
+      <li>
+        <code>INSTALL_DEBUGGERS</code>:
+        <div class="doc doc-md-description">
+          <p>Passed to ./install_debuggers.sh, causes pip package <code>debugpy</code> and dnf package <code>gdb</code> to be installed. Choose from: <code>["NO", "YES"]</code></p>
+        </div>
+      </li>
+      <li>
+        <code>NGEN_LOG_TO_RTE</code>:
+        <div class="doc doc-md-description">
+          <p>Causes ngen's log files to be written to <code>./ngen_logs</code> rather than to the realization's dir. Choose from: <code>["NO", "YES"]</code></p>
+<h3 id="config.bashrc--component-packages">Component Packages<a class="headerlink" href="#config.bashrc--component-packages" title="Permanent link">#</a></h3>
+        </div>
+      </li>
+      <li>
+        <code>REPO_TAG_FCST_MGR</code>:
+        <div class="doc doc-md-description">
+          <p>Source for <code>nwm-fcst-mgr</code>.</p>
+        </div>
+      </li>
+      <li>
+        <code>REPO_TAG_MSW_MGR</code>:
+        <div class="doc doc-md-description">
+          <p>Source for <code>nwm-mswm-mgr</code>.</p>
+        </div>
+      </li>
+      <li>
+        <code>REPO_TAG_CAL_MGR</code>:
+        <div class="doc doc-md-description">
+          <p>Source for <code>nwm-cal-mgr</code>.</p>
+        </div>
+      </li>
+      <li>
+        <code>REPO_TAG_REGION_MGR</code>:
+        <div class="doc doc-md-description">
+          <p>Source for <code>nwm-region-mgr</code>.</p>
+        </div>
+      </li>
+      <li>
+        <code>REPO_TAG_DATA_ASSIM_ENGINE</code>:
+        <div class="doc doc-md-description">
+          <p>Source for <code>nwm-data-assimilation</code>.</p>
+        </div>
+      </li>
+      <li>
+        <code>REPO_TAG_NGEN_FORCING</code>:
+        <div class="doc doc-md-description">
+          <p>(Optional). Source for <em>re-installing</em> <code>ngen-forcing</code> Python package. Note that this does not affect the sourcing of the base image.</p>
+        </div>
+      </li>
+      <li>
+        <code>REPO_TAG_VERF</code>:
+        <div class="doc doc-md-description">
+          <p>Source for <code>nwm-verf</code>.</p>
+        </div>
+      </li>
+      <li>
+        <code>REPO_TAG_EVAL</code>:
+        <div class="doc doc-md-description">
+          <p>Source for <code>nwm-eval-mgr</code>.</p>
+<h3 id="config.bashrc--sourcing-of-ngen-base">Sourcing of ngen Base<a class="headerlink" href="#config.bashrc--sourcing-of-ngen-base" title="Permanent link">#</a></h3>
+        </div>
+      </li>
+      <li>
+        <code>NGEN_SOURCE_MODE</code>:
+        <div class="doc doc-md-description">
+          <p>Affects the path of building, the choice of the base ngen image. Choose from: <code>["ghcr", "existing_local_tag", "build_from_local", "build_from_remote"]</code></p>
+<ul>
+<li>
+<p><code>"ghcr"</code> causes the <code>ngen</code> base image to be sourced from an existing GitHub Container Registry image that has already been published to the <code>ngen</code> GitHub repository.</p>
+</li>
+<li>
+<p><code>"existing_local_tag"</code> causes the <code>ngen</code> base image to be sourced from an existing local image tag.</p>
+</li>
+<li>
+<p><code>"build_from_local"</code> and <code>"build_from_remote"</code> cause the <code>ngen</code> base image to be built from the bottom up (build ngen-forcing, then build ngen, then add the RTE layers). The former uses the existing state of the codebase currently on disk for <code>ngen-forcing</code> and for <code>ngen</code>, and the latter uses the provided GH refs for sourcing the codebases of <code>ngen-forcing</code> and <code>ngen</code>.</p>
+</li>
+</ul>
+        </div>
+      </li>
+      <li>
+        <code>NGEN_BASE__REMOTE_GHCR_TAG</code>:
+        <div class="doc doc-md-description">
+          <p>(Only used when <code>NGEN_SOURCE_MODE="ghcr"</code>). GHCR image tag to use, e.g. <code>"latest"</code> or a commit hash.</p>
+        </div>
+      </li>
+      <li>
+        <code>NGEN_BASE__EXISTING_LOCAL_TAG</code>:
+        <div class="doc doc-md-description">
+          <p>(Only used when <code>NGEN_SOURCE_MODE="existing_local_tag"</code>). Choose any existing local image tag.</p>
+        </div>
+      </li>
+      <li>
+        <code>FORCING_BASE_REMOTE_TAG</code>:
+        <div class="doc doc-md-description">
+          <p>Only used when <code>NGEN_SOURCE_MODE="build_from_remote"</code>. Source of the <code>ngen-forcing</code> codebase. Choose any GitHub ref.</p>
+        </div>
+      </li>
+      <li>
+        <code>NGEN_BASE_REMOTE_TAG</code>:
+        <div class="doc doc-md-description">
+          <p>Only used when <code>NGEN_SOURCE_MODE="build_from_remote"</code>. Source of the <code>ngen</code> codebase. Choose any GitHub ref.</p>
+<h3 id="config.bashrc--target-image-name">Target Image Name<a class="headerlink" href="#config.bashrc--target-image-name" title="Permanent link">#</a></h3>
+        </div>
+      </li>
+      <li>
+        <code>TARGET_IMAGE_NAME</code>:
+        <div class="doc doc-md-description">
+          <p>Freeform name for output image tag that is built.</p>
+<h3 id="config.bashrc--misc">Misc<a class="headerlink" href="#config.bashrc--misc" title="Permanent link">#</a></h3>
+        </div>
+      </li>
+      <li>
+        <code>THIS_SCRIPTS_GRANDPARENT_DIR</code>:
+        <div class="doc doc-md-description">
+          <p>The grandparent directory of this current file. When using <code>REPOS_COMMON_ROOT__HOST=${THIS_SCRIPTS_GRANDPARENT_DIR}</code>, then the other NWM repos are assumed to be siblings of the <code>nwm-rte</code> repo.</p>
+        </div>
+      </li>
+      <li>
+        <code>REPOS_COMMON_ROOT__HOST</code>:
+        <div class="doc doc-md-description">
+          <ul>
+<li>
+<p><code>./setup_clone_repos.sh</code> sets up this local directory and clones sibling repos into here. <code>./setup_data.sh</code> downloads data into here.</p>
+</li>
+<li>
+<p><code>./ngen_rte_build.sh</code> uses this to find <code>ngen</code> source code when <code>NGEN_SOURCE_MODE="build_from_local"</code></p>
+</li>
+<li>
+<p><code>./ngen_rte_run.sh</code> mounts various subdirectories and files from this local directory, into the container, during runtime.</p>
+</li>
+<li>
+<p>Choices for this variable:</p>
+<ul>
+<li>A typical choice for this is <code>${THIS_SCRIPTS_GRANDPARENT_DIR}</code>, which is equivalent to <code>"${HOME}/ngwpc"</code> if you run this from <code>"${HOME}/ngwpc/nwm-rte"</code> but another location such as <code>"${HOME}/ngwpc__rte"</code> could be used if wanting to isolate the RTE from other work.</li>
+<li>Using <code>${THIS_SCRIPTS_GRANDPARENT_DIR}</code> guarantees that the setup scripts (<code>./setup_data.sh</code> and <code>./setup_clone_repos.sh</code>) will copy data and clone repos into the same locations where the build script and run script will look for them.</li>
+</ul>
+</li>
+</ul>
+<h4 id="config.bashrc--mounts-for-data">Mounts for data<a class="headerlink" href="#config.bashrc--mounts-for-data" title="Permanent link">#</a></h4>
+        </div>
+      </li>
+      <li>
+        <code>RUN_NGEN_ROOT__HOST</code>:
+        <div class="doc doc-md-description">
+          <p>Root of the working data associated with running realizations (dirs for realizations and for intermediary data).</p>
+        </div>
+      </li>
+      <li>
+        <code>MNT__RUN_NGEN__HOST</code>:
+        <div class="doc doc-md-description">
+          <p>Alias for <code>RUN_NGEN_ROOT__HOST</code>. Host path mounted by the container.</p>
+        </div>
+      </li>
+      <li>
+        <code>MNT__RUN_NGEN__CONTAINER_1</code>:
+        <div class="doc doc-md-description">
+          <p>1<sup>st</sup> of 2 paths within the container to which the host disk path described by <code>MNT__RUN_NGEN__HOST</code> is mounted.</p>
+        </div>
+      </li>
+      <li>
+        <code>MNT__RUN_NGEN__CONTAINER_2</code>:
+        <div class="doc doc-md-description">
+          <p>2<sup>nd</sup> of 2 paths within the container to which the host disk path described by <code>MNT__RUN_NGEN__HOST</code> is mounted.</p>
+<h4 id="config.bashrc--mounts-for-parameter-files">Mounts for parameter files<a class="headerlink" href="#config.bashrc--mounts-for-parameter-files" title="Permanent link">#</a></h4>
+        </div>
+      </li>
+      <li>
+        <code>MNT__MODULE_PARAM_FILES_DIR__HOST</code>:
+        <div class="doc doc-md-description">
+          <p>Host path to input module parameter files from <code>nwm-msw-mgr</code> repository. Mounted by the container.</p>
+        </div>
+      </li>
+      <li>
+        <code>MNT__MODULE_PARAM_FILES_DIR__CONTAINER_1</code>:
+        <div class="doc doc-md-description">
+          <p>1<sup>st</sup> of 2 paths within the container to which the host disk path described by <code>MNT__MODULE_PARAM_FILES_DIR__HOST</code> is mounted.</p>
+        </div>
+      </li>
+      <li>
+        <code>MNT__MODULE_PARAM_FILES_DIR__CONTAINER_2</code>:
+        <div class="doc doc-md-description">
+          <p>2<sup>nd</sup> of 2 paths within the container to which the host disk path described by <code>MNT__MODULE_PARAM_FILES_DIR__HOST</code> is mounted.</p>
+<h4 id="config.bashrc--mounts-for-forcing-configuration">Mounts for forcing configuration<a class="headerlink" href="#config.bashrc--mounts-for-forcing-configuration" title="Permanent link">#</a></h4>
+        </div>
+      </li>
+      <li>
+        <code>MNT__NGEN_FORCING__HOST</code>:
+        <div class="doc doc-md-description">
+          <p>Host disk path to <code>ngen-forcing</code> repo, for mounting configuration template files from <code>ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/</code>.</p>
+        </div>
+      </li>
+      <li>
+        <code>MNT__NGEN_FORCING__CONTAINER_1</code>:
+        <div class="doc doc-md-description">
+          <p>1<sup>st</sup> of 2 paths within the container to which the host disk path described by <code>MNT__NGEN_FORCING__HOST</code> is mounted.</p>
+        </div>
+      </li>
+      <li>
+        <code>MNT__NGEN_FORCING__CONTAINER_2</code>:
+        <div class="doc doc-md-description">
+          <p>2<sup>nd</sup> of 2 paths within the container to which the host disk path described by <code>MNT__NGEN_FORCING__HOST</code> is mounted.</p>
+<h4 id="config.bashrc--mounts-for-s3-data">Mounts for S3 data<a class="headerlink" href="#config.bashrc--mounts-for-s3-data" title="Permanent link">#</a></h4>
+        </div>
+      </li>
+      <li>
+        <code>S3_ROOT__HOST</code>:
+        <div class="doc doc-md-description">
+          <p>Root of input data downloaded from s3.</p>
+        </div>
+      </li>
+      <li>
+        <code>MNT__S3_DATA__HOST</code>:
+        <div class="doc doc-md-description">
+          <p>Alias for <code>S3_ROOT__HOST</code>. Host path mounted by the container.</p>
+        </div>
+      </li>
+      <li>
+        <code>MNT__S3_DATA__CONTAINER_1</code>:
+        <div class="doc doc-md-description">
+          <p>1<sup>st</sup> of 2 paths within the container to which the host disk path described by <code>MNT__S3_DATA__HOST</code> is mounted.</p>
+        </div>
+      </li>
+      <li>
+        <code>MNT__S3_DATA__CONTAINER_1</code>:
+        <div class="doc doc-md-description">
+          <p>2<sup>nd</sup> of 2 paths within the container to which the host disk path described by <code>MNT__S3_DATA__HOST</code> is mounted.</p>
+<h4 id="config.bashrc--mounts-for-regionalization-data">Mounts for regionalization data<a class="headerlink" href="#config.bashrc--mounts-for-regionalization-data" title="Permanent link">#</a></h4>
+        </div>
+      </li>
+      <li>
+        <code>MNT__NWM_REGION_MGR__INPUT_DATA</code>:
+        <div class="doc doc-md-description">
+          <p>Host path to input data from <code>nwm-region-mgr</code> repository for regionalization workflows. Mounted by the container.
+ Logging functions</p>
+        </div>
+      </li>
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+  <strong>Caveats</strong>
+      <p>REPO_TAG_NGEN_FORCING provision causes the ngen-forcing Python package to be reinstalled, but does not affect other aspects of ngen-forcing (does not cause a rebuild from the ngen-forcing base).
+This does not affect the base image, does not reflect changes to C++ code nor changes to <code>ngen-forcing/Dockerfile.bmi-forcings</code>, nor changes to other ngen-forcing build instructions.
+It only causes an optional <code>pip install</code> call to be executed on the ngen-forcing Python package, after the manager packages have been installed on top of the ngen base image.</p>
+
+
+
+
+
+
+  <strong>Notes</strong>
+      <p>For Pattern <code>VAR_NAME=${VAR_NAME:-"some_string"}</code>, values set with this pattern use the existing value if it already exists, e.g. as an OS env var, otherwise they default to "some_string".</p>
+
+
+<h2 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">#</a></h2>
+
+
+
+<h2 id="setup_clone_repos.sh">setup_clone_repos.sh<a href="#setup_clone_repos.sh" class="headerlink" title="Permanent link">#</a></h2>
+  <p>Clone various NWM repositories.</p>
+
+  <strong>Usage</strong>
+    <pre><code>./setup_clone_repos.sh ssh</code></pre>
+    <pre><code>./setup_clone_repos.sh https shallow
+</code></pre>
+
+  <strong>Description</strong>
+      <p>Clone repos from GitHub. Includes CLI option for using SSH (for r+w, requires credentials) or HTTPS (for read-only, no credentials required).
+Includes CLI option for a shallow (depth 1) clone or full clone. It will not alter the state of existing repos on your disk
+(for each clone, it skips if the folder already exists on disk).</p>
+<p>Uses OS env var <code>REPOS_COMMON_ROOT__HOST</code> from <code>config.bashrc</code>.</p>
+<p>Has 2 positional arguments and 0 named arguments.</p>
+
+
+  <strong>Options</strong>
+    <ul>
+        <li>
+<code>SSH_OR_HTTPS</code>:
+          <div class="doc doc-md-description">
+            <p>Required. Specify to clone via SSH (for read-write) or via HTTPS (for read-only). Choices: <code>["ssh", "https"]</code></p>
+          </div>
+        </li>
+        <li>
+<code>SHALLOW_CLONE</code>:
+          <div class="doc doc-md-description">
+            <p>Optional. Specify to perform a shallow (<code>--depth 1</code>) clone or a deep clone. Choices: <code>["full", "shallow"]</code>. Default: <code>"full"</code></p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="setup_data.sh">setup_data.sh<a href="#setup_data.sh" class="headerlink" title="Permanent link">#</a></h2>
+  <p>Download various global input data, as well as specific input data for one example gage.</p>
+
+  <strong>Usage</strong>
+    <pre><code>./setup_data.sh </code></pre>
+    <pre><code>./setup_data.sh -r
+</code></pre>
+
+  <strong>Description</strong>
+      <p>Download input data from S3 and from APIs.  Not needed for the "default" gage at the "default" realization, since those inputs are included in the repository.
+Calls <code>./setup_data_one_gage.sh</code> for the default gage ID.</p>
+<p>Uses various OS env vars from <code>config.bashrc</code>.</p>
+<p>Has 0 positional arguments and 1 named argument.</p>
+
+
+  <strong>Options</strong>
+    <ul>
+        <li>
+<code class="option_short">-r</code>, <code>--regionalization</code>:
+          <div class="doc doc-md-description">
+            <p>If provided, extra data will be downloaded for the regionalization workflow. Should be ran <em>after</em> cloning the <code>nwm-region-mgr</code> repository.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="setup_data_one_gage.sh">setup_data_one_gage.sh<a href="#setup_data_one_gage.sh" class="headerlink" title="Permanent link">#</a></h2>
+  <p>Download input data for one gage.</p>
+
+  <strong>Usage</strong>
+    <pre><code>./setup_data_one_gage.sh &#34;01121330&#34; &#34;CONUS&#34;
+</code></pre>
+
+  <strong>Description</strong>
+      <p>Download input hydrofabric data from S3 and from APIs, for one USGS gage.
+Not needed for the "default" gage at the "default" realization, since those inputs are included in the repository.
+Downloads all vintages of hydrofabric associated with one gage ID.</p>
+<p>Uses various OS env vars from <code>config.bashrc</code>.</p>
+<p>Has 2 positional arguments and 0 named arguments.</p>
+
+
+  <strong>Options</strong>
+    <ul>
+        <li>
+<code>GAGE_ID</code>:
+          <div class="doc doc-md-description">
+            <p>The USGS gage ID to be downloaded, e.g. <code>"01121330"</code></p>
+          </div>
+        </li>
+        <li>
+<code>DOMAIN</code>:
+          <div class="doc doc-md-description">
+            <p>The domain that the gage ID resides in, e.g. <code>"CONUS"</code></p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="build">Build<a class="headerlink" href="#build" title="Permanent link">#</a></h2>
+
+
+
+<h2 id="ngen_rte_build.sh">ngen_rte_build.sh<a href="#ngen_rte_build.sh" class="headerlink" title="Permanent link">#</a></h2>
+  <p>Build the <code>ngen</code> runtime environment Docker image.</p>
+
+  <strong>Usage</strong>
+    <pre><code>./ngen_rte_build.sh 
+</code></pre>
+
+  <strong>Description</strong>
+      <p>Build the <code>ngen</code> runtime environment Docker image, applying various OS env vars from <code>config.bashrc</code>.</p>
+<p>Can build the <code>ngen-forcing</code> and <code>ngen</code> base images if not wishing to source <code>ngen</code> from an existing GHCR image or an existing local image.</p>
+<p>Components can be installed from GitHub, or from local source code, or skipped.</p>
+<p>The image built is tagged using env var <code>TARGET_IMAGE_NAME</code> (typically from <code>config.bashrc</code>).</p>
+<p>When the script exits, it echoes the image name and provides a command that can be used to enter the container interactively.</p>
+<p>Alternatively, the user can run <code>./run.sh</code> after the build is complete.</p>
+<p>Has 0 positional arguments and 0 named arguments.</p>
+<p><u>Requirements:</u></p>
+<p>If configured to install ngwpc packages from local sources instead of from GitHub, then this script assumes this is ran from a sibling directory
+of those repositories (already cloned, checked out, pulled). <code>./setup_clone_repos.sh</code> can be used to clone the relevant ngwpc repos.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="enter-the-container-interactively">Enter the Container Interactively<a class="headerlink" href="#enter-the-container-interactively" title="Permanent link">#</a></h2>
+
+
+
+<h2 id="run.sh">run.sh<a href="#run.sh" class="headerlink" title="Permanent link">#</a></h2>
+  <p>Script and sourceable function for running the <code>ngen</code> runtime environment Docker image.</p>
+
+  <strong>Usage</strong>
+    <pre><code>./run.sh </code></pre>
+    <pre><code>source ./run.sh &amp;&amp; docker_run python &#34;/path/to/script.py&#34; --arg_for_script
+</code></pre>
+
+  <strong>Description</strong>
+      <p>Run the <code>ngen</code> runtime environment Docker image. Requires that the image has already been built.</p>
+<p>The function <code>docker_run</code> is sourced by and called by other scripts in the repository such as <code>./run_default.sh</code>, <code>./run_calib.sh</code>, <code>./run_fcst.sh</code>, and <code>./run_tests.sh</code>.</p>
+<p>When run as a script, causes the user to enter the container shell interactively.</p>
+<p>Various OS env vars are applied from <code>config.bashrc</code>. Notably <code>TARGET_IMAGE_NAME</code> is the image that is sourced (must have already been built) and launched as a container.</p>
+<p>Various mount paths are also applied, some defined in <code>config.bashrc</code> and others defined in <code>./run.sh</code> itself.
+    * Input data paths
+    * Output data paths from previous runs
+    * Scripts from <code>./bin_mounted/</code>
+    * Cached files from <code>./devcontainer/tmp/</code></p>
+<p>This script has 0 positional arguments and 0 named arguments. See the description for function <code>docker_run</code>,
+which is typically sourced by other scripts and ran externally.</p>
+<p><u>Requirements:</u></p>
+<p>The <code>ngen</code> runtime environment image (defined by <code>TARGET_IMAGE_NAME</code>) has already been built.</p>
+<p>The various repositories and input data needed to run are available and mountable (see <code>./setup_clone_repos.sh</code>, <code>./setup_data.sh</code>, <code>./setup_data_one_gage.sh</code>).</p>
+
+
+
+
+
+
+
+
+
+  <strong>Functions</strong>
+
+<h3 id="run.sh">docker_run<a href="#run.sh" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <p>Start the <code>ngen</code> runtime environment container with various mounts applied. Either run in an interactive terminal, or run a specific command and exit. If arguments are provided, then the 1<sup>st</sup> argument is the entrypoint command, and all subsequent arguments are arguments for that entrypoint command.  See usage examples in <code>./run_default.sh</code>, etc.</p>
+
+  <strong>Arguments</strong>
+  <ul>
+      <li>
+        <strong><code>entrypoint</code>: </strong>
+        <p>If <code>"/bin/sh"</code>, then start an interactive session. Else, run the provided command and provide the extra arguments as the arguments to that command.</p>
+      </li>
+      <li>
+        <strong><code>*</code>: </strong>
+        <p>Any number of extra arguments, provided to the <code>entrypoint</code> command.</p>
+      </li>
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="run-forecasts-and-calibrations">Run Forecasts and Calibrations<a class="headerlink" href="#run-forecasts-and-calibrations" title="Permanent link">#</a></h2>
+
+
+
+<h2 id="run_default.sh">run_default.sh<a href="#run_default.sh" class="headerlink" title="Permanent link">#</a></h2>
+  <p>Run "default" realizations.</p>
+
+  <strong>Usage</strong>
+    <pre><code>./run_default.sh 
+</code></pre>
+
+  <strong>Description</strong>
+      <p>Source <code>./run.sh</code> to call its <code>docker_run</code> command for running "default" realizations.  It requires that the ngen runtime environment image has already been built using <code>./ngen_rte_build.sh</code>.</p>
+<p>Various OS env vars are applied from <code>config.bashrc</code>. Notably <code>TARGET_IMAGE_NAME</code> is the image that is sourced (must have already been built) and launched as a container. Various data mount paths are also applied from <code>config.bashrc</code>.</p>
+<p>Has 0 positional arguments and 0 named arguments.</p>
+<p><u>Requirements:</u></p>
+<p>The <code>ngen</code> runtime environment image (defined by <code>TARGET_IMAGE_NAME</code>) has already been built.</p>
+<p>The various repositories and input data needed to run are available and mountable (see <code>./setup_clone_repos.sh</code>, <code>./setup_data.sh</code>, <code>./setup_data_one_gage.sh</code>).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="run_calib.sh">run_calib.sh<a href="#run_calib.sh" class="headerlink" title="Permanent link">#</a></h2>
+  <p>Run "calibration" realizations.</p>
+
+  <strong>Usage</strong>
+    <pre><code>./run_calib.sh 
+</code></pre>
+
+  <strong>Description</strong>
+      <p>Source <code>./run.sh</code> to call its <code>docker_run</code> command for running "calibration" realizations.  It requires that the ngen runtime environment image has already been built using <code>./ngen_rte_build.sh</code>.</p>
+<p>Various OS env vars are applied from <code>config.bashrc</code>. Notably <code>TARGET_IMAGE_NAME</code> is the image that is sourced (must have already been built) and launched as a container. Various data mount paths are also applied from <code>config.bashrc</code>.</p>
+<p>Has 0 positional arguments and 0 named arguments.</p>
+<p><u>Requirements:</u></p>
+<p>The <code>ngen</code> runtime environment image (defined by <code>TARGET_IMAGE_NAME</code>) has already been built.</p>
+<p>The various repositories and input data needed to run are available and mountable (see <code>./setup_clone_repos.sh</code>, <code>./setup_data.sh</code>, <code>./setup_data_one_gage.sh</code>).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="run_fcst.sh">run_fcst.sh<a href="#run_fcst.sh" class="headerlink" title="Permanent link">#</a></h2>
+  <p>Run "forecast" realizations.</p>
+
+  <strong>Usage</strong>
+    <pre><code>./run_fcst.sh 
+</code></pre>
+
+  <strong>Description</strong>
+      <p>Source <code>./run.sh</code> to call its <code>docker_run</code> command for running "forecast" realizations.  It requires that the ngen runtime environment image has already been built using <code>./ngen_rte_build.sh</code>.</p>
+<p>Various OS env vars are applied from <code>config.bashrc</code>. Notably <code>TARGET_IMAGE_NAME</code> is the image that is sourced (must have already been built) and launched as a container. Various data mount paths are also applied from <code>config.bashrc</code>.</p>
+<p><u>Requirements:</u></p>
+<p>The <code>ngen</code> runtime environment image (defined by <code>TARGET_IMAGE_NAME</code>) has already been built.</p>
+<p>The various repositories and input data needed to run are available and mountable (see <code>./setup_clone_repos.sh</code>, <code>./setup_data.sh</code>, <code>./setup_data_one_gage.sh</code>).</p>
+<p>A "calibration" realization has already been ran for the gage of interest, and its output is available at the expected location.</p>
+<p>This script has 1 positional arguments and 0 named arguments.</p>
+
+
+  <strong>Options</strong>
+    <ul>
+        <li>
+<code>fcst_run_name</code>:
+          <div class="doc doc-md-description">
+            <p>Optional. Default=<code>"fcst_run"</code>. Specify to choose the name of the forecast run.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="run_suite.sh">run_suite.sh<a href="#run_suite.sh" class="headerlink" title="Permanent link">#</a></h2>
+  <p>Run realizations of various types.</p>
+
+  <strong>Usage</strong>
+    <pre><code>./run_suite.sh 
+</code></pre>
+
+  <strong>Description</strong>
+      <p>Source <code>./run.sh</code> to call its <code>docker_run</code> command for running realizations of various types ("default", "calibration", and "forecast").  It requires that the ngen runtime environment image has already been built using <code>./ngen_rte_build.sh</code>.</p>
+<p>Various OS env vars are applied from <code>config.bashrc</code>. Notably <code>TARGET_IMAGE_NAME</code> is the image that is sourced (must have already been built) and launched as a container. Various data mount paths are also applied from <code>config.bashrc</code>.</p>
+<p>Has 0 positional arguments and 0 named arguments.</p>
+<p><u>Requirements:</u></p>
+<p>The <code>ngen</code> runtime environment image (defined by <code>TARGET_IMAGE_NAME</code>) has already been built.</p>
+<p>The various repositories and input data needed to run are available and mountable (see <code>./setup_clone_repos.sh</code>, <code>./setup_data.sh</code>, <code>./setup_data_one_gage.sh</code>).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="additional-utiltities">Additional Utiltities<a class="headerlink" href="#additional-utiltities" title="Permanent link">#</a></h2>
+
+
+
+<h2 id="install_debuggers.sh">install_debuggers.sh<a href="#install_debuggers.sh" class="headerlink" title="Permanent link">#</a></h2>
+  <p>Install debugger packages. Used by <code>Dockerfile.rte</code>.</p>
+
+  <strong>Usage</strong>
+    <pre><code>./install_debuggers.sh YES</code></pre>
+    <pre><code>./install_debuggers.sh NO
+</code></pre>
+
+  <strong>Description</strong>
+      <p>Install debugger packages: python package <code>debugpy</code> and dnf package <code>gdb</code>. Used by <code>Dockerfile.rte</code>.
+Optionally skip installation (noop). The choice of noop is to abstract the flow control away into
+a parameter to work around the non-branching nature of Docker build flow control.</p>
+<p>Has 1 positional argument and 0 named arguments.</p>
+
+
+  <strong>Options</strong>
+    <ul>
+        <li>
+<code>install_debuggers</code>:
+          <div class="doc doc-md-description">
+            <p>Choose from: <code>["YES", "NO"]</code>. If <code>"NO"</code>, this is a noop.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="install_package.sh">install_package.sh<a href="#install_package.sh" class="headerlink" title="Permanent link">#</a></h2>
+  <p>Install a Python package, with options, and write git info json. Used by <code>Dockerfile.rte</code></p>
+
+  <strong>Usage</strong>
+    <pre><code>./install_package.sh python nwm-region-mgr development &#34;[parreg]&#34;
+</code></pre>
+
+  <strong>Description</strong>
+      <p>Install a Python package, with options for the python environment, local vs remote, tag, and "extras". Used by <code>Dockerfile.rte</code>.</p>
+<p>Also call <code>add_git_info.py</code> to dump the package's git info to a json file.</p>
+<p>Treats ngen-forcing reinstall as special since it necessarily is already installed in the base image,
+so if it is specified here, it receives a <code>--force-reinstall</code> flag.</p>
+<p>Has 4 positional arguments and 0 named arguments.</p>
+
+
+  <strong>Options</strong>
+    <ul>
+        <li>
+<code>python_exe</code>:
+          <div class="doc doc-md-description">
+            <p>The python executable to use for installation</p>
+          </div>
+        </li>
+        <li>
+<code>repo_name</code>:
+          <div class="doc doc-md-description">
+            <p>The name of the repository to be installed</p>
+          </div>
+        </li>
+        <li>
+<code>repo_remote_tag</code>:
+          <div class="doc doc-md-description">
+            <p>If "LOCAL", then install from local code. If empty string, skip installation. If other string, install that ref (tag, branch, or commit) from GitHub.</p>
+          </div>
+        </li>
+        <li>
+<code>extras</code>:
+          <div class="doc doc-md-description">
+            <p>Optional extras to include in the pip install directive, e.g. <code>pip install package_name[extras]</code></p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="run-regionalization-workflows">Run Regionalization Workflows<a class="headerlink" href="#run-regionalization-workflows" title="Permanent link">#</a></h2>
+
+
+
+<h2 id="run_region.sh">run_region.sh<a href="#run_region.sh" class="headerlink" title="Permanent link">#</a></h2>
+  <p>Script to run NWM regionalization, NGEN simulation, and evaluation workflows based on command line options.</p>
+
+  <strong>Usage</strong>
+    <pre><code>cd [working_directory, e.g., /ngen-oe/$USER/run_region, /ngen-dev/$USER/run_region, or ~/run_region]
+[NWM-RTE_ROOT]/run_region.sh [OPTIONS]
+</code></pre>
+
+
+  <strong>Options</strong>
+    <ul>
+        <li>
+<code class="option_short">-p</code>, <code>--parreg</code>:
+          <div class="doc doc-md-description">
+            <div class="language-text highlight"><pre><span></span><code> Run parameter regionalization (includes formulation)
+</code></pre></div>
+          </div>
+        </li>
+        <li>
+<code class="option_short">-f</code>, <code>--formreg</code>:
+          <div class="doc doc-md-description">
+            <div class="language-text highlight"><pre><span></span><code> Run formulation regionalization only
+</code></pre></div>
+          </div>
+        </li>
+        <li>
+<code class="option_short">-n</code>, <code>--ngen</code>:
+          <div class="doc doc-md-description">
+            <div class="language-text highlight"><pre><span></span><code> Run NGEN simulation
+</code></pre></div>
+          </div>
+        </li>
+        <li>
+<code class="option_short">-e</code>, <code>--eval</code>:
+          <div class="doc doc-md-description">
+            <div class="language-text highlight"><pre><span></span><code> Run evaluation
+</code></pre></div>
+          </div>
+        </li>
+        <li>
+<code class="option_short">-c</code>, <code>--config_dir</code><code>DIR</code>:
+          <div class="doc doc-md-description">
+            <div class="language-text highlight"><pre><span></span><code> Set config directory (default: ./configs)
+</code></pre></div>
+          </div>
+        </li>
+        <li>
+<code class="option_short">-r</code>, <code>--repos</code><code>PATH</code>:
+          <div class="doc doc-md-description">
+            <div class="language-text highlight"><pre><span></span><code> Set root directory for NGWPC repos (default: auto-detect)
+</code></pre></div>
+          </div>
+        </li>
+        <li>
+<code class="option_short">-t</code>, <code>--image-tag</code><code>TAG</code>:
+          <div class="doc doc-md-description">
+            <div class="language-text highlight"><pre><span></span><code> Set Docker image tag (default: latest)
+</code></pre></div>
+          </div>
+        </li>
+        <li>
+<code class="option_short">-i</code>, <code>--pull-image</code>:
+          <div class="doc doc-md-description">
+            <div class="language-text highlight"><pre><span></span><code> Pull the latest Docker image before running (optional)
+</code></pre></div>
+          </div>
+        </li>
+        <li>
+<code class="option_short">-d</code>, <code>--delete-runtime-dir</code>:
+          <div class="doc doc-md-description">
+            <div class="language-text highlight"><pre><span></span><code> Delete runtime directory after completion (default: keep for debugging)
+</code></pre></div>
+          </div>
+        </li>
+        <li>
+<code class="option_short">-h</code>, <code>--help</code>:
+          <div class="doc doc-md-description">
+            <div class="language-text highlight"><pre><span></span><code> Show this message and exit
+</code></pre></div>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+  <strong>Examples</strong>
+    <em><p>Run parameter regionalization</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Sample config files can be found in nwm-region-mgr repo under configs directory</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>/ngencerf-app/nwm-rte/run_region.sh<span class="w"> </span>--parreg<span class="w"> </span>-c<span class="w"> </span>configs
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>~/ngwpc/nwm-rte/run_region.sh<span class="w"> </span>--parreg<span class="w"> </span>-c<span class="w"> </span>configs
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>~/ngwpc/nwm-rte/run_region.sh<span class="w"> </span>-p<span class="w"> </span>-c<span class="w"> </span>configs
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>~/ngwpc/nwm-rte/run_region.sh<span class="w"> </span>-p<span class="w"> </span>-c<span class="w"> </span>~/ngwpc/nwm-region-mgr/configs
+</span></code></pre></div>    <em><p>Run formulation regionalization only</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>/ngencerf-app/nwm-rte/run_region.sh<span class="w"> </span>--formreg<span class="w"> </span>-c<span class="w"> </span>configs
+</span></code></pre></div>    <em><p>Run NGEN simulation</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>/ngencerf-app/nwm-rte/run_region.sh<span class="w"> </span>--ngen<span class="w"> </span>-c<span class="w"> </span>configs
+</span></code></pre></div>    <em><p>Run evaluation</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>/ngencerf-app/nwm-rte/run_region.sh<span class="w"> </span>--eval<span class="w"> </span>-c<span class="w"> </span>configs
+</span></code></pre></div>    <em><p>Run multiple steps</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>/ngencerf-app/nwm-rte/run_region.sh<span class="w"> </span>--parreg<span class="w"> </span>--ngen<span class="w"> </span>-c<span class="w"> </span>configs
+</span></code></pre></div>    <em><p>Run with different repos root directory</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>/ngencerf-app/nwm-rte/run_region.sh<span class="w"> </span>--ngen<span class="w"> </span>-c<span class="w"> </span>configs<span class="w"> </span>-r<span class="w"> </span>/ngen-oe/<span class="nv">$USER</span>
+</span></code></pre></div>    <em><p>Run with different Docker image tag</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>/ngencerf-app/nwm-rte/run_region.sh<span class="w"> </span>--ngen<span class="w"> </span>-c<span class="w"> </span>configs<span class="w"> </span>-t<span class="w"> </span>pr-20-build
+</span></code></pre></div>    <em><p>Run with pulling the latest Docker image before running</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>/ngencerf-app/nwm-rte/run_region.sh<span class="w"> </span>--ngen<span class="w"> </span>-c<span class="w"> </span>configs<span class="w"> </span>-i
+</span></code></pre></div>    <em><p>Delete runtime directory after completion (default: keep for debugging)</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>/ngencerf-app/nwm-rte/run_region.sh<span class="w"> </span>-c<span class="w"> </span>configs<span class="w"> </span>-p<span class="w"> </span>-n<span class="w"> </span>-e<span class="w"> </span>-d
+</span></code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="sbatch_run_region.sh">sbatch_run_region.sh<a href="#sbatch_run_region.sh" class="headerlink" title="Permanent link">#</a></h2>
+  <p>Submits the regionalization workflow to SLURM using sbatch.</p>
+
+  <strong>Usage</strong>
+    <pre><code>/ngencerf-app/nwm-rte/sbatch_run_region.sh CONFIG_DIR [OPTIONS] [--dry-run]</code></pre>
+    <pre><code>~/ngwpc/nwm-rte/sbatch_run_region.sh CONFIG_DIR [OPTIONS] [--dry-run]
+</code></pre>
+
+  <strong>Description</strong>
+      <p>Usage:</p>
+<div class="language-text highlight"><pre><span></span><code>1. First cd to working directory, e.g., /ngen-oe/$USER/run_region, /ngen-dev/$USER/run_region, or ~/run_region.
+
+2. Copy sample configs (nwm-region-mgr/configs) to working directory and edit as needed. You can also use the sample configs directly for testing purposes.
+
+3. Then run one of the following commands depending on your setup:
+</code></pre></div>
+
+
+  <strong>Options</strong>
+    <ul>
+        <li>
+<code>CONFIG_DIR</code>:
+          <div class="doc doc-md-description">
+            <p>Directory containing configuration YAML files (required)</p>
+          </div>
+        </li>
+        <li>
+<code>OPTIONS</code>:
+          <div class="doc doc-md-description">
+            <p>Workflow steps to runs: parreg, formreg, ngen, or eval (optional, default: parreg)</p>
+          </div>
+        </li>
+        <li>
+<code>--dry-run</code>:
+          <div class="doc doc-md-description">
+            <p>If provided, print the generated SLURM script instead of submitting (optional)</p>
+          </div>
+        </li>
+        <li>
+<code>--image-tag</code><code>TAG</code>:
+          <div class="doc doc-md-description">
+            <p>Docker image tag to use for the RTE (optional, default: latest)</p>
+          </div>
+        </li>
+        <li>
+<code>--pull-image</code>:
+          <div class="doc doc-md-description">
+            <p>Pull the latest Docker image before running (optional)  </p>
+          </div>
+        </li>
+        <li>
+<code>--delete-runtime-dir</code>:
+          <div class="doc doc-md-description">
+            <p>Delete runtime directory after completion (default: keep for debugging)</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+  <strong>Examples</strong>
+    <em><p>Do a dry-run to see the generated SLURM script without submitting</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>~/ngwpc/nwm-rte/sbatch_run_region.sh<span class="w"> </span>~/ngwpc/nwm-region-mgr/configs<span class="w"> </span>parreg<span class="w"> </span>ngen<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>--dry-run
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>/ngencerf-app/nwm-rte/sbatch_run_region.sh<span class="w"> </span>configs<span class="w"> </span>parreg<span class="w"> </span>ngen<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>--dry-run
+</span></code></pre></div>    <em><p>Submit parameter regionalization</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>/ngencerf-app/nwm-rte/sbatch_run_region.sh<span class="w"> </span>configs<span class="w"> </span>parreg
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>/ngencerf-app/nwm-rte/sbatch_run_region.sh<span class="w"> </span>configs
+</span></code></pre></div>    <em><p>Submit formulation regionalization only</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>/ngencerf-app/nwm-rte/sbatch_run_region.sh<span class="w"> </span>configs<span class="w"> </span>formreg
+</span></code></pre></div>    <em><p>Submit NGEN simulation with a different config directory</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>/ngencerf-app/nwm-rte/sbatch_run_region.sh<span class="w"> </span>/ngen-oe/<span class="nv">$USER</span>/myconfigs<span class="w"> </span>ngen
+</span></code></pre></div>    <em><p>Submit evaluation only</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>/ngencerf-app/nwm-rte/sbatch_run_region.sh<span class="w"> </span>configs<span class="w"> </span><span class="nb">eval</span>
+</span></code></pre></div>    <em><p>Using an RTE image tag other than 'latest'</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>/ngencerf-app/nwm-rte/sbatch_run_region.sh<span class="w"> </span>configs<span class="w"> </span>ngen<span class="w"> </span>--image-tag<span class="w"> </span><span class="s2">&quot;069ad0f6d332&quot;</span>
+</span></code></pre></div>    <em><p>Pull the latest RTE image before running</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>/ngencerf-app/nwm-rte/sbatch_run_region.sh<span class="w"> </span>configs<span class="w"> </span>ngen<span class="w"> </span>--pull-image
+</span></code></pre></div>    <em><p>Delete runtime directory after completion (default is to keep it for debugging)</p></em>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>/ngencerf-app/nwm-rte/sbatch_run_region.sh<span class="w"> </span>configs<span class="w"> </span>ngen<span class="w"> </span>--pull-image<span class="w"> </span>--delete-runtime-dir
+</span></code></pre></div>
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+          <div class="md-top" data-md-component="top" hidden>
+  <div class="md-top__center">
+    <button type="button" class="md-top__button md-top__button--main" data-md-action="top">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+      <span>Back to top</span>
+    </button>
+    
+      
+      
+      <label class="md-top__button md-top__side md-top__side--nav" for="__drawer" >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 14H9V6h11Z"/></svg>
+      </label>
+    
+    
+  </div>
+</div>
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../home/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Reference Home">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Reference Home
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../python/" class="md-footer__link md-footer__link--next" aria-label="Next: Python">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Python
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025-2026 Raytheon Company. BSD-2-Clause License.
+    </div>
+  
+  
+    Made with
+    <a href="https://jaywhj.github.io/mkdocs-materialx/" target="_blank" rel="noopener">
+      MaterialX
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/NGWPC/nwm-rte" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.action.edit", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.collapse", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.progress", "navigation.path", "navigation.indexes", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e3ad5d0a.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -12,7 +12,13 @@
         <meta name="author" content="Max Kipp">
       
       
+        <link rel="canonical" href="https://NGWPC.github.io/nwm-rte/user-guide/devcon-debug/">
       
+      
+        <link rel="prev" href="../caveats/">
+      
+      
+        <link rel="next" href="../../reference/home/">
       
       
         
@@ -22,21 +28,21 @@
         
         
         
-          <link rel="icon" href="/nwm-rte/assets/images/favicon.png">
+          <link rel="icon" href="../../assets/images/favicon.png">
         
       
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-materialx-10.1.3">
     
     
       
-        <title>ngen RTE: Runtime Environment for the NWM NextGen Framework</title>
+        <title>DevContainer and Debugger - ngen RTE: Runtime Environment for the NWM NextGen Framework</title>
       
     
     
-      <link rel="stylesheet" href="/nwm-rte/assets/stylesheets/main.4dadc26f.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4dadc26f.min.css">
       
         
-        <link rel="stylesheet" href="/nwm-rte/assets/stylesheets/palette.204eaadb.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.204eaadb.min.css">
       
     
     
@@ -56,9 +62,9 @@
       
     
     
-      <link rel="stylesheet" href="/nwm-rte/assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("/nwm-rte/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -86,6 +92,11 @@
     <label class="md-overlay" for="__toc"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#dev-container-and-debugger" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -98,7 +109,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/nwm-rte/." title="ngen RTE: Runtime Environment for the NWM NextGen Framework" class="md-header__button md-logo" aria-label="ngen RTE: Runtime Environment for the NWM NextGen Framework" data-md-component="logo">
+    <a href="../.." title="ngen RTE: Runtime Environment for the NWM NextGen Framework" class="md-header__button md-logo" aria-label="ngen RTE: Runtime Environment for the NWM NextGen Framework" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -118,7 +129,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              DevContainer and Debugger
             
           </span>
         </div>
@@ -240,7 +251,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="/nwm-rte/." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -257,11 +268,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="/nwm-rte/user-guide/getting-started/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../getting-started/" class="md-tabs__link">
           
   
   
@@ -283,7 +296,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/nwm-rte/reference/home/" class="md-tabs__link">
+        <a href="../../reference/home/" class="md-tabs__link">
           
   
   
@@ -303,7 +316,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="/nwm-rte/CONTRIBUTING/" class="md-tabs__link">
+      <a href="../../CONTRIBUTING/" class="md-tabs__link">
         
   
   
@@ -322,7 +335,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="/nwm-rte/TERMS/" class="md-tabs__link">
+      <a href="../../TERMS/" class="md-tabs__link">
         
   
   
@@ -341,7 +354,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="/nwm-rte/LICENSE/" class="md-tabs__link">
+      <a href="../../LICENSE/" class="md-tabs__link">
         
   
   
@@ -384,7 +397,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/nwm-rte/." title="ngen RTE: Runtime Environment for the NWM NextGen Framework" class="md-nav__button md-logo" aria-label="ngen RTE: Runtime Environment for the NWM NextGen Framework" data-md-component="logo">
+    <a href="../.." title="ngen RTE: Runtime Environment for the NWM NextGen Framework" class="md-nav__button md-logo" aria-label="ngen RTE: Runtime Environment for the NWM NextGen Framework" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -414,7 +427,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/nwm-rte/." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -438,8 +451,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -463,19 +478,20 @@
     
     
       
+        
+        
+      
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
@@ -493,7 +509,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -511,7 +527,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/nwm-rte/user-guide/getting-started/" class="md-nav__link">
+      <a href="../getting-started/" class="md-nav__link">
         
   
   
@@ -539,7 +555,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/nwm-rte/user-guide/build-architecture/" class="md-nav__link">
+      <a href="../build-architecture/" class="md-nav__link">
         
   
   
@@ -567,7 +583,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/nwm-rte/user-guide/configuration/" class="md-nav__link">
+      <a href="../configuration/" class="md-nav__link">
         
   
   
@@ -595,7 +611,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/nwm-rte/user-guide/setup/" class="md-nav__link">
+      <a href="../setup/" class="md-nav__link">
         
   
   
@@ -623,7 +639,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/nwm-rte/user-guide/building/" class="md-nav__link">
+      <a href="../building/" class="md-nav__link">
         
   
   
@@ -651,7 +667,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/nwm-rte/user-guide/running/" class="md-nav__link">
+      <a href="../running/" class="md-nav__link">
         
   
   
@@ -679,7 +695,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/nwm-rte/user-guide/caveats/" class="md-nav__link">
+      <a href="../caveats/" class="md-nav__link">
         
   
   
@@ -704,10 +720,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/nwm-rte/user-guide/devcon-debug/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DevContainer and Debugger
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -723,6 +766,148 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc">
+      
+        <li class="md-nav__item">
+  <a href="#primary-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Primary Files
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Primary Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#devcontainerdevcontainerjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .devcontainer/devcontainer.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#devcontainerdevcontainerjsonpoststartsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ./.devcontainer/devcontainer.json.poststart.sh
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#devcontainerlaunchjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .devcontainer/launch.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#devcontainertasksjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .devcontainer/tasks.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caveats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caveats
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#steps-for-building-and-running-the-dev-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Steps for Building and Running the Dev Container
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Steps for Building and Running the Dev Container">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-and-enter-the-dev-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build and Enter the Dev Container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-the-dev-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use the Dev Container
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -802,7 +987,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/nwm-rte/reference/home/" class="md-nav__link">
+      <a href="../../reference/home/" class="md-nav__link">
         
   
   
@@ -830,7 +1015,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/nwm-rte/reference/shell/" class="md-nav__link">
+      <a href="../../reference/shell/" class="md-nav__link">
         
   
   
@@ -858,7 +1043,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/nwm-rte/reference/python/" class="md-nav__link">
+      <a href="../../reference/python/" class="md-nav__link">
         
   
   
@@ -893,7 +1078,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/nwm-rte/CONTRIBUTING/" class="md-nav__link">
+      <a href="../../CONTRIBUTING/" class="md-nav__link">
         
   
   
@@ -920,7 +1105,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/nwm-rte/TERMS/" class="md-nav__link">
+      <a href="../../TERMS/" class="md-nav__link">
         
   
   
@@ -947,7 +1132,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/nwm-rte/LICENSE/" class="md-nav__link">
+      <a href="../../LICENSE/" class="md-nav__link">
         
   
   
@@ -985,11 +1170,116 @@
   
 
 
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../getting-started/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    User Guide
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
               
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+<h1 id="dev-container-and-debugger">Dev Container and Debugger<a class="headerlink" href="#dev-container-and-debugger" title="Permanent link">#</a></h1>
+<p>The <code>nwm-rte</code> repository contains various files to support a Dev Container and VS Code debugger experience.</p>
+<h2 id="primary-files">Primary Files<a class="headerlink" href="#primary-files" title="Permanent link">#</a></h2>
+<h3 id="devcontainerdevcontainerjson"><code>.devcontainer/devcontainer.json</code><a class="headerlink" href="#devcontainerdevcontainerjson" title="Permanent link">#</a></h3>
+<p><code>devcontainer.json</code> defines the Dev Container itself.</p>
+<p>In it are choices for the image used, as well as various file mounts that occur when the Dev Container is launched.</p>
+<p>This file also uses a <code>"postStartCommand"</code> directive to run a shell script <code>./.devcontainer/devcontainer.json.poststart.sh</code> when it starts.</p>
+<h3 id="devcontainerdevcontainerjsonpoststartsh"><code>./.devcontainer/devcontainer.json.poststart.sh</code><a class="headerlink" href="#devcontainerdevcontainerjsonpoststartsh" title="Permanent link">#</a></h3>
+<p><code>./.devcontainer/devcontainer.json.poststart.sh</code> runs when the Dev Container starts. This script has commented-out <code>pip install</code> calls which can be enabled in order to cause the Dev Container to use those local codebases for some of its component packages. When those packages are pip installed with the <code>-e</code> flag, then the user can edit (the Python aspects of) those component packages and see the effects "live" while they are in the container. This also allows the user to conveniently leverage a <code>debugpy</code> debugger, since breakpoints may be placed in the component packages' code, either by adding <code>debugpy.breakpoint()</code> in-line in the Python code or by leveraging the built-in IDE breakpoint capabilities (clicking in the margins of the editor).</p>
+<h3 id="devcontainerlaunchjson"><code>.devcontainer/launch.json</code><a class="headerlink" href="#devcontainerlaunchjson" title="Permanent link">#</a></h3>
+<p><code>launch.json</code> defines the available VS Code debugger configurations available once inside the Dev Container. The "compounds" and "configurations" listed in this file become choosable items in the VS Code GUI's Debugger dialog, once inside the Dev Container. Review this file to see what the various configurations do. They generally run a script or a module with explicit arguments.</p>
+<p>Do not choose configurations that begin with an underscore, as those are meant to be private (they are not functional alone, they are called on by the public configurations).</p>
+<h3 id="devcontainertasksjson"><code>.devcontainer/tasks.json</code><a class="headerlink" href="#devcontainertasksjson" title="Permanent link">#</a></h3>
+<p><code>tasks.json</code> contains extra code required for some of the debugger configurations. For example for the complex configurations that involve multiple concurrent MPI ranks, the debugger uses a <code>sleep</code> directive to allow the main processes some time to start up before it sends external <code>debugpy</code> instances to "attach" to those ranks.</p>
+<h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h2>
+<p>When running a debugger configuration, sometimes the first 1 or 2 attempts fail due to pop-up error messages such as "Configured debug type 'debugpy' is not supported.", even if you have debugpy installed. Please try a few more times and it will likely start working.</p>
+<p>If you are trying a complex configuration that involves concurrent MPI ranks, and you are running into unexpected errors, you may need to increase the sleep time in <code>tasks.json</code>, depending on your computer specifications.</p>
+<h2 id="steps-for-building-and-running-the-dev-container">Steps for Building and Running the Dev Container<a class="headerlink" href="#steps-for-building-and-running-the-dev-container" title="Permanent link">#</a></h2>
+<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h3>
+<ol>
+<li>
+<p>Go through the setup steps outlined in the <code>nwm-rte</code> <code>README.md</code> for cloning sibling repositories and setting up with data.</p>
+</li>
+<li>
+<p>Build a ngen RTE image (review <code>config.bashrc</code> and build via <code>./ngen_rte_build.sh</code>). Be sure to choose <code>INSTALL_DEBUGGERS="YES"</code> before building, so that <code>debugpy</code> and <code>gdb</code> are installed into the RTE image. When the build finishes, note in the final terminal messages the name (tag) of the image that has been built. Commonly, it will be <code>"ngen_rte_ghcr"</code>, but not always depending on your settings.</p>
+</li>
+<li>
+<p>Build at least one calibration realization for the test gage <code>"01123000"</code> using AORC forcing, objective function <code>"kge"</code>, and optimization algorithm <code>"dds"</code>. See the appropriate commands in either <code>./run_calib.sh</code> or <code>./run_suite</code> for this. It is not necessary to fully run either of those scripts, only enough to generate intermediary output files such as <code>.../run_ngen/kge_dds/test_bmi/01123000/Input/forcing_config/aorc_config.yml</code>.</p>
+</li>
+</ol>
+<h3 id="build-and-enter-the-dev-container">Build and Enter the Dev Container<a class="headerlink" href="#build-and-enter-the-dev-container" title="Permanent link">#</a></h3>
+<ol>
+<li>
+<p>Review <code>.devcontainer/devcontainer.json</code>, especially the image name near the top. Edit as necessary.</p>
+</li>
+<li>
+<p>Ensure your VS Code instance is at the <code>nwm-rte</code> root. Commonly, you may have your VS Code instance at the parent of this location, e.g. <code>~/ngwpc/</code> rather than <code>~/ngwpc/nwm-rte</code>.  If that is the case, simply run the following command to open a new VS Code instance in the <code>nwm-rte</code> repository (this will not close your existing VS Code instance): <code>code nwm-rte</code>.</p>
+</li>
+<li>
+<p>Build and enter the Dev Container. Press key combination <code>ctrl-shift-P</code> to open the built-in Command Pallette, and start typing the word Rebuild into that dialog. You should see a choice appear named <code>Dev Container: Rebuild and Reopen in Container</code>. Choose that. This does not re-build the entire ngen RTE image. But it may take a moment for it to start a new container of your chosen (existing) image, perform the mounts, and run the <code>"postStartCommand"</code> script.</p>
+</li>
+</ol>
+<h3 id="use-the-dev-container">Use the Dev Container<a class="headerlink" href="#use-the-dev-container" title="Permanent link">#</a></h3>
+<ol>
+<li>
+<p>Once inside the container, you can edit <code>devcontainer.json</code> as needed and then re-build it by choosing <code>Dev Containers: Rebuild Container</code> in the Command Pallette.</p>
+</li>
+<li>
+<p>From inside the container, if you edit code from one of the paths that was mounted to a <code>./src/</code> path (see mounts in <code>devcontainer.json</code>), note that those changes will affect your host disk since those paths are mounted.  When you rebuild using <code>Dev Containers: Rebuild Container</code>, your changes will be applied. However, if you wish to apply live changes without having to rebuild each time, you can edit <code>./.devcontainer/devcontainer.json.poststart.sh</code> as needed to enable pip (re)install calls with the <code>-e</code> flag.</p>
+</li>
+<li>
+<p>Try running one of the simple debugger configurations, such as <code>forcing_nompi</code>.</p>
+</li>
+<li>
+<p>Try running a complex debugger configuration, such as <code>forcing_mpi_n2</code>.</p>
+</li>
+</ol>
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -1019,6 +1309,44 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../caveats/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Caveats">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Caveats
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../reference/home/" class="md-footer__link md-footer__link--next" aria-label="Next: Reference Home">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Reference Home
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">
@@ -1068,10 +1396,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "/nwm-rte/", "features": ["content.action.edit", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.collapse", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.progress", "navigation.path", "navigation.indexes", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "/nwm-rte/assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.action.edit", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.collapse", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.progress", "navigation.path", "navigation.indexes", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="/nwm-rte/assets/javascripts/bundle.e3ad5d0a.min.js"></script>
+      <script src="../../assets/javascripts/bundle.e3ad5d0a.min.js"></script>
       
     
   </body>
