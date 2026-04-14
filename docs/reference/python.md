@@ -28,6 +28,15 @@ To update these, run: `./docs/update_python_cli_ref.sh`
 
 ::: run_regionalization
 
+## Python Constants
+
+Currently `bin_mounted/consts.py` contains variables which rarely need editing, except for the `MODELS` formulation list. Soon, this formulation list will be parameterized CLI argument(s).
+
+::: consts
+    options:
+      members:
+        - MODELS
+
 ## Configuration Classes
 
 These mimic the CLI interfaces and perform some additional argument parsing and preparation of classes that are passed to other components of the system.
