@@ -2,7 +2,7 @@
 
 A configurable `docker build` and `docker run` sequence for headless end-to-end execution of ngen core + component package capabilities.
 
-For additional documentation, see the GitHub pages site.
+For additional documentation, see the [GitHub pages site](https://ngwpc.github.io/nwm-rte).
 
 [Build Architecture](user-guide/build-architecture.md)
 
