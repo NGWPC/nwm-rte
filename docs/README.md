@@ -12,10 +12,10 @@ For additional documentation, see the GitHub pages site.
 
 [Configuration](user-guide/configuration.md)
 
-[Caveats](user-guide/caveats.md)
-
 [DevContainer and Debugger](user-guide/devcon-debug.md)
 
 [Custom Builds](user-guide/custom-builds.md)
 
 [Regionalization Workflows](user-guide/regionalization.md)
+
+[Caveats](user-guide/caveats.md)

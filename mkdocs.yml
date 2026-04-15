@@ -16,10 +16,10 @@ nav:
   - Orientation: user-guide/orientation.md
   - Setup (Get Started): user-guide/setup.md
   - Configuration: user-guide/configuration.md
-  - Caveats: user-guide/caveats.md
   - DevContainer and Debugger: user-guide/devcon-debug.md
   - Custom Builds: user-guide/custom-builds.md
   - Regionalization Workflows: user-guide/regionalization.md
+  - Caveats: user-guide/caveats.md
 - Reference:
   - Reference Home: reference/home.md
   - Shell: reference/shell.md
