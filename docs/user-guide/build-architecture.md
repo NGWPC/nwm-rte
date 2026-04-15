@@ -2,15 +2,15 @@
 
 ## OS Image Inheritance
 
-The ngen runtime environment (RTE) OS image is built via image inheritance:
+The ngen runtime environment (RTE) OS image is built from the following inheritance:
 
 `ngen-forcing/Dockerfile.bmi-forcings`: Base image with packages `NextGen_Forcings_Engine_BMI` and `ewts`
 
-&emsp; &emsp; <span style="font-size: 24px;">&darr;</span>
+&emsp; <span style="font-size: 18px;">&darr;</span>
 
 `ngen/Dockerfile`: `ngen`, `partitionGenerator`, and various `extern` submodule packages
 
-&emsp; &emsp; <span style="font-size: 24px;">&darr;</span>
+&emsp; <span style="font-size: 18px;">&darr;</span>
 
 `nwm-rte/Dockerfile.rte`: RTE component packages
 
@@ -18,7 +18,7 @@ The ngen runtime environment (RTE) OS image is built via image inheritance:
 
 The RTE component Python packages include:
 
-| Code Repository<br>(each includes 1+ packages) | Python<br>Virtual Environment |
+| Code Repository<br>(each includes 1 or more packages) | Python<br>Virtual Environment |
 | ----------------------------------------------------- | -------------------------- |
 | `nwm-fcst-mgr`                                          | `ngen-python` (default)     |
 | `nwm-msw-mgr`                                           | `ngen-python` (default)     |

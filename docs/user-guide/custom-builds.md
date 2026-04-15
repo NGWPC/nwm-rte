@@ -6,7 +6,7 @@ Here are steps for making the RTE image using a custom version of `ngen` itself.
 
 1. Run the above setup steps for cloning repos and downloading data, except stop before running `./ngen_rte_build.sh`.
 
-2. Edit `config.bashrc` to use: `NGEN_SOURCE_MODE="build_from_local"`
+2. Edit [`config.bashrc`](../reference/shell.md#config.bashrc) to use: `NGEN_SOURCE_MODE="build_from_local"`
 
 3. Check out the desired code for ngen and its submodules.  For example, to use `ngen`'s `development` branch but change the version of `t-route`:
 ```shell

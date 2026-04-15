@@ -14,7 +14,7 @@ nav:
 - User Guide:
   - Build Architecture: user-guide/build-architecture.md
   - Orientation: user-guide/orientation.md
-  - Setup (Get Started): user-guide/setup.md
+  - Get Started: user-guide/get-started.md
   - Configuration: user-guide/configuration.md
   - DevContainer and Debugger: user-guide/devcon-debug.md
   - Custom Builds: user-guide/custom-builds.md

@@ -45,3 +45,25 @@ Please include type hints and docstrings on all classes, methods, and functions.
 #### Shell Code
 
 Please follow the `shellman` style for in-file documentation. `MkDocs` has been configured to parse this style of docstring via the `mkdocstrings-shell` package.
+
+
+## Updating the Documentation
+
+To update the documentation, run the following commands from the `nwm-rte` repository root.
+
+```shell
+# Install dependencies needed to build the documentation.
+pip install ".[docs]"
+
+# Update the Python CLI --help txt files, if necessary. Commit txt file changes to the repository as needed.
+./docs/update_python_cli_ref.sh
+
+# Serve the documentation locally and confirm changes in the browser at http://127.0.0.1:8000/nwm-rte/
+mkdocs serve
+
+# Make git commits and pushes as needed.
+...
+
+# Deploy to the GitHub pages site
+mkdocs gh-deploy
+```

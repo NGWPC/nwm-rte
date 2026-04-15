@@ -26,21 +26,15 @@ Do not choose configurations that begin with an underscore, as those are meant t
 
 `tasks.json` contains extra code required for some of the debugger configurations. For example for the complex configurations that involve multiple concurrent MPI ranks, the debugger uses a `sleep` directive to allow the main processes some time to start up before it sends external `debugpy` instances to "attach" to those ranks.
 
-## Caveats
-
-When running a debugger configuration, sometimes the first 1 or 2 attempts fail due to pop-up error messages such as "Configured debug type 'debugpy' is not supported.", even if you have debugpy installed. Please try a few more times and it will likely start working.
-
-If you are trying a complex configuration that involves concurrent MPI ranks, and you are running into unexpected errors, you may need to increase the sleep time in `tasks.json`, depending on your computer specifications.
-
 ## Steps for Building and Running the Dev Container
 
 ### Prerequisites
 
 1. Go through the setup steps outlined in the `nwm-rte` `README.md` for cloning sibling repositories and setting up with data.
 
-2. Build a ngen RTE image (review `config.bashrc` and build via `./ngen_rte_build.sh`). Be sure to choose `INSTALL_DEBUGGERS="YES"` before building, so that `debugpy` and `gdb` are installed into the RTE image. When the build finishes, note in the final terminal messages the name (tag) of the image that has been built. Commonly, it will be `"ngen_rte_ghcr"`, but not always depending on your settings.
+2. Build a ngen RTE image (review [`config.bashrc`](../reference/shell.md#config.bashrc) and build via `./ngen_rte_build.sh`). Be sure to choose `INSTALL_DEBUGGERS="YES"` before building, so that `debugpy` and `gdb` are installed into the RTE image. When the build finishes, note in the final terminal messages the name (tag) of the image that has been built. Commonly, it will be `"ngen_rte_ghcr"`, but not always depending on your settings.
 
-3. Build at least one calibration realization for the test gage `"01123000"` using AORC forcing, objective function `"kge"`, and optimization algorithm `"dds"`. See the appropriate commands in either `./run_calib.sh` or `./run_suite` for this. It is not necessary to fully run either of those scripts, only enough to generate intermediary output files such as `.../run_ngen/kge_dds/test_bmi/01123000/Input/forcing_config/aorc_config.yml`.
+3. Build at least one calibration realization for the test gage `"01123000"` using AORC forcing, objective function `"kge"`, and optimization algorithm `"dds"`. See the appropriate commands in either [`run_calib.sh`](../reference/shell.md#run_calib.sh) or [`run_suite.sh`](../reference/shell.md#run_suite.sh) for this. It is not necessary to fully run either of those scripts, only enough to generate intermediary output files such as `.../run_ngen/kge_dds/test_bmi/01123000/Input/forcing_config/aorc_config.yml`.
 
 ### Build and Enter the Dev Container
 
@@ -59,3 +53,9 @@ If you are trying a complex configuration that involves concurrent MPI ranks, an
 9. Try running one of the simple debugger configurations, such as `forcing_nompi`.
 
 10. Try running a complex debugger configuration, such as `forcing_mpi_n2`.
+
+## Caveats
+
+When running a debugger configuration, sometimes the first 1 or 2 attempts fail due to pop-up error messages such as "Configured debug type 'debugpy' is not supported.", even if you have debugpy installed. Please try a few more times and it will likely start working.
+
+If you are trying a complex configuration that involves concurrent MPI ranks, and you are running into unexpected errors, you may need to increase the sleep time in `.devcontainer/tasks.json`, depending on your computer specifications.
