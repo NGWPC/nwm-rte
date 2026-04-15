@@ -4,18 +4,18 @@ A configurable `docker build` and `docker run` sequence for headless end-to-end 
 
 For additional documentation, see the GitHub pages site.
 
-## [Build Architecture](user-guide/build-architecture.md)
+[Build Architecture](user-guide/build-architecture.md)
 
-## [Orientation](user-guide/orientation.md)
+[Orientation](user-guide/orientation.md)
 
-## [Setup (Get Started)](user-guide/setup.md)
+[Setup (Get Started)](user-guide/setup.md)
 
-## [Configuration](user-guide/configuration.md)
+[Configuration](user-guide/configuration.md)
 
-## [Caveats](user-guide/caveats.md)
+[Caveats](user-guide/caveats.md)
 
-## [DevContainer and Debugger](user-guide/devcon-debug.md)
+[DevContainer and Debugger](user-guide/devcon-debug.md)
 
-## [Custom Builds](user-guide/custom-builds.md)
+[Custom Builds](user-guide/custom-builds.md)
 
-## [Regionalization Workflows](user-guide/regionalization.md)
+[Regionalization Workflows](user-guide/regionalization.md)
