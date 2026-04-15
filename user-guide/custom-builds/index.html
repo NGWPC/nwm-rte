@@ -12,13 +12,13 @@
         <meta name="author" content="Max Kipp">
       
       
-        <link rel="canonical" href="https://NGWPC.github.io/nwm-rte/user-guide/running/">
+        <link rel="canonical" href="https://NGWPC.github.io/nwm-rte/user-guide/custom-builds/">
       
       
-        <link rel="prev" href="../building/">
+        <link rel="prev" href="../devcon-debug/">
       
       
-        <link rel="next" href="../caveats/">
+        <link rel="next" href="../regionalization/">
       
       
         
@@ -35,7 +35,7 @@
     
     
       
-        <title>Running - ngen RTE: Runtime Environment for the NWM NextGen Framework</title>
+        <title>Custom Builds - ngen RTE: Runtime Environment for the NWM NextGen Framework</title>
       
     
     
@@ -63,6 +63,8 @@
     
     
       <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -93,7 +95,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#running-executables" class="md-skip">
+        <a href="#custom-builds" class="md-skip">
           Skip to content
         </a>
       
@@ -129,7 +131,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Running
+              Custom Builds
             
           </span>
         </div>
@@ -274,7 +276,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../getting-started/" class="md-tabs__link">
+        <a href="../build-architecture/" class="md-tabs__link">
           
   
   
@@ -527,14 +529,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+      <a href="../build-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Build Architecture
   
 
     
@@ -555,14 +557,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../build-architecture/" class="md-nav__link">
+      <a href="../orientation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Build Architecture
+    Orientation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setup (Get Started)
   
 
     
@@ -611,42 +641,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../setup/" class="md-nav__link">
+      <a href="../devcon-debug/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Setup
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../building/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Building
+    DevContainer and Debugger
   
 
     
@@ -676,6 +678,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Builds
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -683,7 +703,7 @@
   <span class="md-ellipsis">
     
   
-    Running
+    Custom Builds
   
 
     
@@ -693,6 +713,75 @@
 
       </a>
       
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc">
+      
+        <li class="md-nav__item">
+  <a href="#example-for-a-custom-build-of-ngen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example for a Custom Build of ngen
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../regionalization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regionalization Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -713,34 +802,6 @@
     
   
     Caveats
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../devcon-debug/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    DevContainer and Debugger
   
 
     
@@ -1036,7 +1097,7 @@
     
     
       <li class="md-path__item">
-        <a href="../getting-started/" class="md-path__link">
+        <a href="../build-architecture/" class="md-path__link">
           
   <span class="md-ellipsis">
     User Guide
@@ -1056,8 +1117,45 @@
                 
                   
 
-<h1 id="running-executables">Running Executables<a class="headerlink" href="#running-executables" title="Permanent link">#</a></h1>
-<p>Coming soon...</p>
+<h1 id="custom-builds">Custom Builds<a class="headerlink" href="#custom-builds" title="Permanent link">#</a></h1>
+<h2 id="example-for-a-custom-build-of-ngen">Example for a Custom Build of <code>ngen</code><a class="headerlink" href="#example-for-a-custom-build-of-ngen" title="Permanent link">#</a></h2>
+<p>Here are steps for making the RTE image using a custom version of <code>ngen</code> itself. These steps assume that the default version of <code>ngen-forcing</code> (referenced by <code>ngen/Dockerfile</code>) is the desired base, prior to adding the <code>ngen</code> layer.</p>
+<ol>
+<li>
+<p>Run the above setup steps for cloning repos and downloading data, except stop before running <code>./ngen_rte_build.sh</code>.</p>
+</li>
+<li>
+<p>Edit <code>config.bashrc</code> to use: <code>NGEN_SOURCE_MODE="build_from_local"</code></p>
+</li>
+<li>
+<p>Check out the desired code for ngen and its submodules.  For example, to use <code>ngen</code>'s <code>development</code> branch but change the version of <code>t-route</code>:
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">### From the ~/ngwpc/ngen repository root:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>git<span class="w"> </span>checkout<span class="w"> </span>development
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>git<span class="w"> </span>pull
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1">## Ensure the local copies of submodules are matching the specific commits currently pointed to by the ngen repository.</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1">## This does not fetch the latest updates from the submodule branches tracked by .gitmodules.  To do that, you would add --remote to the command.</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>git<span class="w"> </span>submodule<span class="w"> </span>update<span class="w"> </span>--init<span class="w"> </span>--recursive
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1">## Check out a specific branch of t-route</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="o">(</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>extern/t-route<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>git<span class="w"> </span>checkout<span class="w"> </span>any-branch<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>git<span class="w"> </span>pull<span class="w"> </span><span class="o">)</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p>If your <code>ngen/Dockerfile</code> is starting <code>FROM ghcr.io/ngwpc/ngen-bmi-forcing:latest</code>, then pull the latest ngen-forcing GHCR image.
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>sudo<span class="w"> </span>docker<span class="w"> </span>pull<span class="w"> </span>ghcr.io/ngwpc/ngen-bmi-forcing:latest
+</span></code></pre></div></p>
+</li>
+<li>
+<p>Build the RTE image
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">### From the ~/ngwpc/nwm-rte repository root:</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>./ngen_rte_build.sh
+</span></code></pre></div></p>
+</li>
+<li>
+<p>Confirm in the build messages that the built was successful and that the image name built is <code>ngen_rte_build_from_local</code></p>
+</li>
+</ol>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">#</a></h2>
+<p>For (re)installing the Python packages of ngen's submodules, such as <code>lstm</code>, within the Dev Container, see <a href="../devcon-debug/#devcontainerdevcontainerjsonpoststartsh">.devcontainer/devcontainer.json.poststart.sh</a></p>
 
 
 
@@ -1100,7 +1198,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../building/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Building">
+          <a href="../devcon-debug/" class="md-footer__link md-footer__link--prev" aria-label="Previous: DevContainer and Debugger">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1110,20 +1208,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Building
+                DevContainer and Debugger
               </div>
             </div>
           </a>
         
         
           
-          <a href="../caveats/" class="md-footer__link md-footer__link--next" aria-label="Next: Caveats">
+          <a href="../regionalization/" class="md-footer__link md-footer__link--next" aria-label="Next: Regionalization Workflows">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Caveats
+                Regionalization Workflows
               </div>
             </div>
             <div class="md-footer__button md-icon">

@@ -1,0 +1,10 @@
+usage: run_regionalization.py [-h] [-c CONFIG_DIR] [--parreg] [--formreg]
+                              [--ngen] [--eval]
+
+options:
+  -h, --help            show this help message and exit
+  -c CONFIG_DIR, --config_dir CONFIG_DIR
+  --parreg
+  --formreg
+  --ngen
+  --eval

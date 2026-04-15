@@ -15,10 +15,10 @@
         <link rel="canonical" href="https://NGWPC.github.io/nwm-rte/user-guide/devcon-debug/">
       
       
-        <link rel="prev" href="../caveats/">
+        <link rel="prev" href="../configuration/">
       
       
-        <link rel="next" href="../../reference/home/">
+        <link rel="next" href="../custom-builds/">
       
       
         
@@ -63,6 +63,8 @@
     
     
       <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -274,7 +276,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../getting-started/" class="md-tabs__link">
+        <a href="../build-architecture/" class="md-tabs__link">
           
   
   
@@ -527,34 +529,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Getting Started
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../build-architecture/" class="md-nav__link">
         
   
@@ -583,14 +557,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../configuration/" class="md-nav__link">
+      <a href="../orientation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Configuration
+    Orientation
   
 
     
@@ -618,7 +592,7 @@
   <span class="md-ellipsis">
     
   
-    Setup
+    Setup (Get Started)
   
 
     
@@ -639,70 +613,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../building/" class="md-nav__link">
+      <a href="../configuration/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Building
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../running/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Running
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../caveats/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Caveats
+    Configuration
   
 
     
@@ -809,7 +727,7 @@
   <a href="#devcontainerdevcontainerjsonpoststartsh" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ./.devcontainer/devcontainer.json.poststart.sh
+        .devcontainer/devcontainer.json.poststart.sh
       
     </span>
   </a>
@@ -908,6 +826,90 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-builds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Builds
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../regionalization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regionalization Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../caveats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Caveats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1195,7 +1197,7 @@
     
     
       <li class="md-path__item">
-        <a href="../getting-started/" class="md-path__link">
+        <a href="../build-architecture/" class="md-path__link">
           
   <span class="md-ellipsis">
     User Guide
@@ -1222,7 +1224,7 @@
 <p><code>devcontainer.json</code> defines the Dev Container itself.</p>
 <p>In it are choices for the image used, as well as various file mounts that occur when the Dev Container is launched.</p>
 <p>This file also uses a <code>"postStartCommand"</code> directive to run a shell script <code>./.devcontainer/devcontainer.json.poststart.sh</code> when it starts.</p>
-<h3 id="devcontainerdevcontainerjsonpoststartsh"><code>./.devcontainer/devcontainer.json.poststart.sh</code><a class="headerlink" href="#devcontainerdevcontainerjsonpoststartsh" title="Permanent link">#</a></h3>
+<h3 id="devcontainerdevcontainerjsonpoststartsh"><code>.devcontainer/devcontainer.json.poststart.sh</code><a class="headerlink" href="#devcontainerdevcontainerjsonpoststartsh" title="Permanent link">#</a></h3>
 <p><code>./.devcontainer/devcontainer.json.poststart.sh</code> runs when the Dev Container starts. This script has commented-out <code>pip install</code> calls which can be enabled in order to cause the Dev Container to use those local codebases for some of its component packages. When those packages are pip installed with the <code>-e</code> flag, then the user can edit (the Python aspects of) those component packages and see the effects "live" while they are in the container. This also allows the user to conveniently leverage a <code>debugpy</code> debugger, since breakpoints may be placed in the component packages' code, either by adding <code>debugpy.breakpoint()</code> in-line in the Python code or by leveraging the built-in IDE breakpoint capabilities (clicking in the margins of the editor).</p>
 <h3 id="devcontainerlaunchjson"><code>.devcontainer/launch.json</code><a class="headerlink" href="#devcontainerlaunchjson" title="Permanent link">#</a></h3>
 <p><code>launch.json</code> defines the available VS Code debugger configurations available once inside the Dev Container. The "compounds" and "configurations" listed in this file become choosable items in the VS Code GUI's Debugger dialog, once inside the Dev Container. Review this file to see what the various configurations do. They generally run a script or a module with explicit arguments.</p>
@@ -1314,7 +1316,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../caveats/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Caveats">
+          <a href="../configuration/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Configuration">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1324,20 +1326,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Caveats
+                Configuration
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../reference/home/" class="md-footer__link md-footer__link--next" aria-label="Next: Reference Home">
+          <a href="../custom-builds/" class="md-footer__link md-footer__link--next" aria-label="Next: Custom Builds">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Reference Home
+                Custom Builds
               </div>
             </div>
             <div class="md-footer__button md-icon">

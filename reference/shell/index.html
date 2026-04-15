@@ -64,6 +64,8 @@
     
       <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -272,7 +274,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../user-guide/getting-started/" class="md-tabs__link">
+        <a href="../../user-guide/build-architecture/" class="md-tabs__link">
           
   
   
@@ -524,14 +526,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/getting-started/" class="md-nav__link">
+      <a href="../../user-guide/build-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Build Architecture
   
 
     
@@ -552,14 +554,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/build-architecture/" class="md-nav__link">
+      <a href="../../user-guide/orientation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Build Architecture
+    Orientation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setup (Get Started)
   
 
     
@@ -608,14 +638,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/setup/" class="md-nav__link">
+      <a href="../../user-guide/devcon-debug/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Setup
+    DevContainer and Debugger
   
 
     
@@ -636,14 +666,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/building/" class="md-nav__link">
+      <a href="../../user-guide/custom-builds/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Building
+    Custom Builds
   
 
     
@@ -664,14 +694,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/running/" class="md-nav__link">
+      <a href="../../user-guide/regionalization/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Running
+    Regionalization Workflows
   
 
     
@@ -700,34 +730,6 @@
     
   
     Caveats
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../user-guide/devcon-debug/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    DevContainer and Debugger
   
 
     
@@ -1131,6 +1133,17 @@
     <span class="md-ellipsis">
       
         run_suite.sh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run_tests.sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_tests.sh
       
     </span>
   </a>
@@ -1683,9 +1696,9 @@ as well as the runtime environment itself (e.g. mount paths).</p>
 
 
   <strong>Caveats</strong>
-      <p>REPO_TAG_NGEN_FORCING provision causes the ngen-forcing Python package to be reinstalled, but does not affect other aspects of ngen-forcing (does not cause a rebuild from the ngen-forcing base).
+      <p><code>REPO_TAG_NGEN_FORCING</code> provision causes the ngen-forcing Python package to be reinstalled, but does not affect other aspects of <code>ngen-forcing</code> (does not cause a rebuild from the <code>ngen-forcing</code> base).
 This does not affect the base image, does not reflect changes to C++ code nor changes to <code>ngen-forcing/Dockerfile.bmi-forcings</code>, nor changes to other ngen-forcing build instructions.
-It only causes an optional <code>pip install</code> call to be executed on the ngen-forcing Python package, after the manager packages have been installed on top of the ngen base image.</p>
+It only causes an optional <code>pip install</code> call to be executed on the <code>ngen-forcing</code> Python package, after the manager packages have been installed on top of the ngen base image.</p>
 
 
 
@@ -2108,6 +2121,54 @@ which is typically sourced by other scripts and ran externally.</p>
 
 
 
+
+
+
+<h2 id="run_tests.sh">run_tests.sh<a href="#run_tests.sh" class="headerlink" title="Permanent link">#</a></h2>
+  <p>Run a series of "forecast" realizations via <code>run_tests.py</code> with various forcing configurations, optionally with "calibration" realizations first.</p>
+
+  <strong>Usage</strong>
+    <pre><code>./run_tests.sh 
+</code></pre>
+
+  <strong>Description</strong>
+      <p>Source <code>./run.sh</code> to call its <code>docker_run</code> command for running <code>run_tests.py</code>.  It requires that the ngen runtime environment image has already been built using <code>./ngen_rte_build.sh</code>.</p>
+<p>When realizations fail, this program does not halt, but rather moves to the next configuration type in the list, with the goal of "trying" many different realization configurations in one call.</p>
+<p>The status of each configuration's build step and run step is reported and written to a json file at the end.</p>
+<p>The Python script <code>run_tests.py</code> includes options for stopping realizations mid-way through their run, rather than waiting for them to complete.</p>
+<p>Various OS env vars are applied from <code>config.bashrc</code>. Notably <code>TARGET_IMAGE_NAME</code> is the image that is sourced (must have already been built) and launched as a container. Various data mount paths are also applied from <code>config.bashrc</code>.</p>
+<p><u>Requirements:</u></p>
+<p>The <code>ngen</code> runtime environment image (defined by <code>TARGET_IMAGE_NAME</code>) has already been built.</p>
+<p>The various repositories and input data needed to run are available and mountable (see <code>./setup_clone_repos.sh</code>, <code>./setup_data.sh</code>, <code>./setup_data_one_gage.sh</code>).</p>
+<p>This script has 1 positional arguments and 0 named arguments.</p>
+
+
+  <strong>Options</strong>
+    <ul>
+        <li>
+<code>fcst_run_name</code>:
+          <div class="doc doc-md-description">
+            <p>Optional. Default=<code>"fcst_run"</code>. Specify to choose the name of the forecast run.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <h2 id="additional-utiltities">Additional Utiltities<a class="headerlink" href="#additional-utiltities" title="Permanent link">#</a></h2>
 
 
@@ -2216,6 +2277,7 @@ so if it is specified here, it receives a <code>--force-reinstall</code> flag.</
 
 
 <h2 id="run-regionalization-workflows">Run Regionalization Workflows<a class="headerlink" href="#run-regionalization-workflows" title="Permanent link">#</a></h2>
+<p>For more information, see the <code>nwm-region-mgr</code> repository.</p>
 
 
 
@@ -2227,77 +2289,70 @@ so if it is specified here, it receives a <code>--force-reinstall</code> flag.</
 [NWM-RTE_ROOT]/run_region.sh [OPTIONS]
 </code></pre>
 
+  <strong>Description</strong>
+      <p>Has 0 positional arguments and many named arguments.</p>
+
 
   <strong>Options</strong>
     <ul>
         <li>
 <code class="option_short">-p</code>, <code>--parreg</code>:
           <div class="doc doc-md-description">
-            <div class="language-text highlight"><pre><span></span><code> Run parameter regionalization (includes formulation)
-</code></pre></div>
+            <p>Run parameter regionalization (includes formulation)</p>
           </div>
         </li>
         <li>
 <code class="option_short">-f</code>, <code>--formreg</code>:
           <div class="doc doc-md-description">
-            <div class="language-text highlight"><pre><span></span><code> Run formulation regionalization only
-</code></pre></div>
+            <p>Run formulation regionalization only</p>
           </div>
         </li>
         <li>
 <code class="option_short">-n</code>, <code>--ngen</code>:
           <div class="doc doc-md-description">
-            <div class="language-text highlight"><pre><span></span><code> Run NGEN simulation
-</code></pre></div>
+            <p>Run NGEN simulation</p>
           </div>
         </li>
         <li>
 <code class="option_short">-e</code>, <code>--eval</code>:
           <div class="doc doc-md-description">
-            <div class="language-text highlight"><pre><span></span><code> Run evaluation
-</code></pre></div>
+            <p>Run evaluation</p>
           </div>
         </li>
         <li>
 <code class="option_short">-c</code>, <code>--config_dir</code><code>DIR</code>:
           <div class="doc doc-md-description">
-            <div class="language-text highlight"><pre><span></span><code> Set config directory (default: ./configs)
-</code></pre></div>
+            <p>(default: <code>"./configs"</code>) Set config directory</p>
           </div>
         </li>
         <li>
 <code class="option_short">-r</code>, <code>--repos</code><code>PATH</code>:
           <div class="doc doc-md-description">
-            <div class="language-text highlight"><pre><span></span><code> Set root directory for NGWPC repos (default: auto-detect)
-</code></pre></div>
+            <p>(default: auto-detect) Set root directory for NGWPC repos</p>
           </div>
         </li>
         <li>
 <code class="option_short">-t</code>, <code>--image-tag</code><code>TAG</code>:
           <div class="doc doc-md-description">
-            <div class="language-text highlight"><pre><span></span><code> Set Docker image tag (default: latest)
-</code></pre></div>
+            <p>(default: <code>"latest"</code>) Set Docker image tag</p>
           </div>
         </li>
         <li>
 <code class="option_short">-i</code>, <code>--pull-image</code>:
           <div class="doc doc-md-description">
-            <div class="language-text highlight"><pre><span></span><code> Pull the latest Docker image before running (optional)
-</code></pre></div>
+            <p>(optional switch) Pull the latest Docker image before running</p>
           </div>
         </li>
         <li>
 <code class="option_short">-d</code>, <code>--delete-runtime-dir</code>:
           <div class="doc doc-md-description">
-            <div class="language-text highlight"><pre><span></span><code> Delete runtime directory after completion (default: keep for debugging)
-</code></pre></div>
+            <p>(optional switch) Delete runtime directory after completion</p>
           </div>
         </li>
         <li>
 <code class="option_short">-h</code>, <code>--help</code>:
           <div class="doc doc-md-description">
-            <div class="language-text highlight"><pre><span></span><code> Show this message and exit
-</code></pre></div>
+            <p>Show this message and exit</p>
           </div>
         </li>
     </ul>
@@ -2347,19 +2402,16 @@ so if it is specified here, it receives a <code>--force-reinstall</code> flag.</
 <h2 id="sbatch_run_region.sh">sbatch_run_region.sh<a href="#sbatch_run_region.sh" class="headerlink" title="Permanent link">#</a></h2>
   <p>Submits the regionalization workflow to SLURM using sbatch.</p>
 
-  <strong>Usage</strong>
-    <pre><code>/ngencerf-app/nwm-rte/sbatch_run_region.sh CONFIG_DIR [OPTIONS] [--dry-run]</code></pre>
-    <pre><code>~/ngwpc/nwm-rte/sbatch_run_region.sh CONFIG_DIR [OPTIONS] [--dry-run]
-</code></pre>
 
   <strong>Description</strong>
       <p>Usage:</p>
 <div class="language-text highlight"><pre><span></span><code>1. First cd to working directory, e.g., /ngen-oe/$USER/run_region, /ngen-dev/$USER/run_region, or ~/run_region.
-
 2. Copy sample configs (nwm-region-mgr/configs) to working directory and edit as needed. You can also use the sample configs directly for testing purposes.
-
 3. Then run one of the following commands depending on your setup:
+     /ngencerf-app/nwm-rte/sbatch_run_region.sh CONFIG_DIR [OPTIONS] [--dry-run]
+     ~/ngwpc/nwm-rte/sbatch_run_region.sh CONFIG_DIR [OPTIONS] [--dry-run]
 </code></pre></div>
+<p>Has 2 positional arguments and some named arguments.</p>
 
 
   <strong>Options</strong>
@@ -2367,37 +2419,37 @@ so if it is specified here, it receives a <code>--force-reinstall</code> flag.</
         <li>
 <code>CONFIG_DIR</code>:
           <div class="doc doc-md-description">
-            <p>Directory containing configuration YAML files (required)</p>
+            <p>(required) Directory containing configuration YAML files</p>
           </div>
         </li>
         <li>
 <code>OPTIONS</code>:
           <div class="doc doc-md-description">
-            <p>Workflow steps to runs: parreg, formreg, ngen, or eval (optional, default: parreg)</p>
+            <p>(optional, default: <code>"parreg"</code>) Workflow steps to runs: parreg, formreg, ngen, or eval</p>
           </div>
         </li>
         <li>
 <code>--dry-run</code>:
           <div class="doc doc-md-description">
-            <p>If provided, print the generated SLURM script instead of submitting (optional)</p>
+            <p>(optional switch) If provided, print the generated SLURM script instead of submitting</p>
           </div>
         </li>
         <li>
 <code>--image-tag</code><code>TAG</code>:
           <div class="doc doc-md-description">
-            <p>Docker image tag to use for the RTE (optional, default: latest)</p>
+            <p>(optional, default: <code>"latest"</code>) Docker image tag to use for the RTE</p>
           </div>
         </li>
         <li>
 <code>--pull-image</code>:
           <div class="doc doc-md-description">
-            <p>Pull the latest Docker image before running (optional)  </p>
+            <p>(optional switch) Pull the latest Docker image before running</p>
           </div>
         </li>
         <li>
 <code>--delete-runtime-dir</code>:
           <div class="doc doc-md-description">
-            <p>Delete runtime directory after completion (default: keep for debugging)</p>
+            <p>(optional switch) Delete runtime directory after completion</p>
           </div>
         </li>
     </ul>

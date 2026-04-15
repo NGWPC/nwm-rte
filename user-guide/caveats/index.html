@@ -15,10 +15,10 @@
         <link rel="canonical" href="https://NGWPC.github.io/nwm-rte/user-guide/caveats/">
       
       
-        <link rel="prev" href="../running/">
+        <link rel="prev" href="../regionalization/">
       
       
-        <link rel="next" href="../devcon-debug/">
+        <link rel="next" href="../../reference/home/">
       
       
         
@@ -63,6 +63,8 @@
     
     
       <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -274,7 +276,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../getting-started/" class="md-tabs__link">
+        <a href="../build-architecture/" class="md-tabs__link">
           
   
   
@@ -527,14 +529,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+      <a href="../build-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Build Architecture
   
 
     
@@ -555,14 +557,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../build-architecture/" class="md-nav__link">
+      <a href="../orientation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Build Architecture
+    Orientation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setup (Get Started)
   
 
     
@@ -611,14 +641,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../setup/" class="md-nav__link">
+      <a href="../devcon-debug/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Setup
+    DevContainer and Debugger
   
 
     
@@ -639,14 +669,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../building/" class="md-nav__link">
+      <a href="../custom-builds/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Building
+    Custom Builds
   
 
     
@@ -667,14 +697,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../running/" class="md-nav__link">
+      <a href="../regionalization/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Running
+    Regionalization Workflows
   
 
     
@@ -704,6 +734,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Caveats
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -721,34 +769,36 @@
 
       </a>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../devcon-debug/" class="md-nav__link">
         
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
-  <span class="md-ellipsis">
+  
     
   
-    DevContainer and Debugger
   
-
-    
-  </span>
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc">
+      
+        <li class="md-nav__item">
+  <a href="#optional-configuration-variable-repo_tag_ngen_forcing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional Configuration Variable REPO_TAG_NGEN_FORCING
+      
+    </span>
+  </a>
   
+</li>
+      
+    </ul>
   
-
-      </a>
+</nav>
+      
     </li>
   
 
@@ -1036,7 +1086,7 @@
     
     
       <li class="md-path__item">
-        <a href="../getting-started/" class="md-path__link">
+        <a href="../build-architecture/" class="md-path__link">
           
   <span class="md-ellipsis">
     User Guide
@@ -1057,7 +1107,10 @@
                   
 
 <h1 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h1>
-<p>Coming soon...</p>
+<h2 id="optional-configuration-variable-repo_tag_ngen_forcing">Optional Configuration Variable <code>REPO_TAG_NGEN_FORCING</code><a class="headerlink" href="#optional-configuration-variable-repo_tag_ngen_forcing" title="Permanent link">#</a></h2>
+<p>The usage of the optional variable <code>REPO_TAG_NGEN_FORCING</code> in <code>config.bashrc</code> and in the GHA workflows, as well as the lowercase version <code>repo_tag_ngen_forcing</code> in the GHA workflows, has the effect of "reinstalling" specifically only the Python package of ngen-forcing. This is used for development purposes, for quickly trying changes to the Python package of ngen-forcing.</p>
+<p>Using this optional variable does <em>not</em> cause a re-build of the entire ngen-forcing base. For example it does not incorporate changes to ngen-forcing C++ code or changes to <code>ngen-forcing/Dockerfile.bmi-forcings</code> or the various scripts or commands that are called by <code>ngen-forcing/Dockerfile.bmi-forcings</code>.</p>
+<p>When <code>REPO_TAG_NGEN_FORCING</code> is set to an empty string, it has no effect, meaning, when it is an empty string then the extra <code>pip install</code> of ngen-forcing Python package does not occur on top of the existing ngen base image.</p>
 
 
 
@@ -1100,7 +1153,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../running/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Running">
+          <a href="../regionalization/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Regionalization Workflows">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1110,20 +1163,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Running
+                Regionalization Workflows
               </div>
             </div>
           </a>
         
         
           
-          <a href="../devcon-debug/" class="md-footer__link md-footer__link--next" aria-label="Next: DevContainer and Debugger">
+          <a href="../../reference/home/" class="md-footer__link md-footer__link--next" aria-label="Next: Reference Home">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                DevContainer and Debugger
+                Reference Home
               </div>
             </div>
             <div class="md-footer__button md-icon">

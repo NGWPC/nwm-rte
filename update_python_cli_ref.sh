@@ -16,6 +16,6 @@ function write_python_cli_help_txt () {
         "${python_script_path}" --help > "${output_file}"
 }
 
-for bn in "run_default.py" "run_calibration.py" "run_forecast.py" "run_tests.py"; do
+for bn in "run_default.py" "run_calibration.py" "run_forecast.py" "run_tests.py" "run_regionalization.py"; do
     write_python_cli_help_txt "${bn}"
 done

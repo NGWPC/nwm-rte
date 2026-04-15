@@ -12,13 +12,13 @@
         <meta name="author" content="Max Kipp">
       
       
-        <link rel="canonical" href="https://NGWPC.github.io/nwm-rte/user-guide/building/">
+        <link rel="canonical" href="https://NGWPC.github.io/nwm-rte/user-guide/orientation/">
       
       
-        <link rel="prev" href="../setup/">
+        <link rel="prev" href="../build-architecture/">
       
       
-        <link rel="next" href="../running/">
+        <link rel="next" href="../setup/">
       
       
         
@@ -35,7 +35,7 @@
     
     
       
-        <title>Building - ngen RTE: Runtime Environment for the NWM NextGen Framework</title>
+        <title>Orientation - ngen RTE: Runtime Environment for the NWM NextGen Framework</title>
       
     
     
@@ -63,6 +63,8 @@
     
     
       <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -93,7 +95,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#building-the-image" class="md-skip">
+        <a href="#orientation" class="md-skip">
           Skip to content
         </a>
       
@@ -129,7 +131,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Building
+              Orientation
             
           </span>
         </div>
@@ -274,7 +276,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../getting-started/" class="md-tabs__link">
+        <a href="../build-architecture/" class="md-tabs__link">
           
   
   
@@ -527,14 +529,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+      <a href="../build-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Build Architecture
   
 
     
@@ -552,17 +554,153 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../build-architecture/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orientation
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
   <span class="md-ellipsis">
     
   
-    Build Architecture
+    Orientation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc">
+      
+        <li class="md-nav__item">
+  <a href="#description-of-primary-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description of Primary Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ngen-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ngen Logs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ngen Logs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ngen_log_to_rte" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NGEN_LOG_TO_RTE
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#realization-executables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Realization Executables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setup (Get Started)
   
 
     
@@ -611,14 +749,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../setup/" class="md-nav__link">
+      <a href="../devcon-debug/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Setup
+    DevContainer and Debugger
   
 
     
@@ -627,44 +765,6 @@
   
 
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Building
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
     </li>
   
 
@@ -677,14 +777,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../running/" class="md-nav__link">
+      <a href="../custom-builds/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Running
+    Custom Builds
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../regionalization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regionalization Workflows
   
 
     
@@ -713,34 +841,6 @@
     
   
     Caveats
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../devcon-debug/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    DevContainer and Debugger
   
 
     
@@ -1036,7 +1136,7 @@
     
     
       <li class="md-path__item">
-        <a href="../getting-started/" class="md-path__link">
+        <a href="../build-architecture/" class="md-path__link">
           
   <span class="md-ellipsis">
     User Guide
@@ -1056,8 +1156,32 @@
                 
                   
 
-<h1 id="building-the-image">Building the Image<a class="headerlink" href="#building-the-image" title="Permanent link">#</a></h1>
-<p>Coming soon...</p>
+<h1 id="orientation">Orientation<a class="headerlink" href="#orientation" title="Permanent link">#</a></h1>
+<h2 id="description-of-primary-files">Description of Primary Files<a class="headerlink" href="#description-of-primary-files" title="Permanent link">#</a></h2>
+<p>Most of the shell files source their configuration from <code>config.bashrc</code>.</p>
+<p><code>setup_data.sh</code> Downloads global data from s3, as well as data for specific test gage(s).</p>
+<p><code>setup_data_one_gage.sh</code>: Downloads data from s3 for a specific test gage. This is used to optionally download data for non-default gages, and for oCONUS gages.</p>
+<p><code>setup_clone_repos.sh</code> Clones repos from GitHub. Includes CLI option for using SSH (for r+w, requires credentials) or HTTPS (for read-only, no credentials required). Includes CLI option for a shallow (<code>--depth 1</code>) clone or full clone.</p>
+<p><code>ngen_rte_build.sh</code> Builds an image using <code>Dockerfile.rte</code>.</p>
+<p><code>run.sh</code> Defines a bash function <code>docker_run</code> that uses a <code>docker run</code> call to start an ephemeral container of the new image with various host disk mounts applied. This is intended to be sourced by other shell scripts. The <code>docker_run</code> function receives any number of positional arguments. It passes its first argument as the value for Docker's <code>--entrypoint</code> and passes all subsequent arguments to the container as a command. See <code>run_calib.sh</code> for an example. If <code>run.sh</code> is executed as a script e.g. <code>./run.sh</code>, then it starts an interactive terminal session in the container.</p>
+<h2 id="ngen-logs"><code>ngen</code> Logs<a class="headerlink" href="#ngen-logs" title="Permanent link">#</a></h2>
+<p>The log levels of <code>ngen</code> and its various modules is set via <code>./bin_mounted/ngen_logging.json</code>. When RTE builds a realization, it copies this file into a location where <code>ngen</code> finds it during its run.</p>
+<p>The OS environment variable <code>NGEN_RESULTS_DIR</code> dictates where this json file should be when <code>ngen</code> starts, and also controls where the output log files are written.</p>
+<h3 id="ngen_log_to_rte"><code>NGEN_LOG_TO_RTE</code><a class="headerlink" href="#ngen_log_to_rte" title="Permanent link">#</a></h3>
+<p>RTE exposes an optional variable <code>NGEN_LOG_TO_RTE</code> in <code>config.bashrc</code>.</p>
+<p>When this is set to <code>YES</code> then RTE will set <code>NGEN_RESULTS_DIR</code> before it calls the calibration manager module or the forecast manager module. It will set it to a location within the RTE repository directory: <code>ngen_logs/{YYYYMMDD_HHMMSS_FFFFFF}_{description}/</code> where the time is the current UTC time to microseconds, and the description is defined ad hoc.</p>
+<p>When <code>NGEN_LOG_TO_RTE</code> is <code>NO</code> or unset, this will cause RTE to set <code>NGEN_RESULTS_DIR</code> to a path within the realization's directory, after building the realization. This mimics the behavior of the calibration manager module and the forecast manager module when those are ran from the alternate ngenCERF environment (those modules set <code>NGEN_RESULTS_DIR</code> automatically if it is not set).</p>
+<p>For RTE, in all cases, RTE copies <code>./bin_mounted/ngen_logging.json</code> into <code>NGEN_RESULTS_DIR</code>, after it defines <code>NGEN_RESULTS_DIR</code> and before starting ngen.</p>
+<h3 id="realization-executables">Realization Executables<a class="headerlink" href="#realization-executables" title="Permanent link">#</a></h3>
+<p>For the following executables, see commented-out lines in the script for examples of different ways to leverage the CLI args exposed by the various workflows.</p>
+<p><code>run_calib.sh</code> Builds and runs one calibration realization in one call to <code>bin_mounted/run_calibration.py</code>.</p>
+<p><code>run_fcst.sh</code> Builds and runs one forecast realization in one call to <code>bin_mounted/run_forecast.py</code>.</p>
+<p><code>run_suite.sh</code> Builds and runs a series of calibration and forecast realizations in a series of calls to <code>bin_mounted/run_calibration.py</code> and <code>bin_mounted/run_forecast.py</code>.</p>
+<p><code>run_tests.sh</code> Builds and runs a series of calibration and forecast realizations in one call to <code>bin_mounted/run_tests.py</code>. If one of the realizations experiences an error, the process will continue to the next realization without halting. This workflow extracts information from the log files of the various realizations, and writes a json structure to disk with certain log lines and status of each realization's build step and run step. By default this workflow allows the realizations run to completion, but also supports modes that cancel the realization after a certain amount of time.</p>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">#</a></h2>
+<p><a href="../devcon-debug/">Dev Container and Debugger</a></p>
+<p><a href="../configuration/">Configuration</a></p>
+<p><a href="../../reference/home/">Code Reference</a></p>
 
 
 
@@ -1100,7 +1224,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../setup/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Setup">
+          <a href="../build-architecture/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Build Architecture">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1110,20 +1234,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Setup
+                Build Architecture
               </div>
             </div>
           </a>
         
         
           
-          <a href="../running/" class="md-footer__link md-footer__link--next" aria-label="Next: Running">
+          <a href="../setup/" class="md-footer__link md-footer__link--next" aria-label="Next: Setup (Get Started)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Running
+                Setup (Get Started)
               </div>
             </div>
             <div class="md-footer__button md-icon">
