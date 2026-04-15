@@ -33,9 +33,9 @@ plugins:
 # - mike:
 #     alias_type: symlink
 #     canonical_version: stable
-- redirects:
-    redirect_maps:
-      'README.md': 'UNDER_CONSTRUCTION.md'
+# - redirects:
+#     redirect_maps:
+#       'README.md': 'UNDER_CONSTRUCTION.md'
 - mkdocstrings:
     default_handler: python
     handlers:
