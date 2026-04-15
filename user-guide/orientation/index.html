@@ -18,7 +18,7 @@
         <link rel="prev" href="../build-architecture/">
       
       
-        <link rel="next" href="../setup/">
+        <link rel="next" href="../get-started/">
       
       
         
@@ -693,14 +693,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../setup/" class="md-nav__link">
+      <a href="../get-started/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Setup (Get Started)
+    Get Started
   
 
     
@@ -1158,27 +1158,29 @@
 
 <h1 id="orientation">Orientation<a class="headerlink" href="#orientation" title="Permanent link">#</a></h1>
 <h2 id="description-of-primary-files">Description of Primary Files<a class="headerlink" href="#description-of-primary-files" title="Permanent link">#</a></h2>
-<p>Most of the shell files source their configuration from <code>config.bashrc</code>.</p>
-<p><code>setup_data.sh</code> Downloads global data from s3, as well as data for specific test gage(s).</p>
-<p><code>setup_data_one_gage.sh</code>: Downloads data from s3 for a specific test gage. This is used to optionally download data for non-default gages, and for oCONUS gages.</p>
-<p><code>setup_clone_repos.sh</code> Clones repos from GitHub. Includes CLI option for using SSH (for r+w, requires credentials) or HTTPS (for read-only, no credentials required). Includes CLI option for a shallow (<code>--depth 1</code>) clone or full clone.</p>
-<p><code>ngen_rte_build.sh</code> Builds an image using <code>Dockerfile.rte</code>.</p>
-<p><code>run.sh</code> Defines a bash function <code>docker_run</code> that uses a <code>docker run</code> call to start an ephemeral container of the new image with various host disk mounts applied. This is intended to be sourced by other shell scripts. The <code>docker_run</code> function receives any number of positional arguments. It passes its first argument as the value for Docker's <code>--entrypoint</code> and passes all subsequent arguments to the container as a command. See <code>run_calib.sh</code> for an example. If <code>run.sh</code> is executed as a script e.g. <code>./run.sh</code>, then it starts an interactive terminal session in the container.</p>
+<p>Most of the shell files source their configuration from <a href="../../reference/shell/#config.bashrc"><code>config.bashrc</code></a>.</p>
+<p><a href="../../reference/shell/#setup_data.sh"><code>setup_data.sh</code></a> Downloads global data from s3, as well as data for specific test gage(s).</p>
+<p><a href="../../reference/shell/#setup_data_one_gage.sh"><code>setup_data_one_gage.sh</code></a>: Downloads data from s3 for a specific test gage. This is used to optionally download data for non-default gages, and for oCONUS gages.</p>
+<p><a href="../../reference/shell/#setup_clone_repos.sh"><code>setup_clone_repos.sh</code></a> Clones repos from GitHub. Includes CLI option for using SSH (for r+w, requires credentials) or HTTPS (for read-only, no credentials required). Includes CLI option for a shallow (<code>--depth 1</code>) clone or full clone.</p>
+<p><a href="../../reference/shell/#ngen_rte_build.sh"><code>ngen_rte_build.sh</code></a> Builds an image using <code>Dockerfile.rte</code>.</p>
+<p><a href="../../reference/shell/#run.sh"><code>run.sh</code></a> Defines a bash function <code>docker_run</code> that uses a <code>docker run</code> call to start an ephemeral container of the new image with various host disk mounts applied. This is intended to be sourced by other shell scripts. The <code>docker_run</code> function receives any number of positional arguments. It passes its first argument as the value for Docker's <code>--entrypoint</code> and passes all subsequent arguments to the container as a command. See <a href="../../reference/shell/#run_calib.sh"><code>run_calib.sh</code></a> for an example. If <a href="../../reference/shell/#run.sh"><code>run.sh</code></a> is executed as a script e.g. <code>./run.sh</code>, then it starts an interactive terminal session in the container.</p>
 <h2 id="ngen-logs"><code>ngen</code> Logs<a class="headerlink" href="#ngen-logs" title="Permanent link">#</a></h2>
-<p>The log levels of <code>ngen</code> and its various modules is set via <code>./bin_mounted/ngen_logging.json</code>. When RTE builds a realization, it copies this file into a location where <code>ngen</code> finds it during its run.</p>
+<p>The log levels of <code>ngen</code> and its various modules is set via <a href="../../ngen_logging.json"><code>bin_mounted/ngen_logging.json</code></a>. When RTE builds a realization, it copies this file into a location where <code>ngen</code> finds it during its run.</p>
 <p>The OS environment variable <code>NGEN_RESULTS_DIR</code> dictates where this json file should be when <code>ngen</code> starts, and also controls where the output log files are written.</p>
 <h3 id="ngen_log_to_rte"><code>NGEN_LOG_TO_RTE</code><a class="headerlink" href="#ngen_log_to_rte" title="Permanent link">#</a></h3>
-<p>RTE exposes an optional variable <code>NGEN_LOG_TO_RTE</code> in <code>config.bashrc</code>.</p>
-<p>When this is set to <code>YES</code> then RTE will set <code>NGEN_RESULTS_DIR</code> before it calls the calibration manager module or the forecast manager module. It will set it to a location within the RTE repository directory: <code>ngen_logs/{YYYYMMDD_HHMMSS_FFFFFF}_{description}/</code> where the time is the current UTC time to microseconds, and the description is defined ad hoc.</p>
-<p>When <code>NGEN_LOG_TO_RTE</code> is <code>NO</code> or unset, this will cause RTE to set <code>NGEN_RESULTS_DIR</code> to a path within the realization's directory, after building the realization. This mimics the behavior of the calibration manager module and the forecast manager module when those are ran from the alternate ngenCERF environment (those modules set <code>NGEN_RESULTS_DIR</code> automatically if it is not set).</p>
-<p>For RTE, in all cases, RTE copies <code>./bin_mounted/ngen_logging.json</code> into <code>NGEN_RESULTS_DIR</code>, after it defines <code>NGEN_RESULTS_DIR</code> and before starting ngen.</p>
+<p>RTE exposes an optional variable <code>NGEN_LOG_TO_RTE</code> in <a href="../../reference/shell/#config.bashrc"><code>config.bashrc</code></a>.</p>
+<p>When this is <code>"YES"</code> or <code>"TRUE"</code> then RTE will set <code>NGEN_RESULTS_DIR</code> before it calls the calibration manager module or the forecast manager module. It will set it to a location within the RTE repository directory: <code>ngen_logs/{YYYYMMDD_HHMMSS_FFFFFF}_{description}/</code> where the time is the current UTC time to microseconds, and the description varies.</p>
+<p>When this is <code>"NO"</code>, <code>"FALSE"</code>, or unset, then RTE will set <code>NGEN_RESULTS_DIR</code> to a path within the realization's directory, after building the realization. This mimics the behavior of the calibration manager module and the forecast manager module when those are ran from the alternate ngenCERF environment (those modules set <code>NGEN_RESULTS_DIR</code> automatically if it is not set).</p>
+<p>In either case, RTE copies <a href="../../ngen_logging.json"><code>bin_mounted/ngen_logging.json</code></a> into <code>NGEN_RESULTS_DIR</code>, after it defines <code>NGEN_RESULTS_DIR</code> and before starting ngen.</p>
 <h3 id="realization-executables">Realization Executables<a class="headerlink" href="#realization-executables" title="Permanent link">#</a></h3>
-<p>For the following executables, see commented-out lines in the script for examples of different ways to leverage the CLI args exposed by the various workflows.</p>
-<p><code>run_calib.sh</code> Builds and runs one calibration realization in one call to <code>bin_mounted/run_calibration.py</code>.</p>
-<p><code>run_fcst.sh</code> Builds and runs one forecast realization in one call to <code>bin_mounted/run_forecast.py</code>.</p>
-<p><code>run_suite.sh</code> Builds and runs a series of calibration and forecast realizations in a series of calls to <code>bin_mounted/run_calibration.py</code> and <code>bin_mounted/run_forecast.py</code>.</p>
-<p><code>run_tests.sh</code> Builds and runs a series of calibration and forecast realizations in one call to <code>bin_mounted/run_tests.py</code>. If one of the realizations experiences an error, the process will continue to the next realization without halting. This workflow extracts information from the log files of the various realizations, and writes a json structure to disk with certain log lines and status of each realization's build step and run step. By default this workflow allows the realizations run to completion, but also supports modes that cancel the realization after a certain amount of time.</p>
+<p>For the following executables, see commented-out lines in the script for examples of different ways to leverage the <a href="../../reference/python/#cli-help-menus">CLI arguments of the executable Python modules</a>.</p>
+<p><a href="../../reference/shell/#run_default.sh"><code>run_default.sh</code></a> Builds and runs a "default" realization via call to <a href="../../reference/python/#run_defaultpy"><code>bin_mounted/run_default.py</code></a>.</p>
+<p><a href="../../reference/shell/#run_calib.sh"><code>run_calib.sh</code></a> Builds and runs a "calibration" realization via call to <a href="../../reference/python/#run_calibrationpy"><code>bin_mounted/run_calibration.py</code></a>.</p>
+<p><a href="../../reference/shell/#run_fcst.sh"><code>run_fcst.sh</code></a> Builds and runs a "forecast" realization via call <a href="../../reference/python/#run_forecastpy"><code>bin_mounted/run_forecast.py</code></a>.</p>
+<p><a href="../../reference/shell/#run_suite.sh"><code>run_suite.sh</code></a> Builds and runs a series of calibration and forecast realizations in a series of calls to <a href="../../reference/python/#run_calibrationpy"><code>bin_mounted/run_calibration.py</code></a> and <a href="../../reference/python/#run_forecastpy"><code>bin_mounted/run_forecast.py</code></a>.</p>
+<p><a href="../../reference/shell/#run_tests.sh"><code>run_tests.sh</code></a> Builds and runs a series of calibration and forecast realizations in one call to <a href="../../reference/python/#run_testspy"><code>bin_mounted/run_tests.py</code></a>. If one of the realizations experiences an error, the process will continue to the next realization without halting. This workflow extracts information from the log files of the various realizations, and writes a json structure to disk with certain log lines and status of each realization's build step and run step. By default this workflow allows the realizations run to completion, but also supports modes that cancel the realization after a certain amount of time.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">#</a></h2>
+<p><a href="../../reference/python/#cli-help-menus">Python CLI Interface</a></p>
 <p><a href="../devcon-debug/">Dev Container and Debugger</a></p>
 <p><a href="../configuration/">Configuration</a></p>
 <p><a href="../../reference/home/">Code Reference</a></p>
@@ -1241,13 +1243,13 @@
         
         
           
-          <a href="../setup/" class="md-footer__link md-footer__link--next" aria-label="Next: Setup (Get Started)">
+          <a href="../get-started/" class="md-footer__link md-footer__link--next" aria-label="Next: Get Started">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Setup (Get Started)
+                Get Started
               </div>
             </div>
             <div class="md-footer__button md-icon">

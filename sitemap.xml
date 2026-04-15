@@ -66,17 +66,17 @@
         <changefreq>daily</changefreq>
     </url>
     <url>
+        <loc>https://NGWPC.github.io/nwm-rte/user-guide/get-started/</loc>
+        <lastmod>2026-04-15</lastmod>
+        <changefreq>daily</changefreq>
+    </url>
+    <url>
         <loc>https://NGWPC.github.io/nwm-rte/user-guide/orientation/</loc>
         <lastmod>2026-04-15</lastmod>
         <changefreq>daily</changefreq>
     </url>
     <url>
         <loc>https://NGWPC.github.io/nwm-rte/user-guide/regionalization/</loc>
-        <lastmod>2026-04-15</lastmod>
-        <changefreq>daily</changefreq>
-    </url>
-    <url>
-        <loc>https://NGWPC.github.io/nwm-rte/user-guide/setup/</loc>
         <lastmod>2026-04-15</lastmod>
         <changefreq>daily</changefreq>
     </url>

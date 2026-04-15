@@ -654,14 +654,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../setup/" class="md-nav__link">
+      <a href="../get-started/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Setup (Get Started)
+    Get Started
   
 
     
@@ -1119,18 +1119,18 @@
 
 <h1 id="build-architecture">Build Architecture<a class="headerlink" href="#build-architecture" title="Permanent link">#</a></h1>
 <h2 id="os-image-inheritance">OS Image Inheritance<a class="headerlink" href="#os-image-inheritance" title="Permanent link">#</a></h2>
-<p>The ngen runtime environment (RTE) OS image is built via image inheritance:</p>
+<p>The ngen runtime environment (RTE) OS image is built from the following inheritance:</p>
 <p><code>ngen-forcing/Dockerfile.bmi-forcings</code>: Base image with packages <code>NextGen_Forcings_Engine_BMI</code> and <code>ewts</code></p>
-<p>&emsp; &emsp; <span style="font-size: 24px;">&darr;</span></p>
+<p>&emsp; <span style="font-size: 18px;">&darr;</span></p>
 <p><code>ngen/Dockerfile</code>: <code>ngen</code>, <code>partitionGenerator</code>, and various <code>extern</code> submodule packages</p>
-<p>&emsp; &emsp; <span style="font-size: 24px;">&darr;</span></p>
+<p>&emsp; <span style="font-size: 18px;">&darr;</span></p>
 <p><code>nwm-rte/Dockerfile.rte</code>: RTE component packages</p>
 <h2 id="rte-component-packages">RTE Component Packages<a class="headerlink" href="#rte-component-packages" title="Permanent link">#</a></h2>
 <p>The RTE component Python packages include:</p>
 <table>
 <thead>
 <tr>
-<th>Code Repository<br>(each includes 1+ packages)</th>
+<th>Code Repository<br>(each includes 1 or more packages)</th>
 <th>Python<br>Virtual Environment</th>
 </tr>
 </thead>

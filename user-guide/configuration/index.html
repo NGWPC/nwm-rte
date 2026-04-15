@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://NGWPC.github.io/nwm-rte/user-guide/configuration/">
       
       
-        <link rel="prev" href="../setup/">
+        <link rel="prev" href="../get-started/">
       
       
         <link rel="next" href="../devcon-debug/">
@@ -585,14 +585,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../setup/" class="md-nav__link">
+      <a href="../get-started/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Setup (Get Started)
+    Get Started
   
 
     
@@ -681,23 +681,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Build Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#see-also" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        See Also
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -709,14 +692,36 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Run Configuration">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caveats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caveats
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Caveats">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#see-also_1" class="md-nav__link">
+  <a href="#ghcr-images" class="md-nav__link">
     <span class="md-ellipsis">
       
-        See Also
+        GHCR Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#local-files-for-runtime-mounts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local Files for Runtime Mounts
       
     </span>
   </a>
@@ -1164,23 +1169,22 @@
 
 <h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h1>
 <h2 id="build-configuration">Build Configuration<a class="headerlink" href="#build-configuration" title="Permanent link">#</a></h2>
-<p>The build configuration settings are made in <code>config.bashrc</code>. </p>
+<p>The build configuration settings are made in <a href="../../reference/shell/#config.bashrc"><code>config.bashrc</code></a>. </p>
 <p>Variables in that file allow choosing the sources of the base <code>ngen-forcing</code> image, the base <code>ngen</code> image, as well as all RTE component packages.</p>
 <p>The base images may be sourced from remote GHCR images, built from local code, or built from remote GH code.</p>
 <p>The component packages may be installed from local code or installed from remote GH code.</p>
-<p>Sourcing from remote allows the user to specify any GitHub "reference" name, i.e. a specific branch, tag, or commit hash.</p>
-<h3 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">#</a></h3>
-<p><a href="../../reference/shell/#config.bashrc">reference/shell.md#config.bashrc</a></p>
+<p>Sourcing from remote allows the user to specify any Git "reference" or "ref" name, i.e. a specific branch, tag, or commit hash from GitHub.</p>
 <h2 id="run-configuration">Run Configuration<a class="headerlink" href="#run-configuration" title="Permanent link">#</a></h2>
-<p>Most run settings are made via command-line interface arguments of the various executable Python modules within <code>bin_mounted/</code>.</p>
-<p>Some run settings are configured in <code>bin_mounted/consts.py</code>, <code>bin_mounted/ngen_logging.json</code>, and <code>config.bashrc</code>.</p>
-<p>Runtime host disk mounts occur within <code>run.sh</code>.  These include various data directory mounts for inputs, intermediary outputs, and realization files, as well as configuration files mounted from locally cloned host disk files for <code>ngen-forcing</code>.</p>
-<h3 id="see-also_1">See Also<a class="headerlink" href="#see-also_1" title="Permanent link">#</a></h3>
-<p><a href="../../reference/python/#cli-help-menus">Python CLI Help</a></p>
-<p><a href="../../reference/shell/#config.bashrc">config.bashrc</a></p>
-<p><a href="../../reference/shell/#run.sh">run.sh</a></p>
-<p><a href="../../ngen_logging.json">bin_mounted/ngen_logging.json</a></p>
-<p><a href="../../reference/python/#consts">bin_mounted/consts.py</a></p>
+<p>Most run settings are made via <a href="../../reference/python/#cli-help-menus">CLI arguments of the executable Python modules</a> within <code>bin_mounted/</code>.</p>
+<p>Some run settings are configured in <a href="../../reference/python/#python-constants"><code>bin_mounted/consts.py</code></a>, <a href="../../ngen_logging.json"><code>bin_mounted/ngen_logging.json</code></a>, and <a href="../../reference/shell/#config.bashrc"><code>config.bashrc</code></a>.</p>
+<h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h2>
+<h3 id="ghcr-images">GHCR Images<a class="headerlink" href="#ghcr-images" title="Permanent link">#</a></h3>
+<p>If using a dynamic GHCR image tag such as <code>"latest"</code>, if you have already pulled that tag previously and you wish to update to the current version of that tag, you may need to run <code>docker pull</code>, e.g. <code>docker pull ghcr.io/ngwpc/ngen:latest</code></p>
+<h3 id="local-files-for-runtime-mounts">Local Files for Runtime Mounts<a class="headerlink" href="#local-files-for-runtime-mounts" title="Permanent link">#</a></h3>
+<p>At runtime, host disk mounts occur within <a href="../../reference/shell/#run.sh"><code>run.sh</code></a>.  These include various data directory mounts for inputs, static forcing configuration files, module parameters, intermediary outputs, and output realization files.</p>
+<p>Regardless of build instruction, the local state of files from the following repositories is used:</p>
+<p><code>ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/</code></p>
+<p><code>nwm-msw-mgr/src/mswm/module_parameter_files/</code></p>
 <h2 id="dev-container-and-debugger-configuration">Dev Container and Debugger Configuration<a class="headerlink" href="#dev-container-and-debugger-configuration" title="Permanent link">#</a></h2>
 <p><a href="../devcon-debug/">Dev Container and Debugger</a></p>
 
@@ -1225,7 +1229,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../setup/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Setup (Get Started)">
+          <a href="../get-started/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Get Started">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1235,7 +1239,7 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Setup (Get Started)
+                Get Started
               </div>
             </div>
           </a>

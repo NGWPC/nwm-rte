@@ -1,3 +1,4 @@
+Logging into: /ngencerf/data/run-logs/nwm-fcst-mgr/nwm-fcst-mgr_20260415T130733.log
 usage: run_calibration.py [-h] [-delscratch] [-delraw]
                           [-ofunc OBJECTIVE_FUNCTION]
                           [-optalgo OPTIMIZATION_ALGORITHM] [-n NPROCS]

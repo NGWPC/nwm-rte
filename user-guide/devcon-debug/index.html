@@ -585,14 +585,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../setup/" class="md-nav__link">
+      <a href="../get-started/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Setup (Get Started)
+    Get Started
   
 
     
@@ -762,17 +762,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#caveats" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Caveats
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#steps-for-building-and-running-the-dev-container" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -819,6 +808,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caveats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caveats
+      
+    </span>
+  </a>
   
 </li>
       
@@ -1231,9 +1231,6 @@
 <p>Do not choose configurations that begin with an underscore, as those are meant to be private (they are not functional alone, they are called on by the public configurations).</p>
 <h3 id="devcontainertasksjson"><code>.devcontainer/tasks.json</code><a class="headerlink" href="#devcontainertasksjson" title="Permanent link">#</a></h3>
 <p><code>tasks.json</code> contains extra code required for some of the debugger configurations. For example for the complex configurations that involve multiple concurrent MPI ranks, the debugger uses a <code>sleep</code> directive to allow the main processes some time to start up before it sends external <code>debugpy</code> instances to "attach" to those ranks.</p>
-<h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h2>
-<p>When running a debugger configuration, sometimes the first 1 or 2 attempts fail due to pop-up error messages such as "Configured debug type 'debugpy' is not supported.", even if you have debugpy installed. Please try a few more times and it will likely start working.</p>
-<p>If you are trying a complex configuration that involves concurrent MPI ranks, and you are running into unexpected errors, you may need to increase the sleep time in <code>tasks.json</code>, depending on your computer specifications.</p>
 <h2 id="steps-for-building-and-running-the-dev-container">Steps for Building and Running the Dev Container<a class="headerlink" href="#steps-for-building-and-running-the-dev-container" title="Permanent link">#</a></h2>
 <h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h3>
 <ol>
@@ -1241,10 +1238,10 @@
 <p>Go through the setup steps outlined in the <code>nwm-rte</code> <code>README.md</code> for cloning sibling repositories and setting up with data.</p>
 </li>
 <li>
-<p>Build a ngen RTE image (review <code>config.bashrc</code> and build via <code>./ngen_rte_build.sh</code>). Be sure to choose <code>INSTALL_DEBUGGERS="YES"</code> before building, so that <code>debugpy</code> and <code>gdb</code> are installed into the RTE image. When the build finishes, note in the final terminal messages the name (tag) of the image that has been built. Commonly, it will be <code>"ngen_rte_ghcr"</code>, but not always depending on your settings.</p>
+<p>Build a ngen RTE image (review <a href="../../reference/shell/#config.bashrc"><code>config.bashrc</code></a> and build via <code>./ngen_rte_build.sh</code>). Be sure to choose <code>INSTALL_DEBUGGERS="YES"</code> before building, so that <code>debugpy</code> and <code>gdb</code> are installed into the RTE image. When the build finishes, note in the final terminal messages the name (tag) of the image that has been built. Commonly, it will be <code>"ngen_rte_ghcr"</code>, but not always depending on your settings.</p>
 </li>
 <li>
-<p>Build at least one calibration realization for the test gage <code>"01123000"</code> using AORC forcing, objective function <code>"kge"</code>, and optimization algorithm <code>"dds"</code>. See the appropriate commands in either <code>./run_calib.sh</code> or <code>./run_suite</code> for this. It is not necessary to fully run either of those scripts, only enough to generate intermediary output files such as <code>.../run_ngen/kge_dds/test_bmi/01123000/Input/forcing_config/aorc_config.yml</code>.</p>
+<p>Build at least one calibration realization for the test gage <code>"01123000"</code> using AORC forcing, objective function <code>"kge"</code>, and optimization algorithm <code>"dds"</code>. See the appropriate commands in either <a href="../../reference/shell/#run_calib.sh"><code>run_calib.sh</code></a> or <a href="../../reference/shell/#run_suite.sh"><code>run_suite.sh</code></a> for this. It is not necessary to fully run either of those scripts, only enough to generate intermediary output files such as <code>.../run_ngen/kge_dds/test_bmi/01123000/Input/forcing_config/aorc_config.yml</code>.</p>
 </li>
 </ol>
 <h3 id="build-and-enter-the-dev-container">Build and Enter the Dev Container<a class="headerlink" href="#build-and-enter-the-dev-container" title="Permanent link">#</a></h3>
@@ -1274,6 +1271,9 @@
 <p>Try running a complex debugger configuration, such as <code>forcing_mpi_n2</code>.</p>
 </li>
 </ol>
+<h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h2>
+<p>When running a debugger configuration, sometimes the first 1 or 2 attempts fail due to pop-up error messages such as "Configured debug type 'debugpy' is not supported.", even if you have debugpy installed. Please try a few more times and it will likely start working.</p>
+<p>If you are trying a complex configuration that involves concurrent MPI ranks, and you are running into unexpected errors, you may need to increase the sleep time in <code>.devcontainer/tasks.json</code>, depending on your computer specifications.</p>
 
 
 

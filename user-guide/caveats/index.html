@@ -585,14 +585,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../setup/" class="md-nav__link">
+      <a href="../get-started/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Setup (Get Started)
+    Get Started
   
 
     
@@ -785,10 +785,32 @@
     <ul class="md-nav__list" data-md-component="toc">
       
         <li class="md-nav__item">
-  <a href="#optional-configuration-variable-repo_tag_ngen_forcing" class="md-nav__link">
+  <a href="#files-sourced-from-local-nwm-repositories" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Optional Configuration Variable REPO_TAG_NGEN_FORCING
+        Files Sourced from Local NWM Repositories
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ghcr-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GHCR Images
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-variable-repo_tag_ngen_forcing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Variable REPO_TAG_NGEN_FORCING
       
     </span>
   </a>
@@ -1107,10 +1129,14 @@
                   
 
 <h1 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h1>
-<h2 id="optional-configuration-variable-repo_tag_ngen_forcing">Optional Configuration Variable <code>REPO_TAG_NGEN_FORCING</code><a class="headerlink" href="#optional-configuration-variable-repo_tag_ngen_forcing" title="Permanent link">#</a></h2>
-<p>The usage of the optional variable <code>REPO_TAG_NGEN_FORCING</code> in <code>config.bashrc</code> and in the GHA workflows, as well as the lowercase version <code>repo_tag_ngen_forcing</code> in the GHA workflows, has the effect of "reinstalling" specifically only the Python package of ngen-forcing. This is used for development purposes, for quickly trying changes to the Python package of ngen-forcing.</p>
-<p>Using this optional variable does <em>not</em> cause a re-build of the entire ngen-forcing base. For example it does not incorporate changes to ngen-forcing C++ code or changes to <code>ngen-forcing/Dockerfile.bmi-forcings</code> or the various scripts or commands that are called by <code>ngen-forcing/Dockerfile.bmi-forcings</code>.</p>
-<p>When <code>REPO_TAG_NGEN_FORCING</code> is set to an empty string, it has no effect, meaning, when it is an empty string then the extra <code>pip install</code> of ngen-forcing Python package does not occur on top of the existing ngen base image.</p>
+<h2 id="files-sourced-from-local-nwm-repositories">Files Sourced from Local NWM Repositories<a class="headerlink" href="#files-sourced-from-local-nwm-repositories" title="Permanent link">#</a></h2>
+<p>See notes on <a href="../configuration/#caveats">run configuration caveats</a>. The local state of some NWM repositories is mounted at runtime, for static configuration files and and module parameters.</p>
+<h2 id="ghcr-images">GHCR Images<a class="headerlink" href="#ghcr-images" title="Permanent link">#</a></h2>
+<p>If using a dynamic GHCR image tag such as <code>"latest"</code>, if you have already pulled that tag previously and you wish to update to the current version of that tag, you may need to run <code>docker pull</code>, e.g. <code>docker pull ghcr.io/ngwpc/ngen:latest</code></p>
+<h2 id="configuration-variable-repo_tag_ngen_forcing">Configuration Variable <code>REPO_TAG_NGEN_FORCING</code><a class="headerlink" href="#configuration-variable-repo_tag_ngen_forcing" title="Permanent link">#</a></h2>
+<p>The usage of the optional variable <code>REPO_TAG_NGEN_FORCING</code> in <a href="../../reference/shell/#config.bashrc"><code>config.bashrc</code></a> and in the GHA workflows, as well as the lowercase version <code>repo_tag_ngen_forcing</code> in the GHA workflows, has the effect of "reinstalling" specifically only the Python package of <code>ngen-forcing</code>. This is used for development purposes, for quickly trying changes to the Python package of <code>ngen-forcing</code>.</p>
+<p>Using this optional variable does <em>not</em> cause a re-build of the entire <code>ngen-forcing</code> base. For example it does not incorporate changes to <code>ngen-forcing</code> C++ code or changes to <code>ngen-forcing/Dockerfile.bmi-forcings</code> or the various scripts or commands that are called by <code>ngen-forcing/Dockerfile.bmi-forcings</code>.</p>
+<p>When <code>REPO_TAG_NGEN_FORCING</code> is set to an empty string, it has no effect, meaning, when it is an empty string then the extra <code>pip install</code> of <code>ngen-forcing</code> Python package does not occur on top of the existing ngen base image.</p>
 
 
 

@@ -582,14 +582,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/setup/" class="md-nav__link">
+      <a href="../user-guide/get-started/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Setup (Get Started)
+    Get Started
   
 
     
@@ -1006,6 +1006,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#updating-the-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updating the Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1122,6 +1133,23 @@ and patterns in the existing code-base.</p>
 <p>Please include type hints and docstrings on all classes, methods, and functions.  For docstring formatting, please follow the <code>numpy</code> style.  <code>MkDocs</code> has been configured to parse this style via the <code>mkdocstrings</code> package.</p>
 <h4 id="shell-code">Shell Code<a class="headerlink" href="#shell-code" title="Permanent link">#</a></h4>
 <p>Please follow the <code>shellman</code> style for in-file documentation. <code>MkDocs</code> has been configured to parse this style of docstring via the <code>mkdocstrings-shell</code> package.</p>
+<h2 id="updating-the-documentation">Updating the Documentation<a class="headerlink" href="#updating-the-documentation" title="Permanent link">#</a></h2>
+<p>To update the documentation, run the following commands from the <code>nwm-rte</code> repository root.</p>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Install dependencies needed to build the documentation.</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Update the Python CLI --help txt files, if necessary. Commit txt file changes to the repository as needed.</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>./docs/update_python_cli_ref.sh
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Serve the documentation locally and confirm changes in the browser at http://127.0.0.1:8000/nwm-rte/</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>mkdocs<span class="w"> </span>serve
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1"># Make git commits and pushes as needed.</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>...
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="c1"># Deploy to the GitHub pages site</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>mkdocs<span class="w"> </span>gh-deploy
+</span></code></pre></div>
 
 
 
