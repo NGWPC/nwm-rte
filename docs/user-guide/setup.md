@@ -2,7 +2,7 @@
 
 ## Steps to Set Up
 
-1. Make a directory to contain the repos and data, and enter it
+#### Make a directory to contain the repos and data, and enter it
 
 This can be any location on your disk, but ~/ngwpc is a standard convention.
 In a later step, a setup script will clone many repos into this location.
@@ -12,7 +12,7 @@ For each clone, if that particular repos already exists on your disk, it will no
 mkdir -p ~/ngwpc && cd ~/ngwpc
 ```
 
-2. Clone this repo and enter it, using either SSH or HTTPS:
+#### Clone this repo and enter it, using either SSH or HTTPS:
 
 ```shell
 ### Via SSH (use your GitHub auth, for read-write access)
@@ -21,15 +21,15 @@ git clone git@github.com:NGWPC/nwm-rte.git && cd nwm-rte
 git clone https://github.com/NGWPC/nwm-rte.git && cd nwm-rte
 ```
 
-3. Check out a branch
+#### Check out a branch
 
 ```shell
 git checkout development
 ```
 
-4. Review `config.bashrc` and edit variables as needed for your desired build configuration. Note that many of the variables' values are set to use existing environment variables if they are already defined, rather than the value set in the `config.bashrc` file.
+#### Review `config.bashrc` and edit variables as needed for your desired build configuration. Note that many of the variables' values are set to use existing environment variables if they are already defined, rather than the value set in the `config.bashrc` file.
 
-5. Clone other repos
+#### Clone other repos
 
 ```shell
 # This clones repos. It will not alter the state of existing repos on your disk (for each clone, it skips if the folder already exists on disk).
@@ -41,7 +41,7 @@ time ./setup_clone_repos.sh ssh
 time ./setup_clone_repos.sh https
 ```
 
-6. Download data.
+#### Download data.
 
 **Note:** Run once, either with or without `-r` flag for regionalization data.
 
@@ -58,7 +58,7 @@ time ./setup_data.sh -r
 
 ## Steps to Build
 
-7. Build the Docker image
+#### Build the Docker image
 
 ```shell
 # This builds a local Docker image of ngen RTE, containing ngen base + component packages.
@@ -70,7 +70,7 @@ time ./ngen_rte_build.sh
 
 ## Steps to Run
 
-8. Run an example workflow
+#### Run an example workflow
 
 ```shell
 # These start an ephemeral container of the ngen RTE image
