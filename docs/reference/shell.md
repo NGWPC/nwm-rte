@@ -40,6 +40,9 @@
 ::: run_suite.sh
     handler: shell
 
+::: run_tests.sh
+    handler: shell
+
 ## Additional Utiltities
 
 ::: install_debuggers.sh
