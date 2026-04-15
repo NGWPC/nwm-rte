@@ -43,9 +43,9 @@ NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE:-"NO"}
 ## 
 ## * If any other string is provided, the package will install from GitHub, and the string must be a valid tag, branch, or commit.
 ## 
-## \caveat REPO_TAG_NGEN_FORCING provision causes the ngen-forcing Python package to be reinstalled, but does not affect other aspects of ngen-forcing (does not cause a rebuild from the ngen-forcing base).
+## \caveat `REPO_TAG_NGEN_FORCING` provision causes the ngen-forcing Python package to be reinstalled, but does not affect other aspects of `ngen-forcing` (does not cause a rebuild from the `ngen-forcing` base).
 ## This does not affect the base image, does not reflect changes to C++ code nor changes to `ngen-forcing/Dockerfile.bmi-forcings`, nor changes to other ngen-forcing build instructions.
-## It only causes an optional `pip install` call to be executed on the ngen-forcing Python package, after the manager packages have been installed on top of the ngen base image.
+## It only causes an optional `pip install` call to be executed on the `ngen-forcing` Python package, after the manager packages have been installed on top of the ngen base image.
 ## 
 ## \env REPO_TAG_FCST_MGR Source for `nwm-fcst-mgr`.
 REPO_TAG_FCST_MGR=${REPO_TAG_FCST_MGR:-"development"}
