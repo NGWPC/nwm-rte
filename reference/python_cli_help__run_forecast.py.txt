@@ -1,4 +1,3 @@
-Logging into: /ngencerf/data/run-logs/nwm-fcst-mgr/nwm-fcst-mgr_20260415T130734.log
 usage: run_forecast.py [-h] [-delscratch] [-delraw]
                        [-ofunc OBJECTIVE_FUNCTION]
                        [-optalgo OPTIMIZATION_ALGORITHM] [-g GAGE_ID]

@@ -1,4 +1,3 @@
-Logging into: /ngencerf/data/run-logs/nwm-fcst-mgr/nwm-fcst-mgr_20260415T130738.log
 usage: run_tests.py [-h] [-delscratch] [-delraw] [-nofcst]
                     [--quit_forecast_after_forcing_running]
                     [-quitfcdur QUIT_FORECAST_AFTER_DURATION] [-calib]
