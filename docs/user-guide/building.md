@@ -1,3 +1,0 @@
-# Building the Image
-
-Coming soon...

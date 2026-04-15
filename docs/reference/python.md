@@ -18,24 +18,44 @@ To update these, run: `./docs/update_python_cli_ref.sh`
 
 ## CLI Executable Modules
 
+
+### run_default.py
+
+Called by [run_default.sh](../reference/shell.md#run_default.sh)
+
 ::: run_default
+
+
+### run_calibration.py
+
+Called by [run_calib.sh](../reference/shell.md#run_calib.sh)
 
 ::: run_calibration
 
+
+### run_forecast.py
+
+Called by [run_fcst.sh](../reference/shell.md#run_fcst.sh)
+
 ::: run_forecast
+
+
+### run_tests.py
+
+Called by [run_tests.sh](../reference/shell.md#run_tests.sh)
 
 ::: run_tests
 
-::: run_regionalization
 
 ## Python Constants
 
-Currently `bin_mounted/consts.py` contains variables which rarely need editing, except for the `MODELS` formulation list. Soon, this formulation list will be parameterized CLI argument(s).
+Currently `bin_mounted/consts.py` contains variables which rarely need editing, except for the `MODELS` formulation list. Soon, the `MODELS` variable will be parameterized as CLI argument(s).
 
 ::: consts
     options:
       members:
         - MODELS
+
 
 ## Configuration Classes
 
@@ -43,12 +63,17 @@ These mimic the CLI interfaces and perform some additional argument parsing and 
 
 ::: configs
 
-<!-- ::: configs.RTESetup
-    options:
-      show_source: true
-      members: true
 
-::: configs.RTEDefaultConfig
-    options:
-      show_source: true
-      members: true -->
+## Regionalization Workflows
+
+The regionalization workflows run via command-line interface (CLI) Scripts.
+
+Here is the argparse help menu of `run_regionalization.py`:
+
+[run_regionalization.py --help](python_cli_help__run_regionalization.py.txt)
+
+`run_regionalization` is called by [run_region.sh](../reference/shell.md#run_region.sh)
+
+For more information, see the `nwm-region-mgr` repository.
+
+::: run_regionalization

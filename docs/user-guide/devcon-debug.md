@@ -12,7 +12,7 @@ In it are choices for the image used, as well as various file mounts that occur 
 
 This file also uses a `"postStartCommand"` directive to run a shell script `./.devcontainer/devcontainer.json.poststart.sh` when it starts.
 
-### `./.devcontainer/devcontainer.json.poststart.sh`
+### `.devcontainer/devcontainer.json.poststart.sh`
 
 `./.devcontainer/devcontainer.json.poststart.sh` runs when the Dev Container starts. This script has commented-out `pip install` calls which can be enabled in order to cause the Dev Container to use those local codebases for some of its component packages. When those packages are pip installed with the `-e` flag, then the user can edit (the Python aspects of) those component packages and see the effects "live" while they are in the container. This also allows the user to conveniently leverage a `debugpy` debugger, since breakpoints may be placed in the component packages' code, either by adding `debugpy.breakpoint()` in-line in the Python code or by leveraging the built-in IDE breakpoint capabilities (clicking in the margins of the editor).
 

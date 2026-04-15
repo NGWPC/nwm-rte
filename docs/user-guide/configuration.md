@@ -12,7 +12,10 @@ The component packages may be installed from local code or installed from remote
 
 Sourcing from remote allows the user to specify any GitHub "reference" name, i.e. a specific branch, tag, or commit hash.
 
-For details, see: [reference/shell.md#config.bashrc](../reference/shell.md#config.bashrc)
+### See Also
+
+[reference/shell.md#config.bashrc](../reference/shell.md#config.bashrc)
+
 
 ## Run Configuration
 
@@ -22,7 +25,7 @@ Some run settings are configured in `bin_mounted/consts.py`, `bin_mounted/ngen_l
 
 Runtime host disk mounts occur within `run.sh`.  These include various data directory mounts for inputs, intermediary outputs, and realization files, as well as configuration files mounted from locally cloned host disk files for `ngen-forcing`.
 
-For more information, see:
+### See Also
 
 [Python CLI Help](../reference/python.md#cli-help-menus)
 
@@ -34,6 +37,7 @@ For more information, see:
 
 [bin_mounted/consts.py](../reference/python.md#consts)
 
+
 ## Dev Container and Debugger Configuration
 
-See: [Dev Container and Debugger](devcon-debug.md)
+[Dev Container and Debugger](devcon-debug.md)

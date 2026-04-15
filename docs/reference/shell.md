@@ -51,6 +51,8 @@
 
 ## Run Regionalization Workflows
 
+For more information, see the `nwm-region-mgr` repository.
+
 ::: run_region.sh
     handler: shell
 
