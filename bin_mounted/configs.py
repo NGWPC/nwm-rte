@@ -301,6 +301,10 @@ class RTEDefaultConfig(RTEBaseConfig):
                 ),
                 Parallel=make_parallel_config(self.nprocs),
             ),
+            # Lagged ensemble args
+            "use_lagged_ens": self.use_lagged_ensemble,
+            "lagged_ens_mem": self.lagged_ens_mem,
+            "forcing_lag": self.forcing_lag,
         }
         return realization_kwargs
 

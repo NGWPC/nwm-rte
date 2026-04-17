@@ -9,7 +9,6 @@ from mswm.build_inputs import RealizationBuilder
 import cli_args
 from utils import (
     timedelta_from_effective_days,
-    effective_days_from_timedelta,
     configure_ngen_log,
     datetime_type,
 )
