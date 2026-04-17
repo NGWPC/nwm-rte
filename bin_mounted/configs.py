@@ -104,7 +104,12 @@ class RTEBaseConfig(BaseModel):
     model_post_init() method, if they have that method also defined in the child."""
 
     # Set during init
-    ### TODO
+    delete_scratch_and_mesh_first: bool
+    delete_forcing_raw_input_first: bool
+    nprocs: int = Field(ge=1)
+    global_domain: str
+    forcing_static_dir: str
+    forcing_provider: str
 
     # Set after init (not provided as args)
     errors: list | None = Field(init=False, default=None)
@@ -178,17 +183,11 @@ class RTEDefaultConfig(RTEBaseConfig):
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
-    delete_scratch_and_mesh_first: bool
-    delete_forcing_raw_input_first: bool
     gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
-    global_domain: str
-    forcing_static_dir: str
-    forcing_provider: str
     cycle_datetime: datetime
     historical_sim_duration: timedelta | None
     forcing_configuration: str
     fcst_run_name: str
-    nprocs: int = Field(ge=1)
     # For medium-range lagged ensemble
     lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
 
@@ -310,11 +309,8 @@ class RTECalibConfig(RTEBaseConfig):
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
-    delete_scratch_and_mesh_first: bool
-    delete_forcing_raw_input_first: bool
     objective_function: c.CalObjective
     optimization_algorithm: c.CalOptimizationAlgo
-    nprocs: int = Field(ge=1)
     gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
     calib_sim_start: datetime
     calib_sim_duration: timedelta
@@ -322,9 +318,6 @@ class RTECalibConfig(RTEBaseConfig):
     valid_sim_advancement: timedelta
     valid_eval_curtailment: timedelta
     forcing_source: str
-    global_domain: str
-    forcing_provider: str
-    forcing_static_dir: str
     worker_name: str | None
 
     # Set after init
@@ -352,20 +345,14 @@ class RTEForecastConfig(RTEBaseConfig):
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
-    delete_scratch_and_mesh_first: bool
-    delete_forcing_raw_input_first: bool
     ### These calibration parameters affect directory path
     objective_function: c.CalObjective
     optimization_algorithm: c.CalOptimizationAlgo
     gage_id: str
-    global_domain: str
-    forcing_static_dir: str
-    forcing_provider: str
     cycle_datetime: datetime | None
     cold_start_datetime: datetime | None
     forcing_configuration: str
     fcst_run_name: str
-    nprocs: int = Field(ge=1)
     # For medium-range lagged ensemble
     lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
 
@@ -442,8 +429,6 @@ class RTETestConfig(RTEBaseConfig):
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
-    delete_scratch_and_mesh_first: bool
-    delete_forcing_raw_input_first: bool
     skip_forecast: bool
     quit_forecast_after_forcing_running: bool
     quit_forecast_after_duration: float | None = Field(ge=0)
@@ -458,11 +443,7 @@ class RTETestConfig(RTEBaseConfig):
     do_all_forcing_configs: bool
     do_coldstart: bool
     fcst_run_name: str
-    nprocs: int = Field(ge=1)
     gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
-    global_domain: str
-    forcing_provider: str
-    forcing_static_dir: str
     noop: bool
 
     # Set after init
