@@ -2,10 +2,9 @@ import functools
 import argparse
 
 from mswm.build_inputs import RealizationBuilder
+from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 from nwm_fcst_mgr.forecast import (
     run_forecast as run_fcst,
-    run_lagged_ensemble,
-    LAGGED_ENSEMBLE_MEMBER_0,
 )
 
 import consts as c
@@ -44,15 +43,8 @@ def build_run_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilde
 
 def build_run_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
     """Build and return a non-coldstart forecast realization."""
-    if cfg.lagged_ensemble:
-        lagged_ens_mem = LAGGED_ENSEMBLE_MEMBER_0
-    else:
-        lagged_ens_mem = None
-
     rb_kwargs_final = cfg.realization_builder_kwargs | {
         "use_cold_start": False,
-        "use_lagged_ens": cfg.lagged_ensemble,
-        "lagged_ens_mem": lagged_ens_mem,
     }
 
     rb = build_realization(cfg, rb_kwargs_final, "fcst")
@@ -71,19 +63,7 @@ def run_realization(
         f"Running realization with Forcing configuration: {rb.input_configs['Forcing']}"
     )
 
-    if rb.use_lagged_ens:
-        print(f"Calling: {run_lagged_ensemble}")
-        run_lagged_ensemble(
-            input_path=None,
-            valid_yaml=cfg.valid_best_yaml,
-            fcst_run_name=cfg.fcst_run_name,
-            open_loop_state=cfg.le__open_loop_state,
-            closed_loop_state=cfg.le__closed_loop_state,
-            partition_file=rb.part_file,
-            config_overrides=rb.config_overrides,
-        )
-        print(f"Finished calling: {run_lagged_ensemble}")
-    elif rb.use_hindcast:
+    if rb.use_hindcast:
         raise NotImplementedError("use_hindcast not yet implemented in nwm-rte")
     elif rb.use_warm_start:
         raise NotImplementedError("use_warm_start not yet implemented in nwm-rte")
@@ -195,13 +175,28 @@ def cli_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-le",
         "--lagged-ensemble",
-        dest="le__open_loop_state__closed_loop_state",
+        dest="lagged_ensemble_args",
         type=str,
-        nargs=2,
-        help="""If provided, a lagged ensemble will be performed. Not applicable to the cold-start realization.
-                This argument has 2 positional parts, which are optional: open_loop_state, closed_loop_state.
-                To run a lagged ensemble without the optional parts, provide them as empty strings e.g. `-le '' ''`.
-                Each optional part is a file path. See nwm-fcst-mgr function `run_lagged_ensemble` for details.""",
+        nargs=3,
+        required=False,
+        help=f"""Provide this multi-part argument to run one member of a lagged ensemble (see nwm-fcst-mgr function `run_lagged_ensemble`).
+            Only applicable to the "medium_range" forcing configuration.
+            Not applicable to the cold-start realization.
+
+            To run an ensemble, call this script multiple times with varying values for this argument, e.g. for "mem1", "mem2", etc.
+
+            This argument has 3 parts:
+                1. member_name : str (required when -le provided)
+                    Name of the ensemble member. Choose from: {list(LAGGED_ENSEMBLE_MEMBER_LAGS)}
+                2. open_loop_state : str (optional)
+                    Path to an existing open-loop state file.
+                    To omit, provide an empty string for this part.
+                3. closed_loop_state : str (optional)
+                    Path to an existing closed-loop state file.
+                    To omit, provide an empty string for this part.
+            
+            To run a lagged ensemble member without the optional parts, provide them as empty strings e.g. `-le 'mem2' '' ''`.
+            """,
     )
     parser.add_argument(
         "-fconfig",

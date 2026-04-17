@@ -4,6 +4,7 @@ import os
 import re
 from typing import Literal
 
+from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 from mswm.utils.input_configuration import (
     InputConfig,
     GeneralConfig,
@@ -103,6 +104,34 @@ class RTESetup(BaseModel):
 
     def model_post_init(self, __context) -> None:
         make_wcoss_path_symlinks()
+
+    def _parse_lagged_ensemble_args(self):
+        """Break up the multipart lagged ensemble arg into distinct args and set them.
+        Called by child classes which define the necessary attributes."""
+        if self.lagged_ensemble_args:
+            if self.forcing_configuration != "medium_range":
+                raise ValueError(
+                    f"lagged ensemble only supported for medium_range, but forcing configuration {repr(self.forcing_configuration)} was provided"
+                )
+
+            self.use_lagged_ensemble = True
+
+            member_name, open_ls, closed_ls = self.lagged_ensemble_args
+
+            self.lagged_ens_mem = member_name if member_name.strip() else None
+            self.forcing_lag = LAGGED_ENSEMBLE_MEMBER_LAGS[self.lagged_ens_mem]
+            self.le__open_loop_state = open_ls if open_ls.strip() else None
+            self.le__closed_loop_state = closed_ls if closed_ls.strip() else None
+
+            if self.lagged_ens_mem not in LAGGED_ENSEMBLE_MEMBER_LAGS:
+                raise KeyError(
+                    f"Invalid lagged ensemble member {repr(self.lagged_ens_mem)} (choose from: {list(LAGGED_ENSEMBLE_MEMBER_LAGS)})"
+                )
+
+        if self.le__open_loop_state or self.le__closed_loop_state:
+            raise NotImplementedError(
+                "Lagged ensemble args for Open Loop State and Closed Loop State are not yet implemented in nwm-rte (should be provided as empty strings for now)"
+            )
 
 
 class RTEDefaultConfig(RTESetup):
@@ -309,9 +338,9 @@ class RTEForecastConfig(RTESetup):
     forcing_configuration: str
     fcst_run_name: str
     nprocs: int = Field(ge=1)
-    # For lagged ensemble
-    le__open_loop_state__closed_loop_state: list[str] | None = Field(
-        min_length=2, max_length=2
+    # For medium-range lagged ensemble
+    lagged_ensemble_args: list[str] | None = Field(
+        min_length=3, max_length=3
     )
 
     # Derived paths (not passed to __init__)
@@ -321,7 +350,9 @@ class RTEForecastConfig(RTESetup):
     ngen_log_file: str = Field(init=False, default=None)
     valid_best_yaml: str = Field(init=False, default=None)
     # For lagged ensemble
-    lagged_ensemble: bool | None = Field(init=False, default=False)
+    use_lagged_ensemble: bool | None = Field(init=False, default=False)
+    lagged_ens_mem: str | None = Field(init=False, default=None)
+    forcing_lag: str | None = Field(init=False, default=None)
     le__open_loop_state: str | None = Field(init=False, default=None)
     le__closed_loop_state: str | None = Field(init=False, default=None)
 
@@ -341,7 +372,7 @@ class RTEForecastConfig(RTESetup):
         self.ngen_log_file = f"{self.run_dir_base}/logs/ngen.log"
         self.valid_best_yaml = f"{self.run_dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
 
-        self._set_lagged_ensemble_args()
+        super()._parse_lagged_ensemble_args()
         self._make_realization_builder_kwargs()
 
     def _make_realization_builder_kwargs(self) -> None:
@@ -378,25 +409,12 @@ class RTEForecastConfig(RTESetup):
                 ),
                 Parallel=make_parallel_config(self.nprocs),
             ),
+            # Lagged ensemble args
+            "use_lagged_ens": self.use_lagged_ensemble,
+            "lagged_ens_mem": self.lagged_ens_mem,
+            "forcing_lag": self.forcing_lag,
         }
         self.realization_builder_kwargs = realization_kwargs
-
-    def _set_lagged_ensemble_args(self):
-        """Break up the multipart arg into 2 distinct args and set them."""
-        if self.le__open_loop_state__closed_loop_state:
-            open_ls, closed_ls = self.le__open_loop_state__closed_loop_state
-            self.lagged_ensemble = True
-            self.le__open_loop_state = open_ls if open_ls.strip() else None
-            self.le__closed_loop_state = closed_ls if closed_ls.strip() else None
-        else:
-            self.lagged_ensemble = False
-            self.le__open_loop_state = None
-            self.le__closed_loop_state = None
-
-        if self.le__open_loop_state or self.le__closed_loop_state:
-            raise NotImplementedError(
-                "Lagged ensemble args for Open Loop State and Closed Loop State are not yet implemented in nwm-rte (should be provided as empty strings for now)"
-            )
 
 
 class RTETestConfig(RTESetup):
