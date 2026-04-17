@@ -114,6 +114,9 @@ class RTEBaseConfig(BaseModel):
     # Set after init (not provided as args)
     errors: list | None = Field(init=False, default=None)
 
+    gage_id: str = Field(init=False, default=None)
+    gage_vintage: str = Field(init=False, default=None)
+
     # For lagged ensemble
     use_lagged_ensemble: bool | None = Field(init=False, default=False)
     lagged_ens_mem: str | None = Field(init=False, default=None)
@@ -192,8 +195,6 @@ class RTEDefaultConfig(RTEBaseConfig):
     lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
 
     # Set after init
-    gage_id: str = Field(init=False, default=None)
-    gage_vintage: str = Field(init=False, default=None)
     realtime_mode: bool = Field(init=False, default=None)
 
     # Other derived attrs (not passed to __init__)
@@ -321,8 +322,6 @@ class RTECalibConfig(RTEBaseConfig):
     worker_name: str | None
 
     # Set after init
-    gage_id: str = Field(init=False, default=None)
-    gage_vintage: str = Field(init=False, default=None)
     obs_dir: str | None = Field(init=False, default=None)
     nwmretro_file: str | None = Field(init=False, default=None)
 
@@ -445,10 +444,6 @@ class RTETestConfig(RTEBaseConfig):
     fcst_run_name: str
     gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
     noop: bool
-
-    # Set after init
-    gage_id: str = Field(init=False, default=None)
-    gage_vintage: str = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
