@@ -6,6 +6,7 @@ import time
 
 from mswm.build_inputs import RealizationBuilder
 
+import cli_args
 from utils import (
     timedelta_from_effective_days,
     effective_days_from_timedelta,
@@ -147,6 +148,9 @@ if __name__ == "__main__":
         type=timedelta_from_effective_days,
         default=None,
         help=f"Only used for historical / retrospective forcing (required in that case). Simulation duration in days. Default={None}",
+    )
+    parser.add_argument(
+        *cli_args.LAGGED_ENSEMBLE.args, **cli_args.LAGGED_ENSEMBLE.kwargs
     )
     parser.add_argument(
         "-fconfig",

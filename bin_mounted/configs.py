@@ -97,13 +97,51 @@ class TestPaths:
         return f"{self.dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
 
 
-class RTESetup(BaseModel):
-    """Used to set up a RTE run. Triggers certain setup actions, such as creation of WCOSS-path symlinks.
+class RTEBaseConfig(BaseModel):
+    """Base RTE configuration class to be inherited by child classes.
+    Triggers certain setup actions, such as creation of WCOSS-path symlinks.
     Classes that inherit from this should call super().model_post_init(__context) inside their own
     model_post_init() method, if they have that method also defined in the child."""
 
+    # Set during init
+    ### TODO
+
+    # Set after init (not provided as args)
+    errors: list | None = Field(init=False, default=None)
+
+    # For lagged ensemble
+    use_lagged_ensemble: bool | None = Field(init=False, default=False)
+    lagged_ens_mem: str | None = Field(init=False, default=None)
+    forcing_lag: str | None = Field(init=False, default=None)
+    le__open_loop_state: str | None = Field(init=False, default=None)
+    le__closed_loop_state: str | None = Field(init=False, default=None)
+
     def model_post_init(self, __context) -> None:
+        self.errors = []
         make_wcoss_path_symlinks()
+
+    def _parse_gage_id__gage_vintage(self) -> None:
+        """Parse the provided string and split it into two strings: gage_id and gage_vintage and set attributes.
+        Extend errors list as appropriate.
+        Called by child classes which define the necessary attributes."""
+        gage_id, gage_vintage = self.gage_id__gage_vintage
+
+        if gage_id != gage_id.strip():
+            self.errors.append(
+                ValueError(f"Whitespace found on end of gage_id: {repr(gage_id)}")
+            )
+            gage_id = None
+
+        if gage_vintage != gage_vintage.strip():
+            self.errors.append(
+                ValueError(
+                    f"Whitespace found on end of gage_vintage: {repr(gage_vintage)}"
+                )
+            )
+            gage_vintage = None
+
+        self.gage_id = gage_id
+        self.gage_vintage = gage_vintage
 
     def _parse_lagged_ensemble_args(self):
         """Break up the multipart lagged ensemble arg into distinct args and set them.
@@ -134,7 +172,7 @@ class RTESetup(BaseModel):
             )
 
 
-class RTEDefaultConfig(RTESetup):
+class RTEDefaultConfig(RTEBaseConfig):
     """Configuration class for building and running one default realization
     (realtime forcing configuration or historical / retrospective forcing configuration)."""
 
@@ -151,6 +189,8 @@ class RTEDefaultConfig(RTESetup):
     forcing_configuration: str
     fcst_run_name: str
     nprocs: int = Field(ge=1)
+    # For medium-range lagged ensemble
+    lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
 
     # Set after init
     gage_id: str = Field(init=False, default=None)
@@ -161,40 +201,34 @@ class RTEDefaultConfig(RTESetup):
     realization_builder_kwargs: dict = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
-        super().model_post_init(__context)  # Call RTESetup's post init
-
-        errors = []
+        super().model_post_init(__context)  # Call RTEBaseConfig's post init
+        super()._parse_gage_id__gage_vintage()
 
         if (
             self.forcing_configuration
-            not in c.FORECAST_FORCING_CONFIGURATION_TYPES__ALL
+            not in c.FORECAST_FORCING_CONFIGURATION_TYPES__ALL + ["medium_range"]
         ):
             self.realtime_mode = False
         else:
             self.realtime_mode = True
 
-        self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
-            self.gage_id__gage_vintage
-        )
-        errors.extend(errors_extend)
-
         if (not self.realtime_mode) and (not self.historical_sim_duration):
-            errors.extend(
+            self.errors.extend(
                 [
                     f"Forcing configuration {repr(self.forcing_configuration)} is *not* realtime, and requires that CLI arg -dur aka --historical_sim_duration is provided, but it was not."
                 ]
             )
         if self.realtime_mode and self.historical_sim_duration:
-            errors.extend(
+            self.errors.extend(
                 [
                     f"Forcing configuration {repr(self.forcing_configuration)} *is* realtime, but CLI arg -dur aka --historical_sim_duration was also provided (it should not be)."
                 ]
             )
 
-        if errors:
-            raise RuntimeError(errors)
-
+        super()._parse_lagged_ensemble_args()
         self.realization_builder_kwargs = self._make_realization_builder_kwargs()
+        if self.errors:
+            raise RuntimeError(self.errors)
 
     def _make_realization_builder_kwargs(self) -> dict:
         """Build and return a dictionary for creating a RealizationBuilder instance."""
@@ -271,7 +305,7 @@ class RTEDefaultConfig(RTESetup):
         return realization_kwargs
 
 
-class RTECalibConfig(RTESetup):
+class RTECalibConfig(RTEBaseConfig):
     """Configuration class for building and running one calibration realization."""
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
@@ -300,26 +334,20 @@ class RTECalibConfig(RTESetup):
     nwmretro_file: str | None = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
-        super().model_post_init(__context)  # Call RTESetup's post init
-
-        errors = []
-
-        self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
-            self.gage_id__gage_vintage
-        )
-        errors.extend(errors_extend)
+        super().model_post_init(__context)  # Call RTEBaseConfig's post init
+        super()._parse_gage_id__gage_vintage()
 
         self.obs_dir, self.nwmretro_file, errors_extend = get_data_paths_for_lstm(
             self.global_domain,
             self.gage_id,
         )
-        errors.extend(errors_extend)
+        self.errors.extend(errors_extend)
 
-        if errors:
-            raise RuntimeError(errors)
+        if self.errors:
+            raise RuntimeError(self.errors)
 
 
-class RTEForecastConfig(RTESetup):
+class RTEForecastConfig(RTEBaseConfig):
     """Configuration class for building and running one forecast realization."""
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
@@ -339,9 +367,7 @@ class RTEForecastConfig(RTESetup):
     fcst_run_name: str
     nprocs: int = Field(ge=1)
     # For medium-range lagged ensemble
-    lagged_ensemble_args: list[str] | None = Field(
-        min_length=3, max_length=3
-    )
+    lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
 
     # Derived paths (not passed to __init__)
     run_dir_base: str = Field(init=False, default=None)
@@ -349,18 +375,12 @@ class RTEForecastConfig(RTESetup):
     run_dir_output: str = Field(init=False, default=None)
     ngen_log_file: str = Field(init=False, default=None)
     valid_best_yaml: str = Field(init=False, default=None)
-    # For lagged ensemble
-    use_lagged_ensemble: bool | None = Field(init=False, default=False)
-    lagged_ens_mem: str | None = Field(init=False, default=None)
-    forcing_lag: str | None = Field(init=False, default=None)
-    le__open_loop_state: str | None = Field(init=False, default=None)
-    le__closed_loop_state: str | None = Field(init=False, default=None)
 
     # Other derived attrs (not passed to __init__)
     realization_builder_kwargs: dict = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
-        super().model_post_init(__context)  # Call RTESetup's post init
+        super().model_post_init(__context)  # Call RTEBaseConfig's post init
 
         self.run_dir_base = f"{c.DEFAULT_MAIN_DIR}/{self.objective_function.value}_{self.optimization_algorithm.value}/test_{self.forcing_provider}/{self.gage_id}"
         if not os.path.isdir(self.run_dir_base):
@@ -417,7 +437,7 @@ class RTEForecastConfig(RTESetup):
         self.realization_builder_kwargs = realization_kwargs
 
 
-class RTETestConfig(RTESetup):
+class RTETestConfig(RTEBaseConfig):
     """Configuration class for building and running a set of test realizations."""
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
@@ -450,24 +470,18 @@ class RTETestConfig(RTESetup):
     gage_vintage: str = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
-        super().model_post_init(__context)  # Call RTESetup's post init
-
-        errors = []
+        super().model_post_init(__context)  # Call RTEBaseConfig's post init
+        super()._parse_gage_id__gage_vintage()
 
         if self.quit_forecast_after_forcing_running:
-            errors.append(
+            self.errors.append(
                 RuntimeError(
                     "quit_forecast_after_forcing_running is currently not allowed, pending updates."
                 )
             )
 
-        self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
-            self.gage_id__gage_vintage
-        )
-        errors.extend(errors_extend)
-
         errors_extend = parse_fcst_run_name(self.fcst_run_name)
-        errors.extend(errors_extend)
+        self.errors.extend(errors_extend)
 
         if self.do_all_objective_functions:
             self.objective_functions = list(c.CalObjective)
@@ -476,14 +490,14 @@ class RTETestConfig(RTESetup):
 
         if self.do_all_forcing_configs:
             if self.skip_forecast and (not self.do_coldstart):
-                errors.append(
+                self.errors.append(
                     ValueError(
                         f"When do_all_forcing_configs={self.do_all_forcing_configs}, must have coldstart and/or forecast enabled."
                     )
                 )
 
-        if errors:
-            raise RuntimeError(errors)
+        if self.errors:
+            raise RuntimeError(self.errors)
 
     def get_calib_permutations(
         self,
@@ -528,28 +542,6 @@ def make_parallel_config(nprocs: int) -> ParallelConfig:
     else:
         parallel = ParallelConfig(nprocs=nprocs)
     return parallel
-
-
-def parse_gage_id__gage_vintage(
-    gage_id__gage_vintage: tuple[str, str],
-) -> tuple[str | None, str | None, list[Exception]]:
-    """Parse the provided string and split it into two strings: gage_id and gage_vintage"""
-    errors: list[Exception] = []
-    gage_id, gage_vintage = gage_id__gage_vintage
-
-    if gage_id != gage_id.strip():
-        errors.append(
-            ValueError(f"Whitespace found on end of gage_id: {repr(gage_id)}")
-        )
-        gage_id = None
-
-    if gage_vintage != gage_vintage.strip():
-        errors.append(
-            ValueError(f"Whitespace found on end of gage_vintage: {repr(gage_vintage)}")
-        )
-        gage_vintage = None
-
-    return gage_id, gage_vintage, errors
 
 
 def parse_fcst_run_name(fcst_run_name: str) -> list[Exception]:

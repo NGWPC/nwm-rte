@@ -2,11 +2,11 @@ import functools
 import argparse
 
 from mswm.build_inputs import RealizationBuilder
-from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 from nwm_fcst_mgr.forecast import (
     run_forecast as run_fcst,
 )
 
+import cli_args
 import consts as c
 from configs import RTEForecastConfig
 import utils_testing_setup
@@ -173,30 +173,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         default=None,
     )
     parser.add_argument(
-        "-le",
-        "--lagged-ensemble",
-        dest="lagged_ensemble_args",
-        type=str,
-        nargs=3,
-        required=False,
-        help=f"""Provide this multi-part argument to run one member of a lagged ensemble (see nwm-fcst-mgr function `run_lagged_ensemble`).
-            Only applicable to the "medium_range" forcing configuration.
-            Not applicable to the cold-start realization.
-
-            To run an ensemble, call this script multiple times with varying values for this argument, e.g. for "mem1", "mem2", etc.
-
-            This argument has 3 parts:
-                1. member_name : str (required when -le provided)
-                    Name of the ensemble member. Choose from: {list(LAGGED_ENSEMBLE_MEMBER_LAGS)}
-                2. open_loop_state : str (optional)
-                    Path to an existing open-loop state file.
-                    To omit, provide an empty string for this part.
-                3. closed_loop_state : str (optional)
-                    Path to an existing closed-loop state file.
-                    To omit, provide an empty string for this part.
-            
-            To run a lagged ensemble member without the optional parts, provide them as empty strings e.g. `-le 'mem2' '' ''`.
-            """,
+        *cli_args.LAGGED_ENSEMBLE.args, **cli_args.LAGGED_ENSEMBLE.kwargs
     )
     parser.add_argument(
         "-fconfig",
