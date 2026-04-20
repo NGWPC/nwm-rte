@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 
-from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
+# from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
+# TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
+from consts import LAGGED_ENSEMBLE_MEMBER_LAGS
 
 
 @dataclass
