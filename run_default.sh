@@ -24,7 +24,7 @@ set -x
 ## \usage ./run_default.sh
 ## 
 
-sudo rm -rf ~/ngwpc/run_ngen/default/test_bmi/01123000
+# sudo rm -rf ~/ngwpc/run_ngen/default/test_bmi/01123000
 
 
 # Short Range
