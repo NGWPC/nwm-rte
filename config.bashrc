@@ -15,8 +15,8 @@ set -euo pipefail
 ## For Pattern `VAR_NAME=${VAR_NAME:-"some_string"}`, values set with this pattern use the existing value if it already exists, e.g. as an OS env var, otherwise they default to "some_string".
 ## 
 
-## \env ORG GitHub Organization Name
-ORG=${ORG:-"NGWPC"}
+## \env GH_ORG GitHub Organization Name
+GH_ORG=${GH_ORG:-"NGWPC"}
 
 ## \env NO_CACHE Docker cache directive passed to `docker build` call. Choose from: `["--no-cache", ""]`
 # NO_CACHE=${NO_CACHE:-"--no-cache"}
@@ -103,8 +103,8 @@ TARGET_IMAGE_NAME=${TARGET_IMAGE_NAME:-"ngen_rte_${NGEN_SOURCE_MODE}"}
 
 # OCI Standard labels for Dockerfile.rte image
 # See https://specs.opencontainers.org/image-spec/annotations/
-TARGET_IMAGE_SOURCE=${TARGET_IMAGE_SOURCE:-"https://github.com/${ORG}/nwm-rte"}
-TARGET_IMAGE_VENDOR=${TARGET_IMAGE_VENDOR:-"${ORG}"}
+TARGET_IMAGE_SOURCE=${TARGET_IMAGE_SOURCE:-"https://github.com/${GH_ORG}/nwm-rte"}
+TARGET_IMAGE_VENDOR=${TARGET_IMAGE_VENDOR:-"${GH_ORG}"}
 TARGET_IMAGE_VERSION=${TARGET_IMAGE_VERSION:-"latest"}
 TARGET_IMAGE_REVISION=${TARGET_IMAGE_REVISION:-"unknown"} # git commit SHA
 TARGET_IMAGE_CREATED=${TARGET_IMAGE_CREATED:-"unknown"} # ISO 8601 format, e.g. 2024-01-01T00:00:00Z
@@ -121,11 +121,11 @@ THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
 ## * `./ngen_rte_run.sh` mounts various subdirectories and files from this local directory, into the container, during runtime.
 ##     
 ## * Choices for this variable:
-##     * A typical choice for this is `${THIS_SCRIPTS_GRANDPARENT_DIR}`, which is equivalent to `"${HOME}/${ORG,,}"` if you run this from `"${HOME}/${ORG,,}/nwm-rte"` but another location such as `"${HOME}/${ORG,,}__rte"` could be used if wanting to isolate the RTE from other work.
+##     * A typical choice for this is `${THIS_SCRIPTS_GRANDPARENT_DIR}`, which is equivalent to `"${HOME}/${GH_ORG,,}"` if you run this from `"${HOME}/${GH_ORG,,}/nwm-rte"` but another location such as `"${HOME}/${GH_ORG,,}__rte"` could be used if wanting to isolate the RTE from other work.
 ##     * Using `${THIS_SCRIPTS_GRANDPARENT_DIR}` guarantees that the setup scripts (`./setup_data.sh` and `./setup_clone_repos.sh`) will copy data and clone repos into the same locations where the build script and run script will look for them.
 ## 
 REPOS_COMMON_ROOT__HOST=${THIS_SCRIPTS_GRANDPARENT_DIR}
-# REPOS_COMMON_ROOT__HOST="${HOME}/${ORG,,}"
+# REPOS_COMMON_ROOT__HOST="${HOME}/${GH_ORG,,}"
 
 ##### Mounts for data
 ## \env RUN_NGEN_ROOT__HOST Root of the working data associated with running realizations (dirs for realizations and for intermediary data).
