@@ -54,7 +54,7 @@ function build_intermediary_image_from_remote_source () {
     source_local_tmp="${REPOS_COMMON_ROOT__HOST}/${repo_name}_tmp"
     # source_local_tmp="${REPOS_COMMON_ROOT__HOST}/${repo_name}"
 
-    git_url="https://github.com/${GH_ORG}/${repo_name}.git"
+    git_url="https://github.com/${ORG}/${repo_name}.git"
 
     if test -d ${source_local_tmp}; then
         info "Pulling ref ${repo_tag} and submodules for ${source_local_tmp}"
@@ -102,7 +102,7 @@ function build_intermediary_image_from_remote_source () {
 
 # Build ngen base image if specified, otherwise just set var to ghcr URL
 if [[ $NGEN_SOURCE_MODE == "ghcr" ]]; then
-    NGEN_BASE_IMAGE="ghcr.io/${GH_ORG,,}/ngen:${NGEN_BASE__REMOTE_GHCR_TAG}"
+    NGEN_BASE_IMAGE="ghcr.io/${ORG,,}/ngen:${NGEN_BASE__REMOTE_GHCR_TAG}"
 
 elif [[ $NGEN_SOURCE_MODE == "existing_local_tag" ]]; then
     NGEN_BASE_IMAGE="${NGEN_BASE__EXISTING_LOCAL_TAG}"
@@ -154,7 +154,7 @@ info "Building image: ${TARGET_IMAGE_NAME}"
 SAFE_LOG_NAME=$(echo "${TARGET_IMAGE_NAME}" | tr '/:' '__')
 
 sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target ${STAGE} \
-    --build-arg GH_ORG=${GH_ORG} \
+    --build-arg ORG=${ORG} \
     --build-arg TARGET_IMAGE_SOURCE=${TARGET_IMAGE_SOURCE} \
     --build-arg TARGET_IMAGE_VENDOR=${TARGET_IMAGE_VENDOR} \
     --build-arg TARGET_IMAGE_VERSION=${TARGET_IMAGE_VERSION} \

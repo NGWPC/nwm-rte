@@ -35,9 +35,9 @@ mkdir -p "${REPOS_COMMON_ROOT__HOST}"
 # Clone repos unless they already exist on disk
 function clone_if_not_exists {
     if [ "$SSH_OR_HTTPS" == "ssh" ]; then
-        url="git@github.com:${GH_ORG}/${1}.git"
+        url="git@github.com:${ORG}/${1}.git"
     elif [ "$SSH_OR_HTTPS" == "https" ]; then
-        url="https://github.com/${GH_ORG}/${1}.git"
+        url="https://github.com/${ORG}/${1}.git"
     else
         fatal "Expected 'ssh' or 'https' for position 1 CLI arg, but got: '$SSH_OR_HTTPS'"
     fi
