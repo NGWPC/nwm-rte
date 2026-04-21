@@ -1,12 +1,12 @@
 # NWM Runtime Environment (RTE)
 
-A configurable `docker build` and `docker run` sequence for headless end-to-end execution of NGWPC ngen core + component package capabilities.
+A configurable `docker build` and `docker run` sequence for headless end-to-end execution of NextGen (ngen) core + component package capabilities.
 
 For guidelines on contributing to this codebase, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-For additional documentation, see the [GitHub pages site](https://ngwpc.github.io/nwm-rte).
+For additional documentation, see the GitHub pages site.
 
-## About NGWPC
+## About NextGen
 
 [https://github.com/NOAA-OWP/NextGen-Info](https://github.com/NOAA-OWP/NextGen-Info)
 

@@ -1,10 +1,10 @@
 site_name: "ngen RTE: Runtime Environment for the NWM NextGen Framework"
-site_description: Runtime Environment for the National Water Model (NWM) Next Generation Water Prediction Capability Framework (NGWPC ngen)
+site_description: Runtime Environment for the National Water Model (NWM) NextGen Water Modeling Framework (ngen)
 site_author: Max Kipp
-site_url: https://NGWPC.github.io/nwm-rte
+# site_url: https://NGWPC.github.io/nwm-rte
 
-repo_name: NGWPC/nwm-rte
-repo_url: https://github.com/NGWPC/nwm-rte
+# repo_name: NGWPC/nwm-rte
+# repo_url: https://github.com/NGWPC/nwm-rte
 edit_uri: ""
 
 copyright: Copyright &copy; 2025-2026 Raytheon Company. BSD-2-Clause License.
@@ -60,13 +60,6 @@ plugins:
 
 # hooks:
 # - docs/hooks.py
-
-extra:
-  # version:
-  #   provider: mike
-  social:
-  - icon: fontawesome/brands/github
-    link: https://github.com/NGWPC/nwm-rte
 
 extra_css:
 - stylesheets/extra.css
@@ -147,11 +140,11 @@ markdown_extensions:
     pygments_lang_class: true
 - pymdownx.inlinehilite
 - pymdownx.keys
-- pymdownx.magiclink:
-    normalize_issue_symbols: true
-    repo_url_shorthand: true
-    user: NGWPC
-    repo: nwm-rte
+# - pymdownx.magiclink:
+#     normalize_issue_symbols: true
+#     repo_url_shorthand: true
+#     user: NGWPC
+#     repo: nwm-rte
 - pymdownx.mark
 - pymdownx.smartsymbols
 - pymdownx.snippets

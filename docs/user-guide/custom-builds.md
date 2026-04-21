@@ -10,7 +10,7 @@ Here are steps for making the RTE image using a custom version of `ngen` itself.
 
 3. Check out the desired code for ngen and its submodules.  For example, to use `ngen`'s `development` branch but change the version of `t-route`:
 ```shell
-### From the ~/ngwpc/ngen repository root:
+### From the ngen repository root:
 git checkout development
 git pull
 ## Ensure the local copies of submodules are matching the specific commits currently pointed to by the ngen repository.
@@ -20,14 +20,11 @@ git submodule update --init --recursive
 ( cd extern/t-route && git checkout any-branch && git pull )
 ```
 
-4. If your `ngen/Dockerfile` is starting `FROM ghcr.io/ngwpc/ngen-bmi-forcing:latest`, then pull the latest ngen-forcing GHCR image.
-```shell
-sudo docker pull ghcr.io/ngwpc/ngen-bmi-forcing:latest
-```
+4. If your `ngen/Dockerfile` is starting `FROM ghcr.io/{GH_ORG}/ngen-bmi-forcing:latest`, then pull the latest `ngen-bmi-forcing` GHCR image.
 
 5. Build the RTE image
 ```shell
-### From the ~/ngwpc/nwm-rte repository root:
+### From the nwm-rte repository root:
 ./ngen_rte_build.sh
 ```
 

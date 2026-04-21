@@ -2,27 +2,15 @@
 
 ## Steps to Set Up
 
-* Make a directory to contain the code repositories and data, and enter it.
+* Make a directory to contain the code repositories and data, and `cd` into it.
 
-    * This can be any location on your disk, but ~/ngwpc is a standard convention.
+    * This can be any location on your disk, but ~/noaa-owp or ~/ngwpc is a standard convention.
 
     * In a later step, a setup script will clone many repos into this location.
 
     * For each clone, if that particular repos already exists on your disk, it will not affect the contents of that existing directory.
 
-```shell
-mkdir -p ~/ngwpc && cd ~/ngwpc
-```
-
-* Clone the `nwm-rte` repository and enter it, using either SSH or HTTPS:
-
-```shell
-### Via SSH (use your GitHub auth, for read-write access)
-git clone git@github.com:NGWPC/nwm-rte.git && cd nwm-rte
-
-### Or via HTTPS (no auth required, for read-only access)
-git clone https://github.com/NGWPC/nwm-rte.git && cd nwm-rte
-```
+* Clone the `nwm-rte` repository and `cd` into it.
 
 * Check out a branch
 
@@ -67,7 +55,6 @@ time ./setup_data.sh -r
 # This builds a local Docker image of ngen RTE, containing ngen base + component packages.
 # Be ready to supply sudo password if prompted.
 # If leveraging any remote Docker images (e.g. GHCR), you may want to run one or more `docker pull` commands before building.
-# For example: docker pull ghcr.io/ngwpc/ngen:latest
 time ./ngen_rte_build.sh
 ```
 

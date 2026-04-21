@@ -23,7 +23,7 @@ Some run settings are configured in [`bin_mounted/consts.py`](../reference/pytho
 
 ### GHCR Images
 
-If using a dynamic GHCR image tag such as `"latest"`, if you have already pulled that tag previously and you wish to update to the current version of that tag, you may need to run `docker pull`, e.g. `docker pull ghcr.io/ngwpc/ngen:latest`
+If using a dynamic GHCR image tag such as `"latest"`, if you have already pulled that tag previously and you wish to update to the current version of that tag, you may need to run `docker pull`
 
 ### Local Files for Runtime Mounts
 

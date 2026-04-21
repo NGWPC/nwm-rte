@@ -40,7 +40,7 @@ Do not choose configurations that begin with an underscore, as those are meant t
 
 4. Review `.devcontainer/devcontainer.json`, especially the image name near the top. Edit as necessary.
 
-5. Ensure your VS Code instance is at the `nwm-rte` root. Commonly, you may have your VS Code instance at the parent of this location, e.g. `~/ngwpc/` rather than `~/ngwpc/nwm-rte`.  If that is the case, simply run the following command to open a new VS Code instance in the `nwm-rte` repository (this will not close your existing VS Code instance): `code nwm-rte`.
+5. Ensure your VS Code instance is at the `nwm-rte` root. Commonly, you may have your VS Code instance at the parent of this location.  If that is the case, simply run the following command to open a new VS Code instance in the `nwm-rte` repository (this will not close your existing VS Code instance): `code nwm-rte`.
 
 6. Build and enter the Dev Container. Press key combination `ctrl-shift-P` to open the built-in Command Pallette, and start typing the word Rebuild into that dialog. You should see a choice appear named `Dev Container: Rebuild and Reopen in Container`. Choose that. This does not re-build the entire ngen RTE image. But it may take a moment for it to start a new container of your chosen (existing) image, perform the mounts, and run the `"postStartCommand"` script.
 

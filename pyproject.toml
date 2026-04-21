@@ -2,7 +2,8 @@
 name = "nwm-rte"
 authors = [
 ]
-description = "Runtime Environment for the National Water Model (NWM) Next Generation Water Prediction Capability Framework (NGWPC ngen)"
+
+description = "Runtime Environment for the National Water Model (NWM) NextGen Water Modeling Framework (ngen)"
 readme = { file = "README.md", content-type = "text/markdown" }
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
@@ -20,9 +21,6 @@ optional-dependencies.docs = [
   "mkdocstrings-shell",
   "ruff",
 ]
-
-[project.urls]
-Repository = "https://github.com/NGWPC/nwm-rte"
 
 [build-system]
 requires = ["setuptools >= 61.0"]

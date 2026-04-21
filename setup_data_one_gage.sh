@@ -25,6 +25,8 @@ source config.bashrc
 ## \usage ./setup_data_one_gage.sh "01121330" "CONUS"
 ## 
 
+export AWS_PROFILE=ngwpc
+
 GAGE_ID="$1"
 DOMAIN="$2"
 
@@ -68,9 +70,9 @@ s3_sync "${SRC_PREFIX_2p2_GPKG}" "${TGT_DIR_2p2_GPKG}"
 
 s3_copy "${SRC_FILE_NWM_RETRO}" "${TGT_DIR_NWM_RETRO}/"
 
-echo "Downloading: ${SRC_URL_STREAMFLOW_OBS} -> ${TGT_FILE_OBS_FLOW}"
-mkdir -p "${TGT_DIR_OBS_FLOW}"
-curl -f -o "${TGT_FILE_OBS_FLOW}" "${SRC_URL_STREAMFLOW_OBS}"  # Get from EDFS server
+# echo "Downloading: ${SRC_URL_STREAMFLOW_OBS} -> ${TGT_FILE_OBS_FLOW}"
+# mkdir -p "${TGT_DIR_OBS_FLOW}"
+# curl -f -o "${TGT_FILE_OBS_FLOW}" "${SRC_URL_STREAMFLOW_OBS}"  # Get from EDFS server
 
 echo "Listing available gpkg vintages after sync for provided gage: ${GAGE_ID}"
 ls -1 "${TGT_DIR_2p2_GPKG}/"
