@@ -125,7 +125,6 @@ def get_test_configs__calibration(
             global_domain=global_domain,
             forcing_static_dir=forcing_static_dir,
             scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
-            input_forcing_dirs_override_root=c.INPUT_FORCING_DIRS_OVERRIDE_ROOT,
             forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
         )
         configs.append(
@@ -183,7 +182,6 @@ def get_test_configs__forecast(
             cycle_datetime=cycle_datetime,
             cold_start_datetime=cold_start_datetime,
             scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
-            input_forcing_dirs_override_root=c.INPUT_FORCING_DIRS_OVERRIDE_ROOT,
             forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
         )
         parallel = make_parallel_config(nprocs)

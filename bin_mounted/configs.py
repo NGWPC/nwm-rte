@@ -225,7 +225,6 @@ class RTEDefaultConfig(RTESetup):
                     global_domain=self.global_domain,
                     forcing_static_dir=self.forcing_static_dir,
                     scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
-                    input_forcing_dirs_override_root=c.INPUT_FORCING_DIRS_OVERRIDE_ROOT,
                     forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
                 ),
                 DataFile=DataFileConfig(
@@ -364,7 +363,6 @@ class RTEForecastConfig(RTESetup):
                     global_domain=self.global_domain,
                     forcing_static_dir=self.forcing_static_dir,
                     scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
-                    input_forcing_dirs_override_root=c.INPUT_FORCING_DIRS_OVERRIDE_ROOT,
                     forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
                 ),
                 Parallel=make_parallel_config(self.nprocs),

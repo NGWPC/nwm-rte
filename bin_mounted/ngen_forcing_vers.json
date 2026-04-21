@@ -1,4 +1,10 @@
 {
-    "HRRR": "v4.1",
-    "RAP": "vFooBar"
+    "HRRR":     ["/lfs/h1/ops/prod/com/hrrr/{vers}", "v4.1"],
+    "HRRR_ANA": ["/lfs/h1/ops/prod/com/hrrr/{vers}", "v4.1"],
+    "RAP":      ["/lfs/h1/ops/prod/com/rap/{vers}", "vFooBar"],
+    "RAP_ANA":  ["/lfs/h1/ops/prod/com/rap/{vers}", "vFooBar"],
+    "MRMS_RO":  ["/lfs/h1/ops/prod/dcom/ldmdata/obs/upperair/mrms/conus/RadarOnly_QPE/{vers}", "vFooBar"],
+    "MRMS_MS":  ["/lfs/h1/ops/prod/dcom/ldmdata/obs/upperair/mrms/conus/MultiSensorQPE/{vers}", "vFooBar"],
+    "RQI":      ["/lfs/h1/ops/prod/dcom/ldmdata/obs/upperair/mrms/conus/MultiSensorQPE/{vers}", "vFooBar"],
+    "STAGE_IV": ["/lfs/h1/ops/prod/com/pcpanl/{vers}", "vFooBar"]
 }
