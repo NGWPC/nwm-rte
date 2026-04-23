@@ -39,6 +39,8 @@ function docker_run {
         -v "$(pwd)/.devcontainer/tmp:/tmp" \
         -e NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE} \
         \
+        -v "${REPOS_COMMON_ROOT__HOST}/nwm-automation-scripts/:/ngen-app/nwm-automation-scripts/" \
+        \
         --rm ${TARGET_IMAGE_NAME} "${@:2}"
 }
 
