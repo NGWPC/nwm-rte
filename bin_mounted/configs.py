@@ -451,6 +451,7 @@ class RTETestConfig(RTESetup):
     forcing_provider: str
     forcing_static_dir: str
     noop: bool
+    restart: bool
 
     # Set after init
     gage_id: str = Field(init=False, default=None)

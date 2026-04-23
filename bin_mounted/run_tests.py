@@ -28,7 +28,8 @@ print = functools.partial(print, flush=True)
 
 def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
     """Build calibration realizations and run them as tests."""
-    for obj_func, optim_algo, _ in cfg.get_calib_permutations():
+    perms = cfg.get_calib_permutations()
+    for obj_func, optim_algo, _ in perms:
         all_config_overrides = get_test_configs__calibration(
             nprocs=cfg.nprocs,
             gage_id=cfg.gage_id,
@@ -51,6 +52,11 @@ def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
             )
             rb_kwargs = {"config_overrides": config_overrides}
             msg_prefix = f"i={i} (ilimit={len(all_config_overrides) - 1}) worker_name={worker_name} Calibration with forcing={repr(fc)}, models={repr(config_overrides.General.models)}, cfe_aet_rootzone={config_overrides.ModuleProperties.cfe_aet_rootzone}, obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}, obs_dir={config_overrides.DataFile.obs_dir}, nwmretro_file={config_overrides.DataFile.nwmretro_file}"
+
+            if cfg.restart and i + 1 <= len(tm.prev_results):
+                print(f"Skipping since restart={cfg.restart}: {msg_prefix}")
+                continue
+
             print(
                 f"\n\n##########\n### {msg_prefix}: setting up test with rb_kwargs = \n{json.dumps(rb_kwargs, indent=2, default=pydantic_encoder)}"
             )
@@ -71,6 +77,7 @@ def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
                 )
 
             tm.add_forecast_test(t)
+            tm.evaluate_test_results(raise_if_any_failed=False)
 
 
 def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> None:
@@ -98,9 +105,14 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
                     f"quit_forecast_after_forcing_running not yet tested for forcing_configuration = {repr(tc.Forcing.forcing_configuration)}"
                 )
 
-        for config_overrides in test_configs:
+        for i, config_overrides in enumerate(test_configs):
             fc = config_overrides.Forcing.forcing_configuration
-            msg_prefix = f"Forecast {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
+            msg_prefix = f"i={i} (ilimit={len(test_configs) - 1}) forecast {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
+
+            if cfg.restart and i + 1 <= len(tm.prev_results):
+                print(f"Skipping since restart={cfg.restart}: {msg_prefix}")
+                continue
+
             rb_kwargs = {
                 # "input_path": test_paths.dir_input,
                 "valid_yaml": test_paths.valid_yaml,
@@ -136,7 +148,8 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
                     quit_forecast_after_duration=cfg.quit_forecast_after_duration,
                 )
 
-            tm.add_forecast_test(t)
+            tm.add_forecast_test()
+            tm.evaluate_test_results(raise_if_any_failed=False)
 
 
 def run_noop_mode() -> None:
@@ -163,7 +176,7 @@ def main(cfg: RTETestConfig):
     if cfg.delete_forcing_raw_input_first:
         utils_testing_setup.delete_forcing_raw_inputs()
 
-    tm = TestsManager()
+    tm = TestsManager(restart=cfg.restart)
 
     if cfg.do_calibration:
         calibrations__build_and_run(cfg, tm)
@@ -323,6 +336,11 @@ if __name__ == "__main__":
         "--noop",
         action="store_true",
         help="Run in noop mode - only verify that the script can import libraries and basic setup, then exit without looking for data or running any workflows.",
+    )
+    parser.add_argument(
+        "--restart",
+        action="store_true",
+        help=f"Run in restart mode. Read existing results json file {c.TEST_RESULTS_FILE} if it exists and skip indexes that already have a record in it.",
     )
     args = parser.parse_args()
     print(f"{__file__}: args: {json.dumps(vars(args), indent=2)}")

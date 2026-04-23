@@ -549,33 +549,61 @@ class TestResultsSums(BaseModel):
 class TestsManager(BaseModel):
     """Helper class for running a managed set of test realizations."""
 
-    forecast_tests: list[ForecastTest] = Field(init=False, default=[])
+    restart: bool
+    prev_results: list[dict] = Field(default_factory=list)
+    """If using restart, the initial elements will be dicts parsed from previous run"""
+    forecast_tests: list[ForecastTest] = Field(default_factory=list)
 
     @validate_call
     def add_forecast_test(self, t: ForecastTest) -> None:
         self.forecast_tests.append(t)
 
+    def model_post_init(self, __context):
+        prev_results = []
+        if os.path.exists(c.TEST_RESULTS_FILE):
+            if self.restart:
+                print(f"restart={self.restart}, reading: {c.TEST_RESULTS_FILE}")
+                with open(c.TEST_RESULTS_FILE) as f:
+                    content = f.read()
+                rows = json.loads(content) if content else []
+                for row in rows:
+                    prev_results.append(row)
+            else:
+                print(f"restart={self.restart}, deleting: {c.TEST_RESULTS_FILE}")
+                os.remove(c.TEST_RESULTS_FILE)
+        self.prev_results = prev_results
+
     @property
     def fcst_stat_sums(self) -> TestResultsSums:
         """Build and return a TestResultsSums instance, to assist with evaluating test results."""
         # Initialize these to 0 count for each status option, then increment based on result from tests.
-        rb_statcount = {status: 0 for status in TestStat}
-        fcst_exe_statcount = {status: 0 for status in TestStat}
+        rb_statcount = {str(status): 0 for status in TestStat}
+        fcst_exe_statcount = {str(status): 0 for status in TestStat}
+        for t in self.prev_results:
+            rb_statcount[t["rb_stat"]] += 1
+            fcst_exe_statcount[t["fcst_exe_stat"]] += 1
         for t in self.forecast_tests:
-            rb_statcount[t.rb_stat] += 1
-            fcst_exe_statcount[t.fcst_exe_stat] += 1
+            rb_statcount[str(getattr(t, "rb_stat"))] += 1
+            fcst_exe_statcount[str(getattr(t, "fcst_exe_stat"))] += 1
 
         return TestResultsSums(
             rb_statcount=rb_statcount,
             fcst_exe_statcount=fcst_exe_statcount,
         )
 
-    def evaluate_test_results(self) -> None:
+    @property
+    def concatenated_results_dicts(self) -> list[dict]:
+        new_results = json.loads(
+            json.dumps(self.forecast_tests, default=pydantic_encoder)
+        )
+        concat_results = self.prev_results + new_results
+        return concat_results
+
+    def evaluate_test_results(self, raise_if_any_failed: bool = True) -> None:
         """Inspect the test results json file, and if any failed, raise an error."""
-        test_results_file = c.TEST_RESULTS_FILE
-        msg = f"\n\n###### FORECAST TEST RESULTS ######\nWriting to: {test_results_file}\n{json.dumps(self.fcst_stat_sums, indent=2, default=pydantic_encoder)}"
+        msg = f"\n\n###### FORECAST TEST RESULTS ######\nWriting to: {c.TEST_RESULTS_FILE}\n{json.dumps(self.fcst_stat_sums, indent=2, default=pydantic_encoder)}"
         print(msg)
-        with open(test_results_file, "w") as f:
-            f.write(json.dumps(self.forecast_tests, indent=2, default=pydantic_encoder))
-        if self.fcst_stat_sums.any_failed:
+        with open(c.TEST_RESULTS_FILE, "w") as f:
+            f.write(json.dumps(self.concatenated_results_dicts, indent=2))
+        if raise_if_any_failed and self.fcst_stat_sums.any_failed:
             raise RuntimeError(self.fcst_stat_sums)
