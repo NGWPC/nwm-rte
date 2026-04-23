@@ -5,6 +5,11 @@ import sys
 
 from utils import configure_ngen_log
 import utils_testing_setup
+
+from calib.strategy import (
+    Algorithm as CalOptimizationAlgo,
+)
+
 from execution_tests import (
     TestStat,
     LogParser,
@@ -39,7 +44,11 @@ def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
 
         for i, config_overrides in enumerate(all_config_overrides):
             fc = config_overrides.Forcing.forcing_configuration
-            worker_name = f"test_{i}_{config_overrides.General.models.replace(',', '_')}_rootzone={config_overrides.ModuleProperties.cfe_aet_rootzone}"
+            worker_name = (
+                f"test_{i}_{config_overrides.General.models.replace(',', '_')}_rootzone={config_overrides.ModuleProperties.cfe_aet_rootzone}"
+                if optim_algo == CalOptimizationAlgo.dds
+                else None
+            )
             rb_kwargs = {"config_overrides": config_overrides}
             msg_prefix = f"i={i} (ilimit={len(all_config_overrides) - 1}) worker_name={worker_name} Calibration with forcing={repr(fc)}, models={repr(config_overrides.General.models)}, cfe_aet_rootzone={config_overrides.ModuleProperties.cfe_aet_rootzone}, obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}, obs_dir={config_overrides.DataFile.obs_dir}, nwmretro_file={config_overrides.DataFile.nwmretro_file}"
             print(
