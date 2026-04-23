@@ -31,6 +31,6 @@ docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --sk
 # docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --do_coldstart --do_all_forcing_configs --fcst_run_name "${fcst_run_name}"
 
 # docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -calfsrcs "aorc" -mff "/ngen-app/nwm-automation-scripts/model_formulations/formulations_munged_setup.tsv" -calib -nofcst -fcname "${fcst_run_name}_test_forms"
-
+# docker_run python "/ngen-app/bin/bin_mounted/parse_test_results.py" -mff "/ngen-app/nwm-automation-scripts/model_formulations/formulations_munged_setup.tsv"
 
 exit 0

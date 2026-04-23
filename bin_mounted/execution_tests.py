@@ -571,9 +571,7 @@ class TestsManager(BaseModel):
 
     def evaluate_test_results(self) -> None:
         """Inspect the test results json file, and if any failed, raise an error."""
-        test_results_file = os.path.join(
-            os.path.dirname(__file__), "forecast_tests_results.json"
-        )
+        test_results_file = c.TEST_RESULTS_FILE
         msg = f"\n\n###### FORECAST TEST RESULTS ######\nWriting to: {test_results_file}\n{json.dumps(self.fcst_stat_sums, indent=2, default=pydantic_encoder)}"
         print(msg)
         with open(test_results_file, "w") as f:

@@ -73,6 +73,7 @@ DEFAULT_NPROCS = 1
 
 
 ### Test settings
+TEST_RESULTS_FILE = os.path.join(os.path.dirname(__file__), "forecast_tests_results.json")
 ### See this for full list of forcing configuration types: mswm.utils.input_configuration.mswm_valid_configs
 FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = [
     "short_range",
