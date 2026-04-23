@@ -3,6 +3,7 @@
 from datetime import datetime, timezone
 from enum import StrEnum
 import functools
+import itertools
 import json
 import os
 import subprocess
@@ -26,7 +27,13 @@ from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 from nwm_fcst_mgr.forecast import ForecastExecutionManager, ConfigCache, RunStatus
 from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
 
-from configs import ForcingProviderPaths, CalibTimeWindows, make_parallel_config
+from configs import (
+    ForcingProviderPaths,
+    CalibTimeWindows,
+    make_parallel_config,
+    build_model_formulations,
+    get_data_paths_for_lstm,
+)
 import consts as c
 
 print = functools.partial(print, flush=True)
@@ -38,18 +45,21 @@ def get_test_configs__calibration(
     gage_vintage: str = c.DEFAULT_GAGE_VINTAGE,
     obj_func: c.CalObjective = c.CALIB_OBJECTIVE_FUNCTION,
     optim_algo: c.CalOptimizationAlgo = c.CALIB_OPTIMIZATION_ALGO,
+    model_formulations_file: str | None = None,
     forcing_config_types=c.CALIB_FORCING_CONFIGURATION_TYPES,
     global_domain: str = c.CALIB_GLOBAL_DOMAIN_DEFAULT,
     forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
     forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
     windows: CalibTimeWindows = CalibTimeWindows(),
-    obs_dir: str | None = None,
-    nwmretro_file: str | None = None,
     run_type: str = "calibration",
 ) -> list[InputConfig]:
-    """Build and return a list of InputConfig instances to be used for building calibration realizations."""
+    """Build and return a list of InputConfig instances to be used for building calibration realizations.
+    If the model_formulations_file is provided, it will be parsed to determine which formulations to run.
+    Otherwise, the default formulation from consts.DEFAULT_MODEL_FORMULATION_ARGS will be ran."""
     if run_type not in ("calibration", "default"):
         raise ValueError(f"Unexpected run_type: {run_type}")
+
+    model_formulations = build_model_formulations(model_formulations_file)
 
     fpp = ForcingProviderPaths(
         forcing_provider=forcing_provider,
@@ -58,22 +68,6 @@ def get_test_configs__calibration(
     )
 
     configs: list[InputConfig] = []
-
-    general = GeneralConfig(
-        basin=gage_id,
-        run_type=run_type,
-        models=c.MODELS,
-        formulation=fpp.formulation_name,
-        main_dir=c.DEFAULT_MAIN_DIR,
-        start_period=windows.calib_eval_start.strftime(DDF),
-        end_period=windows.calib_eval_end.strftime(DDF),
-        output_precip=True,
-        output_swe=True,
-        output_sm=True,
-        domain=global_domain.lower(),
-    )
-
-    module_properties = ModulePropertiesConfig()
 
     calibration = CalibConfig(
         optimization_algorithm=optim_algo,
@@ -101,19 +95,26 @@ def get_test_configs__calibration(
         calib_parameter_file=c.CALIB_PARAMETERS_DIR,
     )
 
-    datafile = DataFileConfig(
-        **(
-            c.DATAFILE_LIBS
-            | {
-                "obs_dir": obs_dir,
-                "nwmretro_file": nwmretro_file,
-                "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{global_domain}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg",
-            }
-        ),
-    )
     parallel = make_parallel_config(nprocs)
 
-    for fct in forcing_config_types:
+    for mf, fct in itertools.product(model_formulations, forcing_config_types):
+
+        general = GeneralConfig(
+            basin=gage_id,
+            run_type=run_type,
+            models=mf.models_csv,
+            formulation=fpp.formulation_name,
+            main_dir=c.DEFAULT_MAIN_DIR,
+            start_period=windows.calib_eval_start.strftime(DDF),
+            end_period=windows.calib_eval_end.strftime(DDF),
+            output_precip=True,
+            output_swe=True,
+            output_sm=True,
+            domain=global_domain.lower(),
+        )
+
+        module_properties = ModulePropertiesConfig(cfe_aet_rootzone=mf.cfe_aet_rootzone)
+
         forcing = ForcingConfig(
             forcing_provider=fpp.forcing_provider,
             forcing_dir=fpp.get_forcing_dir(gage_id),
@@ -128,6 +129,26 @@ def get_test_configs__calibration(
             input_forcing_dirs_override_root=c.INPUT_FORCING_DIRS_OVERRIDE_ROOT,
             forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
         )
+
+        obs_dir, nwmretro_file, errors = get_data_paths_for_lstm(
+            global_domain,
+            gage_id,
+            models_csv=mf.models_csv,
+        )
+        if errors:
+            raise RuntimeError(errors)
+
+        datafile = DataFileConfig(
+            **(
+                c.DATAFILE_LIBS
+                | {
+                    "obs_dir": obs_dir,
+                    "nwmretro_file": nwmretro_file,
+                    "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{global_domain}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg",
+                }
+            ),
+        )
+
         configs.append(
             InputConfig(
                 General=general,

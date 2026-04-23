@@ -30,9 +30,11 @@ DT_END_COLDSTART = DT_START_FORECAST
 DEFAULT_GAGE_ID = "01123000"
 DEFAULT_GAGE_VINTAGE = "2025_Mar_14_21_14_37"
 
-MODELS = "noah-owp-modular,cfe-s"
-# MODELS = "snow-17,noah-owp-modular,smp,lasam,t-route"
-# MODELS = "lstm"
+DEFAULT_MODEL_FORMULATION_ARGS = ("noah-owp-modular,cfe-s", False)
+# DEFAULT_MODEL_FORMULATION_ARGS = ("snow-17,noah-owp-modular,smp,lasam,t-route", False)
+# DEFAULT_MODEL_FORMULATION_ARGS = ("lstm", False)
+"""Used to construct configs.ModelFormulation. 1st arg is csv str of models, 2nd arg is Boolean passed to ModulePropertiesConfig.cfe_aet_rootzone"""
+
 DEFAULT_MAIN_DIR = "/ngwpc/run_ngen"
 
 

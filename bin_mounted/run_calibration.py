@@ -46,8 +46,6 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
         forcing_provider=cfg.forcing_provider,
         forcing_static_dir=cfg.forcing_static_dir,
         windows=windows,
-        obs_dir=cfg.obs_dir,
-        nwmretro_file=cfg.nwmretro_file,
         run_type="calibration",
     )
     assert (

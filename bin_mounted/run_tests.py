@@ -24,18 +24,22 @@ print = functools.partial(print, flush=True)
 def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
     """Build calibration realizations and run them as tests."""
     for obj_func, optim_algo, _ in cfg.get_calib_permutations():
-        for config_overrides in get_test_configs__calibration(
+        all_config_overrides = get_test_configs__calibration(
             nprocs=cfg.nprocs,
             gage_id=cfg.gage_id,
             gage_vintage=cfg.gage_vintage,
             obj_func=obj_func,
             optim_algo=optim_algo,
+            model_formulations_file=cfg.model_formulations_file,
+            forcing_config_types=cfg.calibration_forcing_sources,
             global_domain=cfg.global_domain,
             forcing_provider=cfg.forcing_provider,
             forcing_static_dir=cfg.forcing_static_dir,
-        ):
+        )
+
+        for config_overrides in all_config_overrides:
             fc = config_overrides.Forcing.forcing_configuration
-            msg_prefix = f"Calibration {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
+            msg_prefix = f"Calibration with forcing={repr(fc)}, models={repr(config_overrides.General.models)}, cfe_aet_rootzone={config_overrides.ModuleProperties.cfe_aet_rootzone}, obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}, obs_dir={config_overrides.DataFile.obs_dir}, nwmretro_file={config_overrides.DataFile.nwmretro_file}"
             rb_kwargs = {"config_overrides": config_overrides}
             print(
                 f"\n\n##########\n### {msg_prefix}: setting up test with rb_kwargs = \n{json.dumps(rb_kwargs, indent=2, default=pydantic_encoder)}"
@@ -238,6 +242,19 @@ if __name__ == "__main__":
         "--do_all_forcing_configs",
         action="store_true",
         help=f"Run all forcing configurations rather than the default shorter default list. Default list: {c.FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT}. Incompatible with --skip_forecast.",
+    )
+    parser.add_argument(
+        "-mff",
+        "--model_formulations_file",
+        help=f"""If provided, multiple model formulations will be ran, and this is a file path to a tsv file of the formulations list.
+        If not provided, then the default model formulation will be used: {c.DEFAULT_MODEL_FORMULATION_ARGS}."""
+    )
+    parser.add_argument(
+        "-calfsrcs",
+        "--calibration_forcing_sources",
+        nargs="*",
+        default=c.CALIB_FORCING_CONFIGURATION_TYPES,
+        help=f"Sources of forcing data for calibration runs. If not provided then this default will be used: {c.CALIB_FORCING_CONFIGURATION_TYPES}.",
     )
     parser.add_argument(
         "-cs",

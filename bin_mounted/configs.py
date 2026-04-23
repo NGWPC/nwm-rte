@@ -15,7 +15,9 @@ from mswm.utils.input_configuration import (
 from mswm.utils import settings as mswm_settings
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 
+import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
+from pydantic.dataclasses import dataclass as pydantic_dataclass
 
 import consts as c
 from utils import make_wcoss_path_symlinks
@@ -94,6 +96,58 @@ class TestPaths:
     def valid_yaml(self) -> str:
         """Path to validation yaml config file"""
         return f"{self.dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
+
+
+@pydantic_dataclass
+class ModelFormulation:
+    """Each formulation is defined by comma-separated string of models, and a rootzone flag.
+    i.e. some formulations involve running with or without rootzone enabled."""
+    models_csv: str
+    cfe_aet_rootzone: bool
+
+    def __post_init__(self):
+        pattern = "^[a-z][a-z0-9\-\,]*[a-z]$"
+        if not re.fullmatch(pattern, self.models_csv):
+            raise ValueError(f"Expected models to match pattern {repr(pattern)} but got: {repr(self.models_csv)}")
+
+
+def build_model_formulations(
+    model_formulations_file: str | None = None,
+) -> list[ModelFormulation]:
+    """If model_formulations_file is provided, then parse it to return a list of ModelFormulation instance.
+    Otherwise, return a list of length 1 using consts.DEFAULT_MODEL_FORMULATION_ARGS"""
+    model_formulations = []
+
+    if model_formulations_file is None:
+        model_formulations.append(ModelFormulation(*c.DEFAULT_MODEL_FORMULATION_ARGS))
+    else:
+        print(f"Reading: {model_formulations_file}")
+        if not model_formulations_file.endswith(".tsv"):
+            raise ValueError(
+                f"Expected model_formulations_file to end with .tsv (indicating tab-separated values) but received: {model_formulations_file}"
+            )
+        df = pd.read_csv(model_formulations_file, sep="\t")
+        for i, row in df.iterrows():
+            formulation_csv = row["formulation_mswm"]
+            rz_raw = row["uses_root_zone"]
+            if str(rz_raw).lower().strip() in ("true", "1", "yes"):
+                rz = True
+            elif str(rz_raw).lower().strip() in ("false", "0", "no"):
+                rz = False
+            else:
+                raise ValueError(
+                    f"Unexpected value for uses_root_zone of row {i} of file {model_formulations_file}: {row}"
+                )
+
+            # # NOTE for testing a small batch
+            # if len(model_formulations) > 2:
+            #     break
+            # if rz is not True:
+            #     continue
+
+            model_formulations.append(ModelFormulation(formulation_csv, rz))
+
+    return model_formulations
 
 
 class RTESetup(BaseModel):
@@ -203,7 +257,7 @@ class RTEDefaultConfig(RTESetup):
                 General=GeneralConfig(
                     basin=self.gage_id,
                     run_type="default",
-                    models=c.MODELS,
+                    models=c.DEFAULT_MODEL_FORMULATION_ARGS[0],
                     formulation=fpp.formulation_name,
                     main_dir=c.DEFAULT_MAIN_DIR,
                     start_period=start_period,
@@ -267,8 +321,6 @@ class RTECalibConfig(RTESetup):
     # Set after init
     gage_id: str = Field(init=False, default=None)
     gage_vintage: str = Field(init=False, default=None)
-    obs_dir: str | None = Field(init=False, default=None)
-    nwmretro_file: str | None = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTESetup's post init
@@ -277,12 +329,6 @@ class RTECalibConfig(RTESetup):
 
         self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
             self.gage_id__gage_vintage
-        )
-        errors.extend(errors_extend)
-
-        self.obs_dir, self.nwmretro_file, errors_extend = get_data_paths_for_lstm(
-            self.global_domain,
-            self.gage_id,
         )
         errors.extend(errors_extend)
 
@@ -390,6 +436,8 @@ class RTETestConfig(RTESetup):
     do_all_objective_functions: bool
     # Replaced with full list when do_all_optimization_algorithms = True
     optimization_algorithms: list[c.CalOptimizationAlgo]
+    model_formulations_file: str | None
+    calibration_forcing_sources: list[str]
     do_all_optimization_algorithms: bool
     do_all_forcing_configs: bool
     do_coldstart: bool
@@ -610,6 +658,7 @@ class CalibTimeWindows(BaseModel):
 def get_data_paths_for_lstm(
     global_domain: str,
     gage_id: str,
+    models_csv: str,
 ) -> tuple[str | None, str | None, list[Exception]]:
     """Build and return two data paths needed for LSTM model,
     as well as a list of errors encountered during this function.
@@ -617,7 +666,7 @@ def get_data_paths_for_lstm(
 
     errors: list[Exception] = []
 
-    if "lstm" in c.MODELS.lower():
+    if "lstm" in models_csv.lower():
         obs_dir = find_obs_dir(global_domain, gage_id)
         nwmretro_file = f"{c.NWM_RETRO_STREAMFLOW_DIR}/{gage_id}.csv"
         if not os.path.exists(obs_dir):
