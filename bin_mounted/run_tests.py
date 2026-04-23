@@ -37,10 +37,11 @@ def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
             forcing_static_dir=cfg.forcing_static_dir,
         )
 
-        for config_overrides in all_config_overrides:
+        for i, config_overrides in enumerate(all_config_overrides):
             fc = config_overrides.Forcing.forcing_configuration
-            msg_prefix = f"Calibration with forcing={repr(fc)}, models={repr(config_overrides.General.models)}, cfe_aet_rootzone={config_overrides.ModuleProperties.cfe_aet_rootzone}, obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}, obs_dir={config_overrides.DataFile.obs_dir}, nwmretro_file={config_overrides.DataFile.nwmretro_file}"
+            worker_name = f"test_{i}_{config_overrides.General.models.replace(',', '_')}_rootzone={config_overrides.ModuleProperties.cfe_aet_rootzone}"
             rb_kwargs = {"config_overrides": config_overrides}
+            msg_prefix = f"i={i} (ilimit={len(all_config_overrides) - 1}) worker_name={worker_name} Calibration with forcing={repr(fc)}, models={repr(config_overrides.General.models)}, cfe_aet_rootzone={config_overrides.ModuleProperties.cfe_aet_rootzone}, obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}, obs_dir={config_overrides.DataFile.obs_dir}, nwmretro_file={config_overrides.DataFile.nwmretro_file}"
             print(
                 f"\n\n##########\n### {msg_prefix}: setting up test with rb_kwargs = \n{json.dumps(rb_kwargs, indent=2, default=pydantic_encoder)}"
             )
@@ -56,7 +57,9 @@ def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
                 configure_ngen_log(t.rb.work_dir, "cal_test")
                 # Execute the realization via ngen, trapping exceptions and logs into class attrs
                 print(f"### {msg_prefix}: executing calibration realization")
-                t.execute_calibration(cfg.quit_calibration_after_duration)
+                t.execute_calibration(
+                    cfg.quit_calibration_after_duration, worker_name=worker_name
+                )
 
             tm.add_forecast_test(t)
 
@@ -247,7 +250,7 @@ if __name__ == "__main__":
         "-mff",
         "--model_formulations_file",
         help=f"""If provided, multiple model formulations will be ran, and this is a file path to a tsv file of the formulations list.
-        If not provided, then the default model formulation will be used: {c.DEFAULT_MODEL_FORMULATION_ARGS}."""
+        If not provided, then the default model formulation will be used: {c.DEFAULT_MODEL_FORMULATION_ARGS}.""",
     )
     parser.add_argument(
         "-calfsrcs",

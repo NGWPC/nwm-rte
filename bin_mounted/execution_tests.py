@@ -98,7 +98,6 @@ def get_test_configs__calibration(
     parallel = make_parallel_config(nprocs)
 
     for mf, fct in itertools.product(model_formulations, forcing_config_types):
-
         general = GeneralConfig(
             basin=gage_id,
             run_type=run_type,
@@ -335,7 +334,9 @@ class ForecastTest(BaseModel):
             self.fcst_exe_stat = TestStat.FAIL
 
     def execute_calibration(
-        self, quit_calibration_after_duration: float | None
+        self,
+        quit_calibration_after_duration: float | None,
+        worker_name: str | None = None,
     ) -> None:
         """Run the calibration realization, optionally stopping ngen after `quit_calibration_after_duration` seconds."""
         if self.rb_stat != TestStat.PASS:
@@ -355,9 +356,9 @@ class ForecastTest(BaseModel):
             str(self.rb.calib_config_file),
             "--log_path_overwrite",
             self.calib_log.path,
-            # "--worker_name",
-            # "000test",
         ]
+        if worker_name:
+            cmd.extend(["--worker_name", worker_name])
         print(f"Running command args: {cmd}")
         try:
             proc = subprocess.run(

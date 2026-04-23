@@ -102,13 +102,16 @@ class TestPaths:
 class ModelFormulation:
     """Each formulation is defined by comma-separated string of models, and a rootzone flag.
     i.e. some formulations involve running with or without rootzone enabled."""
+
     models_csv: str
     cfe_aet_rootzone: bool
 
     def __post_init__(self):
         pattern = "^[a-z][a-z0-9\-\,]*[a-z]$"
         if not re.fullmatch(pattern, self.models_csv):
-            raise ValueError(f"Expected models to match pattern {repr(pattern)} but got: {repr(self.models_csv)}")
+            raise ValueError(
+                f"Expected models to match pattern {repr(pattern)} but got: {repr(self.models_csv)}"
+            )
 
 
 def build_model_formulations(
