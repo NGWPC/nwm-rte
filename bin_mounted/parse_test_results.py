@@ -19,10 +19,10 @@ print = functools.partial(print, flush=True)
 class ParsedResult:
     models_csv: str
     use_rootzone: bool
-    build_status: TestStat
-    execute_status: TestStat
-    build_excep_msg: str | None
-    execute_excep_msg: str | None
+    status_obs_build: TestStat
+    status_obs_run: TestStat
+    build_exc: str | None
+    exe_exc: str | None
 
 
 def parse_raw_result(raw_result: dict) -> ParsedResult:
@@ -33,12 +33,23 @@ def parse_raw_result(raw_result: dict) -> ParsedResult:
                 "cfe_aet_rootzone"
             ]
         ),
-        build_status=TestStat(raw_result["rb_stat"]),
-        execute_status=TestStat(raw_result["fcst_exe_stat"]),
-        build_excep_msg=raw_result["rb_excep_msg"],
-        execute_excep_msg=raw_result["fcst_exe_excep_msg"],
+        status_obs_build=TestStat(raw_result["rb_stat"]),
+        status_obs_run=TestStat(raw_result["fcst_exe_stat"]),
+        build_exc=raw_result["rb_excep_msg"],
+        exe_exc=raw_result["fcst_exe_excep_msg"],
     )
     return parsed_result
+
+
+def is_match(pr: dict, row: pd.Series) -> bool:
+    """Return True if the parsed result dict (from json)
+    is an effective match with the row object (from tsv file). Else return False."""
+    if (
+        row["formulation_mswm"] == pr.models_csv
+        and row["uses_root_zone"] == pr.use_rootzone
+    ):
+        return True
+    return False
 
 
 def main(model_formulations_file: str | None = None) -> None:
@@ -51,43 +62,48 @@ def main(model_formulations_file: str | None = None) -> None:
     parsed_results: list[ParsedResult] = [parse_raw_result(rr) for rr in raw_results]
     print(f"Parsed {len(parsed_results)} results")
 
-    if model_formulations_file is not None:
-        extension = ".tsv"
-        print(f"Reading: {model_formulations_file}")
-        assert model_formulations_file.endswith(extension)
-        df_mff = pd.read_csv(model_formulations_file, sep="\t")
+    if model_formulations_file is None:
+        return
 
-        # Add columns
-        for new_col in ["build_exc", "exe_exc", "parse_errors"]:
-            if new_col not in df_mff.columns:
-                df_mff[new_col] = np.nan
+    extension = ".tsv"
+    print(f"Reading: {model_formulations_file}")
+    assert model_formulations_file.endswith(extension)
+    df_mff = pd.read_csv(model_formulations_file, sep="\t")
 
-        tgt_file = os.path.splitext(model_formulations_file)[0] + f"_results{extension}"
+    # Add columns
+    for new_col in ["build_exc", "exe_exc", "parse_errors"]:
+        if new_col not in df_mff.columns:
+            df_mff[new_col] = np.nan
 
-        for i, row in df_mff.iterrows():
-            assert isinstance(row["uses_root_zone"], bool)
-            matches = []
-            for pr in parsed_results:
-                if (
-                    row["formulation_mswm"] == pr.models_csv
-                    and row["uses_root_zone"] == pr.use_rootzone
-                ):
-                    matches.append(pr)
+    tgt_file = os.path.splitext(model_formulations_file)[0] + f"_results{extension}"
 
-            if len(matches) != 1:
-                df_mff.at[i, "parse_errors"] = (
-                    f"Found {len(matches)} matches in {os.path.basename(c.TEST_RESULTS_FILE)}"
-                )
+    for i, row in df_mff.iterrows():
+        parse_errors = []
+
+        assert isinstance(row["uses_root_zone"], bool)
+        matches = [pr for pr in parsed_results if is_match(pr, row)]
+
+        if len(matches) != 1:
+            parse_errors.append(
+                f"{len(matches)} matches in {os.path.basename(c.TEST_RESULTS_FILE)}"
+            )
+
+        # Write to dataframe. When there are multiple matches in the results
+        # for a particular row in the table, that is okay as long as there is
+        # agreement among the matches.
+        for key in ("status_obs_build", "status_obs_run", "build_exc", "exe_exc"):
+            assert key in df_mff.columns
+            choices = [str(getattr(m, key)) for m in matches]
+            if len(set(choices)) == 1:
+                df_mff.at[i, key] = choices[0]
             else:
-                match = matches[0]
-                df_mff.at[i, "parse_errors"] = None
-                df_mff.at[i, "status_obs_build"] = match.build_status.value
-                df_mff.at[i, "status_obs_run"] = match.execute_status.value
-                df_mff.at[i, "build_exc"] = match.build_excep_msg
-                df_mff.at[i, "exe_exc"] = match.execute_excep_msg
+                df_mff.at[i, key] = "CONFLICT"
+                parse_errors.append(f"Conflict for {repr(key)}: {'vs '.join(choices)}")
 
-        print(f"Writing: {tgt_file}")
-        df_mff.to_csv(tgt_file, sep="\t", index=False)
+        df_mff.at[i, "parse_errors"] = ", ".join(parse_errors)
+
+    print(f"Writing: {tgt_file}")
+    df_mff.to_csv(tgt_file, sep="\t", index=False)
 
 
 def cli() -> argparse.ArgumentParser:
