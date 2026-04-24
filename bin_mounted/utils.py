@@ -37,7 +37,7 @@ def datetime_type(datetime_str) -> datetime:
     return datetime.strptime(datetime_str, mswm_settings.DEFAULT_DATETIME_FORMAT)
 
 
-def configure_ngen_log(fallback_log_dir: str | pathlib.Path, description: str) -> None:
+def configure_ngen_log(fallback_log_dir: str | pathlib.Path, label: str) -> None:
     """Configure the ngen logging, by
     setting the associated OS env variable for the directory to hold the logs, and
     copying the associated json file into that directory.
@@ -45,7 +45,7 @@ def configure_ngen_log(fallback_log_dir: str | pathlib.Path, description: str) -
         fallback_log_dir : str
             Is ignored when the RTE OS env var key NGEN_LOG_TO_RTE is true.
             Used to emulate behavior of nwm-cal-mgr and nwm-fcst-mgr (what they would use without RTE)
-        description : str
+        label : str
             Is ignored when the RTE OS env var key NGEN_LOG_TO_RTE is false.
             Used to build the timestamped dir name.
     """
@@ -64,7 +64,7 @@ def configure_ngen_log(fallback_log_dir: str | pathlib.Path, description: str) -
     # Decide the dir
     setting_val = os.environ.get(c.RTE_NGEN_LOG_BEHAVIOR_KEY, "").lower().strip()
     if setting_val == "true":
-        log_dir = os.path.join("/ngen-app/rte_ngen_logs", f"{now_str}_{description}")
+        log_dir = os.path.join("/ngen-app/rte_ngen_logs", f"{now_str}_{label}")
     elif setting_val == "false":
         log_dir = fallback_log_dir
     else:

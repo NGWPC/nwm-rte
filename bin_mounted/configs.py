@@ -4,6 +4,10 @@ import os
 import re
 from typing import Literal
 
+# from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
+# TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
+from consts import LAGGED_ENSEMBLE_MEMBER_LAGS
+
 from mswm.utils.input_configuration import (
     InputConfig,
     GeneralConfig,
@@ -96,76 +100,138 @@ class TestPaths:
         return f"{self.dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
 
 
-class RTESetup(BaseModel):
-    """Used to set up a RTE run. Triggers certain setup actions, such as creation of WCOSS-path symlinks.
+class RTEBaseConfig(BaseModel):
+    """Base RTE configuration class to be inherited by child classes.
+    Triggers certain setup actions, such as creation of WCOSS-path symlinks.
     Classes that inherit from this should call super().model_post_init(__context) inside their own
     model_post_init() method, if they have that method also defined in the child."""
 
+    # Set during init
+    delete_scratch_and_mesh_first: bool
+    delete_forcing_raw_input_first: bool
+    nprocs: int = Field(ge=1)
+    global_domain: str
+    forcing_static_dir: str
+    forcing_provider: str
+
+    # Set after init (not provided as args)
+    errors: list | None = Field(init=False, default=None)
+
+    gage_id: str = Field(init=False, default=None)
+    gage_vintage: str = Field(init=False, default=None)
+
+    # For lagged ensemble
+    use_lagged_ensemble: bool | None = Field(init=False, default=False)
+    lagged_ens_mem: str | None = Field(init=False, default=None)
+    forcing_lag: str | None = Field(init=False, default=None)
+    le__open_loop_state: str | None = Field(init=False, default=None)
+    le__closed_loop_state: str | None = Field(init=False, default=None)
+
     def model_post_init(self, __context) -> None:
+        self.errors = []
         make_wcoss_path_symlinks()
 
+    def _parse_gage_id__gage_vintage(self) -> None:
+        """Parse the provided string and split it into two strings: gage_id and gage_vintage and set attributes.
+        Extend errors list as appropriate.
+        Called by child classes which define the necessary attributes."""
+        gage_id, gage_vintage = self.gage_id__gage_vintage
 
-class RTEDefaultConfig(RTESetup):
+        if gage_id != gage_id.strip():
+            self.errors.append(
+                ValueError(f"Whitespace found on end of gage_id: {repr(gage_id)}")
+            )
+            gage_id = None
+
+        if gage_vintage != gage_vintage.strip():
+            self.errors.append(
+                ValueError(
+                    f"Whitespace found on end of gage_vintage: {repr(gage_vintage)}"
+                )
+            )
+            gage_vintage = None
+
+        self.gage_id = gage_id
+        self.gage_vintage = gage_vintage
+
+    def _parse_lagged_ensemble_args(self):
+        """Break up the multipart lagged ensemble arg into distinct args and set them.
+        Called by child classes which define the necessary attributes."""
+        if self.lagged_ensemble_args:
+            if self.forcing_configuration != "medium_range":
+                raise ValueError(
+                    f"lagged ensemble only supported for medium_range, but forcing configuration {repr(self.forcing_configuration)} was provided"
+                )
+
+            self.use_lagged_ensemble = True
+
+            member_name, open_ls, closed_ls = self.lagged_ensemble_args
+
+            self.lagged_ens_mem = member_name if member_name.strip() else None
+            self.forcing_lag = LAGGED_ENSEMBLE_MEMBER_LAGS[self.lagged_ens_mem]
+            self.le__open_loop_state = open_ls if open_ls.strip() else None
+            self.le__closed_loop_state = closed_ls if closed_ls.strip() else None
+
+            if self.lagged_ens_mem not in LAGGED_ENSEMBLE_MEMBER_LAGS:
+                raise KeyError(
+                    f"Invalid lagged ensemble member {repr(self.lagged_ens_mem)} (choose from: {list(LAGGED_ENSEMBLE_MEMBER_LAGS)})"
+                )
+
+        if self.le__open_loop_state or self.le__closed_loop_state:
+            raise NotImplementedError(
+                "Lagged ensemble args for Open Loop State and Closed Loop State are not yet implemented in nwm-rte (should be provided as empty strings for now)"
+            )
+
+
+class RTEDefaultConfig(RTEBaseConfig):
     """Configuration class for building and running one default realization
     (realtime forcing configuration or historical / retrospective forcing configuration)."""
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
-    delete_scratch_and_mesh_first: bool
-    delete_forcing_raw_input_first: bool
     gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
-    global_domain: str
-    forcing_static_dir: str
-    forcing_provider: str
     cycle_datetime: datetime
     historical_sim_duration: timedelta | None
     forcing_configuration: str
     fcst_run_name: str
-    nprocs: int = Field(ge=1)
+    # For medium-range lagged ensemble
+    lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
 
     # Set after init
-    gage_id: str = Field(init=False, default=None)
-    gage_vintage: str = Field(init=False, default=None)
     realtime_mode: bool = Field(init=False, default=None)
 
     # Other derived attrs (not passed to __init__)
     realization_builder_kwargs: dict = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
-        super().model_post_init(__context)  # Call RTESetup's post init
-
-        errors = []
+        super().model_post_init(__context)  # Call RTEBaseConfig's post init
+        super()._parse_gage_id__gage_vintage()
 
         if (
             self.forcing_configuration
-            not in c.FORECAST_FORCING_CONFIGURATION_TYPES__ALL
+            not in c.FORECAST_FORCING_CONFIGURATION_TYPES__ALL + ["medium_range"]
         ):
             self.realtime_mode = False
         else:
             self.realtime_mode = True
 
-        self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
-            self.gage_id__gage_vintage
-        )
-        errors.extend(errors_extend)
-
         if (not self.realtime_mode) and (not self.historical_sim_duration):
-            errors.extend(
+            self.errors.extend(
                 [
                     f"Forcing configuration {repr(self.forcing_configuration)} is *not* realtime, and requires that CLI arg -dur aka --historical_sim_duration is provided, but it was not."
                 ]
             )
         if self.realtime_mode and self.historical_sim_duration:
-            errors.extend(
+            self.errors.extend(
                 [
                     f"Forcing configuration {repr(self.forcing_configuration)} *is* realtime, but CLI arg -dur aka --historical_sim_duration was also provided (it should not be)."
                 ]
             )
 
-        if errors:
-            raise RuntimeError(errors)
-
+        super()._parse_lagged_ensemble_args()
         self.realization_builder_kwargs = self._make_realization_builder_kwargs()
+        if self.errors:
+            raise RuntimeError(self.errors)
 
     def _make_realization_builder_kwargs(self) -> dict:
         """Build and return a dictionary for creating a RealizationBuilder instance."""
@@ -237,20 +303,21 @@ class RTEDefaultConfig(RTESetup):
                 ),
                 Parallel=make_parallel_config(self.nprocs),
             ),
+            # Lagged ensemble args
+            "use_lagged_ens": self.use_lagged_ensemble,
+            "lagged_ens_mem": self.lagged_ens_mem,
+            "forcing_lag": self.forcing_lag,
         }
         return realization_kwargs
 
 
-class RTECalibConfig(RTESetup):
+class RTECalibConfig(RTEBaseConfig):
     """Configuration class for building and running one calibration realization."""
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
-    delete_scratch_and_mesh_first: bool
-    delete_forcing_raw_input_first: bool
     objective_function: c.CalObjective
     optimization_algorithm: c.CalOptimizationAlgo
-    nprocs: int = Field(ge=1)
     gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
     calib_sim_start: datetime
     calib_sim_duration: timedelta
@@ -258,56 +325,41 @@ class RTECalibConfig(RTESetup):
     valid_sim_advancement: timedelta
     valid_eval_curtailment: timedelta
     forcing_source: str
-    global_domain: str
-    forcing_provider: str
-    forcing_static_dir: str
     worker_name: str | None
 
     # Set after init
-    gage_id: str = Field(init=False, default=None)
-    gage_vintage: str = Field(init=False, default=None)
     obs_dir: str | None = Field(init=False, default=None)
     nwmretro_file: str | None = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
-        super().model_post_init(__context)  # Call RTESetup's post init
-
-        errors = []
-
-        self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
-            self.gage_id__gage_vintage
-        )
-        errors.extend(errors_extend)
+        super().model_post_init(__context)  # Call RTEBaseConfig's post init
+        super()._parse_gage_id__gage_vintage()
 
         self.obs_dir, self.nwmretro_file, errors_extend = get_data_paths_for_lstm(
             self.global_domain,
             self.gage_id,
         )
-        errors.extend(errors_extend)
+        self.errors.extend(errors_extend)
 
-        if errors:
-            raise RuntimeError(errors)
+        if self.errors:
+            raise RuntimeError(self.errors)
 
 
-class RTEForecastConfig(RTESetup):
+class RTEForecastConfig(RTEBaseConfig):
     """Configuration class for building and running one forecast realization."""
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
-    delete_scratch_and_mesh_first: bool
-    delete_forcing_raw_input_first: bool
     ### These calibration parameters affect directory path
     objective_function: c.CalObjective
     optimization_algorithm: c.CalOptimizationAlgo
     gage_id: str
-    global_domain: str
-    forcing_static_dir: str
-    forcing_provider: str
     cycle_datetime: datetime | None
     cold_start_datetime: datetime | None
     forcing_configuration: str
     fcst_run_name: str
-    nprocs: int = Field(ge=1)
+    # For medium-range lagged ensemble
+    lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
 
     # Derived paths (not passed to __init__)
     run_dir_base: str = Field(init=False, default=None)
@@ -320,7 +372,7 @@ class RTEForecastConfig(RTESetup):
     realization_builder_kwargs: dict = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
-        super().model_post_init(__context)  # Call RTESetup's post init
+        super().model_post_init(__context)  # Call RTEBaseConfig's post init
 
         self.run_dir_base = f"{c.DEFAULT_MAIN_DIR}/{self.objective_function.value}_{self.optimization_algorithm.value}/test_{self.forcing_provider}/{self.gage_id}"
         if not os.path.isdir(self.run_dir_base):
@@ -332,10 +384,11 @@ class RTEForecastConfig(RTESetup):
         self.ngen_log_file = f"{self.run_dir_base}/logs/ngen.log"
         self.valid_best_yaml = f"{self.run_dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
 
-        self.realization_builder_kwargs = self._make_realization_builder_kwargs()
+        super()._parse_lagged_ensemble_args()
+        self._make_realization_builder_kwargs()
 
-    def _make_realization_builder_kwargs(self) -> dict:
-        """Build and return a dictionary for creating a RealizationBuilder instance."""
+    def _make_realization_builder_kwargs(self) -> None:
+        """Build and set a dictionary for creating a RealizationBuilder instance."""
         fpp = ForcingProviderPaths(
             forcing_provider=self.forcing_provider,
             global_domain=self.global_domain,
@@ -367,17 +420,19 @@ class RTEForecastConfig(RTESetup):
                 ),
                 Parallel=make_parallel_config(self.nprocs),
             ),
+            # Lagged ensemble args
+            "use_lagged_ens": self.use_lagged_ensemble,
+            "lagged_ens_mem": self.lagged_ens_mem,
+            "forcing_lag": self.forcing_lag,
         }
-        return realization_kwargs
+        self.realization_builder_kwargs = realization_kwargs
 
 
-class RTETestConfig(RTESetup):
+class RTETestConfig(RTEBaseConfig):
     """Configuration class for building and running a set of test realizations."""
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
-    delete_scratch_and_mesh_first: bool
-    delete_forcing_raw_input_first: bool
     skip_forecast: bool
     quit_forecast_after_forcing_running: bool
     quit_forecast_after_duration: float | None = Field(ge=0)
@@ -392,36 +447,22 @@ class RTETestConfig(RTESetup):
     do_all_forcing_configs: bool
     do_coldstart: bool
     fcst_run_name: str
-    nprocs: int = Field(ge=1)
     gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
-    global_domain: str
-    forcing_provider: str
-    forcing_static_dir: str
     noop: bool
 
-    # Set after init
-    gage_id: str = Field(init=False, default=None)
-    gage_vintage: str = Field(init=False, default=None)
-
     def model_post_init(self, __context) -> None:
-        super().model_post_init(__context)  # Call RTESetup's post init
-
-        errors = []
+        super().model_post_init(__context)  # Call RTEBaseConfig's post init
+        super()._parse_gage_id__gage_vintage()
 
         if self.quit_forecast_after_forcing_running:
-            errors.append(
+            self.errors.append(
                 RuntimeError(
                     "quit_forecast_after_forcing_running is currently not allowed, pending updates."
                 )
             )
 
-        self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
-            self.gage_id__gage_vintage
-        )
-        errors.extend(errors_extend)
-
         errors_extend = parse_fcst_run_name(self.fcst_run_name)
-        errors.extend(errors_extend)
+        self.errors.extend(errors_extend)
 
         if self.do_all_objective_functions:
             self.objective_functions = list(c.CalObjective)
@@ -430,14 +471,14 @@ class RTETestConfig(RTESetup):
 
         if self.do_all_forcing_configs:
             if self.skip_forecast and (not self.do_coldstart):
-                errors.append(
+                self.errors.append(
                     ValueError(
                         f"When do_all_forcing_configs={self.do_all_forcing_configs}, must have coldstart and/or forecast enabled."
                     )
                 )
 
-        if errors:
-            raise RuntimeError(errors)
+        if self.errors:
+            raise RuntimeError(self.errors)
 
     def get_calib_permutations(
         self,
@@ -482,28 +523,6 @@ def make_parallel_config(nprocs: int) -> ParallelConfig:
     else:
         parallel = ParallelConfig(nprocs=nprocs)
     return parallel
-
-
-def parse_gage_id__gage_vintage(
-    gage_id__gage_vintage: tuple[str, str],
-) -> tuple[str | None, str | None, list[Exception]]:
-    """Parse the provided string and split it into two strings: gage_id and gage_vintage"""
-    errors: list[Exception] = []
-    gage_id, gage_vintage = gage_id__gage_vintage
-
-    if gage_id != gage_id.strip():
-        errors.append(
-            ValueError(f"Whitespace found on end of gage_id: {repr(gage_id)}")
-        )
-        gage_id = None
-
-    if gage_vintage != gage_vintage.strip():
-        errors.append(
-            ValueError(f"Whitespace found on end of gage_vintage: {repr(gage_vintage)}")
-        )
-        gage_vintage = None
-
-    return gage_id, gage_vintage, errors
 
 
 def parse_fcst_run_name(fcst_run_name: str) -> list[Exception]:

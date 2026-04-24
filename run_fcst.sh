@@ -19,6 +19,16 @@ docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -dt "2025-09-15 00
 
 # docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_ana" -fconfig standard_ana
 
-# docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr" -fconfig medium_range
+### Medium Range
+# docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr" -fconfig medium_range_no_da
+
+### Medium Range Lagged Ensemble Members
+# docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -n 2 -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr_le" -fconfig medium_range -le "no_da" "" ""
+# docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -n 2 -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr_le" -fconfig medium_range -le "mem1" "" ""
+# docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -n 2 -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr_le" -fconfig medium_range -le "mem2" "" ""
+# docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -n 2 -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr_le" -fconfig medium_range -le "mem3" "" ""
+# docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -n 2 -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr_le" -fconfig medium_range -le "mem4" "" ""
+# docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -n 2 -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr_le" -fconfig medium_range -le "mem5" "" ""
+# docker_run python "/ngen-app/bin/bin_mounted/run_forecast.py" -n 2 -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr_le" -fconfig medium_range -le "mem6" "" ""
 
 exit 0
