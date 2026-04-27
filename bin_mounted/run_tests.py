@@ -21,6 +21,11 @@ import sys
 
 from utils import configure_ngen_log
 import utils_testing_setup
+
+from calib.strategy import (
+    Algorithm as CalOptimizationAlgo,
+)
+
 from execution_tests import (
     TestStat,
     LogParser,
@@ -39,20 +44,35 @@ print = functools.partial(print, flush=True)
 
 def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
     """Build calibration realizations and run them as tests."""
-    for obj_func, optim_algo, _ in cfg.get_calib_permutations():
-        for config_overrides in get_test_configs__calibration(
+    perms = cfg.get_calib_permutations()
+    for obj_func, optim_algo, _ in perms:
+        all_config_overrides = get_test_configs__calibration(
             nprocs=cfg.nprocs,
             gage_id=cfg.gage_id,
             gage_vintage=cfg.gage_vintage,
             obj_func=obj_func,
             optim_algo=optim_algo,
+            model_formulations_file=cfg.model_formulations_file,
+            forcing_config_types=cfg.calibration_forcing_sources,
             global_domain=cfg.global_domain,
             forcing_provider=cfg.forcing_provider,
             forcing_static_dir=cfg.forcing_static_dir,
-        ):
+        )
+
+        for i, config_overrides in enumerate(all_config_overrides):
             fc = config_overrides.Forcing.forcing_configuration
-            msg_prefix = f"Calibration {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
+            worker_name = (
+                f"test_{i}_{config_overrides.General.models.replace(',', '_')}_rootzone={config_overrides.ModuleProperties.cfe_aet_rootzone}"
+                if optim_algo == CalOptimizationAlgo.dds
+                else None
+            )
             rb_kwargs = {"config_overrides": config_overrides}
+            msg_prefix = f"i={i} (ilimit={len(all_config_overrides) - 1}) worker_name={worker_name} Calibration with forcing={repr(fc)}, models={repr(config_overrides.General.models)}, cfe_aet_rootzone={config_overrides.ModuleProperties.cfe_aet_rootzone}, obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}, obs_dir={config_overrides.DataFile.obs_dir}, nwmretro_file={config_overrides.DataFile.nwmretro_file}"
+
+            if cfg.restart and i + 1 <= len(tm.prev_results):
+                print(f"Skipping since restart={cfg.restart}: {msg_prefix}")
+                continue
+
             print(
                 f"\n\n##########\n### {msg_prefix}: setting up test with rb_kwargs = \n{json.dumps(rb_kwargs, indent=2, default=pydantic_encoder)}"
             )
@@ -68,9 +88,12 @@ def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
                 configure_ngen_log(t.rb.work_dir, "cal_test")
                 # Execute the realization via ngen, trapping exceptions and logs into class attrs
                 print(f"### {msg_prefix}: executing calibration realization")
-                t.execute_calibration(cfg.quit_calibration_after_duration)
+                t.execute_calibration(
+                    cfg.quit_calibration_after_duration, worker_name=worker_name
+                )
 
             tm.add_forecast_test(t)
+            tm.evaluate_test_results(raise_if_any_failed=False)
 
 
 def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> None:
@@ -98,9 +121,14 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
                     f"quit_forecast_after_forcing_running not yet tested for forcing_configuration = {repr(tc.Forcing.forcing_configuration)}"
                 )
 
-        for config_overrides in test_configs:
+        for i, config_overrides in enumerate(test_configs):
             fc = config_overrides.Forcing.forcing_configuration
-            msg_prefix = f"Forecast {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
+            msg_prefix = f"i={i} (ilimit={len(test_configs) - 1}) forecast {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
+
+            if cfg.restart and i + 1 <= len(tm.prev_results):
+                print(f"Skipping since restart={cfg.restart}: {msg_prefix}")
+                continue
+
             rb_kwargs = {
                 # "input_path": test_paths.dir_input,
                 "valid_yaml": test_paths.valid_yaml,
@@ -136,7 +164,8 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
                     quit_forecast_after_duration=cfg.quit_forecast_after_duration,
                 )
 
-            tm.add_forecast_test(t)
+            tm.add_forecast_test()
+            tm.evaluate_test_results(raise_if_any_failed=False)
 
 
 def run_noop_mode() -> None:
@@ -163,7 +192,7 @@ def main(cfg: RTETestConfig):
     if cfg.delete_forcing_raw_input_first:
         utils_testing_setup.delete_forcing_raw_inputs()
 
-    tm = TestsManager()
+    tm = TestsManager(restart=cfg.restart)
 
     if cfg.do_calibration:
         calibrations__build_and_run(cfg, tm)
@@ -256,6 +285,19 @@ if __name__ == "__main__":
         help=f"Run all forcing configurations rather than the default shorter default list. Default list: {c.FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT}. Incompatible with --skip_forecast.",
     )
     parser.add_argument(
+        "-mff",
+        "--model_formulations_file",
+        help=f"""If provided, multiple model formulations will be ran, and this is a file path to a tsv file of the formulations list.
+        If not provided, then the default model formulation will be used: {c.DEFAULT_MODEL_FORMULATION_ARGS}.""",
+    )
+    parser.add_argument(
+        "-calfsrcs",
+        "--calibration_forcing_sources",
+        nargs="*",
+        default=c.CALIB_FORCING_CONFIGURATION_TYPES,
+        help=f"Sources of forcing data for calibration runs. If not provided then this default will be used: {c.CALIB_FORCING_CONFIGURATION_TYPES}.",
+    )
+    parser.add_argument(
         "-cs",
         "--do_coldstart",
         action="store_true",
@@ -310,6 +352,11 @@ if __name__ == "__main__":
         "--noop",
         action="store_true",
         help="Run in noop mode - only verify that the script can import libraries and basic setup, then exit without looking for data or running any workflows.",
+    )
+    parser.add_argument(
+        "--restart",
+        action="store_true",
+        help=f"Run in restart mode. Read existing results json file {c.TEST_RESULTS_FILE} if it exists and skip indexes that already have a record in it.",
     )
     args = parser.parse_args()
     print(f"{__file__}: args: {json.dumps(vars(args), indent=2)}")

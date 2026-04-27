@@ -3,6 +3,7 @@
 from datetime import datetime, timezone
 from enum import StrEnum
 import functools
+import itertools
 import json
 import os
 import subprocess
@@ -26,7 +27,13 @@ from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 from nwm_fcst_mgr.forecast import ForecastExecutionManager, ConfigCache, RunStatus
 from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
 
-from configs import ForcingProviderPaths, CalibTimeWindows, make_parallel_config
+from configs import (
+    ForcingProviderPaths,
+    CalibTimeWindows,
+    make_parallel_config,
+    build_model_formulations,
+    get_data_paths_for_lstm,
+)
 import consts as c
 
 print = functools.partial(print, flush=True)
@@ -38,18 +45,21 @@ def get_test_configs__calibration(
     gage_vintage: str = c.DEFAULT_GAGE_VINTAGE,
     obj_func: c.CalObjective = c.CALIB_OBJECTIVE_FUNCTION,
     optim_algo: c.CalOptimizationAlgo = c.CALIB_OPTIMIZATION_ALGO,
+    model_formulations_file: str | None = None,
     forcing_config_types=c.CALIB_FORCING_CONFIGURATION_TYPES,
     global_domain: str = c.CALIB_GLOBAL_DOMAIN_DEFAULT,
     forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
     forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
     windows: CalibTimeWindows = CalibTimeWindows(),
-    obs_dir: str | None = None,
-    nwmretro_file: str | None = None,
     run_type: str = "calibration",
 ) -> list[InputConfig]:
-    """Build and return a list of InputConfig instances to be used for building calibration realizations."""
+    """Build and return a list of InputConfig instances to be used for building calibration realizations.
+    If the model_formulations_file is provided, it will be parsed to determine which formulations to run.
+    Otherwise, the default formulation from consts.DEFAULT_MODEL_FORMULATION_ARGS will be ran."""
     if run_type not in ("calibration", "default"):
         raise ValueError(f"Unexpected run_type: {run_type}")
+
+    model_formulations = build_model_formulations(model_formulations_file)
 
     fpp = ForcingProviderPaths(
         forcing_provider=forcing_provider,
@@ -58,22 +68,6 @@ def get_test_configs__calibration(
     )
 
     configs: list[InputConfig] = []
-
-    general = GeneralConfig(
-        basin=gage_id,
-        run_type=run_type,
-        models=c.MODELS,
-        formulation=fpp.formulation_name,
-        main_dir=c.DEFAULT_MAIN_DIR,
-        start_period=windows.calib_eval_start.strftime(DDF),
-        end_period=windows.calib_eval_end.strftime(DDF),
-        output_precip=True,
-        output_swe=True,
-        output_sm=True,
-        domain=global_domain.lower(),
-    )
-
-    module_properties = ModulePropertiesConfig()
 
     calibration = CalibConfig(
         optimization_algorithm=optim_algo,
@@ -101,19 +95,25 @@ def get_test_configs__calibration(
         calib_parameter_file=c.CALIB_PARAMETERS_DIR,
     )
 
-    datafile = DataFileConfig(
-        **(
-            c.DATAFILE_LIBS
-            | {
-                "obs_dir": obs_dir,
-                "nwmretro_file": nwmretro_file,
-                "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{global_domain}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg",
-            }
-        ),
-    )
     parallel = make_parallel_config(nprocs)
 
-    for fct in forcing_config_types:
+    for mf, fct in itertools.product(model_formulations, forcing_config_types):
+        general = GeneralConfig(
+            basin=gage_id,
+            run_type=run_type,
+            models=mf.models_csv,
+            formulation=fpp.formulation_name,
+            main_dir=c.DEFAULT_MAIN_DIR,
+            start_period=windows.calib_eval_start.strftime(DDF),
+            end_period=windows.calib_eval_end.strftime(DDF),
+            output_precip=True,
+            output_swe=True,
+            output_sm=True,
+            domain=global_domain.lower(),
+        )
+
+        module_properties = ModulePropertiesConfig(cfe_aet_rootzone=mf.cfe_aet_rootzone)
+
         forcing = ForcingConfig(
             forcing_provider=fpp.forcing_provider,
             forcing_dir=fpp.get_forcing_dir(gage_id),
@@ -127,6 +127,26 @@ def get_test_configs__calibration(
             scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
             forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
         )
+
+        obs_dir, nwmretro_file, errors = get_data_paths_for_lstm(
+            global_domain,
+            gage_id,
+            models_csv=mf.models_csv,
+        )
+        if errors:
+            raise RuntimeError(errors)
+
+        datafile = DataFileConfig(
+            **(
+                c.DATAFILE_LIBS
+                | {
+                    "obs_dir": obs_dir,
+                    "nwmretro_file": nwmretro_file,
+                    "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{global_domain}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg",
+                }
+            ),
+        )
+
         configs.append(
             InputConfig(
                 General=general,
@@ -312,7 +332,9 @@ class ForecastTest(BaseModel):
             self.fcst_exe_stat = TestStat.FAIL
 
     def execute_calibration(
-        self, quit_calibration_after_duration: float | None
+        self,
+        quit_calibration_after_duration: float | None,
+        worker_name: str | None = None,
     ) -> None:
         """Run the calibration realization, optionally stopping ngen after `quit_calibration_after_duration` seconds."""
         if self.rb_stat != TestStat.PASS:
@@ -332,9 +354,9 @@ class ForecastTest(BaseModel):
             str(self.rb.calib_config_file),
             "--log_path_overwrite",
             self.calib_log.path,
-            # "--worker_name",
-            # "000test",
         ]
+        if worker_name:
+            cmd.extend(["--worker_name", worker_name])
         print(f"Running command args: {cmd}")
         try:
             proc = subprocess.run(
@@ -525,35 +547,61 @@ class TestResultsSums(BaseModel):
 class TestsManager(BaseModel):
     """Helper class for running a managed set of test realizations."""
 
-    forecast_tests: list[ForecastTest] = Field(init=False, default=[])
+    restart: bool
+    prev_results: list[dict] = Field(default_factory=list)
+    """If using restart, the initial elements will be dicts parsed from previous run"""
+    forecast_tests: list[ForecastTest] = Field(default_factory=list)
 
     @validate_call
     def add_forecast_test(self, t: ForecastTest) -> None:
         self.forecast_tests.append(t)
 
+    def model_post_init(self, __context):
+        prev_results = []
+        if os.path.exists(c.TEST_RESULTS_FILE):
+            if self.restart:
+                print(f"restart={self.restart}, reading: {c.TEST_RESULTS_FILE}")
+                with open(c.TEST_RESULTS_FILE) as f:
+                    content = f.read()
+                rows = json.loads(content) if content else []
+                for row in rows:
+                    prev_results.append(row)
+            else:
+                print(f"restart={self.restart}, deleting: {c.TEST_RESULTS_FILE}")
+                os.remove(c.TEST_RESULTS_FILE)
+        self.prev_results = prev_results
+
     @property
     def fcst_stat_sums(self) -> TestResultsSums:
         """Build and return a TestResultsSums instance, to assist with evaluating test results."""
         # Initialize these to 0 count for each status option, then increment based on result from tests.
-        rb_statcount = {status: 0 for status in TestStat}
-        fcst_exe_statcount = {status: 0 for status in TestStat}
+        rb_statcount = {str(status): 0 for status in TestStat}
+        fcst_exe_statcount = {str(status): 0 for status in TestStat}
+        for t in self.prev_results:
+            rb_statcount[t["rb_stat"]] += 1
+            fcst_exe_statcount[t["fcst_exe_stat"]] += 1
         for t in self.forecast_tests:
-            rb_statcount[t.rb_stat] += 1
-            fcst_exe_statcount[t.fcst_exe_stat] += 1
+            rb_statcount[str(getattr(t, "rb_stat"))] += 1
+            fcst_exe_statcount[str(getattr(t, "fcst_exe_stat"))] += 1
 
         return TestResultsSums(
             rb_statcount=rb_statcount,
             fcst_exe_statcount=fcst_exe_statcount,
         )
 
-    def evaluate_test_results(self) -> None:
-        """Inspect the test results json file, and if any failed, raise an error."""
-        test_results_file = os.path.join(
-            os.path.dirname(__file__), "forecast_tests_results.json"
+    @property
+    def concatenated_results_dicts(self) -> list[dict]:
+        new_results = json.loads(
+            json.dumps(self.forecast_tests, default=pydantic_encoder)
         )
-        msg = f"\n\n###### FORECAST TEST RESULTS ######\nWriting to: {test_results_file}\n{json.dumps(self.fcst_stat_sums, indent=2, default=pydantic_encoder)}"
+        concat_results = self.prev_results + new_results
+        return concat_results
+
+    def evaluate_test_results(self, raise_if_any_failed: bool = True) -> None:
+        """Inspect the test results json file, and if any failed, raise an error."""
+        msg = f"\n\n###### FORECAST TEST RESULTS ######\nWriting to: {c.TEST_RESULTS_FILE}\n{json.dumps(self.fcst_stat_sums, indent=2, default=pydantic_encoder)}"
         print(msg)
-        with open(test_results_file, "w") as f:
-            f.write(json.dumps(self.forecast_tests, indent=2, default=pydantic_encoder))
-        if self.fcst_stat_sums.any_failed:
+        with open(c.TEST_RESULTS_FILE, "w") as f:
+            f.write(json.dumps(self.concatenated_results_dicts, indent=2))
+        if raise_if_any_failed and self.fcst_stat_sums.any_failed:
             raise RuntimeError(self.fcst_stat_sums)
