@@ -1,19 +1,35 @@
 #!/bin/bash
-#
-# ngen_rte_build.sh
-#
-# This script builds the ngen base image (or sources it from existing ghcr image), then adds components packages
-# See config.bashrc for configuration. Components can be installed from GitHub, or from local source code, or skipped.
-# Requirements:
-#   If configured to install ngwpc packages from local sources instead of from GitHub,
-#   then this script assumes this is ran from a sibling directory
-#   of those repositories (already cloned, checked out, pulled).
-#   ./setup_clone_repos.sh can be used to clone the relevant ngwpc repos.
 
 set -euo pipefail
+source config.bashrc
 set -x
 
-source config.bashrc
+## 
+## \brief
+## Build the `ngen` runtime environment Docker image.
+## 
+## \desc
+## Build the `ngen` runtime environment Docker image, applying various OS env vars from `config.bashrc`.
+## 
+## Can build the `ngen-forcing` and `ngen` base images if not wishing to source `ngen` from an existing GHCR image or an existing local image.
+## 
+## Components can be installed from GitHub, or from local source code, or skipped.
+## 
+## The image built is tagged using env var `TARGET_IMAGE_NAME` (typically from `config.bashrc`).
+## 
+## When the script exits, it echoes the image name and provides a command that can be used to enter the container interactively.
+## 
+## Alternatively, the user can run `./run.sh` after the build is complete.
+## 
+## Has 0 positional arguments and 0 named arguments.
+## 
+## <u>Requirements:</u>
+## 
+## If configured to install packages from local sources instead of from GitHub, then this script assumes this is ran from a sibling directory
+## of those repositories (already cloned, checked out, pulled). `./setup_clone_repos.sh` can be used to clone the relevant repos.
+## 
+## \usage ./ngen_rte_build.sh
+## 
 
 # DOCKER_BUILDKIT=1 is the default with Docker version 23+.
 # Here it is used to enable autodetection of dockerignore file outside of the build context,
@@ -25,8 +41,8 @@ TIMESTAMP=`date '+%Y%m%d%H%M%S'`
 
 
 function build_intermediary_image_from_remote_source () {
-    ### If the repo does not already exist in the tmp location, do a shallow clone of the desired tag/branch.
-    ### If the repo does exist already, make the clone unshallow, and then check out the desired tag/branch.
+    # If the repo does not already exist in the tmp location, do a shallow clone of the desired tag/branch.
+    # If the repo does exist already, make the clone unshallow, and then check out the desired tag/branch.
 
     # target_image="ngen:${NGEN_SOURCE_MODE}"
     repo_name=$1  # e.g. "ngen-forcing"
@@ -38,7 +54,7 @@ function build_intermediary_image_from_remote_source () {
     source_local_tmp="${REPOS_COMMON_ROOT__HOST}/${repo_name}_tmp"
     # source_local_tmp="${REPOS_COMMON_ROOT__HOST}/${repo_name}"
 
-    git_url="https://github.com/NGWPC/${repo_name}.git"
+    git_url="https://github.com/${GH_ORG}/${repo_name}.git"
 
     if test -d ${source_local_tmp}; then
         info "Pulling ref ${repo_tag} and submodules for ${source_local_tmp}"
@@ -84,9 +100,9 @@ function build_intermediary_image_from_remote_source () {
 }
 
 
-### Build ngen base image if specified, otherwise just set var to ghcr URL
+# Build ngen base image if specified, otherwise just set var to ghcr URL
 if [[ $NGEN_SOURCE_MODE == "ghcr" ]]; then
-    NGEN_BASE_IMAGE="ghcr.io/ngwpc/ngen:${NGEN_BASE__REMOTE_GHCR_TAG}"
+    NGEN_BASE_IMAGE="ghcr.io/${GH_ORG,,}/ngen:${NGEN_BASE__REMOTE_GHCR_TAG}"
 
 elif [[ $NGEN_SOURCE_MODE == "existing_local_tag" ]]; then
     NGEN_BASE_IMAGE="${NGEN_BASE__EXISTING_LOCAL_TAG}"
@@ -131,13 +147,14 @@ else
 fi
 # exit 0
 
-### Build RTE image from ngen base image
+# Build RTE image from ngen base image
 info "Building image: ${TARGET_IMAGE_NAME}"
 
 # Sanitize the image name for the log file (replace / and : with _)
 SAFE_LOG_NAME=$(echo "${TARGET_IMAGE_NAME}" | tr '/:' '__')
 
 sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target ${STAGE} \
+    --build-arg GH_ORG=${GH_ORG} \
     --build-arg TARGET_IMAGE_SOURCE=${TARGET_IMAGE_SOURCE} \
     --build-arg TARGET_IMAGE_VENDOR=${TARGET_IMAGE_VENDOR} \
     --build-arg TARGET_IMAGE_VERSION=${TARGET_IMAGE_VERSION} \

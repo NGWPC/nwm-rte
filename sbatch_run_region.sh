@@ -4,51 +4,70 @@ set -euo pipefail
 # -----------------------------------------------------------------------------
 # sbatch_run_region.sh
 #
-# Submits the regionalization workflow to SLURM using sbatch.
-#
-# Usage:
-#   # First cd to working directory, e.g., /ngen-oe/$USER/run_region, /ngen-dev/$USER/run_region, or ~/run_region.
-#   # Copy sample configs (nwm-region-mgr/configs) to working directory and edit as needed. You can also use the 
-#   # sample configs directly for testing purposes.
-#   # Then run one of the following commands depending on your setup:
-#
-#   /ngencerf-app/nwm-rte/sbatch_run_region.sh CONFIG_DIR [OPTIONS] [--dry-run]
-#   ~/ngwpc/nwm-rte/sbatch_run_region.sh CONFIG_DIR [OPTIONS] [--dry-run]
-#
+## \brief
+## Submits the regionalization workflow to SLURM using sbatch.
+## 
+## \desc
+## Usage:
+## 
+##     1. First cd to working directory, e.g., /ngen-oe/$USER/run_region, /ngen-dev/$USER/run_region, or ~/run_region.
+##     2. Copy sample configs (nwm-region-mgr/configs) to working directory and edit as needed. You can also use the sample configs directly for testing purposes.
+##     3. Then run one of the following commands depending on your setup:
+##          /ngencerf-app/nwm-rte/sbatch_run_region.sh CONFIG_DIR [OPTIONS] [--dry-run]
+##          ~/ngwpc/nwm-rte/sbatch_run_region.sh CONFIG_DIR [OPTIONS] [--dry-run]
+## 
+## Has 2 positional arguments and some named arguments.
+## 
 # Arguments:
-#   CONFIG_DIR     : Directory containing configuration YAML files (required)
-#   OPTIONS        : Workflow steps to runs: parreg, formreg, ngen, or eval (optional, default: parreg)
-#   --dry-run      : If provided, print the generated SLURM script instead of submitting (optional)
-#   --image-tag TAG: Docker image tag to use for the RTE (optional, default: latest)
-#   --pull-image   : Pull the latest Docker image before running (optional)  
-#   --delete-runtime-dir: Delete runtime directory after completion (default: keep for debugging)
+## 
+## \option CONFIG_DIR
+## (required) Directory containing configuration YAML files
+## \option OPTIONS
+## (optional, default: `"parreg"`) Workflow steps to runs: parreg, formreg, ngen, or eval
+## \option --dry-run
+## (optional switch) If provided, print the generated SLURM script instead of submitting
+## \option --image-tag TAG
+## (optional, default: `"latest"`) Docker image tag to use for the RTE
+## \option --pull-image
+## (optional switch) Pull the latest Docker image before running
+## \option --delete-runtime-dir
+## (optional switch) Delete runtime directory after completion
 #
 # Examples:
-#   # Do a dry-run to see the generated SLURM script without submitting
-#   ~/ngwpc/nwm-rte/sbatch_run_region.sh ~/ngwpc/nwm-region-mgr/configs parreg ngen eval --dry-run
-#   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs parreg ngen eval --dry-run
-#
-#   # Submit parameter regionalization
-#   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs parreg
-#   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs
-#
-#   # Submit formulation regionalization only
-#   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs formreg
-#
-#   # Submit NGEN simulation with a different config directory
-#   /ngencerf-app/nwm-rte/sbatch_run_region.sh /ngen-oe/$USER/myconfigs ngen
-#
-#   # Submit evaluation only
-#   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs eval
-#
-#   # Using an RTE image tag other than 'latest'
-#   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --image-tag "069ad0f6d332"
-#
-#  # Pull the latest RTE image before running
-#   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --pull-image
-#
-#   Delete runtime directory after completion (default is to keep it for debugging)
-#   /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --pull-image --delete-runtime-dir
+## \example Do a dry-run to see the generated SLURM script without submitting
+## \example-code bash
+## ~/ngwpc/nwm-rte/sbatch_run_region.sh ~/ngwpc/nwm-region-mgr/configs parreg ngen eval --dry-run
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh configs parreg ngen eval --dry-run
+## 
+## \example Submit parameter regionalization
+## \example-code bash
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh configs parreg
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh configs
+## 
+## \example Submit formulation regionalization only
+## \example-code bash
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh configs formreg
+## 
+## \example Submit NGEN simulation with a different config directory
+## \example-code bash
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh /ngen-oe/$USER/myconfigs ngen
+## 
+## \example Submit evaluation only
+## \example-code bash
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh configs eval
+## 
+## \example Using an RTE image tag other than 'latest'
+## \example-code bash
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --image-tag "069ad0f6d332"
+## 
+## \example Pull the latest RTE image before running
+## \example-code bash
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --pull-image
+## 
+## \example Delete runtime directory after completion (default is to keep it for debugging)
+## \example-code bash
+## /ngencerf-app/nwm-rte/sbatch_run_region.sh configs ngen --pull-image --delete-runtime-dir
+## 
 # -----------------------------------------------------------------------------
 
 # determine parent dir of current run script (assuming run_region.sh is also located here)

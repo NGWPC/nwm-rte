@@ -1,9 +1,22 @@
+"""
+Command-line executable to build and run a "forecast" realization, optionally with a coldstart.
+
+This runs inside the ngen runtime environment.
+The CLI structure is mimicked in part by `configs.RTEForecastConfig`.
+For settings that are not exposed by CLI arguments, see primarily `consts.py`.
+
+See `run_fcst.sh` for example calls.
+"""
+
 import functools
 import argparse
 
 from mswm.build_inputs import RealizationBuilder
-from nwm_fcst_mgr.forecast import run_forecast as run_fcst
+from nwm_fcst_mgr.forecast import (
+    run_forecast as run_fcst,
+)
 
+import cli_args
 import consts as c
 from configs import RTEForecastConfig
 import utils_testing_setup
@@ -12,38 +25,66 @@ from utils import configure_ngen_log, datetime_type
 print = functools.partial(print, flush=True)
 
 
-def build_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
-    """Build and return a coldstart forecast realization"""
-    print(
-        f"Building coldstart realization: {cfg.realization_builder_kwargs}, use_cold_start=True"
-    )
-    rb_cs = RealizationBuilder(**cfg.realization_builder_kwargs, use_cold_start=True)
-    rb_cs.build_fcst_realization()
-    print(f"Wrote: {rb_cs.realization_file}")
-    # From existing fcst mgr conventions, e.g. ### Set environment variable NGEN_RESULTS_DIR to: /ngwpc/run_ngen/kge_dds/test_bmi/01123000/Output/Forecast_Run/fcst_run1_short_range
-    configure_ngen_log(rb_cs.input_dir, "cs")
-    if cfg.nprocs > 1 and not rb_cs.part_file:
+def build_realization(
+    cfg: RTEForecastConfig,
+    rb_kwargs_final: dict,
+    log_label: str,
+) -> RealizationBuilder:
+    """Build and return a forecast realization, applygin the provided rb_kwargs_final as-is."""
+    print(f"Building realization: {rb_kwargs_final}")
+    rb = RealizationBuilder(**rb_kwargs_final)
+    rb.build_fcst_realization()
+    configure_ngen_log(rb.input_dir, log_label)
+    print(f"Wrote: {rb.realization_file}")
+    if cfg.nprocs > 1 and not rb.part_file:
         raise ValueError(
-            f"Expected partition file since cfg.nprocs > 1 ({cfg.nprocs}), but it is {repr(rb_cs.part_file)}"
+            f"Expected partition file since cfg.nprocs > 1 ({cfg.nprocs}), but it is {repr(rb.part_file)}"
         )
-    return rb_cs
+    return rb
 
 
-def build_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
-    """Build and return a non-coldstart forecast realization"""
+def build_run_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
+    """Build and run a coldstart forecast realization."""
+    rb_kwargs_final = cfg.realization_builder_kwargs | {"use_cold_start": True}
+    rb = build_realization(cfg, rb_kwargs_final, "cs")
+    run_realization(rb, cfg)
+    return rb
+
+
+def build_run_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
+    """Build and return a non-coldstart forecast realization."""
+    rb_kwargs_final = cfg.realization_builder_kwargs | {
+        "use_cold_start": False,
+    }
+
+    rb = build_realization(cfg, rb_kwargs_final, "fcst")
+    run_realization(rb, cfg)
+    return rb
+
+
+def run_realization(
+    rb: RealizationBuilder,
+    cfg: RTEForecastConfig,
+) -> None:
+    """Run the realization, which can be a coldstart, forecast, or lagged ensemble."""
+    # partition_file = getattr(rb, "part_file", None)
+
     print(
-        f"Building forecast realization: {cfg.realization_builder_kwargs}, use_cold_start=False"
+        f"Running realization with Forcing configuration: {rb.input_configs['Forcing']}"
     )
-    rb_fcst = RealizationBuilder(**cfg.realization_builder_kwargs, use_cold_start=False)
-    rb_fcst.build_fcst_realization()
-    # From existing fcst mgr conventions, e.g. ### Set environment variable NGEN_RESULTS_DIR to: /ngwpc/run_ngen/kge_dds/test_bmi/01123000/Output/Forecast_Run/fcst_run1_short_range
-    configure_ngen_log(rb_fcst.input_dir, "fcst")
-    print(f"Wrote: {rb_fcst.realization_file}")
-    if cfg.nprocs > 1 and not rb_fcst.part_file:
-        raise ValueError(
-            f"Expected partition file since cfg.nprocs > 1 ({cfg.nprocs}), but it is {repr(rb_fcst.part_file)}"
+
+    if rb.use_hindcast:
+        raise NotImplementedError("use_hindcast not yet implemented in nwm-rte")
+    elif rb.use_warm_start:
+        raise NotImplementedError("use_warm_start not yet implemented in nwm-rte")
+    else:
+        print(f"Calling: {run_fcst}")
+        run_fcst(
+            valid_yaml=cfg.valid_best_yaml,
+            real_path=str(rb.realization_file),
+            partition_file=rb.part_file,
         )
-    return rb_fcst
+        print(f"Finished calling: {run_fcst}")
 
 
 def main(cfg: RTEForecastConfig):
@@ -62,25 +103,15 @@ def main(cfg: RTEForecastConfig):
         )
 
     if cfg.cold_start_datetime:
-        rb_cs = build_coldstart_realization(cfg)
-        print(f"Running coldstart realization: {rb_cs.input_configs['Forcing']}")
-        run_fcst(
-            valid_yaml=cfg.valid_best_yaml,
-            real_path=str(rb_cs.realization_file),
-            partition_file=rb_cs.part_file if hasattr(rb_cs, "part_file") else None,
-        )
-
+        rb_cs = build_run_coldstart_realization(cfg)
+        run_realization(rb_cs, cfg)
     if cfg.cycle_datetime:
-        rb_fcst = build_forecast_realization(cfg)
-        print(f"Running forecast realization: {rb_fcst.input_configs['Forcing']}")
-        run_fcst(
-            valid_yaml=cfg.valid_best_yaml,
-            real_path=str(rb_fcst.realization_file),
-            partition_file=rb_fcst.part_file if hasattr(rb_fcst, "part_file") else None,
-        )
+        rb_fcst = build_run_forecast_realization(cfg)
+        run_realization(rb_fcst, cfg)
 
 
-if __name__ == "__main__":
+def cli_arg_parser() -> argparse.ArgumentParser:
+    """Build and return the CLI argument parser"""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-delscratch",
@@ -141,15 +172,18 @@ if __name__ == "__main__":
         "-dt",
         "--cycle_datetime",
         type=datetime_type,
-        help="start date/time for the forecast cycle (also the end of cold-start if chosen), format= 'YYYY-MM-DD HH:mm:ss'. If omitted, a forecast will not be ran.",
-        default=None,
+        help="For a regular forecast, this is the start time. When cold-start is used, this is the *end* of the cold-start cycle. Format: 'YYYY-MM-DD HH:mm:ss'.",
+        required=True,
     )
     parser.add_argument(
         "-csdt",
         "--cold_start_datetime",
         type=datetime_type,
-        help="start date/time for cold-start, format= 'YYYY-MM-DD HH:mm:ss'. If omitted, a cold-start will not be used.",
+        help="If provided, a cold-start realization will be ran prior to the forecast, and this value will be the start time for the cold-start. Format: 'YYYY-MM-DD HH:mm:ss'.",
         default=None,
+    )
+    parser.add_argument(
+        *cli_args.LAGGED_ENSEMBLE.args, **cli_args.LAGGED_ENSEMBLE.kwargs
     )
     parser.add_argument(
         "-fconfig",
@@ -172,6 +206,12 @@ if __name__ == "__main__":
         default=c.DEFAULT_NPROCS,
         help=f"""Replaces default value for nprocs ({repr(c.DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance that is passed to MSWM.""",
     )
+
+    return parser
+
+
+if __name__ == "__main__":
+    parser = cli_arg_parser()
     args = parser.parse_args()
     cfg = RTEForecastConfig(**vars(args))
     main(cfg)

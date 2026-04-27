@@ -1,3 +1,13 @@
+"""
+Command-line executable to build and run a "default" realization. Supports realtime forcing configurations, e.g. `"short_range"`, as well as historical/retrospective sources, e.g. `"aorc"`.
+
+This runs inside the ngen runtime environment.
+The CLI structure is mimicked in part by `configs.RTEDefaultConfig`.
+For settings that are not exposed by CLI arguments, see primarily `consts.py`.
+
+See `run_default.sh` for example calls.
+"""
+
 import argparse
 import functools
 import os
@@ -6,9 +16,9 @@ import time
 
 from mswm.build_inputs import RealizationBuilder
 
+import cli_args
 from utils import (
     timedelta_from_effective_days,
-    effective_days_from_timedelta,
     configure_ngen_log,
     datetime_type,
 )
@@ -147,6 +157,9 @@ if __name__ == "__main__":
         type=timedelta_from_effective_days,
         default=None,
         help=f"Only used for historical / retrospective forcing (required in that case). Simulation duration in days. Default={None}",
+    )
+    parser.add_argument(
+        *cli_args.LAGGED_ENSEMBLE.args, **cli_args.LAGGED_ENSEMBLE.kwargs
     )
     parser.add_argument(
         "-fconfig",

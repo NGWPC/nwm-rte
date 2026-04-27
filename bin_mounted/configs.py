@@ -4,6 +4,10 @@ import os
 import re
 from typing import Literal
 
+# from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
+# TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
+from consts import LAGGED_ENSEMBLE_MEMBER_LAGS
+
 from mswm.utils.input_configuration import (
     InputConfig,
     GeneralConfig,
@@ -153,76 +157,173 @@ def build_model_formulations(
     return model_formulations
 
 
-class RTESetup(BaseModel):
-    """Used to set up a RTE run. Triggers certain setup actions, such as creation of WCOSS-path symlinks.
+class RTEBaseConfig(BaseModel):
+    """Base RTE configuration class to be inherited by child classes.
+    Triggers certain setup actions, such as creation of WCOSS-path symlinks.
     Classes that inherit from this should call super().model_post_init(__context) inside their own
     model_post_init() method, if they have that method also defined in the child."""
 
-    def model_post_init(self, __context) -> None:
-        make_wcoss_path_symlinks()
-
-
-class RTEDefaultConfig(RTESetup):
-    """Configuration class for building and running one default realization
-    (realtime forcing configuration or historical / retrospective forcing configuration)."""
-
-    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
-
+    # Set during init
     delete_scratch_and_mesh_first: bool
     delete_forcing_raw_input_first: bool
-    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
+    nprocs: int = Field(ge=1)
     global_domain: str
     forcing_static_dir: str
     forcing_provider: str
+
+    # Set after init (not provided as args)
+    errors: list | None = Field(init=False, default=None)
+
+    gage_id: str = Field(init=False, default=None)
+    gage_vintage: str = Field(init=False, default=None)
+
+    # For lagged ensemble
+    use_lagged_ensemble: bool | None = Field(init=False, default=False)
+    lagged_ens_mem: str | None = Field(init=False, default=None)
+    forcing_lag: str | None = Field(init=False, default=None)
+    le__open_loop_state: str | None = Field(init=False, default=None)
+    le__closed_loop_state: str | None = Field(init=False, default=None)
+
+    def model_post_init(self, __context) -> None:
+        self.errors = []
+        make_wcoss_path_symlinks()
+
+    def _parse_gage_id__gage_vintage(self) -> None:
+        """Parse the provided string and split it into two strings: gage_id and gage_vintage and set attributes.
+        Extend errors list as appropriate.
+        Called by child classes which define the necessary attributes."""
+        gage_id, gage_vintage = self.gage_id__gage_vintage
+
+        if gage_id != gage_id.strip():
+            self.errors.append(
+                ValueError(f"Whitespace found on end of gage_id: {repr(gage_id)}")
+            )
+            gage_id = None
+
+        if gage_vintage != gage_vintage.strip():
+            self.errors.append(
+                ValueError(
+                    f"Whitespace found on end of gage_vintage: {repr(gage_vintage)}"
+                )
+            )
+            gage_vintage = None
+
+        self.gage_id = gage_id
+        self.gage_vintage = gage_vintage
+
+    def _parse_lagged_ensemble_args(self):
+        """Break up the multipart lagged ensemble arg into distinct args and set them.
+        Called by child classes which define the necessary attributes."""
+        if self.lagged_ensemble_args:
+            if self.forcing_configuration != "medium_range":
+                raise ValueError(
+                    f"lagged ensemble only supported for medium_range, but forcing configuration {repr(self.forcing_configuration)} was provided"
+                )
+
+            self.use_lagged_ensemble = True
+
+            member_name, open_ls, closed_ls = self.lagged_ensemble_args
+
+            self.lagged_ens_mem = member_name if member_name.strip() else None
+            self.forcing_lag = LAGGED_ENSEMBLE_MEMBER_LAGS[self.lagged_ens_mem]
+            self.le__open_loop_state = open_ls if open_ls.strip() else None
+            self.le__closed_loop_state = closed_ls if closed_ls.strip() else None
+
+            if self.lagged_ens_mem not in LAGGED_ENSEMBLE_MEMBER_LAGS:
+                raise KeyError(
+                    f"Invalid lagged ensemble member {repr(self.lagged_ens_mem)} (choose from: {list(LAGGED_ENSEMBLE_MEMBER_LAGS)})"
+                )
+
+        if self.le__open_loop_state or self.le__closed_loop_state:
+            raise NotImplementedError(
+                "Lagged ensemble args for Open Loop State and Closed Loop State are not yet implemented in nwm-rte (should be provided as empty strings for now)"
+            )
+
+
+class RTEDefaultConfig(RTEBaseConfig):
+    """Configuration class for building and running one default realization
+    (realtime forcing configuration or historical / retrospective forcing configuration).
+
+    Attributes
+    ----------
+    delete_scratch_and_mesh_first: bool
+        Causes scratch dir and intermediary mesh to be deleted first
+    delete_forcing_raw_input_first: bool
+        Causes realtime forcing data cache dir to be deleted first
+    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
+        Gage ID and vintage
+    global_domain: str
+        e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
+    forcing_static_dir :
+        Forcing static directory
+    forcing_provider: str
+        Forcing provider, i.e. "bmi" or "csv"
+    cycle_datetime: datetime
+        Start time of the realization
+    historical_sim_duration: timedelta | None
+        Duration of the simulation (only used for historical / retrospective forcing configurations)
+    forcing_configuration: str
+        Forcing configuration, e.g. "aorc" or "short_range"
+    fcst_run_name: str
+        Name of the forecast realization run. Affects a directory name.
+    nprocs: int = Field(ge=1)
+        Number of processors to use
+    # The following are set after init during self.model_post_init(). Do not provide
+    gage_id: str = Field(init=False, default=None)
+        Gage ID
+    gage_vintage: str = Field(init=False, default=None)
+        Gage vintage
+    realtime_mode: bool = Field(init=False, default=None)
+        Realtime mode
+    realization_builder_kwargs: dict = Field(init=False, default=None)
+        Realization builder kwargs (passed to `nwm-msw-mgr`)
+    """
+
+    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
+
+    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
     cycle_datetime: datetime
     historical_sim_duration: timedelta | None
     forcing_configuration: str
     fcst_run_name: str
-    nprocs: int = Field(ge=1)
+    # For medium-range lagged ensemble
+    lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
 
     # Set after init
-    gage_id: str = Field(init=False, default=None)
-    gage_vintage: str = Field(init=False, default=None)
     realtime_mode: bool = Field(init=False, default=None)
 
     # Other derived attrs (not passed to __init__)
     realization_builder_kwargs: dict = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
-        super().model_post_init(__context)  # Call RTESetup's post init
-
-        errors = []
+        super().model_post_init(__context)  # Call RTEBaseConfig's post init
+        super()._parse_gage_id__gage_vintage()
 
         if (
             self.forcing_configuration
-            not in c.FORECAST_FORCING_CONFIGURATION_TYPES__ALL
+            not in c.FORECAST_FORCING_CONFIGURATION_TYPES__ALL + ["medium_range"]
         ):
             self.realtime_mode = False
         else:
             self.realtime_mode = True
 
-        self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
-            self.gage_id__gage_vintage
-        )
-        errors.extend(errors_extend)
-
         if (not self.realtime_mode) and (not self.historical_sim_duration):
-            errors.extend(
+            self.errors.extend(
                 [
                     f"Forcing configuration {repr(self.forcing_configuration)} is *not* realtime, and requires that CLI arg -dur aka --historical_sim_duration is provided, but it was not."
                 ]
             )
         if self.realtime_mode and self.historical_sim_duration:
-            errors.extend(
+            self.errors.extend(
                 [
                     f"Forcing configuration {repr(self.forcing_configuration)} *is* realtime, but CLI arg -dur aka --historical_sim_duration was also provided (it should not be)."
                 ]
             )
 
-        if errors:
-            raise RuntimeError(errors)
-
+        super()._parse_lagged_ensemble_args()
         self.realization_builder_kwargs = self._make_realization_builder_kwargs()
+        if self.errors:
+            raise RuntimeError(self.errors)
 
     def _make_realization_builder_kwargs(self) -> dict:
         """Build and return a dictionary for creating a RealizationBuilder instance."""
@@ -282,7 +383,6 @@ class RTEDefaultConfig(RTESetup):
                     global_domain=self.global_domain,
                     forcing_static_dir=self.forcing_static_dir,
                     scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
-                    input_forcing_dirs_override_root=c.INPUT_FORCING_DIRS_OVERRIDE_ROOT,
                     forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
                 ),
                 DataFile=DataFileConfig(
@@ -295,20 +395,66 @@ class RTEDefaultConfig(RTESetup):
                 ),
                 Parallel=make_parallel_config(self.nprocs),
             ),
+            # Lagged ensemble args
+            "use_lagged_ens": self.use_lagged_ensemble,
+            "lagged_ens_mem": self.lagged_ens_mem,
+            "forcing_lag": self.forcing_lag,
         }
         return realization_kwargs
 
 
-class RTECalibConfig(RTESetup):
-    """Configuration class for building and running one calibration realization."""
+class RTECalibConfig(RTEBaseConfig):
+    """Configuration class for building and running one calibration realization.
+
+    Attributes
+    ----------
+    delete_scratch_and_mesh_first: bool
+        Causes scratch dir and intermediary mesh to be deleted first
+    delete_forcing_raw_input_first: bool
+        Causes realtime forcing data cache dir to be deleted first
+    objective_function: c.CalObjective
+        Objective function, e.g. "kge"
+    optimization_algorithm: c.CalOptimizationAlgo
+        Optimization algorithm, e.g. "dds"
+    nprocs: int = Field(ge=1)
+        Number of processors to use
+    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
+        Gage ID and vintage
+    calib_sim_start: datetime
+        Calibration start time
+    calib_sim_duration: timedelta
+        Calibration simulation duration
+    calib_eval_delayment: timedelta
+        Used for evaluation / validation time windowing
+    valid_sim_advancement: timedelta
+        Used for evaluation / validation time windowing
+    valid_eval_curtailment: timedelta
+        Used for evaluation / validation time windowing
+    forcing_source: str
+        Source of forcing data, e.g. "aorc" or "nwm"
+    global_domain: str
+        e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
+    forcing_provider: str
+        Forcing provider, i.e. "bmi" or "csv"
+    forcing_static_dir: str
+        Forcing static directory
+    worker_name: str | None
+        Name of the ngen worker (used to build a directory name)
+    # The following are set after init during self.model_post_init(). Do not provide.
+    gage_id: str = Field(init=False, default=None)
+        Gage ID
+    gage_vintage: str = Field(init=False, default=None)
+        Gage vintage
+    obs_dir: str | None = Field(init=False, default=None)
+        Directory of observed flow data
+    nwmretro_file: str | None = Field(init=False, default=None)
+        File containing retrospective NWM flow data
+    """
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
-    delete_scratch_and_mesh_first: bool
-    delete_forcing_raw_input_first: bool
     objective_function: c.CalObjective
     optimization_algorithm: c.CalOptimizationAlgo
-    nprocs: int = Field(ge=1)
     gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
     calib_sim_start: datetime
     calib_sim_duration: timedelta
@@ -316,48 +462,84 @@ class RTECalibConfig(RTESetup):
     valid_sim_advancement: timedelta
     valid_eval_curtailment: timedelta
     forcing_source: str
-    global_domain: str
-    forcing_provider: str
-    forcing_static_dir: str
     worker_name: str | None
 
     # Set after init
-    gage_id: str = Field(init=False, default=None)
-    gage_vintage: str = Field(init=False, default=None)
+    obs_dir: str | None = Field(init=False, default=None)
+    nwmretro_file: str | None = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
-        super().model_post_init(__context)  # Call RTESetup's post init
+        super().model_post_init(__context)  # Call RTEBaseConfig's post init
+        super()._parse_gage_id__gage_vintage()
 
-        errors = []
-
-        self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
-            self.gage_id__gage_vintage
+        self.obs_dir, self.nwmretro_file, errors_extend = get_data_paths_for_lstm(
+            self.global_domain,
+            self.gage_id,
         )
-        errors.extend(errors_extend)
+        self.errors.extend(errors_extend)
 
-        if errors:
-            raise RuntimeError(errors)
+        if self.errors:
+            raise RuntimeError(self.errors)
 
 
-class RTEForecastConfig(RTESetup):
-    """Configuration class for building and running one forecast realization."""
+class RTEForecastConfig(RTEBaseConfig):
+    """Configuration class for building and running one forecast realization.
+
+    Attributes
+    ----------
+    delete_scratch_and_mesh_first: bool
+        Causes scratch dir and intermediary mesh to be deleted first
+    delete_forcing_raw_input_first: bool
+        Causes realtime forcing data cache dir to be deleted first
+    objective_function: c.CalObjective
+        Affects input realization path. Objective function of previously-ran calibration realization, e.g. "kge"
+    optimization_algorithm: c.CalOptimizationAlgo
+        Affects input realization path. Optimization algorithm of previously-ran calibration realization, e.g. "dds"
+    gage_id: str
+        Gage ID
+    global_domain: str
+        e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
+    forcing_static_dir: str
+        Forcing static directory
+    forcing_provider: str
+        Forcing provider, i.e. "bmi" or "csv"
+    cycle_datetime: datetime | None
+        Start time of the realization (or end time for coldstart, if `cold_start_datetime` is provided)
+    cold_start_datetime: datetime | None
+        Start time of the coldstart realization. If None, coldstart is not performed.
+    forcing_configuration: str
+        Forcing configuration, e.g. "aorc" or "short_range"
+    fcst_run_name: str
+        Name of the forecast realization run
+    nprocs: int = Field(ge=1)
+        Number of processors to use
+    # The following are set after init during self.model_post_init(). Do not provide.
+    run_dir_base: str = Field(init=False, default=None)
+        Run directory root
+    run_dir_input: str = Field(init=False, default=None)
+        Input run directory
+    run_dir_output: str = Field(init=False, default=None)
+        Output run directory
+    ngen_log_file: str = Field(init=False, default=None)
+        ngen stdout + stderr stream log file
+    valid_best_yaml: str = Field(init=False, default=None)
+        Validation yaml file (output from previously-ran calibration realization)
+    realization_builder_kwargs: dict = Field(init=False, default=None)
+        Realization builder kwargs (passed to `nwm-msw-mgr`)
+    """
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
-    delete_scratch_and_mesh_first: bool
-    delete_forcing_raw_input_first: bool
     ### These calibration parameters affect directory path
     objective_function: c.CalObjective
     optimization_algorithm: c.CalOptimizationAlgo
     gage_id: str
-    global_domain: str
-    forcing_static_dir: str
-    forcing_provider: str
     cycle_datetime: datetime | None
     cold_start_datetime: datetime | None
     forcing_configuration: str
     fcst_run_name: str
-    nprocs: int = Field(ge=1)
+    # For medium-range lagged ensemble
+    lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
 
     # Derived paths (not passed to __init__)
     run_dir_base: str = Field(init=False, default=None)
@@ -370,7 +552,7 @@ class RTEForecastConfig(RTESetup):
     realization_builder_kwargs: dict = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
-        super().model_post_init(__context)  # Call RTESetup's post init
+        super().model_post_init(__context)  # Call RTEBaseConfig's post init
 
         self.run_dir_base = f"{c.DEFAULT_MAIN_DIR}/{self.objective_function.value}_{self.optimization_algorithm.value}/test_{self.forcing_provider}/{self.gage_id}"
         if not os.path.isdir(self.run_dir_base):
@@ -382,10 +564,11 @@ class RTEForecastConfig(RTESetup):
         self.ngen_log_file = f"{self.run_dir_base}/logs/ngen.log"
         self.valid_best_yaml = f"{self.run_dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
 
-        self.realization_builder_kwargs = self._make_realization_builder_kwargs()
+        super()._parse_lagged_ensemble_args()
+        self._make_realization_builder_kwargs()
 
-    def _make_realization_builder_kwargs(self) -> dict:
-        """Build and return a dictionary for creating a RealizationBuilder instance."""
+    def _make_realization_builder_kwargs(self) -> None:
+        """Build and set a dictionary for creating a RealizationBuilder instance."""
         fpp = ForcingProviderPaths(
             forcing_provider=self.forcing_provider,
             global_domain=self.global_domain,
@@ -413,22 +596,71 @@ class RTEForecastConfig(RTESetup):
                     global_domain=self.global_domain,
                     forcing_static_dir=self.forcing_static_dir,
                     scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
-                    input_forcing_dirs_override_root=c.INPUT_FORCING_DIRS_OVERRIDE_ROOT,
                     forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
                 ),
                 Parallel=make_parallel_config(self.nprocs),
             ),
+            # Lagged ensemble args
+            "use_lagged_ens": self.use_lagged_ensemble,
+            "lagged_ens_mem": self.lagged_ens_mem,
+            "forcing_lag": self.forcing_lag,
         }
-        return realization_kwargs
+        self.realization_builder_kwargs = realization_kwargs
 
 
-class RTETestConfig(RTESetup):
-    """Configuration class for building and running a set of test realizations."""
+class RTETestConfig(RTEBaseConfig):
+    """Configuration class for building and running a set of test realizations.
+
+    Attributes
+    ----------
+    delete_scratch_and_mesh_first: bool
+        Causes scratch dir and intermediary mesh to be deleted first
+    delete_forcing_raw_input_first: bool
+        Causes realtime forcing data cache dir to be deleted first
+    skip_forecast: bool
+        Causes forecast to be skipped (only do calibration)
+    quit_forecast_after_forcing_running: bool
+        Causes forecasts to be stopped midway once log files indicate that the model is well underway
+    quit_forecast_after_duration: float | None = Field(ge=0)
+        Causes forecasts to be stopped midway after a set duration (seconds of processing time)
+    do_calibration: bool
+        Causes calibration to be ran, before forecasts (needed if a calibration has not yet been ran for the gage)
+    quit_calibration_after_duration: float | None = Field(ge=0)
+        Causes calibrations to be stopped midway after a set duration (seconds of processing time)
+    objective_functions: list[c.CalObjective]
+        For calibration, list of objective functions to run, e.g. "kge". Replaced with full list when do_all_objective_functions = True
+    do_all_objective_functions: bool
+        For calibration, causes all objective functions to be used.
+    optimization_algorithms: list[c.CalOptimizationAlgo]
+        For calibration, list of optimization algorithms to run, e.g. "dds". Replaced with full list when do_all_optimization_algorithms = True
+    do_all_optimization_algorithms: bool
+        For calibration, causes all optimization algorithms to be used.
+    do_all_forcing_configs: bool
+        Causes all forcing configurations to be used, e.g. "short_range", "standard_ana", "medium_range_blend", "extended_ana", "short_range_hawaii", etc.
+    do_coldstart: bool
+        Causes coldstart to be ran before forecast.
+    fcst_run_name: str
+        Name of the forecast realization run. Affects a directory name.
+    nprocs: int = Field(ge=1)
+        Number of processors to use
+    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
+        Gage ID and vintage
+    global_domain: str
+        e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
+    forcing_provider: str
+        Forcing provider, i.e. "bmi" or "csv"
+    forcing_static_dir: str
+        Forcing static directory
+    noop: bool
+        Causes a noop to occur (for confirming that Python packages are importable).
+    gage_id: str = Field(init=False, default=None)
+        Gage ID
+    gage_vintage: str = Field(init=False, default=None)
+        Gage vintage
+    """
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
-    delete_scratch_and_mesh_first: bool
-    delete_forcing_raw_input_first: bool
     skip_forecast: bool
     quit_forecast_after_forcing_running: bool
     quit_forecast_after_duration: float | None = Field(ge=0)
@@ -445,37 +677,23 @@ class RTETestConfig(RTESetup):
     do_all_forcing_configs: bool
     do_coldstart: bool
     fcst_run_name: str
-    nprocs: int = Field(ge=1)
     gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
-    global_domain: str
-    forcing_provider: str
-    forcing_static_dir: str
     noop: bool
     restart: bool
 
-    # Set after init
-    gage_id: str = Field(init=False, default=None)
-    gage_vintage: str = Field(init=False, default=None)
-
     def model_post_init(self, __context) -> None:
-        super().model_post_init(__context)  # Call RTESetup's post init
-
-        errors = []
+        super().model_post_init(__context)  # Call RTEBaseConfig's post init
+        super()._parse_gage_id__gage_vintage()
 
         if self.quit_forecast_after_forcing_running:
-            errors.append(
+            self.errors.append(
                 RuntimeError(
                     "quit_forecast_after_forcing_running is currently not allowed, pending updates."
                 )
             )
 
-        self.gage_id, self.gage_vintage, errors_extend = parse_gage_id__gage_vintage(
-            self.gage_id__gage_vintage
-        )
-        errors.extend(errors_extend)
-
         errors_extend = parse_fcst_run_name(self.fcst_run_name)
-        errors.extend(errors_extend)
+        self.errors.extend(errors_extend)
 
         if self.do_all_objective_functions:
             self.objective_functions = list(c.CalObjective)
@@ -484,14 +702,14 @@ class RTETestConfig(RTESetup):
 
         if self.do_all_forcing_configs:
             if self.skip_forecast and (not self.do_coldstart):
-                errors.append(
+                self.errors.append(
                     ValueError(
                         f"When do_all_forcing_configs={self.do_all_forcing_configs}, must have coldstart and/or forecast enabled."
                     )
                 )
 
-        if errors:
-            raise RuntimeError(errors)
+        if self.errors:
+            raise RuntimeError(self.errors)
 
     def get_calib_permutations(
         self,
@@ -536,28 +754,6 @@ def make_parallel_config(nprocs: int) -> ParallelConfig:
     else:
         parallel = ParallelConfig(nprocs=nprocs)
     return parallel
-
-
-def parse_gage_id__gage_vintage(
-    gage_id__gage_vintage: tuple[str, str],
-) -> tuple[str | None, str | None, list[Exception]]:
-    """Parse the provided string and split it into two strings: gage_id and gage_vintage"""
-    errors: list[Exception] = []
-    gage_id, gage_vintage = gage_id__gage_vintage
-
-    if gage_id != gage_id.strip():
-        errors.append(
-            ValueError(f"Whitespace found on end of gage_id: {repr(gage_id)}")
-        )
-        gage_id = None
-
-    if gage_vintage != gage_vintage.strip():
-        errors.append(
-            ValueError(f"Whitespace found on end of gage_vintage: {repr(gage_vintage)}")
-        )
-        gage_vintage = None
-
-    return gage_id, gage_vintage, errors
 
 
 def parse_fcst_run_name(fcst_run_name: str) -> list[Exception]:

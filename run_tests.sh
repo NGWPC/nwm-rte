@@ -1,8 +1,36 @@
 #!/bin/bash
 
 set -euo pipefail
-
 source run.sh
+
+## 
+## \brief
+## Run a series of "forecast" realizations via `run_tests.py` with various forcing configurations, optionally with "calibration" realizations first.
+## 
+## \desc
+## Source `./run.sh` to call its `docker_run` command for running `run_tests.py`.  It requires that the ngen runtime environment image has already been built using `./ngen_rte_build.sh`.
+## 
+## When realizations fail, this program does not halt, but rather moves to the next configuration type in the list, with the goal of "trying" many different realization configurations in one call.
+## 
+## The status of each configuration's build step and run step is reported and written to a json file at the end.
+## 
+## The Python script `run_tests.py` includes options for stopping realizations mid-way through their run, rather than waiting for them to complete.
+## 
+## Various OS env vars are applied from `config.bashrc`. Notably `TARGET_IMAGE_NAME` is the image that is sourced (must have already been built) and launched as a container. Various data mount paths are also applied from `config.bashrc`.
+## 
+## <u>Requirements:</u>
+## 
+## The `ngen` runtime environment image (defined by `TARGET_IMAGE_NAME`) has already been built.
+## 
+## The various repositories and input data needed to run are available and mountable (see `./setup_clone_repos.sh`, `./setup_data.sh`, `./setup_data_one_gage.sh`).
+## 
+## This script has 1 positional arguments and 0 named arguments.
+## 
+## \option fcst_run_name
+## Optional. Default=`"fcst_run"`. Specify to choose the name of the forecast run.
+## 
+## \usage ./run_tests.sh
+## 
 
 # Default to fcst_run1, override via CLI arg
 fcst_run_name=${1:-"fcst_run1"}

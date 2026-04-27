@@ -1,9 +1,16 @@
 {
-    "name": "ngen_rte_bmi_forcing",
-    "image": "ngen_rte:ghcr",
-    "containerEnv": {
-        "FORCING_LOGLEVEL": "DEBUG"
-    },
+    "name": "ngen_rte",
+    //// Choose one existing image tag to use for the devcontainer. "ngen_rte_ghcr" is a common value so it is the default.
+    "image": "ngen_rte_ghcr",
+    // "image": "ngen_rte_build_from_local",
+    // "image": "ngen_rte_build_from_remote",
+    //
+    //// FORCING_LOGLEVEL is a vestige of an earlier version of ngen-forcing which used this OS var to
+    //// control its log level. In later versions of ngen-forcing, the universal EWTS package is used,
+    //// and log level is controlled by `./bin_mounted/ngen_logging.json`.
+    // "containerEnv": {
+    //     "FORCING_LOGLEVEL": "DEBUG"
+    // },
     "customizations": {
         "vscode": {
             "extensions": [
@@ -19,27 +26,41 @@
         }
     },
     "mounts": [
-        // Mount various directories needed for input data, model outputs, and scripts.
+        //////
+        ////// Various input and output data, configs, and scripts.
+        // Data
         "source=${localWorkspaceFolder}/../run_ngen,target=/ngwpc/run_ngen,type=bind",
+        // Data
         "source=${localWorkspaceFolder}/../run_ngen/data,target=/ngen-app/data,type=bind",
+        // Data
         "source=${localWorkspaceFolder}/../s3,target=/s3,type=bind",
-        "source=${localWorkspaceFolder}/bin_mounted,target=/ngen-app/bin/bin_mounted,type=bind",
-        // Mount container's tmp folder for forcing cache files like "/tmp/aorc_ce4b1034_2013.nc"
+        // For saving certain forcing cache files to host disk and preserving them between runs. e.g. "/tmp/aorc_ce4b1034_2013.nc".
         "source=${localWorkspaceFolder}/.devcontainer/tmp,target=/tmp,type=bind",
-        // Mount ngen-forcing source code so that it can be (re)installed in editable mode.
-        "source=${localWorkspaceFolder}/../ngen-forcing,target=/workspaces/nwm-rte/src/ngen-forcing,type=bind",
-        // Mounts for running nwm-msw-mgr in debugger
+        // Scripts from nwm-rte repository
+        "source=${localWorkspaceFolder}/bin_mounted,target=/ngen-app/bin/bin_mounted,type=bind",
+        // For forcing config files from .../ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/
+        // TODO bake these into the ngen-forcing Python package so we don't need to mount them from local paths.
         "source=${localWorkspaceFolder}/../ngen-forcing,target=/ngwpc/ngen-forcing,type=bind",
-        // Mount nwm-msw-mgr source code so that it can be (re)installed in editable mode and breakpoints can be set on source code.
-        "source=${localWorkspaceFolder}/../nwm-msw-mgr,target=/workspaces/nwm-rte/src/nwm-msw-mgr,type=bind",
-        // Mounts for replicating ngencerf environment (for running realizations originating on ngencerf):
+        //////
+        ////// For replicating ngenCERF environment
         "source=${localWorkspaceFolder}/../run_ngen/data,target=/ngencerf/data/bmi_forcing_work,type=bind",
         "source=${localWorkspaceFolder}/../run_ngen/data/ngen-cal-work,target=/ngencerf/data/ngen-cal-work,type=bind",
-        "source=${localWorkspaceFolder}/../run_ngen/data/ngen-static-files,target=/ngencerf/data/ngen-static-files,type=bind"
+        "source=${localWorkspaceFolder}/../run_ngen/data/ngen-static-files,target=/ngencerf/data/ngen-static-files,type=bind",
+        //////
+        ////// (Optional) for local code of component packages, allowing convenient debugger interaction ("editable" pip installs, VS Code editor breakpoints, etc)
+        // ngen
+        "source=${localWorkspaceFolder}/../ngen,target=/workspaces/nwm-rte/src/ngen,type=bind",
+        // Forcing
+        "source=${localWorkspaceFolder}/../ngen-forcing,target=/workspaces/nwm-rte/src/ngen-forcing,type=bind",
+        // Forecast Manager
+        "source=${localWorkspaceFolder}/../nwm-fcst-mgr,target=/workspaces/nwm-rte/src/nwm-fcst-mgr,type=bind",
+        // Model Setup Workflow Manager
+        "source=${localWorkspaceFolder}/../nwm-msw-mgr,target=/workspaces/nwm-rte/src/nwm-msw-mgr,type=bind",
+        // Calibration Manager
+        "source=${localWorkspaceFolder}/../nwm-cal-mgr,target=/workspaces/nwm-rte/src/nwm-cal-mgr,type=bind",
     ],
     "remoteUser": "root",
-    // (Re)install ngen-forcing in editable mode.
-    // "postStartCommand": "python -m pip install -e ./src/ngen-forcing"
-    "postStartCommand": "python -m pip install -e ./src/ngen-forcing && python -m pip install -e ./src/ngen-forcing/nextgen_forcings_ewts"
-    // "postStartCommand": "python -m pip install -e ./src/nwm-msw-mgr"
+    // Script can contain pip (re)install calls from local src mount locations with -e flag
+    // (they must be mounted above for this to work)
+    "postStartCommand": "./.devcontainer/devcontainer.json.poststart.sh"
 }

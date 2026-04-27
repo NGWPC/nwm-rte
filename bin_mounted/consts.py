@@ -1,3 +1,5 @@
+"""Constants"""
+
 from datetime import datetime, timedelta
 import getpass
 import json
@@ -73,7 +75,9 @@ DEFAULT_NPROCS = 1
 
 
 ### Test settings
-TEST_RESULTS_FILE = os.path.join(os.path.dirname(__file__), "forecast_tests_results.json")
+TEST_RESULTS_FILE = os.path.join(
+    os.path.dirname(__file__), "forecast_tests_results.json"
+)
 ### See this for full list of forcing configuration types: mswm.utils.input_configuration.mswm_valid_configs
 FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = [
     "short_range",
@@ -108,7 +112,9 @@ CALIB_FORCING_CONFIGURATION_TYPES = [
 ]
 
 ALL_FORCING_CONFIGURATION_TYPES = (
-    FORECAST_FORCING_CONFIGURATION_TYPES__ALL + CALIB_FORCING_CONFIGURATION_TYPES
+    FORECAST_FORCING_CONFIGURATION_TYPES__ALL
+    + CALIB_FORCING_CONFIGURATION_TYPES
+    + ["medium_range"]
 )
 
 CALIB_GLOBAL_DOMAIN_DEFAULT = "CONUS"
@@ -170,10 +176,8 @@ NGEN_STDOUT_STDERR_LOG_FILE_BASENAME = "ngen_stdout_stderr.log"
 
 ### These for WCOSS paths
 SCRATCH_DIR_OVERRIDE: str | None = None
-INPUT_FORCING_DIRS_OVERRIDE_ROOT: str | None = None
 FORCING_PRODUCT_VERSIONS_PATH: str | None = None
 # SCRATCH_DIR_OVERRIDE: str | None = "/foo/bar/scratch"
-# INPUT_FORCING_DIRS_OVERRIDE_ROOT: str | None = "/foo/bar/forcing_input"
 # FORCING_PRODUCT_VERSIONS_PATH: str | None = "/ngen-app/bin/bin_mounted/ngen_forcing_vers.json"
 ### Parsing the json file if provided
 if FORCING_PRODUCT_VERSIONS_PATH is not None:
@@ -181,3 +185,15 @@ if FORCING_PRODUCT_VERSIONS_PATH is not None:
         FORCING_PRODUCT_VERSIONS_DICT = json.load(f)
 else:
     FORCING_PRODUCT_VERSIONS_DICT = None
+
+
+# TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
+LAGGED_ENSEMBLE_MEMBER_LAGS: dict[str, int] = {
+    "no_da": 0,
+    "mem1": 0,
+    "mem2": 6,
+    "mem3": 12,
+    "mem4": 18,
+    "mem5": 24,
+    "mem6": 30,
+}

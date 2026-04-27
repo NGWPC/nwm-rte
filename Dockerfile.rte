@@ -1,6 +1,8 @@
 
-ARG NGEN_BASE_IMAGE="ghcr.io/ngwpc/ngen:latest"
+ARG GH_ORG
+ARG NGEN_BASE_IMAGE=ghcr.io/${GH_ORG,,}/ngen:latest
 FROM $NGEN_BASE_IMAGE AS ngen_rte_base
+ARG GH_ORG
 
 # OCI Metadata Arguments
 ARG TARGET_IMAGE_DESCRIPTION="Docker image for the National Water Model Runtime Environment (NWM RTE)."
@@ -18,6 +20,9 @@ LABEL org.opencontainers.image.description=$TARGET_IMAGE_DESCRIPTION \
     org.opencontainers.image.revision=$TARGET_IMAGE_REVISION \
     org.opencontainers.image.created=$TARGET_IMAGE_CREATED
 
+### FORCING_LOGLEVEL is a vestige of an earlier version of ngen-forcing which used this OS var to
+### control its log level. In later versions of ngen-forcing, the universal EWTS package is used,
+### and log level is controlled by `./bin_mounted/ngen_logging.json`.
 # ENV FORCING_LOGLEVEL=DEBUG
 
 ### Static args
@@ -38,44 +43,44 @@ RUN python -m pip install --upgrade pip
 
 ### Install debuggers if specified
 ARG INSTALL_DEBUGGERS
-RUN --mount=type=bind,src=nwm-rte/install_debuggers.sh,dst=/src_ngwpc/nwm-rte/install_debuggers.sh \
-    "/src_ngwpc/nwm-rte/install_debuggers.sh" "${INSTALL_DEBUGGERS}"
+RUN --mount=type=bind,src=nwm-rte/install_debuggers.sh,dst=/src/${GH_ORG}/nwm-rte/install_debuggers.sh \
+    "/src/${GH_ORG}/nwm-rte/install_debuggers.sh" "${INSTALL_DEBUGGERS}"
 
 
 ### Install nwm packages
 
 ARG REPO_TAG_FCST_MGR
-RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
-    --mount=type=bind,src=nwm-fcst-mgr,dst=/src_ngwpc/nwm-fcst-mgr \
-    "/src_ngwpc/nwm-rte/install_package.sh" "python" "nwm-fcst-mgr" "${REPO_TAG_FCST_MGR}" ""
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-fcst-mgr,dst=/src/${GH_ORG}/nwm-fcst-mgr \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-fcst-mgr" "${REPO_TAG_FCST_MGR}" ""
 
 ARG REPO_TAG_MSW_MGR
-RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
-    --mount=type=bind,src=nwm-msw-mgr,dst=/src_ngwpc/nwm-msw-mgr \
-    "/src_ngwpc/nwm-rte/install_package.sh" "python" "nwm-msw-mgr" "${REPO_TAG_MSW_MGR}" ""
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-msw-mgr,dst=/src/${GH_ORG}/nwm-msw-mgr \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-msw-mgr" "${REPO_TAG_MSW_MGR}" ""
 
 ARG REPO_TAG_CAL_MGR
-RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
-    --mount=type=bind,src=nwm-cal-mgr,dst=/src_ngwpc/nwm-cal-mgr \
-    "/src_ngwpc/nwm-rte/install_package.sh" "python" "nwm-cal-mgr" "${REPO_TAG_CAL_MGR}" ""
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-cal-mgr,dst=/src/${GH_ORG}/nwm-cal-mgr \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-cal-mgr" "${REPO_TAG_CAL_MGR}" ""
 
 ARG REPO_TAG_REGION_MGR
-RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
-    --mount=type=bind,src=nwm-region-mgr,dst=/src_ngwpc/nwm-region-mgr \
-    "/src_ngwpc/nwm-rte/install_package.sh" "python" "nwm-region-mgr" "${REPO_TAG_REGION_MGR}" "[parreg]"
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-region-mgr,dst=/src/${GH_ORG}/nwm-region-mgr \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-region-mgr" "${REPO_TAG_REGION_MGR}" "[parreg]"
 
 ARG REPO_TAG_DATA_ASSIM_ENGINE
-RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
-    --mount=type=bind,src=nwm-data-assimilation,dst=/src_ngwpc/nwm-data-assimilation \
-    "/src_ngwpc/nwm-rte/install_package.sh" "python" "nwm-data-assimilation" "${REPO_TAG_DATA_ASSIM_ENGINE}" ""
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-data-assimilation,dst=/src/${GH_ORG}/nwm-data-assimilation \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-data-assimilation" "${REPO_TAG_DATA_ASSIM_ENGINE}" ""
 
 ## ngen-forcing package is included with the starting base image,
 ## but it can be reinstalled from another branch or from local.
 ## See README.md for caveats.
 ARG REPO_TAG_NGEN_FORCING
-RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
-    --mount=type=bind,src=ngen-forcing,dst=/src_ngwpc/ngen-forcing \
-    "/src_ngwpc/nwm-rte/install_package.sh" "python" "ngen-forcing" "${REPO_TAG_NGEN_FORCING}" ""
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=ngen-forcing,dst=/src/${GH_ORG}/ngen-forcing \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "ngen-forcing" "${REPO_TAG_NGEN_FORCING}" ""
 
 
 ##################################################
@@ -98,17 +103,17 @@ ENV PATH_SAVED=${PATH}
 ENV PYTHONPATH_SAVED=${PYTHONPATH}
 # Adjust PATH and PYTHONPATH to give this environment precedent
 ENV PATH="${EVAL_VERF_PYTHON_BIN_DIR}:${PATH}"
-ENV PYTHONPATH="${EVAL_VERF_PYTHON_BIN_DIR}/lib/python3.11/site-packages"
+ENV PYTHONPATH="${EVAL_VERF_PYTHON_BIN_DIR}/lib/${PYTHON_VERSION_STR}/site-packages"
 
 ARG REPO_TAG_VERF
-RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
-    --mount=type=bind,src=nwm-verf,dst=/src_ngwpc/nwm-verf \
-    "/src_ngwpc/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "nwm-verf" "${REPO_TAG_VERF}" ""
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-verf,dst=/src/${GH_ORG}/nwm-verf \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "${GH_ORG}" "nwm-verf" "${REPO_TAG_VERF}" ""
 
 ARG REPO_TAG_EVAL
-RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src_ngwpc/nwm-rte/install_package.sh \
-    --mount=type=bind,src=nwm-eval-mgr,dst=/src_ngwpc/nwm-eval-mgr \
-    "/src_ngwpc/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "nwm-eval-mgr" "${REPO_TAG_EVAL}" ""
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-eval-mgr,dst=/src/${GH_ORG}/nwm-eval-mgr \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "${GH_ORG}" "nwm-eval-mgr" "${REPO_TAG_EVAL}" ""
 
 ##############################
 #### Clean up: reset PATH and PYTHONPATH
