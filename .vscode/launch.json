@@ -1,3 +1,7 @@
+// The configurations starting with an underscore should be treated as private and not accessed directly.
+// 
+// For many of the debugger configurations, RTE must have been built with INSTALL_DEBUGGERS=YES in config.bashrc.
+// 
 // Compound configuration for mpirun -n 2 was adapted from: https://gist.github.com/xangma/b2bc310e595f7abf61ff1e19f3fd63f5
 // It starts individual debugpy instances to attach to each MPI rank after the C++ debugger (cppdbg) has started them with mpirun.
 //
@@ -11,45 +15,30 @@
     "version": "0.2.0",
     "compounds": [
         {
-            "name": "run_bmi_model_mpi_n2",
+            "name": "forcing_mpi_n2",
+            // Private configurations that support the public compound
             "configurations": [
-                "_run_bmi_model_mpi_n2",
-                "_python_attach_rank_0",
-                "_python_attach_rank_1",
+                "__forcing_mpi_n2",
+                "__python_attach_rank_0",
+                "__python_attach_rank_1",
             ],
             "stopAll": true
         },
         {
-            "name": "run_bmi_model_mpi_n3",
+            "name": "forcing_mpi_n3",
+            // Private configurations that support the public compound
             "configurations": [
-                "_run_bmi_model_mpi_n3",
-                "_python_attach_rank_0",
-                "_python_attach_rank_1",
-                "_python_attach_rank_2",
+                "__forcing_mpi_n3",
+                "__python_attach_rank_0",
+                "__python_attach_rank_1",
+                "__python_attach_rank_2",
             ],
             "stopAll": true
         },
-        // {
-        //     "name": "run_ngen_mpi_n2",
-        //     "configurations": [
-        //         "_run_ngen_mpi_n2",
-        //         "_python_attach_rank_0",
-        //         "_python_attach_rank_1",
-        //     ],
-        //     "stopAll": true
-        // },
-        // {
-        //     "name": "run_ngen_nompi",
-        //     "configurations": [
-        //         "_run_ngen_nompi",
-        //         "_python_attach_rank_0",
-        //     ],
-        //     "stopAll": true
-        // },
     ],
     "configurations": [
         {
-            "name": "run_bmi_model_nompi",
+            "name": "forcing_nompi",
             "type": "debugpy",
             "request": "launch",
             "module": "NextGen_Forcings_Engine_BMI.run_bmi_model",
@@ -68,7 +57,7 @@
             "python": "${command:python.interpreterPath}"
         },
         {
-            "name": "run_bmi_model_test_regrid",
+            "name": "forcing_test_regrid",
             "type": "debugpy",
             "request": "launch",
             "module": "pytest",
@@ -100,44 +89,16 @@
                 "2",
             ],
         },
-        ////////////////////
-        // BEGIN _run_ngen_nompi
-        // {
-        //     "name": "_run_ngen_nompi",
-        //     "type": "cppdbg",
-        //     "request": "launch",
-        //     "program": "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/ngen",
-        //     "cwd": "/ngwpc/run_ngen/kge_dds/test_bmi/01123000",
-        //     "linux": {
-        //         "MIMode": "gdb",
-        //         "setupCommands": [
-        //             {
-        //                 "description": "Enable pretty-printing for gdb",
-        //                 "text": "-enable-pretty-printing",
-        //                 "ignoreFailures": true
-        //             }
-        //         ]
-        //     },
-        //     "args": [
-        //         "/s3/ngwpc-hydrofabric/2.2/CONUS/01123000/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_01123000.gpkg",
-        //         "all",
-        //         "/s3/ngwpc-hydrofabric/2.2/CONUS/01123000/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_01123000.gpkg",
-        //         "all",
-        //         "01123000_realization_config_bmi_calib.json",
-        //         "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/01123000_partition_config.json",
-        //     ],
-        // },
-        // END _run_ngen_nompi
-        ////////////////////
-        // BEGIN _run_bmi_model_mpi_n2
+        //// 
+        //// BEGIN private configurations
+        //// 
         {
-            "name": "_run_bmi_model_mpi_n2",
+            "name": "__forcing_mpi_n2",
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/lib64/openmpi/bin/mpirun",
             "cwd": "${workspaceFolder}",
             "environment": [
-                // { "name": "OMP_NUM_THREADS", "value": "2" },
                 {
                     "name": "WAIT_FOR_DEBUGPY",
                     "value": "TRUE"
@@ -156,8 +117,6 @@
             "args": [
                 "-n",
                 "2",
-                // "--bind-to",
-                // "none",
                 "python",
                 "-um",
                 "mpi4py",
@@ -173,16 +132,13 @@
                 "/ngen-app/bin/bin_mounted/bmi_model_forcing_output_mpi_n2.nc",
             ],
         },
-        // END _run_bmi_model_mpi_n2
-        // BEGIN _run_bmi_model_mpi_n3
         {
-            "name": "_run_bmi_model_mpi_n3",
+            "name": "__forcing_mpi_n3",
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/lib64/openmpi/bin/mpirun",
             "cwd": "${workspaceFolder}",
             "environment": [
-                // { "name": "OMP_NUM_THREADS", "value": "2" },
                 {
                     "name": "WAIT_FOR_DEBUGPY",
                     "value": "TRUE"
@@ -202,8 +158,6 @@
                 "--oversubscribe",
                 "-n",
                 "3",
-                // "--bind-to",
-                // "none",
                 "python",
                 "-um",
                 "mpi4py",
@@ -219,50 +173,11 @@
                 "/ngen-app/bin/bin_mounted/bmi_model_forcing_output_mpi_n3.nc",
             ],
         },
-        // END _run_bmi_model_mpi_n3
-        ////////////////////
-        // BEGIN _run_ngen_mpi_n2
-        // {
-        //     "name": "_run_ngen_mpi_n2",
-        //     "type": "cppdbg",
-        //     "request": "launch",
-        //     "program": "/usr/lib64/openmpi/bin/mpirun",
-        //     "cwd": "/ngwpc/run_ngen/kge_dds/test_bmi/01123000",
-        //     // "environment": [
-        //     //     {
-        //     //         "name": "OMP_NUM_THREADS",
-        //     //         "value": "2"
-        //     //     },
-        //     // ],
-        //     "linux": {
-        //         "MIMode": "gdb",
-        //         "setupCommands": [
-        //             {
-        //                 "description": "Enable pretty-printing for gdb",
-        //                 "text": "-enable-pretty-printing",
-        //                 "ignoreFailures": true
-        //             }
-        //         ]
-        //     },
-        //     "args": [
-        //         "-n",
-        //         "2",
-        //         // "--bind-to",
-        //         // "none",
-        //         "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/ngen",
-        //         "/s3/ngwpc-hydrofabric/2.2/CONUS/01123000/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_01123000.gpkg",
-        //         "all",
-        //         "/s3/ngwpc-hydrofabric/2.2/CONUS/01123000/GEOPACKAGE/USGS/2025_Mar_14_21_14_37/gauge_01123000.gpkg",
-        //         "all",
-        //         "01123000_realization_config_bmi_calib.json",
-        //         "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/01123000_partition_config.json",
-        //     ],
-        // },
-        // END _run_ngen_mpi_n2
-        ////////////////////
-        // BEGIN python attachers
+        //// 
+        //// BEGIN python attachers
+        //// 
         {
-            "name": "_python_attach_rank_0",
+            "name": "__python_attach_rank_0",
             "type": "debugpy",
             "request": "attach",
             "connect": {
@@ -273,7 +188,7 @@
             "justMyCode": false
         },
         {
-            "name": "_python_attach_rank_1",
+            "name": "__python_attach_rank_1",
             "type": "debugpy",
             "request": "attach",
             "connect": {
@@ -284,7 +199,7 @@
             "justMyCode": false
         },
         {
-            "name": "_python_attach_rank_2",
+            "name": "__python_attach_rank_2",
             "type": "debugpy",
             "request": "attach",
             "connect": {
@@ -294,6 +209,9 @@
             "preLaunchTask": "sleep",
             "justMyCode": false
         },
-        // END python attachers
+        //// 
+        //// END python attachers
+        //// END private configurations
+        //// 
     ]
 }

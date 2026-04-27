@@ -1,8 +1,32 @@
 #!/bin/bash
 
 set -euo pipefail
-
 source run.sh
+
+## 
+## \brief
+## Run "forecast" realizations.
+## 
+## \desc
+## Source `./run.sh` to call its `docker_run` command for running "forecast" realizations.  It requires that the ngen runtime environment image has already been built using `./ngen_rte_build.sh`.
+## 
+## Various OS env vars are applied from `config.bashrc`. Notably `TARGET_IMAGE_NAME` is the image that is sourced (must have already been built) and launched as a container. Various data mount paths are also applied from `config.bashrc`.
+## 
+## <u>Requirements:</u>
+## 
+## The `ngen` runtime environment image (defined by `TARGET_IMAGE_NAME`) has already been built.
+## 
+## The various repositories and input data needed to run are available and mountable (see `./setup_clone_repos.sh`, `./setup_data.sh`, `./setup_data_one_gage.sh`).
+## 
+## A "calibration" realization has already been ran for the gage of interest, and its output is available at the expected location.
+## 
+## This script has 1 positional arguments and 0 named arguments.
+## 
+## \option fcst_run_name
+## Optional. Default=`"fcst_run"`. Specify to choose the name of the forecast run.
+## 
+## \usage ./run_fcst.sh
+## 
 
 # Default to fcst_run1, override via CLI arg
 fcst_run_name=${1:-"fcst_run1"}

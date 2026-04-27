@@ -1,3 +1,13 @@
+"""
+Command-line executable to build and run a "calibration" realization.
+
+This runs inside the ngen runtime environment.
+The CLI structure is mimicked in part by `configs.RTECalibConfig`.
+For settings that are not exposed by CLI arguments, see primarily `consts.py`.
+
+See `run_calib.sh` for example calls.
+"""
+
 import argparse
 import functools
 import subprocess

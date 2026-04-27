@@ -1,3 +1,5 @@
+"""Constants"""
+
 from datetime import datetime, timedelta
 import getpass
 import json
@@ -33,6 +35,8 @@ DEFAULT_GAGE_VINTAGE = "2025_Mar_14_21_14_37"
 MODELS = "noah-owp-modular,cfe-s"
 # MODELS = "snow-17,noah-owp-modular,smp,lasam,t-route"
 # MODELS = "lstm"
+"""Model formulations. See `nwm-msw-mgr` for details."""
+
 DEFAULT_MAIN_DIR = "/ngwpc/run_ngen"
 
 

@@ -1,15 +1,31 @@
 #!/bin/bash
-# 
-# This downloads all hydrofabric geopackages (all vintages) associated with one USGS gage.
-# 
-# Usage:
-#   Run from RTE repo root, providing gage ID as single argument, e.g.: ./setup_data_one_gage.sh "01121330" "CONUS"
-# 
-
 
 set -euo pipefail
-
 source config.bashrc
+
+## 
+## \brief
+## Download input data for one gage.
+## 
+## \desc
+## Download input hydrofabric data from S3 and from APIs, for one USGS gage.
+## Not needed for the "default" gage at the "default" realization, since those inputs are included in the repository.
+## Downloads all vintages of hydrofabric associated with one gage ID.
+##
+## Uses various OS env vars from `config.bashrc`.
+## 
+## Has 2 positional arguments and 0 named arguments.
+## 
+## \option GAGE_ID
+## The USGS gage ID to be downloaded, e.g. `"01121330"`
+## 
+## \option DOMAIN
+## The domain that the gage ID resides in, e.g. `"CONUS"`
+## 
+## \usage ./setup_data_one_gage.sh "01121330" "CONUS"
+## 
+
+export AWS_PROFILE=ngwpc
 
 GAGE_ID="$1"
 DOMAIN="$2"
@@ -54,9 +70,9 @@ s3_sync "${SRC_PREFIX_2p2_GPKG}" "${TGT_DIR_2p2_GPKG}"
 
 s3_copy "${SRC_FILE_NWM_RETRO}" "${TGT_DIR_NWM_RETRO}/"
 
-echo "Downloading: ${SRC_URL_STREAMFLOW_OBS} -> ${TGT_FILE_OBS_FLOW}"
-mkdir -p "${TGT_DIR_OBS_FLOW}"
-curl -f -o "${TGT_FILE_OBS_FLOW}" "${SRC_URL_STREAMFLOW_OBS}"  # Get from EDFS server
+# echo "Downloading: ${SRC_URL_STREAMFLOW_OBS} -> ${TGT_FILE_OBS_FLOW}"
+# mkdir -p "${TGT_DIR_OBS_FLOW}"
+# curl -f -o "${TGT_FILE_OBS_FLOW}" "${SRC_URL_STREAMFLOW_OBS}"  # Get from EDFS server
 
 echo "Listing available gpkg vintages after sync for provided gage: ${GAGE_ID}"
 ls -1 "${TGT_DIR_2p2_GPKG}/"

@@ -84,7 +84,7 @@ jobs:
     name: setup
     runs-on: ubuntu-latest
     outputs:
-      org: ${{ steps.vars.outputs.org }}
+      gh_org: ${{ steps.vars.outputs.gh_org }}
       image_base: ${{ steps.vars.outputs.image_base }}
       pr_tag: ${{ steps.vars.outputs.pr_tag }}
       commit_sha: ${{ steps.vars.outputs.commit_sha }}
@@ -115,9 +115,9 @@ jobs:
           set -euo pipefail
 
           # set variables to use with Docker images
-          ORG="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          GH_ORG="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
           REPO="$(basename "${GITHUB_REPOSITORY}")"
-          IMAGE_BASE="${REGISTRY}/${ORG}/${REPO}"
+          IMAGE_BASE="${REGISTRY}/${GH_ORG}/${REPO}"
 
           # one datetime for all time variables
           NOW=$(date -u +'%Y-%m-%d %H:%M:%S')
@@ -182,7 +182,7 @@ jobs:
           fi
 
           # save outputs
-          echo "org=${ORG}" >> "$GITHUB_OUTPUT"
+          echo "gh_org=${GH_ORG}" >> "$GITHUB_OUTPUT"
           echo "image_base=${IMAGE_BASE}" >> "$GITHUB_OUTPUT"
           echo "build_date=${BUILD_DATE}" >> "$GITHUB_OUTPUT"
           echo "test_image_tag=${TEST_TAG}" >> "$GITHUB_OUTPUT"

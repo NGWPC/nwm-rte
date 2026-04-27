@@ -1,0 +1,65 @@
+usage: run_calibration.py [-h] [-delscratch] [-delraw]
+                          [-ofunc OBJECTIVE_FUNCTION]
+                          [-optalgo OPTIMIZATION_ALGORITHM] [-n NPROCS]
+                          [-g GAGE_ID__GAGE_VINTAGE GAGE_ID__GAGE_VINTAGE]
+                          [-start CALIB_SIM_START] [-dur CALIB_SIM_DURATION]
+                          [-evaldelay CALIB_EVAL_DELAYMENT]
+                          [-validadvance VALID_SIM_ADVANCEMENT]
+                          [-evalcurtail VALID_EVAL_CURTAILMENT]
+                          [-fsrc {nwm,aorc}]
+                          [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
+                          [-fprovider {bmi,csv}] [-fstatic FORCING_STATIC_DIR]
+                          [-wrkr WORKER_NAME]
+
+Script for building and running calibration realizations using historical /
+retrospective forcing.
+
+options:
+  -h, --help            show this help message and exit
+  -delscratch, --delete_scratch_and_mesh_first
+                        Delete scratch dir and ESMF mesh files before the run,
+                        which forces ESMF and NetCDF actions to occur.
+  -delraw, --delete_forcing_raw_input_first
+                        Delete contents of '/ngen-app/data/raw_input' before
+                        the run, which forces forcing data to be re-
+                        downloaded.
+  -ofunc OBJECTIVE_FUNCTION, --objective_function OBJECTIVE_FUNCTION
+                        Objective function for calibration. Default:
+                        Objective.kge
+  -optalgo OPTIMIZATION_ALGORITHM, --optimization_algorithm OPTIMIZATION_ALGORITHM
+                        Optimization algorithm for calibration. Default:
+                        Algorithm.dds
+  -n NPROCS, --nprocs NPROCS
+                        Replaces default value for nprocs (1) and subsequently
+                        the ParallelConfig instance that is passed to MSWM.
+  -g GAGE_ID__GAGE_VINTAGE GAGE_ID__GAGE_VINTAGE, --gage_id__gage_vintage GAGE_ID__GAGE_VINTAGE GAGE_ID__GAGE_VINTAGE
+                        Calibration gage ID and gage vintage (2 args).
+                        Defaults=01123000, 2025_Mar_14_21_14_37
+  -start CALIB_SIM_START, --calib_sim_start CALIB_SIM_START
+                        Start time for calibration. Default=2013-07-25
+                        00:00:00,
+  -dur CALIB_SIM_DURATION, --calib_sim_duration CALIB_SIM_DURATION
+                        Duration of calibration, in days (provide integer).
+                        Default=2
+  -evaldelay CALIB_EVAL_DELAYMENT, --calib_eval_delayment CALIB_EVAL_DELAYMENT
+                        Pandas-style timedelta string. Default=0:00:00
+  -validadvance VALID_SIM_ADVANCEMENT, --valid_sim_advancement VALID_SIM_ADVANCEMENT
+                        Pandas-style timedelta string. Default=0:00:00
+  -evalcurtail VALID_EVAL_CURTAILMENT, --valid_eval_curtailment VALID_EVAL_CURTAILMENT
+                        Pandas-style timedelta string. Default=0:00:00
+  -fsrc {nwm,aorc}, --forcing_source {nwm,aorc}
+                        Source of forcing data. Default=aorc. Choices for
+                        calibration: ['nwm', 'aorc']
+  -gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}, --global_domain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}
+                        Region of forcing data. Default=CONUS
+  -fprovider {bmi,csv}, --forcing_provider {bmi,csv}
+                        Forcing provider. Default=bmi
+  -fstatic FORCING_STATIC_DIR, --forcing_static_dir FORCING_STATIC_DIR
+                        Directory for static forcing files, used when
+                        forcing_provider is 'bmi'. Default=/ngen-app/data
+  -wrkr WORKER_NAME, --worker_name WORKER_NAME
+                        If provided, will be used as the worker name, instead
+                        of letting cal mgr choose a random worker name. Only
+                        allowed for Optimization Algorithm DDS, which uses
+                        single instances of ngen. Does not affect 'default'
+                        realization (which is not a calibration).

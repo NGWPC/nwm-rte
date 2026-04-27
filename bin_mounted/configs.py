@@ -185,7 +185,42 @@ class RTEBaseConfig(BaseModel):
 
 class RTEDefaultConfig(RTEBaseConfig):
     """Configuration class for building and running one default realization
-    (realtime forcing configuration or historical / retrospective forcing configuration)."""
+    (realtime forcing configuration or historical / retrospective forcing configuration).
+
+    Attributes
+    ----------
+    delete_scratch_and_mesh_first: bool
+        Causes scratch dir and intermediary mesh to be deleted first
+    delete_forcing_raw_input_first: bool
+        Causes realtime forcing data cache dir to be deleted first
+    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
+        Gage ID and vintage
+    global_domain: str
+        e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
+    forcing_static_dir :
+        Forcing static directory
+    forcing_provider: str
+        Forcing provider, i.e. "bmi" or "csv"
+    cycle_datetime: datetime
+        Start time of the realization
+    historical_sim_duration: timedelta | None
+        Duration of the simulation (only used for historical / retrospective forcing configurations)
+    forcing_configuration: str
+        Forcing configuration, e.g. "aorc" or "short_range"
+    fcst_run_name: str
+        Name of the forecast realization run. Affects a directory name.
+    nprocs: int = Field(ge=1)
+        Number of processors to use
+    # The following are set after init during self.model_post_init(). Do not provide
+    gage_id: str = Field(init=False, default=None)
+        Gage ID
+    gage_vintage: str = Field(init=False, default=None)
+        Gage vintage
+    realtime_mode: bool = Field(init=False, default=None)
+        Realtime mode
+    realization_builder_kwargs: dict = Field(init=False, default=None)
+        Realization builder kwargs (passed to `nwm-msw-mgr`)
+    """
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
@@ -312,7 +347,52 @@ class RTEDefaultConfig(RTEBaseConfig):
 
 
 class RTECalibConfig(RTEBaseConfig):
-    """Configuration class for building and running one calibration realization."""
+    """Configuration class for building and running one calibration realization.
+
+    Attributes
+    ----------
+    delete_scratch_and_mesh_first: bool
+        Causes scratch dir and intermediary mesh to be deleted first
+    delete_forcing_raw_input_first: bool
+        Causes realtime forcing data cache dir to be deleted first
+    objective_function: c.CalObjective
+        Objective function, e.g. "kge"
+    optimization_algorithm: c.CalOptimizationAlgo
+        Optimization algorithm, e.g. "dds"
+    nprocs: int = Field(ge=1)
+        Number of processors to use
+    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
+        Gage ID and vintage
+    calib_sim_start: datetime
+        Calibration start time
+    calib_sim_duration: timedelta
+        Calibration simulation duration
+    calib_eval_delayment: timedelta
+        Used for evaluation / validation time windowing
+    valid_sim_advancement: timedelta
+        Used for evaluation / validation time windowing
+    valid_eval_curtailment: timedelta
+        Used for evaluation / validation time windowing
+    forcing_source: str
+        Source of forcing data, e.g. "aorc" or "nwm"
+    global_domain: str
+        e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
+    forcing_provider: str
+        Forcing provider, i.e. "bmi" or "csv"
+    forcing_static_dir: str
+        Forcing static directory
+    worker_name: str | None
+        Name of the ngen worker (used to build a directory name)
+    # The following are set after init during self.model_post_init(). Do not provide.
+    gage_id: str = Field(init=False, default=None)
+        Gage ID
+    gage_vintage: str = Field(init=False, default=None)
+        Gage vintage
+    obs_dir: str | None = Field(init=False, default=None)
+        Directory of observed flow data
+    nwmretro_file: str | None = Field(init=False, default=None)
+        File containing retrospective NWM flow data
+    """
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
@@ -346,7 +426,50 @@ class RTECalibConfig(RTEBaseConfig):
 
 
 class RTEForecastConfig(RTEBaseConfig):
-    """Configuration class for building and running one forecast realization."""
+    """Configuration class for building and running one forecast realization.
+
+    Attributes
+    ----------
+    delete_scratch_and_mesh_first: bool
+        Causes scratch dir and intermediary mesh to be deleted first
+    delete_forcing_raw_input_first: bool
+        Causes realtime forcing data cache dir to be deleted first
+    objective_function: c.CalObjective
+        Affects input realization path. Objective function of previously-ran calibration realization, e.g. "kge"
+    optimization_algorithm: c.CalOptimizationAlgo
+        Affects input realization path. Optimization algorithm of previously-ran calibration realization, e.g. "dds"
+    gage_id: str
+        Gage ID
+    global_domain: str
+        e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
+    forcing_static_dir: str
+        Forcing static directory
+    forcing_provider: str
+        Forcing provider, i.e. "bmi" or "csv"
+    cycle_datetime: datetime | None
+        Start time of the realization (or end time for coldstart, if `cold_start_datetime` is provided)
+    cold_start_datetime: datetime | None
+        Start time of the coldstart realization. If None, coldstart is not performed.
+    forcing_configuration: str
+        Forcing configuration, e.g. "aorc" or "short_range"
+    fcst_run_name: str
+        Name of the forecast realization run
+    nprocs: int = Field(ge=1)
+        Number of processors to use
+    # The following are set after init during self.model_post_init(). Do not provide.
+    run_dir_base: str = Field(init=False, default=None)
+        Run directory root
+    run_dir_input: str = Field(init=False, default=None)
+        Input run directory
+    run_dir_output: str = Field(init=False, default=None)
+        Output run directory
+    ngen_log_file: str = Field(init=False, default=None)
+        ngen stdout + stderr stream log file
+    valid_best_yaml: str = Field(init=False, default=None)
+        Validation yaml file (output from previously-ran calibration realization)
+    realization_builder_kwargs: dict = Field(init=False, default=None)
+        Realization builder kwargs (passed to `nwm-msw-mgr`)
+    """
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
@@ -429,7 +552,55 @@ class RTEForecastConfig(RTEBaseConfig):
 
 
 class RTETestConfig(RTEBaseConfig):
-    """Configuration class for building and running a set of test realizations."""
+    """Configuration class for building and running a set of test realizations.
+
+    Attributes
+    ----------
+    delete_scratch_and_mesh_first: bool
+        Causes scratch dir and intermediary mesh to be deleted first
+    delete_forcing_raw_input_first: bool
+        Causes realtime forcing data cache dir to be deleted first
+    skip_forecast: bool
+        Causes forecast to be skipped (only do calibration)
+    quit_forecast_after_forcing_running: bool
+        Causes forecasts to be stopped midway once log files indicate that the model is well underway
+    quit_forecast_after_duration: float | None = Field(ge=0)
+        Causes forecasts to be stopped midway after a set duration (seconds of processing time)
+    do_calibration: bool
+        Causes calibration to be ran, before forecasts (needed if a calibration has not yet been ran for the gage)
+    quit_calibration_after_duration: float | None = Field(ge=0)
+        Causes calibrations to be stopped midway after a set duration (seconds of processing time)
+    objective_functions: list[c.CalObjective]
+        For calibration, list of objective functions to run, e.g. "kge". Replaced with full list when do_all_objective_functions = True
+    do_all_objective_functions: bool
+        For calibration, causes all objective functions to be used.
+    optimization_algorithms: list[c.CalOptimizationAlgo]
+        For calibration, list of optimization algorithms to run, e.g. "dds". Replaced with full list when do_all_optimization_algorithms = True
+    do_all_optimization_algorithms: bool
+        For calibration, causes all optimization algorithms to be used.
+    do_all_forcing_configs: bool
+        Causes all forcing configurations to be used, e.g. "short_range", "standard_ana", "medium_range_blend", "extended_ana", "short_range_hawaii", etc.
+    do_coldstart: bool
+        Causes coldstart to be ran before forecast.
+    fcst_run_name: str
+        Name of the forecast realization run. Affects a directory name.
+    nprocs: int = Field(ge=1)
+        Number of processors to use
+    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
+        Gage ID and vintage
+    global_domain: str
+        e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
+    forcing_provider: str
+        Forcing provider, i.e. "bmi" or "csv"
+    forcing_static_dir: str
+        Forcing static directory
+    noop: bool
+        Causes a noop to occur (for confirming that Python packages are importable).
+    gage_id: str = Field(init=False, default=None)
+        Gage ID
+    gage_vintage: str = Field(init=False, default=None)
+        Gage vintage
+    """
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 

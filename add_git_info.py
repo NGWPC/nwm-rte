@@ -8,9 +8,6 @@ import urllib.request
 print = functools.partial(print, flush=True)
 
 
-GH_ORG = "NGWPC"
-
-
 def run(cmd: str, cwd: str) -> str:
     """Run a command and return stdout"""
     print(f"From {repr(cwd)} running command: {repr(cmd)}")
@@ -26,12 +23,12 @@ def run(cmd: str, cwd: str) -> str:
     return p.stdout.rstrip()  # remove trailing whitespace
 
 
-def get_repo_name(local_repo_path: str) -> str:
+def get_repo_name(gh_org: str, local_repo_path: str) -> str:
     cmd = "git config --get remote.origin.url"
     raw = run(cmd, cwd=local_repo_path)
 
-    startswith_ssh = f"git@github.com:{GH_ORG}/"
-    startswith_https = f"https://github.com/{GH_ORG}/"
+    startswith_ssh = f"git@github.com:{gh_org}/"
+    startswith_https = f"https://github.com/{gh_org}/"
 
     if raw.startswith(startswith_ssh):
         repo_name = raw[len(startswith_ssh) :]
@@ -45,10 +42,12 @@ def get_repo_name(local_repo_path: str) -> str:
     return repo_name
 
 
-def fetch_github_commit_info(repo_name: str, branch: str) -> dict:
+def fetch_github_commit_info(gh_org: str, repo_name: str, branch: str) -> dict:
     """Fetch commit information from GitHub API for a given repo and branch/tag/commit"""
+    if not gh_org:
+        raise ValueError("gh_org must be provided")
     # GitHub API endpoint for commits
-    api_url = f"https://api.github.com/repos/{GH_ORG}/{repo_name}/commits/{branch}"
+    api_url = f"https://api.github.com/repos/{gh_org}/{repo_name}/commits/{branch}"
 
     print(f"Fetching commit info from: {api_url}")
 
@@ -70,6 +69,7 @@ def fetch_github_commit_info(repo_name: str, branch: str) -> dict:
 class GitInfoBuilder:
     def __init__(
         self,
+        gh_org: str = None,
         local_repo_path: str = None,
         remote_repo_name: str = None,
         remote_branch: str = None,
@@ -78,7 +78,7 @@ class GitInfoBuilder:
         d = {}
 
         if local_repo_path:
-            d["repo_name"] = get_repo_name(local_repo_path)
+            d["repo_name"] = get_repo_name(gh_org, local_repo_path)
             d["commit_hash"] = run("git rev-parse HEAD", cwd=local_repo_path)
             d["branch"] = run("git rev-parse --abbrev-ref HEAD", cwd=local_repo_path)
             d["tags"] = run(
@@ -98,7 +98,9 @@ class GitInfoBuilder:
 
         elif remote_repo_name and remote_branch:
             # Fetch commit info from GitHub API
-            commit_data = fetch_github_commit_info(remote_repo_name, remote_branch)
+            commit_data = fetch_github_commit_info(
+                gh_org, remote_repo_name, remote_branch
+            )
 
             # Extract relevant information from the API response
             d["repo_name"] = remote_repo_name
@@ -134,6 +136,7 @@ class GitInfoBuilder:
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--gh_org", required=False)
     parser.add_argument("--local_repo_path", required=False)
     parser.add_argument("--remote_repo_name", required=False)
     parser.add_argument("--remote_branch", required=False)

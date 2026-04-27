@@ -1,0 +1,47 @@
+usage: run_default.py [-h] [-delscratch] [-delraw]
+                      [-g GAGE_ID__GAGE_VINTAGE GAGE_ID__GAGE_VINTAGE]
+                      [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
+                      [-fstatic FORCING_STATIC_DIR] [-fprov FORCING_PROVIDER]
+                      -dt CYCLE_DATETIME [-dur HISTORICAL_SIM_DURATION]
+                      [-fconfig {standard_ana,standard_ana_alaska,standard_ana_hawaii,standard_ana_puertorico,extended_ana,extended_ana_alaska,short_range,short_range_alaska,short_range_hawaii,short_range_puertorico,short_range_extended_alaska,medium_range_blend,medium_range_blend_alaska,long_range_mem1,long_range_mem2,long_range_mem3,long_range_mem4,nwm,aorc}]
+                      [-rname FCST_RUN_NAME] [-n NPROCS]
+
+Script for building and running default realizations using realtime forcing
+configurations or historical / retrospective forcing. The CLI arguments mostly
+follow that of run_forecast.py. The exception is that "--
+historical_sim_duration" aka "-dur" (in days) was added to this script to
+support the historical / retrospective forcing use case, e.g. AORC or NWM.
+
+options:
+  -h, --help            show this help message and exit
+  -delscratch, --delete_scratch_and_mesh_first
+                        Delete scratch dir and ESMF mesh files before the run,
+                        which forces ESMF and NetCDF actions to occur.
+  -delraw, --delete_forcing_raw_input_first
+                        Delete contents of '/ngen-app/data/raw_input' before
+                        the run, which forces forcing data to be re-
+                        downloaded.
+  -g GAGE_ID__GAGE_VINTAGE GAGE_ID__GAGE_VINTAGE, --gage_id__gage_vintage GAGE_ID__GAGE_VINTAGE GAGE_ID__GAGE_VINTAGE
+                        Calibration gage ID and gage vintage (2 args).
+                        Defaults=01123000, 2025_Mar_14_21_14_37
+  -gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}, --global_domain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}
+                        Global domain/region of forcing data. Default=CONUS
+  -fstatic FORCING_STATIC_DIR, --forcing_static_dir FORCING_STATIC_DIR
+                        Directory for static forcing files, used when
+                        forcing_provider is 'bmi'. Default=/ngen-app/data
+  -fprov FORCING_PROVIDER, --forcing_provider FORCING_PROVIDER
+                        Forcing provider to use, e.g., 'bmi' or 'csv'.
+                        Default: 'bmi'
+  -dt CYCLE_DATETIME, --cycle_datetime CYCLE_DATETIME
+                        Start date/time for the simulation.
+  -dur HISTORICAL_SIM_DURATION, --historical_sim_duration HISTORICAL_SIM_DURATION
+                        Only used for historical / retrospective forcing
+                        (required in that case). Simulation duration in days.
+                        Default=None
+  -fconfig {standard_ana,standard_ana_alaska,standard_ana_hawaii,standard_ana_puertorico,extended_ana,extended_ana_alaska,short_range,short_range_alaska,short_range_hawaii,short_range_puertorico,short_range_extended_alaska,medium_range_blend,medium_range_blend_alaska,long_range_mem1,long_range_mem2,long_range_mem3,long_range_mem4,nwm,aorc}, --forcing_configuration {standard_ana,standard_ana_alaska,standard_ana_hawaii,standard_ana_puertorico,extended_ana,extended_ana_alaska,short_range,short_range_alaska,short_range_hawaii,short_range_puertorico,short_range_extended_alaska,medium_range_blend,medium_range_blend_alaska,long_range_mem1,long_range_mem2,long_range_mem3,long_range_mem4,nwm,aorc}
+                        Forcing configuration to use, e.g., 'short_range',
+                        'standard_ana', 'aorc', etc. Default: 'short_range'
+  -rname FCST_RUN_NAME, --fcst_run_name FCST_RUN_NAME
+                        Forecast run name. Default: 'fcst_run1'
+  -n NPROCS, --nprocs NPROCS
+                        Number of processors. Default=1)

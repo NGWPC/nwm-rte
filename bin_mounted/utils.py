@@ -23,6 +23,9 @@ def make_symlink(link_path: str, target_path: str) -> None:
     if not os.path.exists(target_path):
         raise FileNotFoundError(target_path)
     os.makedirs(os.path.dirname(link_path), exist_ok=True)
+    if os.path.exists(link_path):
+        print(f"Deleting existing symlink before recreating it: {link_path}")
+        os.remove(link_path)
     os.symlink(target_path, link_path)
 
 
@@ -63,13 +66,13 @@ def configure_ngen_log(fallback_log_dir: str | pathlib.Path, label: str) -> None
 
     # Decide the dir
     setting_val = os.environ.get(c.RTE_NGEN_LOG_BEHAVIOR_KEY, "").lower().strip()
-    if setting_val == "true":
+    if setting_val in ("yes", "true"):
         log_dir = os.path.join("/ngen-app/rte_ngen_logs", f"{now_str}_{label}")
-    elif setting_val == "false":
+    elif setting_val in ("no", "false", ""):
         log_dir = fallback_log_dir
     else:
         raise ValueError(
-            f"Invalid value for key {repr(c.RTE_NGEN_LOG_BEHAVIOR_KEY)}: {repr(setting_val)}"
+            f"Invalid value for key {repr(c.RTE_NGEN_LOG_BEHAVIOR_KEY)}: {repr(setting_val)} (expected YES or NO, defaulting to NO if not provided)"
         )
 
     # Make the dir, copy the log json config into it, and set the OS env var for ngen to be able to find it.
