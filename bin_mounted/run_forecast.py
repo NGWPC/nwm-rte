@@ -112,7 +112,7 @@ def main(cfg: RTEForecastConfig):
 
 def cli_arg_parser() -> argparse.ArgumentParser:
     """Build and return the CLI argument parser"""
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
         "-delscratch",
         "--delete_scratch_and_mesh_first",

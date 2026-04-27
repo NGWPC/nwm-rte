@@ -177,7 +177,7 @@ def main(cfg: RTETestConfig):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
         "-delscratch",
         "--delete_scratch_and_mesh_first",

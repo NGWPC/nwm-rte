@@ -107,7 +107,8 @@ def main(cfg: RTECalibConfig):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Script for building and running calibration realizations using historical / retrospective forcing."
+        description="Script for building and running calibration realizations using historical / retrospective forcing.",
+        formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
         "-delscratch",
