@@ -34,7 +34,16 @@ docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "stan
 # Medium Range
 docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "medium_range_blend" -dt "2026-03-30 06:00:00" -rname "default_mr"
 
-# Historical / Retrospective Forcing
+### Medium Range Lagged Ensemble
+# docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "default_mr_le" -le "no_da" "" ""
+# docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "default_mr_le" -le "mem1" "" ""
+# docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "default_mr_le" -le "mem2" "" ""
+# docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "default_mr_le" -le "mem3" "" ""
+# docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "default_mr_le" -le "mem4" "" ""
+# docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "default_mr_le" -le "mem5" "" ""
+# docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "default_mr_le" -le "mem6" "" ""
+
+### Historical / Retrospective Forcing
 docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc"
 docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "nwm" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_nwm"
 
