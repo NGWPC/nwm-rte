@@ -1,4 +1,4 @@
-# NWM Runtime Environment (RTE)
+# Runtime Environment for the NWM NextGen Framework
 
 A configurable `docker build` and `docker run` sequence for headless end-to-end execution of NextGen (ngen) core + component package capabilities.
 
