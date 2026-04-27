@@ -472,12 +472,6 @@ class RTECalibConfig(RTEBaseConfig):
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
         super()._parse_gage_id__gage_vintage()
 
-        self.obs_dir, self.nwmretro_file, errors_extend = get_data_paths_for_lstm(
-            self.global_domain,
-            self.gage_id,
-        )
-        self.errors.extend(errors_extend)
-
         if self.errors:
             raise RuntimeError(self.errors)
 
