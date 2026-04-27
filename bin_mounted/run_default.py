@@ -100,7 +100,8 @@ if __name__ == "__main__":
         using realtime forcing configurations or historical / retrospective forcing.
         The CLI arguments mostly follow that of run_forecast.py. The exception is
         that "--historical_sim_duration" aka "-dur" (in days) was added to this script
-        to support the historical / retrospective forcing use case, e.g. AORC or NWM."""
+        to support the historical / retrospective forcing use case, e.g. AORC or NWM.""",
+        formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
         "-delscratch",
