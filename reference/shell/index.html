@@ -1410,7 +1410,7 @@ as well as the runtime environment itself (e.g. mount paths).</p>
   <strong>Environment Variables</strong>
     <ul>
       <li>
-        <code>ORG</code>:
+        <code>GH_ORG</code>:
         <div class="doc doc-md-description">
           <p>GitHub Organization Name</p>
         </div>
@@ -1560,7 +1560,7 @@ as well as the runtime environment itself (e.g. mount paths).</p>
 <li>
 <p>Choices for this variable:</p>
 <ul>
-<li>A typical choice for this is <code>${THIS_SCRIPTS_GRANDPARENT_DIR}</code>, which is equivalent to <code>"${HOME}/${ORG,,}"</code> if you run this from <code>"${HOME}/${ORG,,}/nwm-rte"</code> but another location such as <code>"${HOME}/${ORG,,}__rte"</code> could be used if wanting to isolate the RTE from other work.</li>
+<li>A typical choice for this is <code>${THIS_SCRIPTS_GRANDPARENT_DIR}</code>, which is equivalent to <code>"${HOME}/${GH_ORG,,}"</code> if you run this from <code>"${HOME}/${GH_ORG,,}/nwm-rte"</code> but another location such as <code>"${HOME}/${GH_ORG,,}__rte"</code> could be used if wanting to isolate the RTE from other work.</li>
 <li>Using <code>${THIS_SCRIPTS_GRANDPARENT_DIR}</code> guarantees that the setup scripts (<code>./setup_data.sh</code> and <code>./setup_clone_repos.sh</code>) will copy data and clone repos into the same locations where the build script and run script will look for them.</li>
 </ul>
 </li>
@@ -1955,7 +1955,9 @@ which is typically sourced by other scripts and ran externally.</p>
 
   <strong>Usage</strong>
     <pre><code>./run_default.sh 
-</code></pre>
+
+ Medium Range Lagged Ensemble
+ Historical / Retrospective Forcing</code></pre>
 
   <strong>Description</strong>
       <p>Source <code>./run.sh</code> to call its <code>docker_run</code> command for running "default" realizations.  It requires that the ngen runtime environment image has already been built using <code>./ngen_rte_build.sh</code>.</p>
@@ -2027,7 +2029,9 @@ which is typically sourced by other scripts and ran externally.</p>
 
   <strong>Usage</strong>
     <pre><code>./run_fcst.sh 
-</code></pre>
+
+ Medium Range
+ Medium Range Lagged Ensemble Members</code></pre>
 
   <strong>Description</strong>
       <p>Source <code>./run.sh</code> to call its <code>docker_run</code> command for running "forecast" realizations.  It requires that the ngen runtime environment image has already been built using <code>./ngen_rte_build.sh</code>.</p>
