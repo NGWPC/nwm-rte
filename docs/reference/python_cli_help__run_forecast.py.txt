@@ -3,7 +3,8 @@ usage: run_forecast.py [-h] [-delscratch] [-delraw]
                        [-optalgo OPTIMIZATION_ALGORITHM] [-g GAGE_ID]
                        [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
                        [-fstatic FORCING_STATIC_DIR] [-fprov FORCING_PROVIDER]
-                       [-dt CYCLE_DATETIME] [-csdt COLD_START_DATETIME]
+                       -dt CYCLE_DATETIME [-csdt COLD_START_DATETIME]
+                       [-le LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS]
                        [-fconfig FORCING_CONFIGURATION] [-rname FCST_RUN_NAME]
                        [-n NPROCS]
 
@@ -35,12 +36,33 @@ options:
                         Forcing provider to use, e.g., 'bmi' or 'csv'.
                         Default: 'bmi'
   -dt CYCLE_DATETIME, --cycle_datetime CYCLE_DATETIME
-                        start date/time for the forecast cycle (also the end
-                        of cold-start if chosen), format= 'YYYY-MM-DD
-                        HH:mm:ss'. If omitted, a forecast will not be ran.
+                        For a regular forecast, this is the start time. When
+                        cold-start is used, this is the *end* of the cold-
+                        start cycle. Format: 'YYYY-MM-DD HH:mm:ss'.
   -csdt COLD_START_DATETIME, --cold_start_datetime COLD_START_DATETIME
-                        start date/time for cold-start, format= 'YYYY-MM-DD
-                        HH:mm:ss'. If omitted, a cold-start will not be used.
+                        If provided, a cold-start realization will be ran
+                        prior to the forecast, and this value will be the
+                        start time for the cold-start. Format: 'YYYY-MM-DD
+                        HH:mm:ss'.
+  -le LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS, --lagged-ensemble LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS
+                        Provide this multi-part argument to run one member of
+                        a lagged ensemble (see nwm-fcst-mgr function
+                        `run_lagged_ensemble`). Only applicable to the
+                        "medium_range" forcing configuration. Not applicable
+                        to the cold-start realization. To run an ensemble,
+                        call this script multiple times with varying values
+                        for this argument, e.g. for "mem1", "mem2", etc. This
+                        argument has 3 parts: 1. member_name : str (required
+                        when -le provided) Name of the ensemble member. Choose
+                        from: ['no_da', 'mem1', 'mem2', 'mem3', 'mem4',
+                        'mem5', 'mem6'] 2. open_loop_state : str (optional)
+                        Path to an existing open-loop state file. To omit,
+                        provide an empty string for this part. 3.
+                        closed_loop_state : str (optional) Path to an existing
+                        closed-loop state file. To omit, provide an empty
+                        string for this part. To run a lagged ensemble member
+                        without the optional parts, provide them as empty
+                        strings e.g. `-le 'mem2' '' ''`.
   -fconfig FORCING_CONFIGURATION, --forcing_configuration FORCING_CONFIGURATION
                         Forcing configuration to use, e.g., 'short_range',
                         'standard_ana', etc. Default: 'short_range'
