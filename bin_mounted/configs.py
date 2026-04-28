@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass
 import os
 import re
@@ -179,6 +179,8 @@ class RTEBaseConfig(BaseModel):
     forcing_provider: str
     model_formulation_cli_csv: str | None = Field(default=None)
     model_formulation_cli_rootzone: str | None = Field(default=None)
+    add_timestamp_to_run_name: bool
+
     # Set after init (not provided as args)
     errors: list | None = Field(init=False, default=None)
 
@@ -257,6 +259,15 @@ class RTEBaseConfig(BaseModel):
             self.model_formulation_cli_rootzone,
         )
 
+    def _add_ts_to_run_name(self):
+        if self.add_timestamp_to_run_name:
+            if not self.fcst_run_name:
+                raise ValueError(
+                    "Must provide fcst_run_name when using timestamp_run_name"
+                )
+            now = datetime.now(tz=timezone.utc)
+            self.fcst_run_name = f"{self.fcst_run_name}_{now.strftime(c.RUN_NAME_TIMESTAMP_SUFFIX_FORMAT)}"
+
 
 class RTEDefaultConfig(RTEBaseConfig):
     """Configuration class for building and running one default realization
@@ -316,6 +327,7 @@ class RTEDefaultConfig(RTEBaseConfig):
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
         super()._parse_gage_id__gage_vintage()
+        super()._add_ts_to_run_name()
 
         if (
             self.forcing_configuration
@@ -577,6 +589,7 @@ class RTEForecastConfig(RTEBaseConfig):
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
+        super()._add_ts_to_run_name()
 
         self.run_dir_base = f"{c.DEFAULT_MAIN_DIR}/{self.objective_function.value}_{self.optimization_algorithm.value}/test_{self.forcing_provider}/{self.gage_id}"
         if not os.path.isdir(self.run_dir_base):
@@ -711,6 +724,7 @@ class RTETestConfig(RTEBaseConfig):
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
         super()._parse_gage_id__gage_vintage()
+        super()._add_ts_to_run_name()
 
         if self.quit_forecast_after_forcing_running:
             self.errors.append(
