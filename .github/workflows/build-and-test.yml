@@ -297,38 +297,12 @@ jobs:
           source ./run.sh
           # Call docker_run with --noop flag
           docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --noop
-          # Report out
-          echo "Build and noop test completed successfully"
-          echo "The container was able to:"
-          echo "  1. Build successfully with all dependencies"
-          echo "  2. Import all required Python libraries"
-          echo "  3. Execute the workflow script in noop mode"
-
-      ### TODO need to fix this. The devcontainer.json paths do work when running the pytest outside of GHA.
-      ### But in GHA, the paths are slightly different, e.g. it looks for a path like this which does not exist
-      ### (one extra level of "nwm-rte"): `/home/runner/work/nwm-rte/nwm-rte/../run_ngen`.
-      # - name: Run pytest in devcontainer
-      #   uses: devcontainers/ci@v0.3
-      #   env:
-      #     TARGET_IMAGE_NAME: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
-      #   with:
-      #     configFile: .devcontainer/pytest/devcontainer.json
-      #     ### NOTE: using environment variables to override "image" in devcontainer.json,
-      #     ### rather than using "imageName" here.
-      #     # imageName: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
-      #     runCmd: pytest
 
       - name: Run RTE pytest
         env:
           TARGET_IMAGE_NAME: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
         run: |
-          # Run the pytest
           ./.devcontainer/pytest/run_pytest_external.sh
-          # Report out
-          echo "Build and pytest test completed successfully"
-          echo "The container was able to:"
-          echo "  1. Build successfully with all dependencies"
-          echo "  2. Run the pytest"
 
   # run container security scan using Trivy
   container-scanning:
