@@ -25,8 +25,6 @@ source config.bashrc
 ## \usage ./setup_data_one_gage.sh "01121330" "CONUS"
 ## 
 
-export AWS_PROFILE=ngwpc
-
 GAGE_ID="$1"
 DOMAIN="$2"
 
