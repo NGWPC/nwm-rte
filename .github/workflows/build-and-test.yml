@@ -318,6 +318,18 @@ jobs:
       #     # imageName: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
       #     runCmd: pytest
 
+      - name: Run RTE pytest
+        env:
+          TARGET_IMAGE_NAME: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
+        run: |
+          # Run the pytest
+          ./.devcontainer/pytest/run_pytest_external.sh
+          # Report out
+          echo "Build and pytest test completed successfully"
+          echo "The container was able to:"
+          echo "  1. Build successfully with all dependencies"
+          echo "  2. Run the pytest"
+
   # run container security scan using Trivy
   container-scanning:
     name: container-scanning
