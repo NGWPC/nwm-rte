@@ -14,6 +14,7 @@ from mswm.utils.input_configuration import (
     ModulePropertiesConfig,
     ForcingConfig,
     DataFileConfig,
+    NWMOutputConfig,
     ParallelConfig,
 )
 from mswm.utils import settings as mswm_settings
@@ -180,6 +181,8 @@ class RTEBaseConfig(BaseModel):
     model_formulation_cli_csv: str | None = Field(default=None)
     model_formulation_cli_rootzone: str | None = Field(default=None)
     add_timestamp_to_run_name: bool
+    nwm_output_vars: bool = Field(default=False)
+    """Passed to MSWM NWMOutputConfig. Does not apply to calibration workflow."""
 
     # Set after init (not provided as args)
     errors: list | None = Field(init=False, default=None)
@@ -422,6 +425,7 @@ class RTEDefaultConfig(RTEBaseConfig):
                     scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
                     forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
                 ),
+                NWMOutput=NWMOutputConfig(nwm_output_variables=self.nwm_output_vars),
                 DataFile=DataFileConfig(
                     **(
                         c.DATAFILE_LIBS
@@ -513,6 +517,11 @@ class RTECalibConfig(RTEBaseConfig):
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
         super()._parse_gage_id__gage_vintage()
+
+        if self.nwm_output_vars:
+            self.errors.append(
+                ValueError("nwm_output_vars not supported for calibration workflow.")
+            )
 
         if self.errors:
             raise RuntimeError(self.errors)
@@ -635,6 +644,7 @@ class RTEForecastConfig(RTEBaseConfig):
                     scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
                     forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
                 ),
+                NWMOutput=NWMOutputConfig(nwm_output_variables=self.nwm_output_vars),
                 Parallel=make_parallel_config(self.nprocs),
                 ModuleProperties=ModulePropertiesConfig(
                     cfe_aet_rootzone=self.model_formulation.cfe_aet_rootzone,

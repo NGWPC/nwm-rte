@@ -175,9 +175,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         default=None,
         help=f"Only used for historical / retrospective forcing (required in that case). Simulation duration in days. Default={None}",
     )
-    parser.add_argument(
-        *cli_args.LAGGED_ENSEMBLE.args, **cli_args.LAGGED_ENSEMBLE.kwargs
-    )
+    cli_args.add_arg(parser, cli_args.LAGGED_ENSEMBLE)
     parser.add_argument(
         "-fconfig",
         "--forcing_configuration",
@@ -203,6 +201,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
     cli_args.add_arg(parser, cli_args.MODELS_CSV)
     cli_args.add_arg(parser, cli_args.MODELS_RZ)
     cli_args.add_arg(parser, cli_args.TIMESTAMP_RUN_NAME_SUFFIX)
+    cli_args.add_arg(parser, cli_args.NWM_OUTPUT_VARIABLES)
     return parser
 
 

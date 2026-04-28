@@ -182,9 +182,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         help="If provided, a cold-start realization will be ran prior to the forecast, and this value will be the start time for the cold-start. Format: 'YYYY-MM-DD HH:mm:ss'.",
         default=None,
     )
-    parser.add_argument(
-        *cli_args.LAGGED_ENSEMBLE.args, **cli_args.LAGGED_ENSEMBLE.kwargs
-    )
+    cli_args.add_arg(parser, cli_args.LAGGED_ENSEMBLE)
     parser.add_argument(
         "-fconfig",
         "--forcing_configuration",
@@ -207,6 +205,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         help=f"""Replaces default value for nprocs ({repr(c.DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance that is passed to MSWM.""",
     )
     cli_args.add_arg(parser, cli_args.TIMESTAMP_RUN_NAME_SUFFIX)
+    cli_args.add_arg(parser, cli_args.NWM_OUTPUT_VARIABLES)
     return parser
 
 
