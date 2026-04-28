@@ -649,6 +649,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Steps to Run">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pytest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pytest
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Workflows
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1176,9 +1204,20 @@
 </span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="nb">time</span><span class="w"> </span>./ngen_rte_build.sh
 </span></code></pre></div>
 <h2 id="steps-to-run">Steps to Run<a class="headerlink" href="#steps-to-run" title="Permanent link">#</a></h2>
-<ul>
-<li>Run an example workflow</li>
-</ul>
+<h3 id="pytest">pytest<a class="headerlink" href="#pytest" title="Permanent link">#</a></h3>
+<h4 id="run-pytest-inside-a-dev-container">Run <code>pytest</code> Inside a Dev Container:<a class="headerlink" href="#run-pytest-inside-a-dev-container" title="Permanent link">#</a></h4>
+<ol>
+<li>Build the RTE image (see above).</li>
+<li>With the <code>nwm-rte</code> repository as cwd, enter the Dev Container defined by <code>.devcontainer/pytest/devcontainer.json</code>. Note, there are multiple Dev Containers, be sure to pick the <code>pytest</code> one for this.</li>
+<li>Run command: <code>pytest</code></li>
+</ol>
+<h4 id="run-pytest-without-dev-container">Run <code>pytest</code> Without Dev Container<a class="headerlink" href="#run-pytest-without-dev-container" title="Permanent link">#</a></h4>
+<ol>
+<li>Build the RTE image (see above).</li>
+<li>With the <code>nwm-rte</code> repository as cwd, run the shell script: <code>./.devcontainer/pytest/run_pytest_external.sh</code></li>
+</ol>
+<p>See also: <a href="../../reference/shell/#run_pytest_external.sh"><code>run_pytest_external.sh</code></a></p>
+<h3 id="example-workflows">Example Workflows<a class="headerlink" href="#example-workflows" title="Permanent link">#</a></h3>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># These start an ephemeral container of the ngen RTE image</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="c1"># and run one or more reailzations.</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1"># Be ready to supply sudo password if prompted.</span>

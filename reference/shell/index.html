@@ -1020,6 +1020,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#run-pytest-without-dev-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run pytest Without Dev Container
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run_pytest_external.sh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_pytest_external.sh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#enter-the-container-interactively" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1874,6 +1896,40 @@ of those repositories (already cloned, checked out, pulled). <code>./setup_clone
 
 
 
+
+
+<h2 id="run-pytest-without-dev-container">Run <code>pytest</code> Without Dev Container<a class="headerlink" href="#run-pytest-without-dev-container" title="Permanent link">#</a></h2>
+<p>See also: <a href="../../user-guide/get-started/#pytest">Steps to Run: pytest</a></p>
+
+
+
+<h2 id="run_pytest_external.sh">run_pytest_external.sh<a href="#run_pytest_external.sh" class="headerlink" title="Permanent link">#</a></h2>
+  <p>Runs an ephemeral docker container to execute <code>python -m pytest</code> and quit. An alternative to running <code>pytest</code> inside an interactive Dev Container.</p>
+
+  <strong>Usage</strong>
+    <pre><code>From `nwm-rte` repository root:
+./.devcontainer/pytest/run_pytest_external.sh
+</code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <strong>Notes</strong>
+      <p>Uses OS env var TARGET_IMAGE_NAME if it is set, otherwise default to "ngen_rte_ghcr".</p>
 
 
 <h2 id="enter-the-container-interactively">Enter the Container Interactively<a class="headerlink" href="#enter-the-container-interactively" title="Permanent link">#</a></h2>

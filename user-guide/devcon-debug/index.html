@@ -736,15 +736,26 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#steps-for-building-and-running-the-dev-container" class="md-nav__link">
+  <a href="#running-pytest-inside-a-dev-container" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Steps for Building and Running the Dev Container
+        Running pytest Inside a Dev Container
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Steps for Building and Running the Dev Container">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#steps-for-building-and-running-the-full-dev-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Steps for Building and Running the full Dev Container
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Steps for Building and Running the full Dev Container">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1205,7 +1216,10 @@
 <p>Do not choose configurations that begin with an underscore, as those are meant to be private (they are not functional alone, they are called on by the public configurations).</p>
 <h3 id="devcontainertasksjson"><code>.devcontainer/tasks.json</code><a class="headerlink" href="#devcontainertasksjson" title="Permanent link">#</a></h3>
 <p><code>tasks.json</code> contains extra code required for some of the debugger configurations. For example for the complex configurations that involve multiple concurrent MPI ranks, the debugger uses a <code>sleep</code> directive to allow the main processes some time to start up before it sends external <code>debugpy</code> instances to "attach" to those ranks.</p>
-<h2 id="steps-for-building-and-running-the-dev-container">Steps for Building and Running the Dev Container<a class="headerlink" href="#steps-for-building-and-running-the-dev-container" title="Permanent link">#</a></h2>
+<h2 id="running-pytest-inside-a-dev-container">Running <code>pytest</code> Inside a Dev Container<a class="headerlink" href="#running-pytest-inside-a-dev-container" title="Permanent link">#</a></h2>
+<p>The <code>pytest</code> Dev Container is separate from the general Dev Container.  The <code>pytest</code> Dev Container is defined by <code>.devcontainer/pytest/devcontainer.json</code>. Its purpose is to run a specific test.</p>
+<p>For usage of the <code>pytest</code> Dev Container, as well as for running <code>pytest</code> without a Dev Container, see: <a href="../get-started/#pytest">Steps to Run: pytest</a></p>
+<h2 id="steps-for-building-and-running-the-full-dev-container">Steps for Building and Running the full Dev Container<a class="headerlink" href="#steps-for-building-and-running-the-full-dev-container" title="Permanent link">#</a></h2>
 <h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h3>
 <ol>
 <li>
