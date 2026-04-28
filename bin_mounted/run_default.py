@@ -11,6 +11,7 @@ See `run_default.sh` for example calls.
 import argparse
 import functools
 import os
+import shutil
 import subprocess
 import time
 
@@ -34,7 +35,7 @@ def build_default_realization(cfg: RTEDefaultConfig) -> RealizationBuilder:
     print("Building default realization...")
     rb = RealizationBuilder(**cfg.realization_builder_kwargs)
     rb.build_default_realization()
-    configure_ngen_log(rb.work_dir, "default")  # TODO test this
+    configure_ngen_log(rb.work_dir, "default")
     return rb
 
 
@@ -54,9 +55,25 @@ def get_ngen_cmd(cfg: RTEDefaultConfig, rb: RealizationBuilder) -> list[str]:
     return cmd
 
 
-def run_default(rb: RealizationBuilder):
+def run_default(
+    rb: RealizationBuilder,
+    cfg: RTEDefaultConfig,
+    clear_output_dir: bool = False,
+) -> str:
+    """Run the provided default realization.
+    Realization should already be built (rb.build_default_realization() already called).
+
+    If clear_output_dir, the contents of the output dir will be deleted (recursively) before running the realization.
+
+    Returns: The path to the ngen stdout + stderr log file.
+    """
     ngen_log_description = "default"
     output_dir = os.path.join(rb.work_dir, "Output", "Default_Run", cfg.fcst_run_name)
+
+    if clear_output_dir and os.path.exists(output_dir):
+        print(f"Deleting output dir: {output_dir}")
+        shutil.rmtree(output_dir)
+
     cwd = output_dir
     output_ngen_stdout_stderr_log = os.path.join(
         output_dir, c.NGEN_STDOUT_STDERR_LOG_FILE_BASENAME
@@ -74,6 +91,7 @@ def run_default(rb: RealizationBuilder):
         f"\nFinished {ngen_log_description} with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nReturn code {proc.returncode}.\nCommand was: {cmd}, with cwd={cwd}."
     )
     proc.check_returncode()
+    return output_ngen_stdout_stderr_log
 
 
 def main(cfg: RTEDefaultConfig):
@@ -86,15 +104,13 @@ def main(cfg: RTEDefaultConfig):
     if cfg.delete_forcing_raw_input_first:
         utils_testing_setup.delete_forcing_raw_inputs()
 
-    if not cfg.cycle_datetime:
-        raise ValueError("Must provide --cycle_datetime")
-
     rb = build_default_realization(cfg)
     print(f"Running default realization: {rb.input_configs['Forcing']}")
-    run_default(rb)
+    run_default(rb, cfg)
 
 
-if __name__ == "__main__":
+def cli_arg_parser() -> argparse.ArgumentParser:
+    """Build and return the CLI argument parser"""
     parser = argparse.ArgumentParser(
         description="""Script for building and running default realizations
         using realtime forcing configurations or historical / retrospective forcing.
@@ -184,6 +200,11 @@ if __name__ == "__main__":
         help=f"""Number of processors. Default={repr(c.DEFAULT_NPROCS)})""",
         default=c.DEFAULT_NPROCS,
     )
+    return parser
+
+
+if __name__ == "__main__":
+    parser = cli_arg_parser()
     args = parser.parse_args()
     cfg = RTEDefaultConfig(**vars(args))
     main(cfg)

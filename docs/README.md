@@ -10,7 +10,7 @@ For additional documentation, see the GitHub pages site.
 
 [https://github.com/NOAA-OWP/NextGen-Info](https://github.com/NOAA-OWP/NextGen-Info)
 
-## RTE User Guide
+## User Guide
 
 [Build Architecture](user-guide/build-architecture.md)
 
