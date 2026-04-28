@@ -73,6 +73,8 @@ time ./ngen_rte_build.sh
 1. Build the RTE image (see above).
 2. With the `nwm-rte` repository as cwd, run the shell script: `./.devcontainer/pytest/run_pytest_external.sh`
 
+See also: [`run_pytest_external.sh`](../reference/shell.md#run_pytest_external.sh)
+
 ### Example Workflows
 
 ```shell
