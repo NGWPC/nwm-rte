@@ -189,6 +189,7 @@ class RTEBaseConfig(BaseModel):
 
     gage_id: str = Field(init=False, default=None)
     gage_vintage: str = Field(init=False, default=None)
+    hydrofab_file: str = Field(init=False, default=None)
 
     # For lagged ensemble
     use_lagged_ensemble: bool | None = Field(init=False, default=False)
@@ -271,6 +272,17 @@ class RTEBaseConfig(BaseModel):
             now = datetime.now(tz=timezone.utc)
             self.fcst_run_name = f"{self.fcst_run_name}_{now.strftime(c.RUN_NAME_TIMESTAMP_SUFFIX_FORMAT)}"
 
+    def _set_hydrofab_file(self):
+        self.hydrofab_file = build_hydrofab_file_path(
+            self.global_domain, self.gage_id, self.gage_vintage
+        )
+
+
+def build_hydrofab_file_path(
+    global_domain: str, gage_id: str, gage_vintage: str
+) -> str:
+    return f"{c.HYDROFABRIC_DIR}/2.2/{global_domain}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg"
+
 
 class RTEDefaultConfig(RTEBaseConfig):
     """Configuration class for building and running one default realization
@@ -331,6 +343,7 @@ class RTEDefaultConfig(RTEBaseConfig):
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
         super()._parse_gage_id__gage_vintage()
         super()._add_ts_to_run_name()
+        super()._set_hydrofab_file()
 
         if (
             self.forcing_configuration
@@ -517,6 +530,7 @@ class RTECalibConfig(RTEBaseConfig):
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
         super()._parse_gage_id__gage_vintage()
+        super()._set_hydrofab_file()
 
         if self.nwm_output_vars:
             self.errors.append(
@@ -645,6 +659,7 @@ class RTEForecastConfig(RTEBaseConfig):
                     forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
                 ),
                 NWMOutput=NWMOutputConfig(nwm_output_variables=self.nwm_output_vars),
+                DataFile=DataFileConfig(**(c.DATAFILE_LIBS)),
                 Parallel=make_parallel_config(self.nprocs),
                 ModuleProperties=ModulePropertiesConfig(
                     cfe_aet_rootzone=self.model_formulation.cfe_aet_rootzone,
@@ -735,6 +750,7 @@ class RTETestConfig(RTEBaseConfig):
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
         super()._parse_gage_id__gage_vintage()
         super()._add_ts_to_run_name()
+        super()._set_hydrofab_file()
 
         if self.quit_forecast_after_forcing_running:
             self.errors.append(
