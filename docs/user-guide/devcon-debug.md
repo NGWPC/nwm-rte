@@ -26,7 +26,13 @@ Do not choose configurations that begin with an underscore, as those are meant t
 
 `tasks.json` contains extra code required for some of the debugger configurations. For example for the complex configurations that involve multiple concurrent MPI ranks, the debugger uses a `sleep` directive to allow the main processes some time to start up before it sends external `debugpy` instances to "attach" to those ranks.
 
-## Steps for Building and Running the Dev Container
+## Running `pytest` Inside a Dev Container
+
+The `pytest` Dev Container is separate from the general Dev Container.  The `pytest` Dev Container is defined by `.devcontainer/pytest/devcontainer.json`. Its purpose is to run a specific test.
+
+For usage of the `pytest` Dev Container, as well as for running `pytest` without a Dev Container, see: [Steps to Run: pytest](../user-guide/get-started.md#pytest)
+
+## Steps for Building and Running the full Dev Container
 
 ### Prerequisites
 

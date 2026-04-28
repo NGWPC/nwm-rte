@@ -60,7 +60,20 @@ time ./ngen_rte_build.sh
 
 ## Steps to Run
 
-* Run an example workflow
+### pytest
+
+#### Run `pytest` Inside a Dev Container:
+
+1. Build the RTE image (see above).
+2. With the `nwm-rte` repository as cwd, enter the Dev Container defined by `.devcontainer/pytest/devcontainer.json`. Note, there are multiple Dev Containers, be sure to pick the `pytest` one for this.
+3. Run command: `pytest`
+
+#### Run `pytest` Without Dev Container
+
+1. Build the RTE image (see above).
+2. With the `nwm-rte` repository as cwd, run the shell script: `./.devcontainer/pytest/run_pytest_external.sh`
+
+### Example Workflows
 
 ```shell
 # These start an ephemeral container of the ngen RTE image
