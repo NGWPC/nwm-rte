@@ -200,6 +200,9 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         help=f"""Number of processors. Default={repr(c.DEFAULT_NPROCS)})""",
         default=c.DEFAULT_NPROCS,
     )
+    parser.add_argument(
+        *cli_args.MODEL_FORMULATION.args, **cli_args.MODEL_FORMULATION.kwargs
+    )
     return parser
 
 

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 # from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 # TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
-from consts import LAGGED_ENSEMBLE_MEMBER_LAGS
+from consts import LAGGED_ENSEMBLE_MEMBER_LAGS, DEFAULT_MODEL_FORMULATION_ARGS
 
 
 @dataclass
@@ -37,6 +37,24 @@ LAGGED_ENSEMBLE = ArgsKwargs(
                 To omit, provide an empty string for this part.
         
         To run a lagged ensemble member without the optional parts, provide them as empty strings e.g. `-le 'mem2' '' ''`.
+        """,
+    },
+)
+
+MODEL_FORMULATION = ArgsKwargs(
+    args=["-mf", "--model-formulation"],
+    kwargs={
+        "dest": "model_formulation_cli_args",
+        "type": str,
+        "nargs": 2,
+        "required": False,
+        "help": f"""Provide this multi-part argument to specify a non-default model formulation.
+
+        This argument has 2 parts:
+            1. models_csv : str
+                Comma-separated value of models that make up the formulation. Default: {DEFAULT_MODEL_FORMULATION_ARGS[0]}
+            2. use_root_zone : bool
+                Boolean-like value for root zone choice. Use 0/1, false/true, no/yes. Default: {DEFAULT_MODEL_FORMULATION_ARGS[1]}
         """,
     },
 )

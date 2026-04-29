@@ -45,6 +45,6 @@ docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "medi
 
 ### Historical / Retrospective Forcing
 docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc"
-docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "nwm" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_nwm"
+# docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc" -mf "snow-17,noah-owp-modular,smp,lasam,t-route" "true"
 
 exit 0
