@@ -68,7 +68,10 @@
             },
             "justMyCode": false,
             "console": "integratedTerminal",
-            "python": "${command:python.interpreterPath}"
+            "python": "${command:python.interpreterPath}",
+            "args": [
+                "tests/esmf_regrid",
+            ]
         },
         {
             "name": "run_forecast.py -n 2",
