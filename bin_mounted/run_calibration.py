@@ -224,9 +224,8 @@ if __name__ == "__main__":
         type=str,
         help="If provided, will be used as the worker name, instead of letting cal mgr choose a random worker name. Only allowed for Optimization Algorithm DDS, which uses single instances of ngen. Does not affect 'default' realization (which is not a calibration).",
     )
-    parser.add_argument(
-        *cli_args.MODEL_FORMULATION.args, **cli_args.MODEL_FORMULATION.kwargs
-    )
+    parser.add_argument(*cli_args.MODELS_CSV.args, **cli_args.MODELS_CSV.kwargs)
+    parser.add_argument(*cli_args.MODELS_RZ.args, **cli_args.MODELS_RZ.kwargs)
     args = parser.parse_args()
     cfg = RTECalibConfig(**vars(args))
     main(cfg)

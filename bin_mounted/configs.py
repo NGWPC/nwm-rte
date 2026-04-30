@@ -24,7 +24,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 
 import consts as c
-from utils import make_wcoss_path_symlinks
+from utils import make_wcoss_path_symlinks, booleanize
 
 
 @dataclass
@@ -107,27 +107,22 @@ class ModelFormulation:
     """Each formulation is defined by comma-separated string of models, and a rootzone flag.
     i.e. some formulations involve running with or without rootzone enabled."""
 
-    models_csv: str
-    cfe_aet_rootzone: bool | str
+    models_csv: str | None
+    cfe_aet_rootzone: bool | str | None
     """This may start as a bool or a str, but then is converted to a bool during __post_init__."""
 
     def __post_init__(self):
+        if self.models_csv is None:
+            self.models_csv = c.DEFAULT_MODEL_FORMULATION_ARGS[0]
+        if self.cfe_aet_rootzone is None:
+            self.cfe_aet_rootzone = c.DEFAULT_MODEL_FORMULATION_ARGS[1]
+
         pattern = "^[a-z][a-z0-9-\,]*[a-z]$"
         if not re.fullmatch(pattern, self.models_csv):
             raise ValueError(
                 f"Expected models to match pattern {repr(pattern)} but got: {repr(self.models_csv)}"
             )
-        if isinstance(self.cfe_aet_rootzone, str):
-            if self.cfe_aet_rootzone.lower() in ("no", "0", "false"):
-                self.cfe_aet_rootzone = False
-            elif self.cfe_aet_rootzone.lower() in ("yes", "1", "true"):
-                self.cfe_aet_rootzone = True
-            else:
-                raise ValueError(f"Unexpected rootzone value: {self.cfe_aet_rootzone}")
-        elif isinstance(self.cfe_aet_rootzone, bool):
-            pass
-        else:
-            raise TypeError(f"Unexpected rootzone type: {type(self.cfe_aet_rootzone)}")
+        self.cfe_aet_rootzone = booleanize(self.cfe_aet_rootzone)
 
 
 def build_model_formulations_for_test(
@@ -182,7 +177,8 @@ class RTEBaseConfig(BaseModel):
     global_domain: str
     forcing_static_dir: str
     forcing_provider: str
-    model_formulation_cli_args: list[str] | None = Field(min_length=2, max_length=2)
+    model_formulation_cli_csv: str | None = Field(default=None)
+    model_formulation_cli_rootzone: str | None = Field(default=None)
     # Set after init (not provided as args)
     errors: list | None = Field(init=False, default=None)
 
@@ -256,10 +252,10 @@ class RTEBaseConfig(BaseModel):
 
     def _parse_model_formulation_args(self):
         """Break up the multipart model formulation arg into distinct args and set them."""
-        if self.model_formulation_cli_args:
-            self.model_formulation = ModelFormulation(*self.model_formulation_cli_args)
-        else:
-            self.model_formulation = ModelFormulation(*c.DEFAULT_MODEL_FORMULATION_ARGS)
+        self.model_formulation = ModelFormulation(
+            self.model_formulation_cli_csv,
+            self.model_formulation_cli_rootzone,
+        )
 
 
 class RTEDefaultConfig(RTEBaseConfig):

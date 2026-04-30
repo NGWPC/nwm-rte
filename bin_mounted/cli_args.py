@@ -41,20 +41,28 @@ LAGGED_ENSEMBLE = ArgsKwargs(
     },
 )
 
-MODEL_FORMULATION = ArgsKwargs(
+MODELS_CSV = ArgsKwargs(
     args=["-mf", "--model-formulation"],
     kwargs={
-        "dest": "model_formulation_cli_args",
+        "dest": "model_formulation_cli_csv",
         "type": str,
-        "nargs": 2,
         "required": False,
-        "help": f"""Provide this multi-part argument to specify a non-default model formulation.
+        "help": f"""Provide this argument to specify a non-default model formulation.
+        The value should be a comma-separated string of models that make up the formulation.
+        Can be used in conjunction with ["-rz", "--root-zone"].
+        Default: {DEFAULT_MODEL_FORMULATION_ARGS[0]}.""",
+    },
+)
 
-        This argument has 2 parts:
-            1. models_csv : str
-                Comma-separated value of models that make up the formulation. Default: {DEFAULT_MODEL_FORMULATION_ARGS[0]}
-            2. use_root_zone : bool
-                Boolean-like value for root zone choice. Use 0/1, false/true, no/yes. Default: {DEFAULT_MODEL_FORMULATION_ARGS[1]}
-        """,
+MODELS_RZ = ArgsKwargs(
+    args=["-rz", "--root-zone"],
+    kwargs={
+        "dest": "model_formulation_cli_rootzone",
+        "type": str,
+        "required": False,
+        "help": f"""Provided value is converted to Boolean and passed as `cfe_aet_rootzone`.
+        The value should be either true/yes/1 or false/no/0.
+        Can be used in conjunction with ["-mf", "--model-formulation"].
+        Default: {DEFAULT_MODEL_FORMULATION_ARGS[1]}.""",
     },
 )
