@@ -49,7 +49,6 @@ def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
         all_config_overrides = get_test_configs__calibration(
             nprocs=cfg.nprocs,
             gage_id=cfg.gage_id,
-            gage_vintage=cfg.gage_vintage,
             obj_func=obj_func,
             optim_algo=optim_algo,
             model_formulations_file=cfg.model_formulations_file,
@@ -319,11 +318,10 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-g",
-        "--gage_id__gage_vintage",
+        "--gage_id",
         type=str,
-        nargs=2,
-        default=[c.DEFAULT_GAGE_ID, c.DEFAULT_GAGE_VINTAGE],
-        help=f"Calibration gage ID and gage vintage (2 args). If not provided, then these defaults will be used: {c.DEFAULT_GAGE_ID}, {c.DEFAULT_GAGE_VINTAGE} will be used.",
+        default=c.DEFAULT_GAGE_ID,
+        help=f"Calibration gage ID. If not provided, then this default will be used: {c.DEFAULT_GAGE_ID}",
     )
     parser.add_argument(
         "-fregion",

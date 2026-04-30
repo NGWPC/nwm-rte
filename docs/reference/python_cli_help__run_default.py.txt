@@ -1,5 +1,5 @@
 usage: run_default.py [-h] [-delscratch] [-delraw]
-                      [-g GAGE_ID__GAGE_VINTAGE GAGE_ID__GAGE_VINTAGE]
+                      [-g GAGE_ID GAGE_ID]
                       [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
                       [-fstatic FORCING_STATIC_DIR] [-fprov FORCING_PROVIDER]
                       -dt CYCLE_DATETIME [-dur HISTORICAL_SIM_DURATION]
@@ -21,8 +21,8 @@ options:
                         Delete scratch dir and ESMF mesh files before the run, which forces ESMF and NetCDF actions to occur.
   -delraw, --delete_forcing_raw_input_first
                         Delete contents of '/ngen-app/data/raw_input' before the run, which forces forcing data to be re-downloaded.
-  -g GAGE_ID__GAGE_VINTAGE GAGE_ID__GAGE_VINTAGE, --gage_id__gage_vintage GAGE_ID__GAGE_VINTAGE GAGE_ID__GAGE_VINTAGE
-                        Calibration gage ID and gage vintage (2 args). Defaults=01123000, 2025_Mar_14_21_14_37
+  -g GAGE_ID, --gage_id GAGE_ID GAGE_ID
+                        Calibration gage ID. If not provided, then this default will be used: 01123000
   -gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}, --global_domain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}
                         Global domain/region of forcing data. Default=CONUS
   -fstatic FORCING_STATIC_DIR, --forcing_static_dir FORCING_STATIC_DIR

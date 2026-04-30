@@ -133,11 +133,10 @@ def cli_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "-g",
-        "--gage_id__gage_vintage",
+        "--gage_id",
         type=str,
-        nargs=2,
-        default=[c.DEFAULT_GAGE_ID, c.DEFAULT_GAGE_VINTAGE],
-        help=f"Calibration gage ID and gage vintage (2 args). Defaults={c.DEFAULT_GAGE_ID}, {c.DEFAULT_GAGE_VINTAGE}",
+        default=c.DEFAULT_GAGE_ID,
+        help=f"Default gage ID. Defaults={c.DEFAULT_GAGE_ID}",
     )
     parser.add_argument(
         "-gdomain",
@@ -158,7 +157,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         "-fprov",
         "--forcing_provider",
         type=str,
-        help=f"Forcing provider to use, e.g., 'bmi' or 'csv'. Default: {repr(c.FORCING_PROVIDER_DEFAULT)}",
+        help=f"Forcing provider to use, e.g., 'bmi'. Default: {repr(c.FORCING_PROVIDER_DEFAULT)}",
         default=c.FORCING_PROVIDER_DEFAULT,
     )
     parser.add_argument(

@@ -16,10 +16,8 @@ RUN_NAME_TIMESTAMP_SUFFIX_FORMAT = r"%Y%m%d-%H%M%S-%f"
 DEFAULT_FORECAST_RUN_NAME = "fcst_run1"
 
 FORCING_PROVIDER_DEFAULT = "bmi"
-FORCING_PROVIDER_CHOICES = [FORCING_PROVIDER_DEFAULT, "csv"]
+FORCING_PROVIDER_CHOICES = [FORCING_PROVIDER_DEFAULT]
 
-# For CSV forcing
-CSV_FORCING_DIR_FORMAT = "/s3/ngwpc-forcing/aorc_2.2/{global_domain}/Gage_{gage_id}/"
 # For BMI forcing
 FORCING_TEMPLATE_DIR = "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
 FORCING_ROOT_DIR = "/ngen-app/data"
@@ -31,7 +29,6 @@ DT_END_COLDSTART = DT_START_FORECAST
 
 ### .config section [General]
 DEFAULT_GAGE_ID = "01123000"
-DEFAULT_GAGE_VINTAGE = "2025_Mar_14_21_14_37"
 
 DEFAULT_MODEL_FORMULATION_ARGS = ("noah-owp-modular,cfe-s", False)
 # DEFAULT_MODEL_FORMULATION_ARGS = ("snow-17,noah-owp-modular,smp,lasam,t-route", False)
@@ -67,7 +64,6 @@ VALID_EVAL_CURTAILMENT_DEFAULT = timedelta(hours=0)  # Gets subtracted
 ### .config section [DataFile]
 MODULE_PARAMETER_FILES_DIR = "/ngen-app/nwm-msw-mgr/src/mswm/module_parameter_files"
 NGEN_DIR = "/ngen-app/ngen"
-HYDROFABRIC_DIR = "/s3/ngwpc-hydrofabric"
 NWM_RETRO_STREAMFLOW_DIR = "/s3/ngwpc-dev/ngen-static-files/nwm_retrospective"
 
 
@@ -144,15 +140,12 @@ PARTITION_GENERATOR_BIN__LINK = f"{NGEN_EXE_DIR}/partitionGenerator"
 
 
 ### For construction of DataFileConfig
-### NOTE: obs_dir, nwmretro_file, and hydrofab_file are dynamic and added on the fly
+### NOTE: obs_dir, nwmretro_file are dynamic and added on the fly
 DATAFILE_LIBS = {
     "noah_parameter_dir": f"{MODULE_PARAMETER_FILES_DIR}/noah-owp-modular",
     "ueb_parameter_dir": f"{MODULE_PARAMETER_FILES_DIR}/ueb",
     "lasam_parameter_dir": f"{MODULE_PARAMETER_FILES_DIR}/lasam",
     "lstm_parameter_dir": f"{MODULE_PARAMETER_FILES_DIR}/lstm",
-    "sac_sma_parameter_dir": HYDROFABRIC_DIR,
-    "snow_17_parameter_dir": HYDROFABRIC_DIR,
-    "attributes_file": f"{DEFAULT_MAIN_DIR}/data/conus_model_attributes.parquet",
     "ngen_exe_file": NGEN_BIN__LINK,
     "sloth_lib": f"{NGEN_DIR}/extern/sloth/cmake_build/libslothmodel.so",
     "cfe_lib": f"{NGEN_DIR}/extern/cfe/cmake_build/libcfebmi.so",

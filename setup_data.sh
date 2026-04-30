@@ -44,13 +44,11 @@ DATA__PARAMETERS__HOST="${RUN_NGEN_ROOT__HOST}/data"
 DATA__GEO_EM_CONUS_NC__S3_SOURCE="s3://ngwpc-dev/rte-test-data/esmf/geo_em_CONUS.nc"
 DATA__GEO_EM_CONUS_NC__HOST="${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/geo_em_CONUS.nc"
 
-TEST_RUN_CONFIG__CALIBRATION__SOURCE="s3://ngwpc-dev/rte-test-data/configs/input_calibration_bmi.config"
-TEST_RUN_CONFIG__FORECAST__SOURCE="s3://ngwpc-dev/rte-test-data/configs/input_forecast.config"
+TEST_RUN_CONFIG__CALIBRATION__SOURCE="s3://ngwpc-dev/rte-test-data/configs/input_calibration_bmi_nhf.config"
+TEST_RUN_CONFIG__FORECAST__SOURCE="s3://ngwpc-dev/rte-test-data/configs/input_forecast_nhf.config"
 
 # Download test gage data using setup_data_one_gage.sh
 ./setup_data_one_gage.sh "${TEST_GAGE}" "${DOMAIN}"
-# Also download forcing data for the gage
-aws s3 sync "s3://ngwpc-forcing/aorc_2.2/CONUS/Gage_${TEST_GAGE}/" "${S3_ROOT__HOST}/ngwpc-forcing/aorc_2.2/CONUS/Gage_${TEST_GAGE}/"
 
 # Download various ngen parameterization files
 aws s3 sync "${DATA__PARAMETERS__S3_SOURCE}/" "${DATA__PARAMETERS__HOST}/"
