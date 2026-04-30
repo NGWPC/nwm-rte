@@ -38,9 +38,6 @@ TEST_GAGE="01123000"
 DOMAIN="CONUS"
 WORKFLOW_INPUT_CONFIG_ROOT="${RUN_NGEN_ROOT__HOST}/configs"
 
-DATA__HYDROFABRIC__S3_SOURCE="s3://ngwpc-hydrofabric"
-DATA__HYDROFABRIC__HOST="${S3_ROOT__HOST}/ngwpc-hydrofabric"
-
 DATA__PARAMETERS__S3_SOURCE="s3://ngwpc-dev/rte-test-data/parameters"
 DATA__PARAMETERS__HOST="${RUN_NGEN_ROOT__HOST}/data"
 
@@ -49,16 +46,6 @@ DATA__GEO_EM_CONUS_NC__HOST="${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/ge
 
 TEST_RUN_CONFIG__CALIBRATION__SOURCE="s3://ngwpc-dev/rte-test-data/configs/input_calibration_bmi.config"
 TEST_RUN_CONFIG__FORECAST__SOURCE="s3://ngwpc-dev/rte-test-data/configs/input_forecast.config"
-
-# Download hydrofabric data
-mkdir -p "${DATA__HYDROFABRIC__HOST}"
-aws s3 cp "${DATA__HYDROFABRIC__S3_SOURCE}/CFE-X_params_2.2.csv" "${DATA__HYDROFABRIC__HOST}/"
-aws s3 cp "${DATA__HYDROFABRIC__S3_SOURCE}/deltat.csv" "${DATA__HYDROFABRIC__HOST}/"
-aws s3 cp "${DATA__HYDROFABRIC__S3_SOURCE}/gpkg_hl_uri.tgz" "${DATA__HYDROFABRIC__HOST}/"
-aws s3 cp "${DATA__HYDROFABRIC__S3_SOURCE}/hydrofabric_data.tgz" "${DATA__HYDROFABRIC__HOST}/"
-aws s3 cp "${DATA__HYDROFABRIC__S3_SOURCE}/sac_sma_params_2.2.csv" "${DATA__HYDROFABRIC__HOST}/"
-aws s3 cp "${DATA__HYDROFABRIC__S3_SOURCE}/snow17_params_2.2.csv" "${DATA__HYDROFABRIC__HOST}/"
-aws s3 cp "${DATA__HYDROFABRIC__S3_SOURCE}/ueb_deltat_2.2.csv" "${DATA__HYDROFABRIC__HOST}/"
 
 # Download test gage data using setup_data_one_gage.sh
 ./setup_data_one_gage.sh "${TEST_GAGE}" "${DOMAIN}"
@@ -86,6 +73,5 @@ aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_Hawaii.nc" "${RUN_NGEN_ROOT__H
 aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_PuertoRico.nc" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/geo_em_Puerto_Rico.nc"
 
 aws s3 cp "s3://ngwpc-dev/rte-test-data/geogrid/GEOGRID_LDASOUT_Spatial_Metadata_AK.nc" "${RUN_NGEN_ROOT__HOST}/data/GEOGRID_LDASOUT_Spatial_Metadata_AK.nc"
-aws s3 cp "s3://ngwpc-dev/rte-test-data/modified_gages/gauge_15209700.gpkg" "${DATA__HYDROFABRIC__HOST}/2.2/Alaska/15209700/GEOPACKAGE/USGS/2025_Mar_14_21_20_29/gauge_15209700.gpkg"
 
 exit 0

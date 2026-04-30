@@ -53,7 +53,7 @@ NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE:-"NO"}
 ## \env REPO_TAG_FCST_MGR Source for `nwm-fcst-mgr`.
 REPO_TAG_FCST_MGR=${REPO_TAG_FCST_MGR:-"development"}
 ## \env REPO_TAG_MSW_MGR Source for `nwm-mswm-mgr`.
-REPO_TAG_MSW_MGR=${REPO_TAG_MSW_MGR:-"development"}
+REPO_TAG_MSW_MGR=${REPO_TAG_MSW_MGR:-"LOCAL"}
 ## \env REPO_TAG_CAL_MGR Source for `nwm-cal-mgr`.
 REPO_TAG_CAL_MGR=${REPO_TAG_CAL_MGR:-"development"}
 ## \env REPO_TAG_REGION_MGR Source for `nwm-region-mgr`.
@@ -79,13 +79,14 @@ REPO_TAG_EVAL=${REPO_TAG_EVAL:-"development"}
 ## * `"build_from_local"` and `"build_from_remote"` cause the `ngen` base image to be built from the bottom up (build ngen-forcing, then build ngen, then add the RTE layers). The former uses the existing state of the codebase currently on disk for `ngen-forcing` and for `ngen`, and the latter uses the provided GH refs for sourcing the codebases of `ngen-forcing` and `ngen`.
 ## 
 
-NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"ghcr"}
+# NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"ghcr"}
 ## \env NGEN_BASE__REMOTE_GHCR_TAG (Only used when `NGEN_SOURCE_MODE="ghcr"`). GHCR image tag to use, e.g. `"latest"` or a commit hash.
 NGEN_BASE__REMOTE_GHCR_TAG=${NGEN_BASE__REMOTE_GHCR_TAG:-"latest"}
 
 # NGEN_SOURCE_MODE="existing_local_tag"
 ## \env NGEN_BASE__EXISTING_LOCAL_TAG (Only used when `NGEN_SOURCE_MODE="existing_local_tag"`). Choose any existing local image tag.
-NGEN_BASE__EXISTING_LOCAL_TAG=${NGEN_BASE__EXISTING_LOCAL_TAG:-"ngen:localdebug"}
+NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"existing_local_tag"}
+NGEN_BASE__EXISTING_LOCAL_TAG=${NGEN_BASE__EXISTING_LOCAL_TAG:-"ngen:units"}
 
 # NGEN_SOURCE_MODE="build_from_local"
 
