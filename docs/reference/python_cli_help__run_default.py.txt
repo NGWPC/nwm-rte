@@ -6,6 +6,8 @@ usage: run_default.py [-h] [-delscratch] [-delraw]
                       [-le LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS]
                       [-fconfig {standard_ana,standard_ana_alaska,standard_ana_hawaii,standard_ana_puertorico,extended_ana,extended_ana_alaska,short_range,short_range_alaska,short_range_hawaii,short_range_puertorico,short_range_extended_alaska,medium_range_blend,medium_range_blend_alaska,long_range_mem1,long_range_mem2,long_range_mem3,long_range_mem4,nwm,aorc,medium_range}]
                       [-rname FCST_RUN_NAME] [-n NPROCS]
+                      [-mf MODEL_FORMULATION_CLI_CSV]
+                      [-rz MODEL_FORMULATION_CLI_ROOTZONE]
 
 Script for building and running default realizations
         using realtime forcing configurations or historical / retrospective forcing.
@@ -56,3 +58,13 @@ options:
                         Forecast run name. Default: 'fcst_run1'
   -n NPROCS, --nprocs NPROCS
                         Number of processors. Default=1)
+  -mf MODEL_FORMULATION_CLI_CSV, --model-formulation MODEL_FORMULATION_CLI_CSV
+                        Provide this argument to specify a non-default model formulation.
+                                The value should be a comma-separated string of models that make up the formulation.
+                                Can be used in conjunction with ["-rz", "--root-zone"].
+                                Default: noah-owp-modular,cfe-s.
+  -rz MODEL_FORMULATION_CLI_ROOTZONE, --root-zone MODEL_FORMULATION_CLI_ROOTZONE
+                        Provided value is converted to Boolean and passed as `cfe_aet_rootzone`.
+                                The value should be either true/yes/1 or false/no/0.
+                                Can be used in conjunction with ["-mf", "--model-formulation"].
+                                Default: False.

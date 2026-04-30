@@ -5,12 +5,14 @@ usage: run_tests.py [-h] [-delscratch] [-delraw] [-nofcst]
                     [-ofuncs OBJECTIVE_FUNCTIONS [OBJECTIVE_FUNCTIONS ...]]
                     [-allofuncs]
                     [-optalgos OPTIMIZATION_ALGORITHMS [OPTIMIZATION_ALGORITHMS ...]]
-                    [-alloptalgos] [-allforcings] [-cs]
+                    [-alloptalgos] [-allforcings]
+                    [-mff MODEL_FORMULATIONS_FILE]
+                    [-calfsrcs [CALIBRATION_FORCING_SOURCES ...]] [-cs]
                     [-fcname FCST_RUN_NAME] [-n NPROCS]
                     [-g GAGE_ID__GAGE_VINTAGE GAGE_ID__GAGE_VINTAGE]
                     [-fregion {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
                     [-fstatic FORCING_STATIC_DIR] [-fprovider {bmi,csv}]
-                    [--noop]
+                    [--noop] [--restart]
 
 options:
   -h, --help            show this help message and exit
@@ -38,6 +40,11 @@ options:
                         For calibration, causes all optimization algorithms to be executed: [<Algorithm.dds: 'dds'>, <Algorithm.pso: 'pso'>, <Algorithm.gwo: 'gwo'>, <Algorithm.none: 'none'>]
   -allforcings, --do_all_forcing_configs
                         Run all forcing configurations rather than the default shorter default list. Default list: ['short_range', 'standard_ana', 'medium_range_blend']. Incompatible with --skip_forecast.
+  -mff MODEL_FORMULATIONS_FILE, --model_formulations_file MODEL_FORMULATIONS_FILE
+                        If provided, multiple model formulations will be ran, and this is a file path to a tsv file of the formulations list.
+                                If not provided, then the default model formulation will be used: ('noah-owp-modular,cfe-s', False).
+  -calfsrcs [CALIBRATION_FORCING_SOURCES ...], --calibration_forcing_sources [CALIBRATION_FORCING_SOURCES ...]
+                        Sources of forcing data for calibration runs. If not provided then this default will be used: ['nwm', 'aorc'].
   -cs, --do_coldstart   Causes use_cold_start to be True for all forecasts
   -fcname FCST_RUN_NAME, --fcst_run_name FCST_RUN_NAME
                         Replaces default value for fcst_run_name ('fcst_run1')
@@ -52,3 +59,4 @@ options:
   -fprovider {bmi,csv}, --forcing_provider {bmi,csv}
                         Forcing provider. Default=bmi
   --noop                Run in noop mode - only verify that the script can import libraries and basic setup, then exit without looking for data or running any workflows.
+  --restart             Run in restart mode. Read existing results json file /ngen-app/bin/bin_mounted/forecast_tests_results.json if it exists and skip indexes that already have a record in it.
