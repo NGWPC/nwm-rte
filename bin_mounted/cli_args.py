@@ -1,3 +1,4 @@
+import argparse
 from dataclasses import dataclass
 
 # from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
@@ -11,6 +12,11 @@ class ArgsKwargs:
 
     args: list
     kwargs: dict
+
+
+def add_arg(parser: argparse.ArgumentParser, arg: ArgsKwargs) -> None:
+    """Helper function to add a CLI argument to an existing argparse parser."""
+    parser.add_argument(*arg.args, **arg.kwargs)
 
 
 LAGGED_ENSEMBLE = ArgsKwargs(
@@ -64,5 +70,14 @@ MODELS_RZ = ArgsKwargs(
         The value should be either true/yes/1 or false/no/0.
         Can be used in conjunction with ["-mf", "--model-formulation"].
         Default: {DEFAULT_MODEL_FORMULATION_ARGS[1]}.""",
+    },
+)
+
+TIMESTAMP_RUN_NAME_SUFFIX = ArgsKwargs(
+    args=["-ts", "--timestamp_run_name"],
+    kwargs={
+        "dest": "add_timestamp_to_run_name",
+        "action": "store_true",
+        "help": "If provided, add a timestamp suffix to the run name.",
     },
 )

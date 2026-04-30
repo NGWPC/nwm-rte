@@ -10,6 +10,7 @@ from calib.strategy import (
     Algorithm as CalOptimizationAlgo,
 )
 
+RUN_NAME_TIMESTAMP_SUFFIX_FORMAT = r"%Y%m%d-%H%M%S-%f"
 
 ### .config section [Forcing]
 DEFAULT_FORECAST_RUN_NAME = "fcst_run1"

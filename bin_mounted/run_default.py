@@ -200,8 +200,9 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         help=f"""Number of processors. Default={repr(c.DEFAULT_NPROCS)})""",
         default=c.DEFAULT_NPROCS,
     )
-    parser.add_argument(*cli_args.MODELS_CSV.args, **cli_args.MODELS_CSV.kwargs)
-    parser.add_argument(*cli_args.MODELS_RZ.args, **cli_args.MODELS_RZ.kwargs)
+    cli_args.add_arg(parser, cli_args.MODELS_CSV)
+    cli_args.add_arg(parser, cli_args.MODELS_RZ)
+    cli_args.add_arg(parser, cli_args.TIMESTAMP_RUN_NAME_SUFFIX)
     return parser
 
 

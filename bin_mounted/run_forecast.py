@@ -206,7 +206,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         default=c.DEFAULT_NPROCS,
         help=f"""Replaces default value for nprocs ({repr(c.DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance that is passed to MSWM.""",
     )
-
+    cli_args.add_arg(parser, cli_args.TIMESTAMP_RUN_NAME_SUFFIX)
     return parser
 
 
