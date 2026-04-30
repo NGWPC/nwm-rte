@@ -26,7 +26,8 @@ set -x
 
 # docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" --help
 
-docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc"
+# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc"
+docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -mf "snow-17,noah-owp-modular,smp,lasam,t-route" -rz "true"
 # docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm"
 
 # docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -gdomain "Hawaii" --gage_id__gage_vintage "16010000" "2025_Apr_07_21_40_35"

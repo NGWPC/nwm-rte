@@ -24,7 +24,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 
 import consts as c
-from utils import make_wcoss_path_symlinks
+from utils import make_wcoss_path_symlinks, booleanize
 
 
 @dataclass
@@ -107,18 +107,25 @@ class ModelFormulation:
     """Each formulation is defined by comma-separated string of models, and a rootzone flag.
     i.e. some formulations involve running with or without rootzone enabled."""
 
-    models_csv: str
-    cfe_aet_rootzone: bool
+    models_csv: str | None
+    cfe_aet_rootzone: bool | str | None
+    """This may start as a bool or a str, but then is converted to a bool during __post_init__."""
 
     def __post_init__(self):
-        pattern = "^[a-z][a-z0-9\-\,]*[a-z]$"
+        if self.models_csv is None:
+            self.models_csv = c.DEFAULT_MODEL_FORMULATION_ARGS[0]
+        if self.cfe_aet_rootzone is None:
+            self.cfe_aet_rootzone = c.DEFAULT_MODEL_FORMULATION_ARGS[1]
+
+        pattern = "^[a-z][a-z0-9-\,]*[a-z]$"
         if not re.fullmatch(pattern, self.models_csv):
             raise ValueError(
                 f"Expected models to match pattern {repr(pattern)} but got: {repr(self.models_csv)}"
             )
+        self.cfe_aet_rootzone = booleanize(self.cfe_aet_rootzone)
 
 
-def build_model_formulations(
+def build_model_formulations_for_test(
     model_formulations_file: str | None = None,
 ) -> list[ModelFormulation]:
     """If model_formulations_file is provided, then parse it to return a list of ModelFormulation instance.
@@ -170,7 +177,8 @@ class RTEBaseConfig(BaseModel):
     global_domain: str
     forcing_static_dir: str
     forcing_provider: str
-
+    model_formulation_cli_csv: str | None = Field(default=None)
+    model_formulation_cli_rootzone: str | None = Field(default=None)
     # Set after init (not provided as args)
     errors: list | None = Field(init=False, default=None)
 
@@ -183,10 +191,13 @@ class RTEBaseConfig(BaseModel):
     forcing_lag: str | None = Field(init=False, default=None)
     le__open_loop_state: str | None = Field(init=False, default=None)
     le__closed_loop_state: str | None = Field(init=False, default=None)
+    # For model formulation
+    model_formulation: ModelFormulation | None = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
         self.errors = []
         make_wcoss_path_symlinks()
+        self._parse_model_formulation_args()
 
     def _parse_gage_id__gage_vintage(self) -> None:
         """Parse the provided string and split it into two strings: gage_id and gage_vintage and set attributes.
@@ -238,6 +249,13 @@ class RTEBaseConfig(BaseModel):
             raise NotImplementedError(
                 "Lagged ensemble args for Open Loop State and Closed Loop State are not yet implemented in nwm-rte (should be provided as empty strings for now)"
             )
+
+    def _parse_model_formulation_args(self):
+        """Break up the multipart model formulation arg into distinct args and set them."""
+        self.model_formulation = ModelFormulation(
+            self.model_formulation_cli_csv,
+            self.model_formulation_cli_rootzone,
+        )
 
 
 class RTEDefaultConfig(RTEBaseConfig):
@@ -354,6 +372,14 @@ class RTEDefaultConfig(RTEBaseConfig):
             mswm_settings.DEFAULT_DATETIME_FORMAT
         )
 
+        obs_dir, nwmretro_file, errors = get_data_paths_for_lstm(
+            self.global_domain,
+            self.gage_id,
+            models_csv=self.model_formulation.models_csv,
+        )
+        if errors:
+            raise RuntimeError(errors)
+
         realization_kwargs = {
             # "input_path": forecast_vars.forecast_input_config,
             "fcst_run_name": self.fcst_run_name,
@@ -361,7 +387,7 @@ class RTEDefaultConfig(RTEBaseConfig):
                 General=GeneralConfig(
                     basin=self.gage_id,
                     run_type="default",
-                    models=c.DEFAULT_MODEL_FORMULATION_ARGS[0],
+                    models=self.model_formulation.models_csv,
                     formulation=fpp.formulation_name,
                     main_dir=c.DEFAULT_MAIN_DIR,
                     start_period=start_period,
@@ -371,7 +397,6 @@ class RTEDefaultConfig(RTEBaseConfig):
                     output_sm=True,
                     domain=self.global_domain.lower(),
                 ),
-                ModuleProperties=ModulePropertiesConfig(),
                 Forcing=ForcingConfig(
                     forcing_provider=fpp.forcing_provider,
                     forcing_dir=fpp.get_forcing_dir(gage_id=self.gage_id),
@@ -389,11 +414,16 @@ class RTEDefaultConfig(RTEBaseConfig):
                     **(
                         c.DATAFILE_LIBS
                         | {
+                            "obs_dir": obs_dir,
+                            "nwmretro_file": nwmretro_file,
                             "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{self.global_domain}/{self.gage_id}/GEOPACKAGE/USGS/{self.gage_vintage}/gauge_{self.gage_id}.gpkg",
                         }
                     ),
                 ),
                 Parallel=make_parallel_config(self.nprocs),
+                ModuleProperties=ModulePropertiesConfig(
+                    cfe_aet_rootzone=self.model_formulation.cfe_aet_rootzone,
+                ),
             ),
             # Lagged ensemble args
             "use_lagged_ens": self.use_lagged_ensemble,
@@ -593,6 +623,9 @@ class RTEForecastConfig(RTEBaseConfig):
                     forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
                 ),
                 Parallel=make_parallel_config(self.nprocs),
+                ModuleProperties=ModulePropertiesConfig(
+                    cfe_aet_rootzone=self.model_formulation.cfe_aet_rootzone,
+                ),
             ),
             # Lagged ensemble args
             "use_lagged_ens": self.use_lagged_ensemble,

@@ -31,8 +31,9 @@ from configs import (
     ForcingProviderPaths,
     CalibTimeWindows,
     make_parallel_config,
-    build_model_formulations,
+    build_model_formulations_for_test,
     get_data_paths_for_lstm,
+    ModelFormulation,
 )
 import consts as c
 
@@ -45,6 +46,8 @@ def get_test_configs__calibration(
     gage_vintage: str = c.DEFAULT_GAGE_VINTAGE,
     obj_func: c.CalObjective = c.CALIB_OBJECTIVE_FUNCTION,
     optim_algo: c.CalOptimizationAlgo = c.CALIB_OPTIMIZATION_ALGO,
+    model_formulation: ModelFormulation | None = None,
+    # For iterating over multiple model formulations
     model_formulations_file: str | None = None,
     forcing_config_types=c.CALIB_FORCING_CONFIGURATION_TYPES,
     global_domain: str = c.CALIB_GLOBAL_DOMAIN_DEFAULT,
@@ -59,7 +62,10 @@ def get_test_configs__calibration(
     if run_type not in ("calibration", "default"):
         raise ValueError(f"Unexpected run_type: {run_type}")
 
-    model_formulations = build_model_formulations(model_formulations_file)
+    if model_formulations_file:
+        model_formulations = build_model_formulations_for_test(model_formulations_file)
+    else:
+        model_formulations = [model_formulation]
 
     fpp = ForcingProviderPaths(
         forcing_provider=forcing_provider,

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 # from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 # TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
-from consts import LAGGED_ENSEMBLE_MEMBER_LAGS
+from consts import LAGGED_ENSEMBLE_MEMBER_LAGS, DEFAULT_MODEL_FORMULATION_ARGS
 
 
 @dataclass
@@ -38,5 +38,31 @@ LAGGED_ENSEMBLE = ArgsKwargs(
         
         To run a lagged ensemble member without the optional parts, provide them as empty strings e.g. `-le 'mem2' '' ''`.
         """,
+    },
+)
+
+MODELS_CSV = ArgsKwargs(
+    args=["-mf", "--model-formulation"],
+    kwargs={
+        "dest": "model_formulation_cli_csv",
+        "type": str,
+        "required": False,
+        "help": f"""Provide this argument to specify a non-default model formulation.
+        The value should be a comma-separated string of models that make up the formulation.
+        Can be used in conjunction with ["-rz", "--root-zone"].
+        Default: {DEFAULT_MODEL_FORMULATION_ARGS[0]}.""",
+    },
+)
+
+MODELS_RZ = ArgsKwargs(
+    args=["-rz", "--root-zone"],
+    kwargs={
+        "dest": "model_formulation_cli_rootzone",
+        "type": str,
+        "required": False,
+        "help": f"""Provided value is converted to Boolean and passed as `cfe_aet_rootzone`.
+        The value should be either true/yes/1 or false/no/0.
+        Can be used in conjunction with ["-mf", "--model-formulation"].
+        Default: {DEFAULT_MODEL_FORMULATION_ARGS[1]}.""",
     },
 )

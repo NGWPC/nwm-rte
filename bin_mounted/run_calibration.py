@@ -15,6 +15,7 @@ import time
 
 from mswm.build_inputs import RealizationBuilder
 
+import cli_args
 from utils import (
     datetime_from_str,
     str_from_datetime,
@@ -51,6 +52,8 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
         gage_vintage=cfg.gage_vintage,
         obj_func=cfg.objective_function,
         optim_algo=cfg.optimization_algorithm,
+        model_formulation=cfg.model_formulation,
+        model_formulations_file=None,
         forcing_config_types=[cfg.forcing_source],
         global_domain=cfg.global_domain,
         forcing_provider=cfg.forcing_provider,
@@ -221,6 +224,8 @@ if __name__ == "__main__":
         type=str,
         help="If provided, will be used as the worker name, instead of letting cal mgr choose a random worker name. Only allowed for Optimization Algorithm DDS, which uses single instances of ngen. Does not affect 'default' realization (which is not a calibration).",
     )
+    parser.add_argument(*cli_args.MODELS_CSV.args, **cli_args.MODELS_CSV.kwargs)
+    parser.add_argument(*cli_args.MODELS_RZ.args, **cli_args.MODELS_RZ.kwargs)
     args = parser.parse_args()
     cfg = RTECalibConfig(**vars(args))
     main(cfg)
