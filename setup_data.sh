@@ -46,6 +46,7 @@ DATA__GEO_EM_CONUS_NC__HOST="${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/ge
 
 TEST_RUN_CONFIG__CALIBRATION__SOURCE="s3://ngwpc-dev/rte-test-data/configs/input_calibration_bmi_nhf.config"
 TEST_RUN_CONFIG__FORECAST__SOURCE="s3://ngwpc-dev/rte-test-data/configs/input_forecast_nhf.config"
+TEST_RUN_HYDROFABRIC__SOURCE="s3://ngwpc-dev/rte-test-data/gages/gauge_${TEST_GAGE}.gpkg"
 
 # Download test gage data using setup_data_one_gage.sh
 ./setup_data_one_gage.sh "${TEST_GAGE}" "${DOMAIN}"
@@ -64,6 +65,9 @@ aws s3 cp "${TEST_RUN_CONFIG__CALIBRATION__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROO
 # Forecast config file
 # curl -O --output-dir "${WORKFLOW_INPUT_CONFIG_ROOT}/" "https://raw.githubusercontent.com/NGWPC/nwm-msw-mgr/development/src/mswm/example_inputs/forecast/input_forecast.config"
 aws s3 cp "${TEST_RUN_CONFIG__FORECAST__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROOT}/"
+
+# Test geopackage file
+aws s3 cp "${TEST_RUN_HYDROFABRIC__SOURCE}" "${S3_ROOT__HOST}/ngwpc-dev/rte-test-data/gages/"
 
 # Data for oCONUS NWM
 aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_Alaska.nc" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/"

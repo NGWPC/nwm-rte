@@ -149,7 +149,7 @@ def get_test_configs__calibration(
                 | {
                     "obs_dir": obs_dir,
                     "nwmretro_file": nwmretro_file,
-                    "hydrofab_file": None,
+                    "hydrofab_file": c.TEST_HYDROFAB_FILE,
                 }
             ),
         )

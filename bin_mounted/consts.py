@@ -75,6 +75,10 @@ DEFAULT_NPROCS = 1
 TEST_RESULTS_FILE = os.path.join(
     os.path.dirname(__file__), "forecast_tests_results.json"
 )
+
+### Test Hydrofabric GPKG
+TEST_HYDROFAB_FILE = f"/s3/ngwpc-dev/rte-test-files/gages/gauge_{DEFAULT_GAGE_ID}.gpkg"
+
 ### See this for full list of forcing configuration types: mswm.utils.input_configuration.mswm_valid_configs
 FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = [
     "short_range",
