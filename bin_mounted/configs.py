@@ -177,16 +177,15 @@ class RTEBaseConfig(BaseModel):
     global_domain: str
     forcing_static_dir: str
     forcing_provider: str
+    gage_id: str
     model_formulation_cli_csv: str | None = Field(default=None)
     model_formulation_cli_rootzone: str | None = Field(default=None)
-    add_timestamp_to_run_name: bool
+    add_timestamp_to_run_name: bool = Field(default=False)
     nwm_output_vars: bool = Field(default=False)
     """Passed to MSWM NWMOutputConfig. Does not apply to calibration workflow."""
 
     # Set after init (not provided as args)
     errors: list | None = Field(init=False, default=None)
-
-    gage_id: str = Field(init=False, default=None)
 
     # For lagged ensemble
     use_lagged_ensemble: bool | None = Field(init=False, default=False)
@@ -399,7 +398,7 @@ class RTEDefaultConfig(RTEBaseConfig):
                         | {
                             "obs_dir": obs_dir,
                             "nwmretro_file": nwmretro_file,
-                            "hydrofab_file": "",
+                            "hydrofab_file": None,
                         }
                     ),
                 ),
@@ -476,7 +475,6 @@ class RTECalibConfig(RTEBaseConfig):
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
-        super()._parse_gage_id
 
         if self.nwm_output_vars:
             self.errors.append(
