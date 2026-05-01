@@ -29,6 +29,8 @@ set -x
 
 # Short Range
 docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr"
+# Short Range with NWM Output Variables
+docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr_nwm_output" -nwmout
 # Analysis & Assimilation
 docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "standard_ana" -dt "2026-03-30 06:00:00" -rname "default_ana"
 # Medium Range

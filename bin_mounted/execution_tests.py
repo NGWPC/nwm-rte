@@ -32,6 +32,7 @@ from configs import (
     CalibTimeWindows,
     make_parallel_config,
     build_model_formulations_for_test,
+    build_hydrofab_file_path,
     get_data_paths_for_lstm,
     ModelFormulation,
 )
@@ -142,13 +143,14 @@ def get_test_configs__calibration(
         if errors:
             raise RuntimeError(errors)
 
+        hydrofab_file = build_hydrofab_file_path(global_domain, gage_id, gage_vintage)
         datafile = DataFileConfig(
             **(
                 c.DATAFILE_LIBS
                 | {
                     "obs_dir": obs_dir,
                     "nwmretro_file": nwmretro_file,
-                    "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{global_domain}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg",
+                    "hydrofab_file": hydrofab_file,
                 }
             ),
         )

@@ -81,3 +81,12 @@ TIMESTAMP_RUN_NAME_SUFFIX = ArgsKwargs(
         "help": "If provided, add a timestamp suffix to the run name.",
     },
 )
+
+NWM_OUTPUT_VARIABLES = ArgsKwargs(
+    args=["-nwmout", "--nwm_output_vars_true"],
+    kwargs={
+        "dest": "nwm_output_vars",
+        "action": "store_true",
+        "help": "If provided, NWMOutputConfig.nwm_output_variables will be set to True",
+    },
+)
