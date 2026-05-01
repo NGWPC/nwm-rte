@@ -77,7 +77,7 @@ TEST_RESULTS_FILE = os.path.join(
 )
 
 ### Test Hydrofabric GPKG
-TEST_HYDROFAB_FILE = f"/s3/ngwpc-dev/rte-test-files/gages/gauge_{DEFAULT_GAGE_ID}.gpkg"
+TEST_HYDROFAB_FILE = f"/s3/ngwpc-dev/rte-test-data/gages/gauge_{DEFAULT_GAGE_ID}.gpkg"
 
 ### See this for full list of forcing configuration types: mswm.utils.input_configuration.mswm_valid_configs
 FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = [
