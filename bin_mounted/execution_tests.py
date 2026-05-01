@@ -63,8 +63,10 @@ def get_test_configs__calibration(
 
     if model_formulations_file:
         model_formulations = build_model_formulations_for_test(model_formulations_file)
-    else:
+    elif model_formulation is not None:
         model_formulations = [model_formulation]
+    else:
+        model_formulations = [ModelFormulation(*c.DEFAULT_MODEL_FORMULATION_ARGS)]
 
     fpp = ForcingProviderPaths(
         forcing_provider=forcing_provider,
