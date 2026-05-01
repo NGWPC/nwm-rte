@@ -23,8 +23,8 @@ GH_ORG=${GH_ORG:-"NGWPC"}
 NO_CACHE=${NO_CACHE:-""}
 
 ## \env STAGE The stage of the docker build sequence to stop at. Choose from: `["ngen_rte_base", "ngen_rte_eval_verf"]`.  See `Dockerfile.rte` for more information
-# STAGE=${STAGE:-"ngen_rte_base"}
-STAGE=${STAGE:-"ngen_rte_eval_verf"}
+STAGE=${STAGE:-"ngen_rte_base"}
+# STAGE=${STAGE:-"ngen_rte_eval_verf"}
 
 ## \env INSTALL_DEBUGGERS Passed to ./install_debuggers.sh, causes pip package `debugpy` and dnf package `gdb` to be installed. Choose from: `["NO", "YES"]`
 INSTALL_DEBUGGERS=${INSTALL_DEBUGGERS:-"NO"}
@@ -50,22 +50,23 @@ NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE:-"NO"}
 ## This does not affect the base image, does not reflect changes to C++ code nor changes to `ngen-forcing/Dockerfile.bmi-forcings`, nor changes to other ngen-forcing build instructions.
 ## It only causes an optional `pip install` call to be executed on the `ngen-forcing` Python package, after the manager packages have been installed on top of the ngen base image.
 ## 
+## nwm-rte: bf0accd2c86ccac69e9b6c9923b3b57251f07342
 ## \env REPO_TAG_FCST_MGR Source for `nwm-fcst-mgr`.
-REPO_TAG_FCST_MGR=${REPO_TAG_FCST_MGR:-"development"}
+REPO_TAG_FCST_MGR=${REPO_TAG_FCST_MGR:-"433f2ca8015574bc0668f4f8df293ed8b90c9a4e"}
 ## \env REPO_TAG_MSW_MGR Source for `nwm-mswm-mgr`.
-REPO_TAG_MSW_MGR=${REPO_TAG_MSW_MGR:-"development"}
+REPO_TAG_MSW_MGR=${REPO_TAG_MSW_MGR:-"f13b05f13c19bac2d7a402577dabc7becbdcb120"}
 ## \env REPO_TAG_CAL_MGR Source for `nwm-cal-mgr`.
-REPO_TAG_CAL_MGR=${REPO_TAG_CAL_MGR:-"development"}
+REPO_TAG_CAL_MGR=${REPO_TAG_CAL_MGR:-"b9826eefedfeee84bd0c78f0250e2a64252192d2"}
 ## \env REPO_TAG_REGION_MGR Source for `nwm-region-mgr`.
-REPO_TAG_REGION_MGR=${REPO_TAG_REGION_MGR:-"development"}
+REPO_TAG_REGION_MGR=${REPO_TAG_REGION_MGR:-""}
 ## \env REPO_TAG_DATA_ASSIM_ENGINE Source for `nwm-data-assimilation`.
-REPO_TAG_DATA_ASSIM_ENGINE=${REPO_TAG_DATA_ASSIM_ENGINE:-"development"}
+REPO_TAG_DATA_ASSIM_ENGINE=${REPO_TAG_DATA_ASSIM_ENGINE:-""}
 ## \env REPO_TAG_NGEN_FORCING (Optional). Source for *re-installing* `ngen-forcing` Python package. Note that this does not affect the sourcing of the base image.
-REPO_TAG_NGEN_FORCING=${REPO_TAG_NGEN_FORCING:-""}
+REPO_TAG_NGEN_FORCING=${REPO_TAG_NGEN_FORCING:-"82e689d254ed53a5df091c7e7433926cd70d9424"}
 ## \env REPO_TAG_VERF Source for `nwm-verf`.
-REPO_TAG_VERF=${REPO_TAG_VERF:-"development"}
+REPO_TAG_VERF=${REPO_TAG_VERF:-""}
 ## \env REPO_TAG_EVAL Source for `nwm-eval-mgr`.
-REPO_TAG_EVAL=${REPO_TAG_EVAL:-"development"}
+REPO_TAG_EVAL=${REPO_TAG_EVAL:-""}
 
 
 #### Sourcing of ngen Base
@@ -81,7 +82,7 @@ REPO_TAG_EVAL=${REPO_TAG_EVAL:-"development"}
 
 NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"ghcr"}
 ## \env NGEN_BASE__REMOTE_GHCR_TAG (Only used when `NGEN_SOURCE_MODE="ghcr"`). GHCR image tag to use, e.g. `"latest"` or a commit hash.
-NGEN_BASE__REMOTE_GHCR_TAG=${NGEN_BASE__REMOTE_GHCR_TAG:-"latest"}
+NGEN_BASE__REMOTE_GHCR_TAG=${NGEN_BASE__REMOTE_GHCR_TAG:-"f8a476e"}
 
 # NGEN_SOURCE_MODE="existing_local_tag"
 ## \env NGEN_BASE__EXISTING_LOCAL_TAG (Only used when `NGEN_SOURCE_MODE="existing_local_tag"`). Choose any existing local image tag.
