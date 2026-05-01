@@ -57,9 +57,9 @@ function s3_copy() {
 s3_test_exists "${SRC_FILE_NWM_RETRO}"
 s3_copy "${SRC_FILE_NWM_RETRO}" "${TGT_DIR_NWM_RETRO}/"
 
-# echo "Downloading: ${SRC_URL_STREAMFLOW_OBS} -> ${TGT_FILE_OBS_FLOW}"
-# mkdir -p "${TGT_DIR_OBS_FLOW}"
-# curl -f -o "${TGT_FILE_OBS_FLOW}" "${SRC_URL_STREAMFLOW_OBS}"  # Get from EDFS server
+echo "Downloading: ${SRC_URL_STREAMFLOW_OBS} -> ${TGT_FILE_OBS_FLOW}"
+mkdir -p "${TGT_DIR_OBS_FLOW}"
+curl -f -o "${TGT_FILE_OBS_FLOW}" "${SRC_URL_STREAMFLOW_OBS}"  # Get from EDFS server
 
 echo "Listing available observed flow files on disk for provided gage: ${GAGE_ID}"
 ls -1 "${TGT_DIR_OBS_FLOW}/" | grep ${GAGE_ID}
