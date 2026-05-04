@@ -7,6 +7,7 @@ from mswm.build_inputs import RealizationBuilder
 
 from bin_mounted import run_default
 from bin_mounted import configs
+from bin_mounted import consts as c
 
 
 # def test_build_default_realization():
@@ -51,6 +52,8 @@ def _build_default_config() -> configs.RTEDefaultConfig:
             "test_default_aorc",
             "--nprocs",
             "2",
+            "--hydrofab_file",
+            c.TEST_HYDROFAB_FILE,
         ]
     )
     cfg = configs.RTEDefaultConfig(**vars(args))

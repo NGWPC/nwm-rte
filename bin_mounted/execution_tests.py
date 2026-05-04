@@ -32,7 +32,6 @@ from configs import (
     CalibTimeWindows,
     make_parallel_config,
     build_model_formulations_for_test,
-    build_hydrofab_file_path,
     get_data_paths_for_lstm,
     ModelFormulation,
 )
@@ -44,7 +43,7 @@ print = functools.partial(print, flush=True)
 def get_test_configs__calibration(
     nprocs: int = c.DEFAULT_NPROCS,
     gage_id: str = c.DEFAULT_GAGE_ID,
-    gage_vintage: str = c.DEFAULT_GAGE_VINTAGE,
+    hydrofab_file: str | None = None,
     obj_func: c.CalObjective = c.CALIB_OBJECTIVE_FUNCTION,
     optim_algo: c.CalOptimizationAlgo = c.CALIB_OPTIMIZATION_ALGO,
     model_formulation: ModelFormulation | None = None,
@@ -65,8 +64,10 @@ def get_test_configs__calibration(
 
     if model_formulations_file:
         model_formulations = build_model_formulations_for_test(model_formulations_file)
-    else:
+    elif model_formulation is not None:
         model_formulations = [model_formulation]
+    else:
+        model_formulations = [ModelFormulation(*c.DEFAULT_MODEL_FORMULATION_ARGS)]
 
     fpp = ForcingProviderPaths(
         forcing_provider=forcing_provider,
@@ -143,7 +144,6 @@ def get_test_configs__calibration(
         if errors:
             raise RuntimeError(errors)
 
-        hydrofab_file = build_hydrofab_file_path(global_domain, gage_id, gage_vintage)
         datafile = DataFileConfig(
             **(
                 c.DATAFILE_LIBS

@@ -49,7 +49,7 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
     all_config_overrides = get_test_configs__calibration(
         nprocs=cfg.nprocs,
         gage_id=cfg.gage_id,
-        gage_vintage=cfg.gage_vintage,
+        hydrofab_file=cfg.hydrofab_file,
         obj_func=cfg.objective_function,
         optim_algo=cfg.optimization_algorithm,
         model_formulation=cfg.model_formulation,
@@ -146,11 +146,10 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-g",
-        "--gage_id__gage_vintage",
+        "--gage_id",
         type=str,
-        nargs=2,
-        default=[c.DEFAULT_GAGE_ID, c.DEFAULT_GAGE_VINTAGE],
-        help=f"Calibration gage ID and gage vintage (2 args). Defaults={c.DEFAULT_GAGE_ID}, {c.DEFAULT_GAGE_VINTAGE}",
+        default=c.DEFAULT_GAGE_ID,
+        help=f"Calibration gage ID Default={c.DEFAULT_GAGE_ID}",
     )
     parser.add_argument(
         "-start",
@@ -223,6 +222,12 @@ if __name__ == "__main__":
         "--worker_name",
         type=str,
         help="If provided, will be used as the worker name, instead of letting cal mgr choose a random worker name. Only allowed for Optimization Algorithm DDS, which uses single instances of ngen. Does not affect 'default' realization (which is not a calibration).",
+    )
+    parser.add_argument(
+        "--hydrofab_file",
+        type=str,
+        default=None,
+        help="Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call."
     )
     parser.add_argument(*cli_args.MODELS_CSV.args, **cli_args.MODELS_CSV.kwargs)
     parser.add_argument(*cli_args.MODELS_RZ.args, **cli_args.MODELS_RZ.kwargs)

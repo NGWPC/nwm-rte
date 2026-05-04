@@ -9,7 +9,7 @@ usage: run_tests.py [-h] [-delscratch] [-delraw] [-nofcst]
                     [-mff MODEL_FORMULATIONS_FILE]
                     [-calfsrcs [CALIBRATION_FORCING_SOURCES ...]] [-cs]
                     [-fcname FCST_RUN_NAME] [-n NPROCS]
-                    [-g GAGE_ID__GAGE_VINTAGE GAGE_ID__GAGE_VINTAGE]
+                    [-g GAGE_ID GAGE_ID]
                     [-fregion {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
                     [-fstatic FORCING_STATIC_DIR] [-fprovider {bmi,csv}]
                     [--noop] [--restart]
@@ -50,8 +50,10 @@ options:
                         Replaces default value for fcst_run_name ('fcst_run1')
   -n NPROCS, --nprocs NPROCS
                         Replaces default value for nprocs (1) and subsequently the ParallelConfig instance that is passed to MSWM.
-  -g GAGE_ID__GAGE_VINTAGE GAGE_ID__GAGE_VINTAGE, --gage_id__gage_vintage GAGE_ID__GAGE_VINTAGE GAGE_ID__GAGE_VINTAGE
-                        Calibration gage ID and gage vintage (2 args). If not provided, then these defaults will be used: 01123000, 2025_Mar_14_21_14_37 will be used.
+  -g GAGE_ID, --gage_id GAGE_ID
+                        Calibration gage ID. If not provided, then this default will be used: 01123000
+  --hydrofab_file HYDROFAB_FILE
+                        Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.
   -fregion {CONUS,Alaska,Hawaii,Puerto_Rico,GL}, --global_domain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}
                         Region of forcing data. Default=CONUS
   -fstatic FORCING_STATIC_DIR, --forcing_static_dir FORCING_STATIC_DIR
@@ -60,3 +62,4 @@ options:
                         Forcing provider. Default=bmi
   --noop                Run in noop mode - only verify that the script can import libraries and basic setup, then exit without looking for data or running any workflows.
   --restart             Run in restart mode. Read existing results json file /ngen-app/bin/bin_mounted/forecast_tests_results.json if it exists and skip indexes that already have a record in it.
+  

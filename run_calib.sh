@@ -26,23 +26,29 @@ set -x
 
 # docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" --help
 
-# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc"
-docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -mf "snow-17,noah-owp-modular,smp,lasam,t-route" -rz "true"
+docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc"
+#docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -mf "snow-17,noah-owp-modular,smp,lasam,t-route" -rz "true"
+# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -mf "snow-17,noah-owp-modular,smp,lasam,t-route" -rz "true" --gage_id "12175500"
 # docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm"
 
-# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -gdomain "Hawaii" --gage_id__gage_vintage "16010000" "2025_Apr_07_21_40_35"
-# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm" -gdomain "Hawaii" --gage_id__gage_vintage "16010000" "2025_Apr_07_21_40_35"
+# TEST_HYDROFAB_FILE="/s3/ngwpc-dev/rte-test-data/gages/gauge_01123000.gpkg"
+# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" --hydrofab_file "${TEST_HYDROFAB_FILE}"
 
-# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -gdomain "Hawaii" --gage_id__gage_vintage "16019000" "2025_Jul_15_16_33_40"
-# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm" -gdomain "Hawaii" --gage_id__gage_vintage "16019000" "2025_Jul_15_16_33_40"
+# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -gdomain "Hawaii" --gage_id "16010000"
+# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm" -gdomain "Hawaii" --gage_id "16010000"
 
-# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -gdomain "Hawaii" --gage_id__gage_vintage "16060000" "2025_Apr_07_21_41_09"
-# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm" -gdomain "Hawaii" --gage_id__gage_vintage "16060000" "2025_Apr_07_21_41_09"
+# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -gdomain "Hawaii" --gage_id "16019000"
+# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm" -gdomain "Hawaii" --gage_id "16019000"
 
-# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -gdomain "Puerto_Rico" --gage_id__gage_vintage "50014800" "2025_Apr_08_15_13_08"
-# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm" -gdomain "Puerto_Rico" --gage_id__gage_vintage "50014800" "2025_Apr_08_15_13_08"
+# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -gdomain "Hawaii" --gage_id "16060000"
+# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm" -gdomain "Hawaii" --gage_id "16060000"
 
-# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -gdomain "Alaska" --gage_id__gage_vintage "15209700" "2025_Mar_14_21_20_29"
-# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm" -gdomain "Alaska" --gage_id__gage_vintage "15209700" "2025_Mar_14_21_20_29"
+# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -gdomain "Puerto_Rico" --gage_id "50014800"
+# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm" -gdomain "Puerto_Rico" --gage_id "50014800"
+
+# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -gdomain "Alaska" --gage_id "15209700"
+# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm" -gdomain "Alaska" --gage_id "15209700"
+
+
 
 exit 0

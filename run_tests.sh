@@ -43,10 +43,10 @@ set -x
 # docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --fcst_run_name "${fcst_run_name}"
 docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
 # docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" "2025_Jan_30_13_08_20" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" "2025_Jan_30_13_08_20" --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -g "02207385" "2025_Mar_14_21_15_07" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -g "02207385" "2025_Mar_14_21_15_07" --fcst_run_name "${fcst_run_name}"
+# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
+# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" --fcst_run_name "${fcst_run_name}"
+# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -g "02207385" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
+# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -g "02207385" --fcst_run_name "${fcst_run_name}"
 # docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --fcst_run_name "${fcst_run_name}"
 # docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_coldstart --fcst_run_name "${fcst_run_name}"
 # docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_forcing_running --fcst_run_name "${fcst_run_name}"
@@ -60,5 +60,8 @@ docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --sk
 
 # docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -calfsrcs "aorc" -mff "/ngen-app/nwm-automation-scripts/model_formulations/formulations_munged_setup.tsv" -calib -nofcst -fcname "${fcst_run_name}_test_forms"
 # docker_run python "/ngen-app/bin/bin_mounted/parse_test_results.py" -mff "/ngen-app/nwm-automation-scripts/model_formulations/formulations_munged_setup.tsv"
+
+# TEST_HYDROFAB_FILE="/s3/ngwpc-dev/rte-test-data/gages/gauge_01123000.gpkg"
+# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}" --hydrofab_file "${TEST_HYDROFAB_FILE}"
 
 exit 0

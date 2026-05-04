@@ -165,7 +165,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         "-fprov",
         "--forcing_provider",
         type=str,
-        help=f"Forcing provider to use, e.g., 'bmi' or 'csv'. Default: {repr(c.FORCING_PROVIDER_DEFAULT)}",
+        help=f"Forcing provider to use, e.g., 'bmi'. Default: {repr(c.FORCING_PROVIDER_DEFAULT)}",
         default=c.FORCING_PROVIDER_DEFAULT,
     )
     parser.add_argument(

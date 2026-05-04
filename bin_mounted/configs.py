@@ -37,7 +37,6 @@ class TestPaths:
     """
 
     gage_id: str
-    gage_vintage: str
     obj_func: c.CalObjective | None
     optim_algo: c.CalOptimizationAlgo | None
     global_domain: str
@@ -178,18 +177,16 @@ class RTEBaseConfig(BaseModel):
     global_domain: str
     forcing_static_dir: str
     forcing_provider: str
+    gage_id: str
     model_formulation_cli_csv: str | None = Field(default=None)
     model_formulation_cli_rootzone: str | None = Field(default=None)
-    add_timestamp_to_run_name: bool
+    add_timestamp_to_run_name: bool = Field(default=False)
     nwm_output_vars: bool = Field(default=False)
     """Passed to MSWM NWMOutputConfig. Does not apply to calibration workflow."""
+    hydrofab_file: str | None = Field(default=None)
 
     # Set after init (not provided as args)
     errors: list | None = Field(init=False, default=None)
-
-    gage_id: str = Field(init=False, default=None)
-    gage_vintage: str = Field(init=False, default=None)
-    hydrofab_file: str = Field(init=False, default=None)
 
     # For lagged ensemble
     use_lagged_ensemble: bool | None = Field(init=False, default=False)
@@ -204,29 +201,6 @@ class RTEBaseConfig(BaseModel):
         self.errors = []
         make_wcoss_path_symlinks()
         self._parse_model_formulation_args()
-
-    def _parse_gage_id__gage_vintage(self) -> None:
-        """Parse the provided string and split it into two strings: gage_id and gage_vintage and set attributes.
-        Extend errors list as appropriate.
-        Called by child classes which define the necessary attributes."""
-        gage_id, gage_vintage = self.gage_id__gage_vintage
-
-        if gage_id != gage_id.strip():
-            self.errors.append(
-                ValueError(f"Whitespace found on end of gage_id: {repr(gage_id)}")
-            )
-            gage_id = None
-
-        if gage_vintage != gage_vintage.strip():
-            self.errors.append(
-                ValueError(
-                    f"Whitespace found on end of gage_vintage: {repr(gage_vintage)}"
-                )
-            )
-            gage_vintage = None
-
-        self.gage_id = gage_id
-        self.gage_vintage = gage_vintage
 
     def _parse_lagged_ensemble_args(self):
         """Break up the multipart lagged ensemble arg into distinct args and set them.
@@ -272,17 +246,6 @@ class RTEBaseConfig(BaseModel):
             now = datetime.now(tz=timezone.utc)
             self.fcst_run_name = f"{self.fcst_run_name}_{now.strftime(c.RUN_NAME_TIMESTAMP_SUFFIX_FORMAT)}"
 
-    def _set_hydrofab_file(self):
-        self.hydrofab_file = build_hydrofab_file_path(
-            self.global_domain, self.gage_id, self.gage_vintage
-        )
-
-
-def build_hydrofab_file_path(
-    global_domain: str, gage_id: str, gage_vintage: str
-) -> str:
-    return f"{c.HYDROFABRIC_DIR}/2.2/{global_domain}/{gage_id}/GEOPACKAGE/USGS/{gage_vintage}/gauge_{gage_id}.gpkg"
-
 
 class RTEDefaultConfig(RTEBaseConfig):
     """Configuration class for building and running one default realization
@@ -294,8 +257,6 @@ class RTEDefaultConfig(RTEBaseConfig):
         Causes scratch dir and intermediary mesh to be deleted first
     delete_forcing_raw_input_first: bool
         Causes realtime forcing data cache dir to be deleted first
-    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
-        Gage ID and vintage
     global_domain: str
         e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
     forcing_static_dir :
@@ -313,10 +274,6 @@ class RTEDefaultConfig(RTEBaseConfig):
     nprocs: int = Field(ge=1)
         Number of processors to use
     # The following are set after init during self.model_post_init(). Do not provide
-    gage_id: str = Field(init=False, default=None)
-        Gage ID
-    gage_vintage: str = Field(init=False, default=None)
-        Gage vintage
     realtime_mode: bool = Field(init=False, default=None)
         Realtime mode
     realization_builder_kwargs: dict = Field(init=False, default=None)
@@ -325,7 +282,6 @@ class RTEDefaultConfig(RTEBaseConfig):
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
-    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
     cycle_datetime: datetime
     historical_sim_duration: timedelta | None
     forcing_configuration: str
@@ -341,9 +297,7 @@ class RTEDefaultConfig(RTEBaseConfig):
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
-        super()._parse_gage_id__gage_vintage()
         super()._add_ts_to_run_name()
-        super()._set_hydrofab_file()
 
         if (
             self.forcing_configuration
@@ -445,7 +399,7 @@ class RTEDefaultConfig(RTEBaseConfig):
                         | {
                             "obs_dir": obs_dir,
                             "nwmretro_file": nwmretro_file,
-                            "hydrofab_file": f"{c.HYDROFABRIC_DIR}/2.2/{self.global_domain}/{self.gage_id}/GEOPACKAGE/USGS/{self.gage_vintage}/gauge_{self.gage_id}.gpkg",
+                            "hydrofab_file": self.hydrofab_file,
                         }
                     ),
                 ),
@@ -477,8 +431,6 @@ class RTECalibConfig(RTEBaseConfig):
         Optimization algorithm, e.g. "dds"
     nprocs: int = Field(ge=1)
         Number of processors to use
-    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
-        Gage ID and vintage
     calib_sim_start: datetime
         Calibration start time
     calib_sim_duration: timedelta
@@ -500,10 +452,6 @@ class RTECalibConfig(RTEBaseConfig):
     worker_name: str | None
         Name of the ngen worker (used to build a directory name)
     # The following are set after init during self.model_post_init(). Do not provide.
-    gage_id: str = Field(init=False, default=None)
-        Gage ID
-    gage_vintage: str = Field(init=False, default=None)
-        Gage vintage
     obs_dir: str | None = Field(init=False, default=None)
         Directory of observed flow data
     nwmretro_file: str | None = Field(init=False, default=None)
@@ -514,7 +462,6 @@ class RTECalibConfig(RTEBaseConfig):
 
     objective_function: c.CalObjective
     optimization_algorithm: c.CalOptimizationAlgo
-    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
     calib_sim_start: datetime
     calib_sim_duration: timedelta
     calib_eval_delayment: timedelta
@@ -529,8 +476,6 @@ class RTECalibConfig(RTEBaseConfig):
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
-        super()._parse_gage_id__gage_vintage()
-        super()._set_hydrofab_file()
 
         if self.nwm_output_vars:
             self.errors.append(
@@ -554,8 +499,6 @@ class RTEForecastConfig(RTEBaseConfig):
         Affects input realization path. Objective function of previously-ran calibration realization, e.g. "kge"
     optimization_algorithm: c.CalOptimizationAlgo
         Affects input realization path. Optimization algorithm of previously-ran calibration realization, e.g. "dds"
-    gage_id: str
-        Gage ID
     global_domain: str
         e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
     forcing_static_dir: str
@@ -589,10 +532,9 @@ class RTEForecastConfig(RTEBaseConfig):
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
-    ### These calibration parameters affect directory path
+    # These calibration parameters affect directory path
     objective_function: c.CalObjective
     optimization_algorithm: c.CalOptimizationAlgo
-    gage_id: str
     cycle_datetime: datetime | None
     cold_start_datetime: datetime | None
     forcing_configuration: str
@@ -708,8 +650,6 @@ class RTETestConfig(RTEBaseConfig):
         Name of the forecast realization run. Affects a directory name.
     nprocs: int = Field(ge=1)
         Number of processors to use
-    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
-        Gage ID and vintage
     global_domain: str
         e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
     forcing_provider: str
@@ -718,10 +658,6 @@ class RTETestConfig(RTEBaseConfig):
         Forcing static directory
     noop: bool
         Causes a noop to occur (for confirming that Python packages are importable).
-    gage_id: str = Field(init=False, default=None)
-        Gage ID
-    gage_vintage: str = Field(init=False, default=None)
-        Gage vintage
     """
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
@@ -742,15 +678,12 @@ class RTETestConfig(RTEBaseConfig):
     do_all_forcing_configs: bool
     do_coldstart: bool
     fcst_run_name: str
-    gage_id__gage_vintage: list[str] = Field(min_length=2, max_length=2)
     noop: bool
     restart: bool
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
-        super()._parse_gage_id__gage_vintage()
         super()._add_ts_to_run_name()
-        super()._set_hydrofab_file()
 
         if self.quit_forecast_after_forcing_running:
             self.errors.append(
@@ -798,7 +731,6 @@ class RTETestConfig(RTEBaseConfig):
                         optim_algo,
                         TestPaths(
                             self.gage_id,
-                            self.gage_vintage,
                             obj_func,
                             optim_algo,
                             self.global_domain,

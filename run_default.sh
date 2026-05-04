@@ -29,6 +29,7 @@ set -x
 
 # Short Range
 docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr"
+# docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr" -g "12175500"
 # Short Range with NWM Output Variables
 docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr_nwm_output" -nwmout
 # Analysis & Assimilation
@@ -48,5 +49,8 @@ docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "medi
 ### Historical / Retrospective Forcing
 docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc"
 # docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc" -mf "snow-17,noah-owp-modular,smp,lasam,t-route" -rz "true"
+
+# TEST_HYDROFAB_FILE="/s3/ngwpc-dev/rte-test-data/gages/gauge_01123000.gpkg"
+# docker_run python "/ngen-app/bin/bin_mounted/run_default.py" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc" --hydrofab_file "${TEST_HYDROFAB_FILE}"
 
 exit 0
