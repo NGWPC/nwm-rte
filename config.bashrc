@@ -86,7 +86,7 @@ NGEN_BASE__REMOTE_GHCR_TAG=${NGEN_BASE__REMOTE_GHCR_TAG:-"latest"}
 # NGEN_SOURCE_MODE="existing_local_tag"
 ## \env NGEN_BASE__EXISTING_LOCAL_TAG (Only used when `NGEN_SOURCE_MODE="existing_local_tag"`). Choose any existing local image tag.
 # NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"existing_local_tag"}
-NGEN_BASE__EXISTING_LOCAL_TAG=${NGEN_BASE__EXISTING_LOCAL_TAG:-"ngen:checkpoint"}
+NGEN_BASE__EXISTING_LOCAL_TAG=${NGEN_BASE__EXISTING_LOCAL_TAG:-"ngen:localdebug"}
 
 # NGEN_SOURCE_MODE="build_from_local"
 
