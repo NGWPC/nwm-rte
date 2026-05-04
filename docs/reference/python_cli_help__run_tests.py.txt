@@ -50,8 +50,10 @@ options:
                         Replaces default value for fcst_run_name ('fcst_run1')
   -n NPROCS, --nprocs NPROCS
                         Replaces default value for nprocs (1) and subsequently the ParallelConfig instance that is passed to MSWM.
-  -g GAGE_ID, --gage_id GAGE_ID GAGE_ID
+  -g GAGE_ID, --gage_id GAGE_ID
                         Calibration gage ID. If not provided, then this default will be used: 01123000
+  --hydrofab_file HYDROFAB_FILE
+                        Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.
   -fregion {CONUS,Alaska,Hawaii,Puerto_Rico,GL}, --global_domain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}
                         Region of forcing data. Default=CONUS
   -fstatic FORCING_STATIC_DIR, --forcing_static_dir FORCING_STATIC_DIR
@@ -60,3 +62,4 @@ options:
                         Forcing provider. Default=bmi
   --noop                Run in noop mode - only verify that the script can import libraries and basic setup, then exit without looking for data or running any workflows.
   --restart             Run in restart mode. Read existing results json file /ngen-app/bin/bin_mounted/forecast_tests_results.json if it exists and skip indexes that already have a record in it.
+  

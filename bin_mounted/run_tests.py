@@ -49,6 +49,7 @@ def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
         all_config_overrides = get_test_configs__calibration(
             nprocs=cfg.nprocs,
             gage_id=cfg.gage_id,
+            hydrofab_file=cfg.hydrofab_file,
             obj_func=obj_func,
             optim_algo=optim_algo,
             model_formulations_file=cfg.model_formulations_file,
@@ -355,6 +356,12 @@ if __name__ == "__main__":
         "--restart",
         action="store_true",
         help=f"Run in restart mode. Read existing results json file {c.TEST_RESULTS_FILE} if it exists and skip indexes that already have a record in it.",
+    )
+    parser.add_argument(
+        "--hydrofab_file",
+        type=str,
+        default=None,
+        help="Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call."
     )
     args = parser.parse_args()
     print(f"{__file__}: args: {json.dumps(vars(args), indent=2)}")

@@ -26,10 +26,13 @@ set -x
 
 # docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" --help
 
-# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc"
-docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -mf "snow-17,noah-owp-modular,smp,lasam,t-route" -rz "true"
+docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc"
+#docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -mf "snow-17,noah-owp-modular,smp,lasam,t-route" -rz "true"
 # docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -mf "snow-17,noah-owp-modular,smp,lasam,t-route" -rz "true" --gage_id "12175500"
 # docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm"
+
+# TEST_HYDROFAB_FILE="/s3/ngwpc-dev/rte-test-data/gages/gauge_01123000.gpkg"
+# docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" --hydrofab_file "${TEST_HYDROFAB_FILE}"
 
 # docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -gdomain "Hawaii" --gage_id "16010000"
 # docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm" -gdomain "Hawaii" --gage_id "16010000"
@@ -45,5 +48,7 @@ docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aor
 
 # docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "aorc" -gdomain "Alaska" --gage_id "15209700"
 # docker_run python "/ngen-app/bin/bin_mounted/run_calibration.py" -n 2 -fsrc "nwm" -gdomain "Alaska" --gage_id "15209700"
+
+
 
 exit 0

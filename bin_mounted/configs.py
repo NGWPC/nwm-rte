@@ -182,6 +182,7 @@ class RTEBaseConfig(BaseModel):
     model_formulation_cli_rootzone: str | None = Field(default=None)
     add_timestamp_to_run_name: bool = Field(default=False)
     nwm_output_vars: bool = Field(default=False)
+    hydrofab_file: str | None = Field(default=None)
     """Passed to MSWM NWMOutputConfig. Does not apply to calibration workflow."""
 
     # Set after init (not provided as args)
@@ -398,7 +399,7 @@ class RTEDefaultConfig(RTEBaseConfig):
                         | {
                             "obs_dir": obs_dir,
                             "nwmretro_file": nwmretro_file,
-                            "hydrofab_file": None,
+                            "hydrofab_file": self.hydrofab_file,
                         }
                     ),
                 ),

@@ -23,6 +23,8 @@ options:
                         Delete contents of '/ngen-app/data/raw_input' before the run, which forces forcing data to be re-downloaded.
   -g GAGE_ID, --gage_id GAGE_ID GAGE_ID
                         Calibration gage ID. If not provided, then this default will be used: 01123000
+  --hydrofab_file HYDROFAB_FILE
+                        Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.
   -gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}, --global_domain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}
                         Global domain/region of forcing data. Default=CONUS
   -fstatic FORCING_STATIC_DIR, --forcing_static_dir FORCING_STATIC_DIR

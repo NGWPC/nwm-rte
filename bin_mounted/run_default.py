@@ -197,6 +197,12 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         help=f"""Number of processors. Default={repr(c.DEFAULT_NPROCS)})""",
         default=c.DEFAULT_NPROCS,
     )
+    parser.add_argument(
+        "--hydrofab_file",
+        type=str,
+        default=None,
+        help="Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call."
+    )
     cli_args.add_arg(parser, cli_args.MODELS_CSV)
     cli_args.add_arg(parser, cli_args.MODELS_RZ)
     cli_args.add_arg(parser, cli_args.TIMESTAMP_RUN_NAME_SUFFIX)

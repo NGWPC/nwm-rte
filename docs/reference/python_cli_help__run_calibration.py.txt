@@ -28,6 +28,8 @@ options:
                         Replaces default value for nprocs (1) and subsequently the ParallelConfig instance that is passed to MSWM.
   -g GAGE_ID, --gage_id GAGE_ID GAGE_ID
                         Calibration gage ID. If not provided, then this default will be used: 01123000
+  --hydrofab_file HYDROFAB_FILE
+                        Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.
   -start CALIB_SIM_START, --calib_sim_start CALIB_SIM_START
                         Start time for calibration. Default=2013-07-25 00:00:00,
   -dur CALIB_SIM_DURATION, --calib_sim_duration CALIB_SIM_DURATION

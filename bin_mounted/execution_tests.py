@@ -43,6 +43,7 @@ print = functools.partial(print, flush=True)
 def get_test_configs__calibration(
     nprocs: int = c.DEFAULT_NPROCS,
     gage_id: str = c.DEFAULT_GAGE_ID,
+    hydrofab_file: str | None = None,
     obj_func: c.CalObjective = c.CALIB_OBJECTIVE_FUNCTION,
     optim_algo: c.CalOptimizationAlgo = c.CALIB_OPTIMIZATION_ALGO,
     model_formulation: ModelFormulation | None = None,
@@ -149,7 +150,7 @@ def get_test_configs__calibration(
                 | {
                     "obs_dir": obs_dir,
                     "nwmretro_file": nwmretro_file,
-                    "hydrofab_file": c.TEST_HYDROFAB_FILE,
+                    "hydrofab_file": hydrofab_file,
                 }
             ),
         )
