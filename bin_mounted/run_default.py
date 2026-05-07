@@ -119,14 +119,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
-        "-gdomain",
-        "--global_domain",
-        type=str,
-        default=c.CALIB_GLOBAL_DOMAIN_DEFAULT,
-        choices=c.CALIB_GLOBAL_DOMAIN_CHOICES,
-        help=f"Global domain/region of forcing data. Default={c.CALIB_GLOBAL_DOMAIN_DEFAULT}",
-    )
-    parser.add_argument(
         "-fstatic",
         "--forcing_static_dir",
         type=str,

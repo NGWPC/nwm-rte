@@ -1,13 +1,15 @@
 """Constants"""
 
-from datetime import datetime, timedelta
 import getpass
 import json
 import os
+from datetime import datetime, timedelta
 
 from calib.strategy import (
-    Objective as CalObjective,
     Algorithm as CalOptimizationAlgo,
+)
+from calib.strategy import (
+    Objective as CalObjective,
 )
 
 RUN_NAME_TIMESTAMP_SUFFIX_FORMAT = r"%Y%m%d-%H%M%S-%f"
@@ -118,9 +120,9 @@ ALL_FORCING_CONFIGURATION_TYPES = (
     + ["medium_range"]
 )
 
-CALIB_GLOBAL_DOMAIN_DEFAULT = "CONUS"
-CALIB_GLOBAL_DOMAIN_CHOICES = [
-    CALIB_GLOBAL_DOMAIN_DEFAULT,
+GLOBAL_DOMAIN_DEFAULT = "CONUS"
+GLOBAL_DOMAIN_CHOICES = [
+    GLOBAL_DOMAIN_DEFAULT,
     "Alaska",
     "Hawaii",
     "Puerto_Rico",

@@ -175,14 +175,6 @@ if __name__ == "__main__":
         help=f"Source of forcing data. Default={c.CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT}. Choices for calibration: {c.CALIB_FORCING_CONFIGURATION_TYPES}",
     )
     parser.add_argument(
-        "-gdomain",
-        "--global_domain",
-        type=str,
-        default=c.CALIB_GLOBAL_DOMAIN_DEFAULT,
-        choices=c.CALIB_GLOBAL_DOMAIN_CHOICES,
-        help=f"Region of forcing data. Default={c.CALIB_GLOBAL_DOMAIN_DEFAULT}",
-    )
-    parser.add_argument(
         "-fprovider",
         "--forcing_provider",
         type=str,

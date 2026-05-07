@@ -1,7 +1,5 @@
 # ruff: noqa: E741
 
-from datetime import datetime, timezone
-from enum import StrEnum
 import functools
 import itertools
 import json
@@ -9,33 +7,32 @@ import os
 import subprocess
 import time
 import traceback
+from datetime import datetime, timezone
+from enum import StrEnum
 
-from pydantic import BaseModel, Field, ConfigDict, validate_call
-from pydantic.json import pydantic_encoder
-
-from mswm.build_inputs import RealizationBuilder
-from mswm.utils.input_configuration import (
-    InputConfig,
-    GeneralConfig,
-    ModulePropertiesConfig,
-    CalibConfig,
-    ForcingConfig,
-    DataFileConfig,
-)
-from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
-
-from nwm_fcst_mgr.forecast import ForecastExecutionManager, ConfigCache, RunStatus
-from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
-
+import consts as c
 from configs import (
-    ForcingProviderPaths,
     CalibTimeWindows,
-    make_parallel_config,
+    ForcingProviderPaths,
+    ModelFormulation,
     build_model_formulations_for_test,
     get_data_paths_for_lstm,
-    ModelFormulation,
+    make_parallel_config,
 )
-import consts as c
+from mswm.build_inputs import RealizationBuilder
+from mswm.utils.input_configuration import (
+    CalibConfig,
+    DataFileConfig,
+    ForcingConfig,
+    GeneralConfig,
+    InputConfig,
+    ModulePropertiesConfig,
+)
+from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
+from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
+from nwm_fcst_mgr.forecast import ConfigCache, ForecastExecutionManager, RunStatus
+from pydantic import BaseModel, ConfigDict, Field, validate_call
+from pydantic.json import pydantic_encoder
 
 print = functools.partial(print, flush=True)
 
@@ -50,7 +47,7 @@ def get_test_configs__calibration(
     # For iterating over multiple model formulations
     model_formulations_file: str | None = None,
     forcing_config_types=c.CALIB_FORCING_CONFIGURATION_TYPES,
-    global_domain: str = c.CALIB_GLOBAL_DOMAIN_DEFAULT,
+    global_domain: str = c.GLOBAL_DOMAIN_DEFAULT,
     forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
     forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
     windows: CalibTimeWindows = CalibTimeWindows(),
@@ -173,7 +170,7 @@ def get_test_configs__forecast(
     do_all_forcing_configs: bool,
     use_cold_start: bool = False,
     gage_id: str = c.DEFAULT_GAGE_ID,
-    global_domain: str = c.CALIB_GLOBAL_DOMAIN_DEFAULT,
+    global_domain: str = c.GLOBAL_DOMAIN_DEFAULT,
     forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
     forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
     nprocs: int = c.DEFAULT_NPROCS,

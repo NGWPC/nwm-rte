@@ -297,14 +297,6 @@ if __name__ == "__main__":
         help=f"""Replaces default value for nprocs ({repr(c.DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance that is passed to MSWM.""",
     )
     parser.add_argument(
-        "-fregion",
-        "--global_domain",
-        type=str,
-        default=c.CALIB_GLOBAL_DOMAIN_DEFAULT,
-        choices=c.CALIB_GLOBAL_DOMAIN_CHOICES,
-        help=f"Region of forcing data. Default={c.CALIB_GLOBAL_DOMAIN_DEFAULT}",
-    )
-    parser.add_argument(
         "-fstatic",
         "--forcing_static_dir",
         type=str,

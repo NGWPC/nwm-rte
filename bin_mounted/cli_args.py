@@ -82,6 +82,17 @@ GAGE_ID = ArgsKwargs(
     scripts=[Script.ALL],
 )
 
+GAGE_ID = ArgsKwargs(
+    args=["-gdomain", "--global_domain"],
+    kwargs={
+        "type": str,
+        "default": c.GLOBAL_DOMAIN_DEFAULT,
+        "choices": c.GLOBAL_DOMAIN_CHOICES,
+        "help": f"Global domain/region of forcing data. Default={c.GLOBAL_DOMAIN_DEFAULT}",
+    },
+    scripts=[Script.ALL],
+)
+
 LAGGED_ENSEMBLE = ArgsKwargs(
     args=["-le", "--lagged-ensemble"],
     kwargs={
