@@ -146,13 +146,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         default=None,
     )
     parser.add_argument(
-        "-fconfig",
-        "--forcing_configuration",
-        type=str,
-        help=f"Forcing configuration to use, e.g., 'short_range', 'standard_ana', etc. Default: {repr(c.FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT[0])}",
-        default=c.FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT[0],
-    )
-    parser.add_argument(
         "-n",
         "--nprocs",
         type=int,

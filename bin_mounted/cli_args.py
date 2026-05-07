@@ -7,7 +7,11 @@ import consts as c
 
 # from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 # TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
-from consts import DEFAULT_MODEL_FORMULATION_ARGS, LAGGED_ENSEMBLE_MEMBER_LAGS
+from consts import (
+    DEFAULT_MODEL_FORMULATION_ARGS,
+    FORECAST_FORCING_CONFIGURATION_TYPES__ALL,
+    LAGGED_ENSEMBLE_MEMBER_LAGS,
+)
 from utils import (
     datetime_type,
     effective_days_from_timedelta,
@@ -194,6 +198,21 @@ NWM_OUTPUT_VARIABLES = ArgsKwargs(
         "dest": "nwm_output_vars",
         "action": "store_true",
         "help": "If provided, NWMOutputConfig.nwm_output_variables will be set to True",
+    },
+    scripts=[Script.FORECAST, Script.DEFAULT],
+)
+
+
+FORCING_CONFIGURATION = ArgsKwargs(
+    args=["-fconfig", "--forcing_configuration"],
+    kwargs={
+        "type": str,
+        "default": c.FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT[0],
+        "help": f"""Forcing configuration to use, e.g., 'short_range', 'standard_ana', etc.
+Default: {repr(c.FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT[0])}.
+Choices for forecast realization: {c.FORECAST_FORCING_CONFIGURATION_TYPES__ALL}.
+Choices for default realization: {c.ALL_FORCING_CONFIGURATION_TYPES}.
+""",
     },
     scripts=[Script.FORECAST, Script.DEFAULT],
 )
