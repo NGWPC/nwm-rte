@@ -14,11 +14,11 @@ from calib.strategy import (
 
 RUN_NAME_TIMESTAMP_SUFFIX_FORMAT = r"%Y%m%d-%H%M%S-%f"
 
+FORCING_PROVIDER = "bmi"
+
+
 ### .config section [Forcing]
 DEFAULT_FORECAST_RUN_NAME = "fcst_run1"
-
-FORCING_PROVIDER_DEFAULT = "bmi"
-FORCING_PROVIDER_CHOICES = [FORCING_PROVIDER_DEFAULT]
 
 # For BMI forcing
 FORCING_TEMPLATE_DIR = "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"

@@ -53,7 +53,6 @@ def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
             model_formulations_file=cfg.model_formulations_file,
             forcing_config_types=cfg.calibration_forcing_sources,
             global_domain=cfg.global_domain,
-            forcing_provider=cfg.forcing_provider,
             forcing_static_dir=cfg.forcing_static_dir,
         )
 
@@ -106,7 +105,6 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
             use_cold_start=cs,
             gage_id=cfg.gage_id,
             global_domain=cfg.global_domain,
-            forcing_provider=cfg.forcing_provider,
             forcing_static_dir=cfg.forcing_static_dir,
             nprocs=cfg.nprocs,
         )
@@ -295,14 +293,6 @@ if __name__ == "__main__":
         type=str,
         default=c.FORCING_STATIC_DIR_DEFAULT,
         help=f"Directory for static forcing files, used when forcing_provider is 'bmi'. Default={c.FORCING_STATIC_DIR_DEFAULT}",
-    )
-    parser.add_argument(
-        "-fprovider",
-        "--forcing_provider",
-        type=str,
-        default=c.FORCING_PROVIDER_DEFAULT,
-        choices=c.FORCING_PROVIDER_CHOICES,
-        help=f"Forcing provider. Default={c.FORCING_PROVIDER_DEFAULT}",
     )
     parser.add_argument(
         "--noop",

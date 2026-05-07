@@ -48,7 +48,6 @@ def get_test_configs__calibration(
     model_formulations_file: str | None = None,
     forcing_config_types=c.CALIB_FORCING_CONFIGURATION_TYPES,
     global_domain: str = c.GLOBAL_DOMAIN_DEFAULT,
-    forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
     forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
     windows: CalibTimeWindows = CalibTimeWindows(),
     run_type: str = "calibration",
@@ -67,7 +66,6 @@ def get_test_configs__calibration(
         model_formulations = [ModelFormulation(*c.DEFAULT_MODEL_FORMULATION_ARGS)]
 
     fpp = ForcingProviderPaths(
-        forcing_provider=forcing_provider,
         global_domain=global_domain,
         forcing_static_dir=forcing_static_dir,
     )
@@ -120,8 +118,8 @@ def get_test_configs__calibration(
         module_properties = ModulePropertiesConfig(cfe_aet_rootzone=mf.cfe_aet_rootzone)
 
         forcing = ForcingConfig(
-            forcing_provider=fpp.forcing_provider,
-            forcing_dir=fpp.get_forcing_dir(gage_id),
+            forcing_provider=c.FORCING_PROVIDER,
+            forcing_dir=forcing_static_dir,
             forcing_template_dir=c.FORCING_TEMPLATE_DIR,
             root_dir=c.FORCING_ROOT_DIR,
             forcing_configuration=fct,
@@ -171,17 +169,10 @@ def get_test_configs__forecast(
     use_cold_start: bool = False,
     gage_id: str = c.DEFAULT_GAGE_ID,
     global_domain: str = c.GLOBAL_DOMAIN_DEFAULT,
-    forcing_provider: str = c.FORCING_PROVIDER_DEFAULT,
     forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
     nprocs: int = c.DEFAULT_NPROCS,
 ) -> list[InputConfig]:
     """Build and return a list of InputConfig instances to be used for building forecast realizations."""
-    fpp = ForcingProviderPaths(
-        forcing_provider=forcing_provider,
-        global_domain=global_domain,
-        forcing_static_dir=forcing_static_dir,
-    )
-
     configs: list[InputConfig] = []
 
     if use_cold_start:
@@ -199,8 +190,8 @@ def get_test_configs__forecast(
     for fct in forcing_config_types:
         general = None
         forcing = ForcingConfig(
-            forcing_provider=fpp.forcing_provider,
-            forcing_dir=fpp.get_forcing_dir(gage_id),
+            forcing_provider=c.FORCING_PROVIDER,
+            forcing_dir=self.forcing_static_dir,
             forcing_template_dir=c.FORCING_TEMPLATE_DIR,
             root_dir=c.FORCING_ROOT_DIR,
             forcing_configuration=fct,

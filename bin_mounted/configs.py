@@ -38,7 +38,6 @@ class TestPaths:
     obj_func: c.CalObjective | None
     optim_algo: c.CalOptimizationAlgo | None
     global_domain: str
-    forcing_provider: str
     forcing_static_dir: str
 
     def update_obj_func_and_optim_algo(
@@ -53,7 +52,6 @@ class TestPaths:
         """Build and return a ForcingProviderPaths instance to assist with setup."""
         return ForcingProviderPaths(
             global_domain=self.global_domain,
-            forcing_provider=self.forcing_provider,
             forcing_static_dir=self.forcing_static_dir,
         )
 
@@ -84,10 +82,8 @@ class TestPaths:
     @property
     def calib_config_file(self) -> str:
         """Path to example input calibration config file"""
-        return (
-            f"{self.dir_base}/configs/input_calibration_{self.forcing_provider}.config"
-        )
-        # return f"{self.dir_base}/configs/input_calibration_{self.forcing_provider}_short.config"
+        return f"{self.dir_base}/configs/input_calibration_{c.FORCING_PROVIDER}.config"
+        # return f"{self.dir_base}/configs/input_calibration_{c.FORCING_PROVIDER}_short.config"
 
     @property
     def fcst_config_file(self) -> str:
@@ -174,7 +170,6 @@ class RTEBaseConfig(BaseModel):
     nprocs: int = Field(ge=1)
     global_domain: str
     forcing_static_dir: str
-    forcing_provider: str
     gage_id: str
     model_formulation_cli_csv: str | None = Field(default=None)
     model_formulation_cli_rootzone: str | None = Field(default=None)
@@ -259,8 +254,6 @@ class RTEDefaultConfig(RTEBaseConfig):
         e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
     forcing_static_dir :
         Forcing static directory
-    forcing_provider: str
-        Forcing provider, i.e. "bmi" or "csv"
     cycle_datetime: datetime
         Start time of the realization
     duration: timedelta | None
@@ -326,7 +319,6 @@ class RTEDefaultConfig(RTEBaseConfig):
     def _make_realization_builder_kwargs(self) -> dict:
         """Build and return a dictionary for creating a RealizationBuilder instance."""
         fpp = ForcingProviderPaths(
-            forcing_provider=self.forcing_provider,
             global_domain=self.global_domain,
             forcing_static_dir=self.forcing_static_dir,
         )
@@ -378,8 +370,8 @@ class RTEDefaultConfig(RTEBaseConfig):
                     domain=self.global_domain.lower(),
                 ),
                 Forcing=ForcingConfig(
-                    forcing_provider=fpp.forcing_provider,
-                    forcing_dir=fpp.get_forcing_dir(gage_id=self.gage_id),
+                    forcing_provider=c.FORCING_PROVIDER,
+                    forcing_dir=self.forcing_static_dir,
                     forcing_template_dir=c.FORCING_TEMPLATE_DIR,
                     root_dir=c.FORCING_ROOT_DIR,
                     forcing_configuration=self.forcing_configuration,
@@ -431,7 +423,7 @@ class RTECalibConfig(RTEBaseConfig):
         Number of processors to use
     calib_sim_start: datetime
         Calibration start time
-    calib_sim_duration: timedelta
+    duration: timedelta
         Calibration simulation duration
     calib_eval_delayment: timedelta
         Used for evaluation / validation time windowing
@@ -443,8 +435,6 @@ class RTECalibConfig(RTEBaseConfig):
         Source of forcing data, e.g. "aorc" or "nwm"
     global_domain: str
         e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
-    forcing_provider: str
-        Forcing provider, i.e. "bmi" or "csv"
     forcing_static_dir: str
         Forcing static directory
     worker_name: str | None
@@ -461,7 +451,7 @@ class RTECalibConfig(RTEBaseConfig):
     objective_function: c.CalObjective
     optimization_algorithm: c.CalOptimizationAlgo
     calib_sim_start: datetime
-    calib_sim_duration: timedelta
+    duration: timedelta
     calib_eval_delayment: timedelta
     valid_sim_advancement: timedelta
     valid_eval_curtailment: timedelta
@@ -501,8 +491,6 @@ class RTEForecastConfig(RTEBaseConfig):
         e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
     forcing_static_dir: str
         Forcing static directory
-    forcing_provider: str
-        Forcing provider, i.e. "bmi" or "csv"
     cycle_datetime: datetime | None
         Start time of the realization (or end time for coldstart, if `cold_start_datetime` is provided)
     cold_start_datetime: datetime | None
@@ -554,7 +542,7 @@ class RTEForecastConfig(RTEBaseConfig):
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
         super()._add_ts_to_run_name()
 
-        self.run_dir_base = f"{c.DEFAULT_MAIN_DIR}/{self.objective_function.value}_{self.optimization_algorithm.value}/test_{self.forcing_provider}/{self.gage_id}"
+        self.run_dir_base = f"{c.DEFAULT_MAIN_DIR}/{self.objective_function.value}_{self.optimization_algorithm.value}/test_{c.FORCING_PROVIDER}/{self.gage_id}"
         if not os.path.isdir(self.run_dir_base):
             msg = f"Not a directory: {repr(self.run_dir_base)}. Please review choices for objective function, optimization algorithm, and gage, which affect this path."
             raise NotADirectoryError(msg)
@@ -569,19 +557,14 @@ class RTEForecastConfig(RTEBaseConfig):
 
     def _make_realization_builder_kwargs(self) -> None:
         """Build and set a dictionary for creating a RealizationBuilder instance."""
-        fpp = ForcingProviderPaths(
-            forcing_provider=self.forcing_provider,
-            global_domain=self.global_domain,
-            forcing_static_dir=self.forcing_static_dir,
-        )
         realization_kwargs = {
             # "input_path": forecast_vars.forecast_input_config,
             "valid_yaml": self.valid_best_yaml,
             "fcst_run_name": self.fcst_run_name,
             "config_overrides": InputConfig(
                 Forcing=ForcingConfig(
-                    forcing_provider=fpp.forcing_provider,
-                    forcing_dir=fpp.get_forcing_dir(gage_id=self.gage_id),
+                    forcing_provider=c.FORCING_PROVIDER,
+                    forcing_dir=self.forcing_static_dir,
                     forcing_template_dir=c.FORCING_TEMPLATE_DIR,
                     root_dir=c.FORCING_ROOT_DIR,
                     forcing_configuration=self.forcing_configuration,
@@ -650,8 +633,6 @@ class RTETestConfig(RTEBaseConfig):
         Number of processors to use
     global_domain: str
         e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
-    forcing_provider: str
-        Forcing provider, i.e. "bmi" or "csv"
     forcing_static_dir: str
         Forcing static directory
     noop: bool
@@ -732,7 +713,6 @@ class RTETestConfig(RTEBaseConfig):
                             obj_func,
                             optim_algo,
                             self.global_domain,
-                            self.forcing_provider,
                             self.forcing_static_dir,
                         ),
                     )
@@ -769,28 +749,13 @@ class ForcingProviderPaths(BaseModel):
     """Helper class for managing model paths."""
 
     model_config = ConfigDict(strict=True)
-    forcing_provider: Literal["csv", "bmi"]
     global_domain: str  # e.g. CONUS. TODO restrict choices
     forcing_static_dir: str
-
-    def get_forcing_dir(self, gage_id: str | None) -> str | None:
-        if self.forcing_provider == "csv":
-            if not gage_id:
-                raise ValueError(
-                    "Gage ID must be provided when forcing_provider == 'csv'"
-                )
-            return c.CSV_FORCING_DIR_FORMAT.format(
-                global_domain=self.global_domain, gage_id=gage_id
-            )
-        elif self.forcing_provider == "bmi":
-            return self.forcing_static_dir
-        else:
-            raise ValueError(f"Unexpected forcing_provider: {self.forcing_provider}")
 
     @property
     def formulation_name(self) -> str:
         """Formulation name, as a part of the model path."""
-        return f"test_{self.forcing_provider}"
+        return f"test_{c.FORCING_PROVIDER}"
 
 
 class CalibTimeWindows(BaseModel):

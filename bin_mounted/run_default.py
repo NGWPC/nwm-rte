@@ -125,13 +125,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         help=f"Directory for static forcing files, used when forcing_provider is 'bmi'. Default={c.FORCING_STATIC_DIR_DEFAULT}",
     )
     parser.add_argument(
-        "-fprov",
-        "--forcing_provider",
-        type=str,
-        help=f"Forcing provider to use, e.g., 'bmi'. Default: {repr(c.FORCING_PROVIDER_DEFAULT)}",
-        default=c.FORCING_PROVIDER_DEFAULT,
-    )
-    parser.add_argument(
         "--hydrofab_file",
         type=str,
         default=None,

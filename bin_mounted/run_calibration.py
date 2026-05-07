@@ -39,7 +39,7 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
 
     windows = CalibTimeWindows(
         calib_sim_start=cfg.calib_sim_start,
-        calib_sim_duration=cfg.calib_sim_duration,
+        calib_sim_duration=cfg.duration,
         calib_eval_delayment=cfg.calib_eval_delayment,
         valid_sim_advancement=cfg.valid_sim_advancement,
         valid_eval_curtailment=cfg.valid_eval_curtailment,
@@ -55,7 +55,6 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
         model_formulations_file=None,
         forcing_config_types=[cfg.forcing_source],
         global_domain=cfg.global_domain,
-        forcing_provider=cfg.forcing_provider,
         forcing_static_dir=cfg.forcing_static_dir,
         windows=windows,
         run_type="calibration",
@@ -159,14 +158,6 @@ if __name__ == "__main__":
         default=c.CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT,
         choices=c.CALIB_FORCING_CONFIGURATION_TYPES,
         help=f"Source of forcing data. Default={c.CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT}. Choices for calibration: {c.CALIB_FORCING_CONFIGURATION_TYPES}",
-    )
-    parser.add_argument(
-        "-fprovider",
-        "--forcing_provider",
-        type=str,
-        default=c.FORCING_PROVIDER_DEFAULT,
-        choices=c.FORCING_PROVIDER_CHOICES,
-        help=f"Forcing provider. Default={c.FORCING_PROVIDER_DEFAULT}",
     )
     parser.add_argument(
         "-fstatic",
