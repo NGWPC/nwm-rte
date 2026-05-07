@@ -216,3 +216,13 @@ Choices for default realization: {c.ALL_FORCING_CONFIGURATION_TYPES}.
     },
     scripts=[Script.FORECAST, Script.DEFAULT],
 )
+
+N_PROCS = ArgsKwargs(
+    args=["-n", "--nprocs"],
+    kwargs={
+        "type": int,
+        "help": f"""Number of processors. Default={repr(c.DEFAULT_NPROCS)})""",
+        "default": c.DEFAULT_NPROCS,
+    },
+    scripts=[Script.ALL],
+)

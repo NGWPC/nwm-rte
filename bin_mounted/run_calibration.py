@@ -125,13 +125,6 @@ if __name__ == "__main__":
         help=f"Optimization algorithm for calibration. Default: {c.CALIB_OPTIMIZATION_ALGO}",
     )
     parser.add_argument(
-        "-n",
-        "--nprocs",
-        type=int,
-        default=c.DEFAULT_NPROCS,
-        help=f"""Replaces default value for nprocs ({repr(c.DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance that is passed to MSWM.""",
-    )
-    parser.add_argument(
         "-start",
         "--calib_sim_start",
         type=datetime_from_str,

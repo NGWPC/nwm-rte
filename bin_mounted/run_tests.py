@@ -290,13 +290,6 @@ if __name__ == "__main__":
         help="Causes use_cold_start to be True for all forecasts",
     )
     parser.add_argument(
-        "-n",
-        "--nprocs",
-        type=int,
-        default=c.DEFAULT_NPROCS,
-        help=f"""Replaces default value for nprocs ({repr(c.DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance that is passed to MSWM.""",
-    )
-    parser.add_argument(
         "-fstatic",
         "--forcing_static_dir",
         type=str,

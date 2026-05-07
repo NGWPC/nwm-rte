@@ -132,13 +132,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         default=c.FORCING_PROVIDER_DEFAULT,
     )
     parser.add_argument(
-        "-n",
-        "--nprocs",
-        type=int,
-        help=f"""Number of processors. Default={repr(c.DEFAULT_NPROCS)})""",
-        default=c.DEFAULT_NPROCS,
-    )
-    parser.add_argument(
         "--hydrofab_file",
         type=str,
         default=None,
