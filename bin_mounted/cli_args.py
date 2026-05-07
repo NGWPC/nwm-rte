@@ -62,6 +62,15 @@ DEL_RAW = ArgsKwargs(
     scripts=[Script.ALL],
 )
 
+FCST_RUN_NAME = ArgsKwargs(
+    args=["-rname", "--fcst_run_name"],
+    kwargs={
+        "type": str,
+        "default": c.DEFAULT_FORECAST_RUN_NAME,
+        "help": f"Forecast run name. Default: {repr(c.DEFAULT_FORECAST_RUN_NAME)}",
+    },
+    scripts=[Script.FORECAST, Script.DEFAULT, Script.TESTS],
+)
 
 LAGGED_ENSEMBLE = ArgsKwargs(
     args=["-le", "--lagged-ensemble"],

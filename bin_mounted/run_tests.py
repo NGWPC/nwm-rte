@@ -290,13 +290,6 @@ if __name__ == "__main__":
         help="Causes use_cold_start to be True for all forecasts",
     )
     parser.add_argument(
-        "-fcname",
-        "--fcst_run_name",
-        type=str,
-        default=c.DEFAULT_FORECAST_RUN_NAME,
-        help=f"Replaces default value for fcst_run_name ({repr(c.DEFAULT_FORECAST_RUN_NAME)})",
-    )
-    parser.add_argument(
         "-n",
         "--nprocs",
         type=int,

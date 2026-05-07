@@ -170,13 +170,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         choices=c.ALL_FORCING_CONFIGURATION_TYPES,
     )
     parser.add_argument(
-        "-rname",
-        "--fcst_run_name",
-        type=str,
-        help=f"Forecast run name. Default: {repr(c.DEFAULT_FORECAST_RUN_NAME)}",
-        default=c.DEFAULT_FORECAST_RUN_NAME,
-    )
-    parser.add_argument(
         "-n",
         "--nprocs",
         type=int,
