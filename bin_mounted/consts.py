@@ -82,13 +82,13 @@ TEST_RESULTS_FILE = os.path.join(
 TEST_HYDROFAB_FILE = f"/s3/ngwpc-dev/rte-test-data/gages/gauge_{DEFAULT_GAGE_ID}.gpkg"
 
 ### See this for full list of forcing configuration types: mswm.utils.input_configuration.mswm_valid_configs
-FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = [
+FORECAST_FORCING_TYPES__TESTS = [
     "short_range",
     "standard_ana",
     "medium_range_blend",
 ]
-# FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range"]
-FORECAST_FORCING_CONFIGURATION_TYPES__ALL = [
+# FORECAST_FORCING_TYPES__TESTS = ["short_range"]
+FORECAST_FORCING_TYPES = [
     "standard_ana",
     "standard_ana_alaska",
     "standard_ana_hawaii",
@@ -108,26 +108,18 @@ FORECAST_FORCING_CONFIGURATION_TYPES__ALL = [
     "long_range_mem4",
 ]
 
-CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT = "aorc"
-CALIB_FORCING_CONFIGURATION_TYPES = [
-    "nwm",
-    CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT,
-]
+CALIB_FORCING_TYPES = ["aorc", "nwm"]
 
-ALL_FORCING_CONFIGURATION_TYPES = (
-    FORECAST_FORCING_CONFIGURATION_TYPES__ALL
-    + CALIB_FORCING_CONFIGURATION_TYPES
-    + ["medium_range"]
-)
+ALL_FORCING_TYPES = FORECAST_FORCING_TYPES + CALIB_FORCING_TYPES + ["medium_range"]
 
-GLOBAL_DOMAIN_DEFAULT = "CONUS"
-GLOBAL_DOMAIN_CHOICES = [
-    GLOBAL_DOMAIN_DEFAULT,
+GLOBAL_DOMAINS = [
+    "CONUS",
     "Alaska",
     "Hawaii",
     "Puerto_Rico",
     "GL",  # Guam / Luta
 ]
+"""The first value is the default"""
 
 FORCING_STATIC_DIR_DEFAULT = "/ngen-app/data"
 

@@ -111,20 +111,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
     """Build and return the CLI argument parser"""
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
-        "-ofunc",
-        "--objective_function",
-        type=c.CalObjective,
-        default=c.CALIB_OBJECTIVE_FUNCTION,
-        help=f"Objective function of previously-ran calibration realization for basis of forecast. Affects directory path. Default: {c.CALIB_OBJECTIVE_FUNCTION}",
-    )
-    parser.add_argument(
-        "-optalgo",
-        "--optimization_algorithm",
-        type=c.CalOptimizationAlgo,
-        default=c.CALIB_OPTIMIZATION_ALGO,
-        help=f"Optimization algorithm of previously-ran calibration realization for basis of forecast. Affects directory path. Default: {c.CALIB_OPTIMIZATION_ALGO}",
-    )
-    parser.add_argument(
         "-fstatic",
         "--forcing_static_dir",
         type=str,

@@ -53,7 +53,7 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
         optim_algo=cfg.optimization_algorithm,
         model_formulation=cfg.model_formulation,
         model_formulations_file=None,
-        forcing_config_types=[cfg.forcing_source],
+        forcing_config_types=[cfg.forcing_configuration],
         global_domain=cfg.global_domain,
         forcing_static_dir=cfg.forcing_static_dir,
         windows=windows,
@@ -67,9 +67,9 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
     rb_kwargs = {"config_overrides": config_overrides}
     rb = RealizationBuilder(**rb_kwargs)
 
-    if cfg.forcing_source not in c.CALIB_FORCING_CONFIGURATION_TYPES:
+    if cfg.forcing_configuration not in c.CALIB_FORCING_TYPES:
         raise ValueError(
-            f"cfg.default_realization = {cfg.default_realization} (calibration), but cfg.forcing_source {cfg.forcing_source} not in c.CALIB_FORCING_CONFIGURATION_TYPES {c.CALIB_FORCING_CONFIGURATION_TYPES}"
+            f"cfg.default_realization = {cfg.default_realization} (calibration), but cfg.forcing_configuration {cfg.forcing_configuration} not in c.CALIB_FORCING_TYPES {c.CALIB_FORCING_TYPES}"
         )
     rb.build_calib_realization()
     log_path = get_calibration_log_file_overwrite_path(rb)
@@ -110,20 +110,6 @@ if __name__ == "__main__":
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
-        "-ofunc",
-        "--objective_function",
-        type=c.CalObjective,
-        default=c.CALIB_OBJECTIVE_FUNCTION,
-        help=f"Objective function for calibration. Default: {c.CALIB_OBJECTIVE_FUNCTION}",
-    )
-    parser.add_argument(
-        "-optalgo",
-        "--optimization_algorithm",
-        type=c.CalOptimizationAlgo,
-        default=c.CALIB_OPTIMIZATION_ALGO,
-        help=f"Optimization algorithm for calibration. Default: {c.CALIB_OPTIMIZATION_ALGO}",
-    )
-    parser.add_argument(
         "-start",
         "--calib_sim_start",
         type=datetime_from_str,
@@ -150,14 +136,6 @@ if __name__ == "__main__":
         type=timedelta_from_pandas_str,
         default=c.VALID_EVAL_CURTAILMENT_DEFAULT,
         help=f"Pandas-style timedelta string. Default={c.VALID_EVAL_CURTAILMENT_DEFAULT}",
-    )
-    parser.add_argument(
-        "-fsrc",
-        "--forcing_source",
-        type=str,
-        default=c.CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT,
-        choices=c.CALIB_FORCING_CONFIGURATION_TYPES,
-        help=f"Source of forcing data. Default={c.CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT}. Choices for calibration: {c.CALIB_FORCING_CONFIGURATION_TYPES}",
     )
     parser.add_argument(
         "-fstatic",

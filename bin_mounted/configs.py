@@ -290,10 +290,9 @@ class RTEDefaultConfig(RTEBaseConfig):
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
         super()._add_ts_to_run_name()
 
-        if (
-            self.forcing_configuration
-            not in c.FORECAST_FORCING_CONFIGURATION_TYPES__ALL + ["medium_range"]
-        ):
+        if self.forcing_configuration not in c.FORECAST_FORCING_TYPES + [
+            "medium_range"
+        ]:
             self.realtime_mode = False
         else:
             self.realtime_mode = True
@@ -431,7 +430,7 @@ class RTECalibConfig(RTEBaseConfig):
         Used for evaluation / validation time windowing
     valid_eval_curtailment: timedelta
         Used for evaluation / validation time windowing
-    forcing_source: str
+    forcing_configuration: str
         Source of forcing data, e.g. "aorc" or "nwm"
     global_domain: str
         e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
@@ -455,7 +454,7 @@ class RTECalibConfig(RTEBaseConfig):
     calib_eval_delayment: timedelta
     valid_sim_advancement: timedelta
     valid_eval_curtailment: timedelta
-    forcing_source: str
+    forcing_configuration: str
     worker_name: str | None
 
     # Set after init
@@ -464,6 +463,12 @@ class RTECalibConfig(RTEBaseConfig):
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
+        if self.forcing_configuration not in c.CALIB_FORCING_TYPES:
+            self.errors.append(
+                ValueError(
+                    f"Unexpected forcing_configuration: {self.forcing_configuration} (for calibration, choose from: {c.CALIB_FORCING_TYPES})"
+                )
+            )
 
         if self.nwm_output_vars:
             self.errors.append(
@@ -541,6 +546,12 @@ class RTEForecastConfig(RTEBaseConfig):
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
         super()._add_ts_to_run_name()
+        if self.forcing_configuration not in c.FORECAST_FORCING_TYPES:
+            self.errors.append(
+                ValueError(
+                    f"Unexpected forcing_configuration: {self.forcing_configuration} (for forecast, choose from: {c.FORECAST_FORCING_TYPES})"
+                )
+            )
 
         self.run_dir_base = f"{c.DEFAULT_MAIN_DIR}/{self.objective_function.value}_{self.optimization_algorithm.value}/test_{c.FORCING_PROVIDER}/{self.gage_id}"
         if not os.path.isdir(self.run_dir_base):
@@ -554,6 +565,9 @@ class RTEForecastConfig(RTEBaseConfig):
 
         super()._parse_lagged_ensemble_args()
         self._make_realization_builder_kwargs()
+
+        if self.errors:
+            raise RuntimeError(self.errors)
 
     def _make_realization_builder_kwargs(self) -> None:
         """Build and set a dictionary for creating a RealizationBuilder instance."""

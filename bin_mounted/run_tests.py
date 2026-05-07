@@ -266,7 +266,7 @@ if __name__ == "__main__":
         "-allforcings",
         "--do_all_forcing_configs",
         action="store_true",
-        help=f"Run all forcing configurations rather than the default shorter default list. Default list: {c.FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT}. Incompatible with --skip_forecast.",
+        help=f"Run all forcing configurations rather than the default shorter default list. Default list: {c.FORECAST_FORCING_TYPES__TESTS}. Incompatible with --skip_forecast.",
     )
     parser.add_argument(
         "-mff",
@@ -278,8 +278,8 @@ if __name__ == "__main__":
         "-calfsrcs",
         "--calibration_forcing_sources",
         nargs="*",
-        default=c.CALIB_FORCING_CONFIGURATION_TYPES,
-        help=f"Sources of forcing data for calibration runs. If not provided then this default will be used: {c.CALIB_FORCING_CONFIGURATION_TYPES}.",
+        default=c.CALIB_FORCING_TYPES,
+        help=f"Sources of forcing data for calibration runs. If not provided then this default will be used: {c.CALIB_FORCING_TYPES}.",
     )
     parser.add_argument(
         "-cs",

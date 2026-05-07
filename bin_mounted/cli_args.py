@@ -5,13 +5,8 @@ from enum import StrEnum
 
 import consts as c
 
-# from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
-# TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
-from consts import (
-    DEFAULT_MODEL_FORMULATION_ARGS,
-    FORECAST_FORCING_CONFIGURATION_TYPES__ALL,
-    LAGGED_ENSEMBLE_MEMBER_LAGS,
-)
+# from mswm.utils.settings import c.LAGGED_ENSEMBLE_MEMBER_LAGS
+# TODO replace with import of mswm.utils.settings.c.LAGGED_ENSEMBLE_MEMBER_LAGS
 from utils import (
     datetime_type,
     effective_days_from_timedelta,
@@ -118,9 +113,9 @@ GLOBAL_DOMAIN = ArgsKwargs(
     args=["-gdomain", "--global_domain"],
     kwargs={
         "type": str,
-        "default": c.GLOBAL_DOMAIN_DEFAULT,
-        "choices": c.GLOBAL_DOMAIN_CHOICES,
-        "help": f"Global domain/region of forcing data. Default={c.GLOBAL_DOMAIN_DEFAULT}",
+        "default": c.GLOBAL_DOMAINS[0],
+        "choices": c.GLOBAL_DOMAINS,
+        "help": f"Global domain/region of forcing data. Default={c.GLOBAL_DOMAINS[0]}",
     },
     scripts=[Script.ALL],
 )
@@ -140,7 +135,7 @@ LAGGED_ENSEMBLE = ArgsKwargs(
 
         This argument has 3 parts:
             1. member_name : str (required when -le provided)
-                Name of the ensemble member. Choose from: {list(LAGGED_ENSEMBLE_MEMBER_LAGS)}
+                Name of the ensemble member. Choose from: {list(c.LAGGED_ENSEMBLE_MEMBER_LAGS)}
             2. open_loop_state : str (optional)
                 Path to an existing open-loop state file.
                 To omit, provide an empty string for this part.
@@ -163,7 +158,7 @@ MODELS_CSV = ArgsKwargs(
         "help": f"""Provide this argument to specify a non-default model formulation.
         The value should be a comma-separated string of models that make up the formulation.
         Can be used in conjunction with ["-rz", "--root-zone"].
-        Default: {DEFAULT_MODEL_FORMULATION_ARGS[0]}.""",
+        Default: {c.DEFAULT_MODEL_FORMULATION_ARGS[0]}.""",
     },
     scripts=[Script.DEFAULT, Script.CALIBRATION],
 )
@@ -177,7 +172,7 @@ MODELS_RZ = ArgsKwargs(
         "help": f"""Provided value is converted to Boolean and passed as `cfe_aet_rootzone`.
         The value should be either true/yes/1 or false/no/0.
         Can be used in conjunction with ["-mf", "--model-formulation"].
-        Default: {DEFAULT_MODEL_FORMULATION_ARGS[1]}.""",
+        Default: {c.DEFAULT_MODEL_FORMULATION_ARGS[1]}.""",
     },
     scripts=[Script.DEFAULT, Script.CALIBRATION],
 )
@@ -207,14 +202,17 @@ FORCING_CONFIGURATION = ArgsKwargs(
     args=["-fconfig", "--forcing_configuration"],
     kwargs={
         "type": str,
-        "default": c.FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT[0],
-        "help": f"""Forcing configuration to use, e.g., 'short_range', 'standard_ana', etc.
-Default: {repr(c.FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT[0])}.
-Choices for forecast realization: {c.FORECAST_FORCING_CONFIGURATION_TYPES__ALL}.
-Choices for default realization: {c.ALL_FORCING_CONFIGURATION_TYPES}.
+        "help": f"""Forcing configuration to use, e.g., 'short_range', 'standard_ana', 'aorc', etc.
+Choices and defaults vary per realization type:
+    Forecast Realization:
+        Default: {c.GLOBAL_DOMAINS[0]}. Choices: {c.FORECAST_FORCING_TYPES}.
+    Calibration Realization:
+        Default: {c.CALIB_FORCING_TYPES[0]}. Choices: {c.CALIB_FORCING_TYPES}.
+    Default Realization: {c.ALL_FORCING_TYPES}.
+        Default: {c.CALIB_FORCING_TYPES[0]}. Choices: {c.ALL_FORCING_TYPES}.
 """,
     },
-    scripts=[Script.FORECAST, Script.DEFAULT],
+    scripts=[Script.FORECAST, Script.DEFAULT, Script.CALIBRATION],
 )
 
 N_PROCS = ArgsKwargs(
@@ -225,4 +223,26 @@ N_PROCS = ArgsKwargs(
         "default": c.DEFAULT_NPROCS,
     },
     scripts=[Script.ALL],
+)
+
+
+OBJECTIVE_FUNCTION = ArgsKwargs(
+    args=["-ofunc", "--objective_function"],
+    kwargs={
+        "type": c.CalObjective,
+        "help": f"Objective function of previously-ran calibration realization for basis of forecast. Affects directory path. Default: {c.CALIB_OBJECTIVE_FUNCTION}",
+        "default": c.CALIB_OBJECTIVE_FUNCTION,
+    },
+    scripts=[Script.CALIBRATION, Script.FORECAST],
+)
+
+
+OPTIMIZATION_ALGORITHM = ArgsKwargs(
+    args=["-optalgo", "--optimization_algorithm"],
+    kwargs={
+        "type": c.CalOptimizationAlgo,
+        "help": f"Optimization algorithm of previously-ran calibration realization for basis of forecast. Affects directory path. Default: {c.CALIB_OPTIMIZATION_ALGO}",
+        "default": c.CALIB_OPTIMIZATION_ALGO,
+    },
+    scripts=[Script.CALIBRATION, Script.FORECAST],
 )

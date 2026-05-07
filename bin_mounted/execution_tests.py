@@ -46,8 +46,8 @@ def get_test_configs__calibration(
     model_formulation: ModelFormulation | None = None,
     # For iterating over multiple model formulations
     model_formulations_file: str | None = None,
-    forcing_config_types=c.CALIB_FORCING_CONFIGURATION_TYPES,
-    global_domain: str = c.GLOBAL_DOMAIN_DEFAULT,
+    forcing_config_types=c.CALIB_FORCING_TYPES,
+    global_domain: str = c.GLOBAL_DOMAINS[0],
     forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
     windows: CalibTimeWindows = CalibTimeWindows(),
     run_type: str = "calibration",
@@ -167,9 +167,6 @@ def get_test_configs__calibration(
 def get_test_configs__forecast(
     do_all_forcing_configs: bool,
     use_cold_start: bool = False,
-    gage_id: str = c.DEFAULT_GAGE_ID,
-    global_domain: str = c.GLOBAL_DOMAIN_DEFAULT,
-    forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
     nprocs: int = c.DEFAULT_NPROCS,
 ) -> list[InputConfig]:
     """Build and return a list of InputConfig instances to be used for building forecast realizations."""
@@ -183,9 +180,9 @@ def get_test_configs__forecast(
         cycle_datetime = c.DT_START_FORECAST.strftime(DDF)
 
     if do_all_forcing_configs:
-        forcing_config_types = c.FORECAST_FORCING_CONFIGURATION_TYPES__ALL
+        forcing_config_types = c.FORECAST_FORCING_TYPES
     else:
-        forcing_config_types = c.FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT
+        forcing_config_types = c.FORECAST_FORCING_TYPES__TESTS
 
     for fct in forcing_config_types:
         general = None
