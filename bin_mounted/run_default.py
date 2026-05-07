@@ -15,17 +15,16 @@ import shutil
 import subprocess
 import time
 
-from mswm.build_inputs import RealizationBuilder
-
 import cli_args
+import consts as c
+import utils_testing_setup
+from configs import RTEDefaultConfig
+from mswm.build_inputs import RealizationBuilder
 from utils import (
-    timedelta_from_effective_days,
     configure_ngen_log,
     datetime_type,
+    timedelta_from_effective_days,
 )
-import utils_testing_setup
-import consts as c
-from configs import RTEDefaultConfig
 
 print = functools.partial(print, flush=True)
 
@@ -120,18 +119,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
-        "-delscratch",
-        "--delete_scratch_and_mesh_first",
-        action="store_true",
-        help="Delete scratch dir and ESMF mesh files before the run, which forces ESMF and NetCDF actions to occur.",
-    )
-    parser.add_argument(
-        "-delraw",
-        "--delete_forcing_raw_input_first",
-        action="store_true",
-        help=f"Delete contents of {repr(c.DIR_FORCING_RAW_INPUT)} before the run, which forces forcing data to be re-downloaded.",
-    )
-    parser.add_argument(
         "-g",
         "--gage_id",
         type=str,
@@ -174,7 +161,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         default=None,
         help=f"Only used for historical / retrospective forcing (required in that case). Simulation duration in days. Default={None}",
     )
-    cli_args.add_arg(parser, cli_args.LAGGED_ENSEMBLE)
     parser.add_argument(
         "-fconfig",
         "--forcing_configuration",
@@ -201,12 +187,9 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         "--hydrofab_file",
         type=str,
         default=None,
-        help="Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call."
+        help="Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.",
     )
-    cli_args.add_arg(parser, cli_args.MODELS_CSV)
-    cli_args.add_arg(parser, cli_args.MODELS_RZ)
-    cli_args.add_arg(parser, cli_args.TIMESTAMP_RUN_NAME_SUFFIX)
-    cli_args.add_arg(parser, cli_args.NWM_OUTPUT_VARIABLES)
+    cli_args.add_args_for_script(parser, cli_args.Script.DEFAULT)
     return parser
 
 

@@ -13,24 +13,23 @@ import functools
 import subprocess
 import time
 
-from mswm.build_inputs import RealizationBuilder
-
 import cli_args
-from utils import (
-    datetime_from_str,
-    str_from_datetime,
-    timedelta_from_effective_days,
-    effective_days_from_timedelta,
-    timedelta_from_pandas_str,
-    get_calibration_log_file_overwrite_path,
-    configure_ngen_log,
-)
+import consts as c
 import utils_testing_setup
+from configs import CalibTimeWindows, RTECalibConfig
 from execution_tests import (
     get_test_configs__calibration,
 )
-import consts as c
-from configs import RTECalibConfig, CalibTimeWindows
+from mswm.build_inputs import RealizationBuilder
+from utils import (
+    configure_ngen_log,
+    datetime_from_str,
+    effective_days_from_timedelta,
+    get_calibration_log_file_overwrite_path,
+    str_from_datetime,
+    timedelta_from_effective_days,
+    timedelta_from_pandas_str,
+)
 
 print = functools.partial(print, flush=True)
 
@@ -110,18 +109,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Script for building and running calibration realizations using historical / retrospective forcing.",
         formatter_class=argparse.RawTextHelpFormatter,
-    )
-    parser.add_argument(
-        "-delscratch",
-        "--delete_scratch_and_mesh_first",
-        action="store_true",
-        help="Delete scratch dir and ESMF mesh files before the run, which forces ESMF and NetCDF actions to occur.",
-    )
-    parser.add_argument(
-        "-delraw",
-        "--delete_forcing_raw_input_first",
-        action="store_true",
-        help=f"Delete contents of {repr(c.DIR_FORCING_RAW_INPUT)} before the run, which forces forcing data to be re-downloaded.",
     )
     parser.add_argument(
         "-ofunc",
@@ -227,10 +214,9 @@ if __name__ == "__main__":
         "--hydrofab_file",
         type=str,
         default=None,
-        help="Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call."
+        help="Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.",
     )
-    parser.add_argument(*cli_args.MODELS_CSV.args, **cli_args.MODELS_CSV.kwargs)
-    parser.add_argument(*cli_args.MODELS_RZ.args, **cli_args.MODELS_RZ.kwargs)
+    cli_args.add_args_for_script(parser, cli_args.Script.CALIBRATION)
     args = parser.parse_args()
     cfg = RTECalibConfig(**vars(args))
     main(cfg)

@@ -19,25 +19,23 @@ import functools
 import json
 import sys
 
-from utils import configure_ngen_log
+import cli_args
+import consts as c
 import utils_testing_setup
-
 from calib.strategy import (
     Algorithm as CalOptimizationAlgo,
 )
-
+from configs import RTETestConfig, make_parallel_config
 from execution_tests import (
-    TestStat,
-    LogParser,
     ForecastTest,
+    LogParser,
     TestsManager,
-    get_test_configs__forecast,
+    TestStat,
     get_test_configs__calibration,
+    get_test_configs__forecast,
 )
 from pydantic.json import pydantic_encoder
-
-import consts as c
-from configs import RTETestConfig, make_parallel_config
+from utils import configure_ngen_log
 
 print = functools.partial(print, flush=True)
 
@@ -208,18 +206,6 @@ def main(cfg: RTETestConfig):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
-        "-delscratch",
-        "--delete_scratch_and_mesh_first",
-        action="store_true",
-        help="Delete scratch dir and ESMF mesh files before the run, which forces ESMF and NetCDF actions to occur.",
-    )
-    parser.add_argument(
-        "-delraw",
-        "--delete_forcing_raw_input_first",
-        action="store_true",
-        help=f"Delete contents of {repr(c.DIR_FORCING_RAW_INPUT)} before the run, which forces forcing data to be re-downloaded.",
-    )
-    parser.add_argument(
         "-nofcst",
         "--skip_forecast",
         action="store_true",
@@ -361,8 +347,9 @@ if __name__ == "__main__":
         "--hydrofab_file",
         type=str,
         default=None,
-        help="Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call."
+        help="Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.",
     )
+    cli_args.add_args_for_script(parser, cli_args.Script.TESTS)
     args = parser.parse_args()
     print(f"{__file__}: args: {json.dumps(vars(args), indent=2)}")
 

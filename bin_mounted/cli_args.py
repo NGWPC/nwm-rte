@@ -1,22 +1,66 @@
 import argparse
+import sys
 from dataclasses import dataclass
+from enum import StrEnum
+
+import consts as c
 
 # from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 # TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
-from consts import LAGGED_ENSEMBLE_MEMBER_LAGS, DEFAULT_MODEL_FORMULATION_ARGS
+from consts import DEFAULT_MODEL_FORMULATION_ARGS, LAGGED_ENSEMBLE_MEMBER_LAGS
+
+
+class Script(StrEnum):
+    DEFAULT = "run_default"
+    CALIBRATION = "run_calibration"
+    FORECAST = "run_forecast"
+    TESTS = "run_tests"
+    ALL = "all"
 
 
 @dataclass
 class ArgsKwargs:
-    """Simple args list and kwargs dict to be passed later to parser.add_argument(*args, **kwargs)"""
+    """Simple args list and kwargs dict to be passed later to parser.add_argument(*args, **kwargs).
+    The scripts attr is used to indicate which scripts this argument should be added to. See add_args_for_script()."""
 
     args: list
     kwargs: dict
+    # Scripts that use this arg
+    scripts: list[Script]
+
+
+def add_args_for_script(parser: argparse.ArgumentParser, script: Script) -> None:
+    current_module = sys.modules[__name__]
+    for symbol_name in dir(current_module):
+        item = getattr(current_module, symbol_name)
+        if type(item) is ArgsKwargs:
+            if script in item.scripts or Script.ALL in item.scripts:
+                add_arg(parser, item)
 
 
 def add_arg(parser: argparse.ArgumentParser, arg: ArgsKwargs) -> None:
     """Helper function to add a CLI argument to an existing argparse parser."""
     parser.add_argument(*arg.args, **arg.kwargs)
+
+
+DEL_SCRATCH = ArgsKwargs(
+    args=["-delscratch", "--delete_scratch_and_mesh_first"],
+    kwargs={
+        "action": "store_true",
+        "help": "Delete scratch dir and ESMF mesh files before the run, which forces ESMF and NetCDF actions to occur.",
+    },
+    scripts=[Script.ALL],
+)
+
+
+DEL_RAW = ArgsKwargs(
+    args=["-delraw", "--delete_forcing_raw_input_first"],
+    kwargs={
+        "action": "store_true",
+        "help": f"Delete contents of {repr(c.DIR_FORCING_RAW_INPUT)} before the run, which forces forcing data to be re-downloaded.",
+    },
+    scripts=[Script.ALL],
+)
 
 
 LAGGED_ENSEMBLE = ArgsKwargs(
@@ -45,6 +89,7 @@ LAGGED_ENSEMBLE = ArgsKwargs(
         To run a lagged ensemble member without the optional parts, provide them as empty strings e.g. `-le 'mem2' '' ''`.
         """,
     },
+    scripts=[Script.FORECAST, Script.DEFAULT],
 )
 
 MODELS_CSV = ArgsKwargs(
@@ -58,6 +103,7 @@ MODELS_CSV = ArgsKwargs(
         Can be used in conjunction with ["-rz", "--root-zone"].
         Default: {DEFAULT_MODEL_FORMULATION_ARGS[0]}.""",
     },
+    scripts=[Script.DEFAULT, Script.CALIBRATION],
 )
 
 MODELS_RZ = ArgsKwargs(
@@ -71,6 +117,7 @@ MODELS_RZ = ArgsKwargs(
         Can be used in conjunction with ["-mf", "--model-formulation"].
         Default: {DEFAULT_MODEL_FORMULATION_ARGS[1]}.""",
     },
+    scripts=[Script.DEFAULT, Script.CALIBRATION],
 )
 
 TIMESTAMP_RUN_NAME_SUFFIX = ArgsKwargs(
@@ -80,6 +127,7 @@ TIMESTAMP_RUN_NAME_SUFFIX = ArgsKwargs(
         "action": "store_true",
         "help": "If provided, add a timestamp suffix to the run name.",
     },
+    scripts=[Script.FORECAST, Script.DEFAULT],
 )
 
 NWM_OUTPUT_VARIABLES = ArgsKwargs(
@@ -89,4 +137,5 @@ NWM_OUTPUT_VARIABLES = ArgsKwargs(
         "action": "store_true",
         "help": "If provided, NWMOutputConfig.nwm_output_variables will be set to True",
     },
+    scripts=[Script.FORECAST, Script.DEFAULT],
 )

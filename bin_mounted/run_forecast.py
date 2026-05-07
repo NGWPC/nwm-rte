@@ -111,18 +111,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
     """Build and return the CLI argument parser"""
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
-        "-delscratch",
-        "--delete_scratch_and_mesh_first",
-        action="store_true",
-        help="Delete scratch dir and ESMF mesh files before the run, which forces ESMF and NetCDF actions to occur.",
-    )
-    parser.add_argument(
-        "-delraw",
-        "--delete_forcing_raw_input_first",
-        action="store_true",
-        help=f"Delete contents of {repr(c.DIR_FORCING_RAW_INPUT)} before the run, which forces forcing data to be re-downloaded.",
-    )
-    parser.add_argument(
         "-ofunc",
         "--objective_function",
         type=c.CalObjective,
@@ -179,7 +167,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         help="If provided, a cold-start realization will be ran prior to the forecast, and this value will be the start time for the cold-start. Format: 'YYYY-MM-DD HH:mm:ss'.",
         default=None,
     )
-    cli_args.add_arg(parser, cli_args.LAGGED_ENSEMBLE)
     parser.add_argument(
         "-fconfig",
         "--forcing_configuration",
@@ -201,8 +188,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         default=c.DEFAULT_NPROCS,
         help=f"""Replaces default value for nprocs ({repr(c.DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance that is passed to MSWM.""",
     )
-    cli_args.add_arg(parser, cli_args.TIMESTAMP_RUN_NAME_SUFFIX)
-    cli_args.add_arg(parser, cli_args.NWM_OUTPUT_VARIABLES)
+    cli_args.add_args_for_script(parser, cli_args.Script.FORECAST)
     return parser
 
 
