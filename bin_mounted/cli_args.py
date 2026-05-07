@@ -72,6 +72,16 @@ FCST_RUN_NAME = ArgsKwargs(
     scripts=[Script.FORECAST, Script.DEFAULT, Script.TESTS],
 )
 
+GAGE_ID = ArgsKwargs(
+    args=["-g", "--gage_id"],
+    kwargs={
+        "type": str,
+        "default": c.DEFAULT_GAGE_ID,
+        "help": f"Gage ID. Default: {repr(c.DEFAULT_GAGE_ID)}",
+    },
+    scripts=[Script.ALL],
+)
+
 LAGGED_ENSEMBLE = ArgsKwargs(
     args=["-le", "--lagged-ensemble"],
     kwargs={

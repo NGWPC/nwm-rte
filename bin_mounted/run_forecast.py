@@ -125,13 +125,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         help=f"Optimization algorithm of previously-ran calibration realization for basis of forecast. Affects directory path. Default: {c.CALIB_OPTIMIZATION_ALGO}",
     )
     parser.add_argument(
-        "-g",
-        "--gage_id",
-        type=str,
-        help=f"Gage ID to run the forecast for. Default: {repr(c.DEFAULT_GAGE_ID)}",
-        default=c.DEFAULT_GAGE_ID,
-    )
-    parser.add_argument(
         "-gdomain",
         "--global_domain",
         type=str,

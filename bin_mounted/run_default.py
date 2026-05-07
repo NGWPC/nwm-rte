@@ -119,13 +119,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
-        "-g",
-        "--gage_id",
-        type=str,
-        default=c.DEFAULT_GAGE_ID,
-        help=f"Default gage ID. Defaults={c.DEFAULT_GAGE_ID}",
-    )
-    parser.add_argument(
         "-gdomain",
         "--global_domain",
         type=str,

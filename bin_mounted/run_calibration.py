@@ -132,13 +132,6 @@ if __name__ == "__main__":
         help=f"""Replaces default value for nprocs ({repr(c.DEFAULT_NPROCS)}) and subsequently the ParallelConfig instance that is passed to MSWM.""",
     )
     parser.add_argument(
-        "-g",
-        "--gage_id",
-        type=str,
-        default=c.DEFAULT_GAGE_ID,
-        help=f"Calibration gage ID Default={c.DEFAULT_GAGE_ID}",
-    )
-    parser.add_argument(
         "-start",
         "--calib_sim_start",
         type=datetime_from_str,
