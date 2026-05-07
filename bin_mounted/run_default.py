@@ -133,13 +133,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         default=c.FORCING_PROVIDER_DEFAULT,
     )
     parser.add_argument(
-        "-dt",
-        "--cycle_datetime",
-        required=True,
-        type=datetime_type,
-        help="Start date/time for the simulation.",
-    )
-    parser.add_argument(
         "-dur",
         "--historical_sim_duration",
         type=timedelta_from_effective_days,

@@ -139,13 +139,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         default=c.FORCING_PROVIDER_DEFAULT,
     )
     parser.add_argument(
-        "-dt",
-        "--cycle_datetime",
-        type=datetime_type,
-        help="For a regular forecast, this is the start time. When cold-start is used, this is the *end* of the cold-start cycle. Format: 'YYYY-MM-DD HH:mm:ss'.",
-        required=True,
-    )
-    parser.add_argument(
         "-csdt",
         "--cold_start_datetime",
         type=datetime_type,

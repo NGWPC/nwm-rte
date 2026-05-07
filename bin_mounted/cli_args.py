@@ -8,6 +8,7 @@ import consts as c
 # from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 # TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
 from consts import DEFAULT_MODEL_FORMULATION_ARGS, LAGGED_ENSEMBLE_MEMBER_LAGS
+from utils import datetime_type
 
 
 class Script(StrEnum):
@@ -80,6 +81,17 @@ GAGE_ID = ArgsKwargs(
         "help": f"Gage ID. Default: {repr(c.DEFAULT_GAGE_ID)}",
     },
     scripts=[Script.ALL],
+)
+
+
+CYCLE_DATETIME = ArgsKwargs(
+    args=["-dt", "--cycle_datetime"],
+    kwargs={
+        "type": datetime_type,
+        "required": True,
+        "help": "For a regular forecast, this is the start time. When cold-start is used, this is the *end* of the cold-start cycle. Format: 'YYYY-MM-DD HH:mm:ss'.",
+    },
+    scripts=[Script.FORECAST, Script.DEFAULT],
 )
 
 GAGE_ID = ArgsKwargs(
