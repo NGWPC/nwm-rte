@@ -22,7 +22,6 @@ from configs import RTEDefaultConfig
 from mswm.build_inputs import RealizationBuilder
 from utils import (
     configure_ngen_log,
-    datetime_type,
     timedelta_from_effective_days,
 )
 
@@ -114,7 +113,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         description="""Script for building and running default realizations
         using realtime forcing configurations or historical / retrospective forcing.
         The CLI arguments mostly follow that of run_forecast.py. The exception is
-        that "--historical_sim_duration" aka "-dur" (in days) was added to this script
+        that "--duration" aka "-dur" (in days) was added to this script
         to support the historical / retrospective forcing use case, e.g. AORC or NWM.""",
         formatter_class=argparse.RawTextHelpFormatter,
     )
@@ -131,13 +130,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         type=str,
         help=f"Forcing provider to use, e.g., 'bmi'. Default: {repr(c.FORCING_PROVIDER_DEFAULT)}",
         default=c.FORCING_PROVIDER_DEFAULT,
-    )
-    parser.add_argument(
-        "-dur",
-        "--historical_sim_duration",
-        type=timedelta_from_effective_days,
-        default=None,
-        help=f"Only used for historical / retrospective forcing (required in that case). Simulation duration in days. Default={None}",
     )
     parser.add_argument(
         "-fconfig",

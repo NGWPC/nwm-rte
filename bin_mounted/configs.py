@@ -1,31 +1,29 @@
-from datetime import datetime, timedelta, timezone
-from dataclasses import dataclass
 import os
 import re
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from typing import Literal
+
+import consts as c
+import pandas as pd
 
 # from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 # TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
 from consts import LAGGED_ENSEMBLE_MEMBER_LAGS
-
+from mswm.utils import settings as mswm_settings
 from mswm.utils.input_configuration import (
-    InputConfig,
-    GeneralConfig,
-    ModulePropertiesConfig,
-    ForcingConfig,
     DataFileConfig,
+    ForcingConfig,
+    GeneralConfig,
+    InputConfig,
+    ModulePropertiesConfig,
     NWMOutputConfig,
     ParallelConfig,
 )
-from mswm.utils import settings as mswm_settings
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
-
-import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.dataclasses import dataclass as pydantic_dataclass
-
-import consts as c
-from utils import make_wcoss_path_symlinks, booleanize
+from utils import booleanize, make_wcoss_path_symlinks
 
 
 @dataclass
@@ -265,7 +263,7 @@ class RTEDefaultConfig(RTEBaseConfig):
         Forcing provider, i.e. "bmi" or "csv"
     cycle_datetime: datetime
         Start time of the realization
-    historical_sim_duration: timedelta | None
+    duration: timedelta | None
         Duration of the simulation (only used for historical / retrospective forcing configurations)
     forcing_configuration: str
         Forcing configuration, e.g. "aorc" or "short_range"
@@ -283,7 +281,7 @@ class RTEDefaultConfig(RTEBaseConfig):
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
     cycle_datetime: datetime
-    historical_sim_duration: timedelta | None
+    duration: timedelta | None
     forcing_configuration: str
     fcst_run_name: str
     # For medium-range lagged ensemble
@@ -307,16 +305,16 @@ class RTEDefaultConfig(RTEBaseConfig):
         else:
             self.realtime_mode = True
 
-        if (not self.realtime_mode) and (not self.historical_sim_duration):
+        if (not self.realtime_mode) and (not self.duration):
             self.errors.extend(
                 [
-                    f"Forcing configuration {repr(self.forcing_configuration)} is *not* realtime, and requires that CLI arg -dur aka --historical_sim_duration is provided, but it was not."
+                    f"Forcing configuration {repr(self.forcing_configuration)} is *not* realtime, and requires that CLI arg -dur aka --duration is provided, but it was not."
                 ]
             )
-        if self.realtime_mode and self.historical_sim_duration:
+        if self.realtime_mode and self.duration:
             self.errors.extend(
                 [
-                    f"Forcing configuration {repr(self.forcing_configuration)} *is* realtime, but CLI arg -dur aka --historical_sim_duration was also provided (it should not be)."
+                    f"Forcing configuration {repr(self.forcing_configuration)} *is* realtime, but CLI arg -dur aka --duration was also provided (it should not be)."
                 ]
             )
 
@@ -335,8 +333,8 @@ class RTEDefaultConfig(RTEBaseConfig):
 
         windows = CalibTimeWindows(
             calib_sim_start=self.cycle_datetime,
-            calib_sim_duration=self.historical_sim_duration
-            if self.historical_sim_duration
+            calib_sim_duration=self.duration
+            if self.duration
             else c.CALIB_SIM_DURATION_DEFAULT,
             calib_eval_delayment=c.CALIB_EVAL_DELAYMENT_DEFAULT,
             valid_sim_advancement=c.VALID_SIM_ADVANCEMENT_DEFAULT,

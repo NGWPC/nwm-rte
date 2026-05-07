@@ -139,13 +139,6 @@ if __name__ == "__main__":
         help=f"Start time for calibration. Default={str_from_datetime(c.CALIB_SIM_START_DEFAULT)},",
     )
     parser.add_argument(
-        "-dur",
-        "--calib_sim_duration",
-        type=timedelta_from_effective_days,
-        default=c.CALIB_SIM_DURATION_DEFAULT,
-        help=f"Duration of calibration, in days (provide integer). Default={effective_days_from_timedelta(c.CALIB_SIM_DURATION_DEFAULT)}",
-    )
-    parser.add_argument(
         "-evaldelay",
         "--calib_eval_delayment",
         type=timedelta_from_pandas_str,

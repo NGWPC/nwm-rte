@@ -8,7 +8,11 @@ import consts as c
 # from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 # TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
 from consts import DEFAULT_MODEL_FORMULATION_ARGS, LAGGED_ENSEMBLE_MEMBER_LAGS
-from utils import datetime_type
+from utils import (
+    datetime_type,
+    effective_days_from_timedelta,
+    timedelta_from_effective_days,
+)
 
 
 class Script(StrEnum):
@@ -63,6 +67,18 @@ DEL_RAW = ArgsKwargs(
     scripts=[Script.ALL],
 )
 
+
+DURATION = ArgsKwargs(
+    args=["-dur", "--duration"],
+    kwargs={
+        "type": timedelta_from_effective_days,
+        "default": c.CALIB_SIM_DURATION_DEFAULT,
+        "help": f"Duration of calibration (or of historical forcing sim for default realization). Units: days (integer). Default={effective_days_from_timedelta(c.CALIB_SIM_DURATION_DEFAULT)}",
+    },
+    scripts=[Script.CALIBRATION, Script.DEFAULT],
+)
+
+
 FCST_RUN_NAME = ArgsKwargs(
     args=["-rname", "--fcst_run_name"],
     kwargs={
@@ -94,7 +110,7 @@ CYCLE_DATETIME = ArgsKwargs(
     scripts=[Script.FORECAST, Script.DEFAULT],
 )
 
-GAGE_ID = ArgsKwargs(
+GLOBAL_DOMAIN = ArgsKwargs(
     args=["-gdomain", "--global_domain"],
     kwargs={
         "type": str,
