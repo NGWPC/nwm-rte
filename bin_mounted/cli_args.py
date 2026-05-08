@@ -49,9 +49,16 @@ class HelpFormatter(
         if action.option_strings:
             flags = ", ".join(action.option_strings)
             if isinstance(action, argparse._StoreTrueAction):
-                return f"{flags} [boolean switch]"
+                flags = f"{flags} [boolean switch]"
+            # Add default value to flags line
+            if action.default is not argparse.SUPPRESS and action.default is not None:
+                flags = f"{flags} (default: {action.default})"
             return flags
         return ""
+
+    def _get_help_string(self, action):
+        """Return raw help without default appended (default being added to top line in other method)"""
+        return action.help or ""
 
 
 def split_iter_to_chunked_str(
@@ -111,8 +118,7 @@ DURATION = ArgsKwargs(
     kwargs={
         "type": timedelta_from_effective_days,
         "default": c.CALIB_SIM_DURATION_DEFAULT,
-        "help": """Duration of calibration (or of historical forcing sim
-for default realization). Units: days (integer).""",
+        "help": """Duration of calibration or default realization. Units: days (integer).""",
     },
     scripts=[Script.CALIBRATION, Script.DEFAULT],
 )
@@ -172,11 +178,12 @@ of a lagged ensemble (see nwm-fcst-mgr function `run_lagged_ensemble`).
 Only applicable to the "medium_range" forcing configuration.
 Not applicable to the cold-start realization.
 
-To run an ensemble, call this script multiple times with varying values for this argument, e.g. for "mem1", "mem2", etc.
+To run an ensemble, call this script multiple times
+with varying values for this argument, e.g. "mem1", "mem2", etc.
 
 This argument has 3 parts:
     1. member_name : str (required when -le provided)
-        Name of the ensemble member. Choose from: {list(c.LAGGED_ENSEMBLE_MEMBER_LAGS)}
+        Name of the ensemble member. Choose from: {split_iter_to_chunked_str(list(c.LAGGED_ENSEMBLE_MEMBER_LAGS))}
     2. open_loop_state : str (optional)
         Path to an existing open-loop state file.
         To omit, provide an empty string for this part.
@@ -248,7 +255,7 @@ Choices and defaults vary per realization type:
     Default: {repr(c.FORECAST_FORCING_TYPES[0])}. Choices:{split_iter_to_chunked_str(c.FORECAST_FORCING_TYPES)}
   Calibration Realization:
     Default: {repr(c.CALIB_FORCING_TYPES[0])}. Choices: {split_iter_to_chunked_str(c.CALIB_FORCING_TYPES)}
-  Default Realization: {c.ALL_FORCING_TYPES}.
+  Default Realization:
     Default: {repr(c.CALIB_FORCING_TYPES[0])}. Choices: {split_iter_to_chunked_str(c.ALL_FORCING_TYPES)}""",
     },
     scripts=[Script.FORECAST, Script.DEFAULT, Script.CALIBRATION],

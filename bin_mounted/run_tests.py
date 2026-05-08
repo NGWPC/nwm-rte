@@ -258,7 +258,7 @@ to finish, quit after the specified processing duration. Units: seconds.""",
         "-allofuncs",
         "--do_all_objective_functions",
         action="store_true",
-        help=f"For calibration, causes all objective functions to be executed: {list(c.CalObjective)}",
+        help=f"For calibration, causes all objective functions to be executed: {cli_args.split_iter_to_chunked_str(list(c.CalObjective))}",
     )
     parser.add_argument(
         "-optalgos",
@@ -272,7 +272,7 @@ to finish, quit after the specified processing duration. Units: seconds.""",
         "-alloptalgos",
         "--do_all_optimization_algorithms",
         action="store_true",
-        help=f"For calibration, causes all optimization algorithms to be executed: {list(c.CalOptimizationAlgo)}",
+        help=f"For calibration, causes all optimization algorithms to be executed: {cli_args.split_iter_to_chunked_str(list(c.CalOptimizationAlgo))}",
     )
     parser.add_argument(
         "-allforcings",
