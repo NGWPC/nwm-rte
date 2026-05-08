@@ -202,7 +202,7 @@ def main(cfg: RTETestConfig):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(formatter_class=cli_args.HelpFormatter)
     parser.add_argument(
         "-nofcst",
         "--skip_forecast",

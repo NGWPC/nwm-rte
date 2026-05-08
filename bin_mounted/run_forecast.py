@@ -109,7 +109,7 @@ def main(cfg: RTEForecastConfig):
 
 def cli_arg_parser() -> argparse.ArgumentParser:
     """Build and return the CLI argument parser"""
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(formatter_class=cli_args.HelpFormatter)
     parser.add_argument(
         "-csdt",
         "--cold_start_datetime",

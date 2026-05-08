@@ -1,18 +1,15 @@
 """Misc utilities and type handlers"""
 
-import consts as c
-import os
-from datetime import datetime, timedelta
-from datetime import timezone
 import json
+import os
 import pathlib
 import shutil
+from datetime import datetime, timedelta, timezone
 
+import consts as c
 import pandas as pd
-
 from mswm.build_inputs import RealizationBuilder
-from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
-from mswm.utils import settings as mswm_settings
+from mswm.utils.mswm_settings import DEFAULT_DATETIME_FORMAT
 
 
 def make_symlink(link_path: str, target_path: str) -> None:
@@ -37,7 +34,7 @@ def make_wcoss_path_symlinks() -> None:
 
 def datetime_type(datetime_str) -> datetime:
     """Helper function for munging CLI string arguments into datetime type."""
-    return datetime.strptime(datetime_str, mswm_settings.DEFAULT_DATETIME_FORMAT)
+    return datetime.strptime(datetime_str, DEFAULT_DATETIME_FORMAT)
 
 
 def configure_ngen_log(fallback_log_dir: str | pathlib.Path, label: str) -> None:
@@ -86,12 +83,12 @@ def configure_ngen_log(fallback_log_dir: str | pathlib.Path, label: str) -> None
 
 def datetime_from_str(datetime_str: str) -> datetime:
     """Convert string to datetime object"""
-    return datetime.strptime(datetime_str, DDF)
+    return datetime.strptime(datetime_str, DEFAULT_DATETIME_FORMAT)
 
 
 def str_from_datetime(dt: datetime) -> str:
     """Convert datetime object to string"""
-    return dt.strftime(DDF)
+    return dt.strftime(DEFAULT_DATETIME_FORMAT)
 
 
 def timedelta_from_effective_days(effective_days: int | str) -> timedelta:

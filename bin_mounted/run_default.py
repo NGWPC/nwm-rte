@@ -115,7 +115,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         The CLI arguments mostly follow that of run_forecast.py. The exception is
         that "--duration" aka "-dur" (in days) was added to this script
         to support the historical / retrospective forcing use case, e.g. AORC or NWM.""",
-        formatter_class=argparse.RawTextHelpFormatter,
+        formatter_class=cli_args.HelpFormatter,
     )
     cli_args.add_args_for_script(parser, cli_args.Script.DEFAULT)
     return parser
