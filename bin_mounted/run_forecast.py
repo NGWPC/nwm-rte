@@ -111,13 +111,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
     """Build and return the CLI argument parser"""
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
-        "-fstatic",
-        "--forcing_static_dir",
-        type=str,
-        default=c.FORCING_STATIC_DIR_DEFAULT,
-        help=f"Directory for static forcing files, used when forcing_provider is 'bmi'. Default={c.FORCING_STATIC_DIR_DEFAULT}",
-    )
-    parser.add_argument(
         "-csdt",
         "--cold_start_datetime",
         type=datetime_type,

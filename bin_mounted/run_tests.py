@@ -288,13 +288,6 @@ if __name__ == "__main__":
         help="Causes use_cold_start to be True for all forecasts",
     )
     parser.add_argument(
-        "-fstatic",
-        "--forcing_static_dir",
-        type=str,
-        default=c.FORCING_STATIC_DIR_DEFAULT,
-        help=f"Directory for static forcing files, used when forcing_provider is 'bmi'. Default={c.FORCING_STATIC_DIR_DEFAULT}",
-    )
-    parser.add_argument(
         "--noop",
         action="store_true",
         help="Run in noop mode - only verify that the script can import libraries and basic setup, then exit without looking for data or running any workflows.",

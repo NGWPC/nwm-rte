@@ -138,13 +138,6 @@ if __name__ == "__main__":
         help=f"Pandas-style timedelta string. Default={c.VALID_EVAL_CURTAILMENT_DEFAULT}",
     )
     parser.add_argument(
-        "-fstatic",
-        "--forcing_static_dir",
-        type=str,
-        default=c.FORCING_STATIC_DIR_DEFAULT,
-        help=f"Directory for static forcing files, used when forcing_provider is 'bmi'. Default={c.FORCING_STATIC_DIR_DEFAULT}",
-    )
-    parser.add_argument(
         "-wrkr",
         "--worker_name",
         type=str,

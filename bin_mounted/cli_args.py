@@ -246,3 +246,14 @@ OPTIMIZATION_ALGORITHM = ArgsKwargs(
     },
     scripts=[Script.CALIBRATION, Script.FORECAST],
 )
+
+
+FORCING_STATIC_DIR = ArgsKwargs(
+    args=["-fstatic", "--forcing_static_dir"],
+    kwargs={
+        "type": str,
+        "default": c.FORCING_STATIC_DIR_DEFAULT,
+        "help": f"Directory for static forcing files, used when forcing_provider is 'bmi'. Default={c.FORCING_STATIC_DIR_DEFAULT}",
+    },
+    scripts=[Script.ALL],
+)
