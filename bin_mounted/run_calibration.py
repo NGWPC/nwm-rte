@@ -112,7 +112,7 @@ realization using historical / retrospective forcing.""",
         "--calib_sim_start",
         type=datetime_from_str,
         default=str_from_datetime(c.CALIB_SIM_START_DEFAULT),
-        help=f"Start time for calibration. Default={str_from_datetime(c.CALIB_SIM_START_DEFAULT)},",
+        help="Start time for calibration.",
     )
     cli_args.add_args_for_script(parser, cli_args.Script.CALIBRATION)
     args = parser.parse_args()

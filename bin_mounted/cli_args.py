@@ -40,6 +40,37 @@ class HelpFormatter(
 ):
     """Custom help formatter"""
 
+    def _format_action(self, action):
+        r"""Add \n between each argument."""
+        return super()._format_action(action) + "\n"
+
+    def _format_action_invocation(self, action):
+        """Remove metavar and add [boolean switch] for args that are boolean flags."""
+        if action.option_strings:
+            flags = ", ".join(action.option_strings)
+            if isinstance(action, argparse._StoreTrueAction):
+                return f"{flags} [boolean switch]"
+            return flags
+        return ""
+
+
+def split_iter_to_chunked_str(
+    iterable,
+    element_separator: str = ", ",
+    chunk_size: int = 3,
+    chunk_separator: str = "\n    ",
+    prepend_chunk_separator: bool = True,
+) -> str:
+    """Split the provided iterable into chunks of the provided size and
+    return str casts of the elements, with parameters for controlling the details."""
+    result = chunk_separator.join(
+        element_separator.join(map(repr, map(str, iterable[i : i + chunk_size])))
+        for i in range(0, len(iterable), chunk_size)
+    )
+    if prepend_chunk_separator:
+        result = chunk_separator + result
+    return result
+
 
 def add_args_for_script(parser: argparse.ArgumentParser, script: Script) -> None:
     current_module = sys.modules[__name__]
@@ -214,11 +245,11 @@ FORCING_CONFIGURATION = ArgsKwargs(
         "help": f"""Forcing configuration to use, e.g., 'short_range', 'standard_ana', 'aorc', etc.
 Choices and defaults vary per realization type:
   Forecast Realization:
-    Default: {c.FORECAST_FORCING_TYPES[0]}. Choices: {c.FORECAST_FORCING_TYPES}.
+    Default: {repr(c.FORECAST_FORCING_TYPES[0])}. Choices:{split_iter_to_chunked_str(c.FORECAST_FORCING_TYPES)}
   Calibration Realization:
-    Default: {c.CALIB_FORCING_TYPES[0]}. Choices: {c.CALIB_FORCING_TYPES}.
+    Default: {repr(c.CALIB_FORCING_TYPES[0])}. Choices: {split_iter_to_chunked_str(c.CALIB_FORCING_TYPES)}
   Default Realization: {c.ALL_FORCING_TYPES}.
-    Default: {c.CALIB_FORCING_TYPES[0]}. Choices: {c.ALL_FORCING_TYPES}.""",
+    Default: {repr(c.CALIB_FORCING_TYPES[0])}. Choices: {split_iter_to_chunked_str(c.ALL_FORCING_TYPES)}""",
     },
     scripts=[Script.FORECAST, Script.DEFAULT, Script.CALIBRATION],
 )
