@@ -20,10 +20,7 @@ import consts as c
 import utils_testing_setup
 from configs import RTEDefaultConfig
 from mswm.build_inputs import RealizationBuilder
-from utils import (
-    configure_ngen_log,
-    timedelta_from_effective_days,
-)
+from utils import configure_ngen_log
 
 print = functools.partial(print, flush=True)
 
