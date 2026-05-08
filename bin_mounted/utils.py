@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, timezone
 import consts as c
 import pandas as pd
 from mswm.build_inputs import RealizationBuilder
-from mswm.utils.mswm_settings import DEFAULT_DATETIME_FORMAT
+from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
 
 def make_symlink(link_path: str, target_path: str) -> None:

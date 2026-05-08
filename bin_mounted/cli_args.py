@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 import consts as c
-from mswm.utils.mswm_settings import DEFAULT_DATETIME_FORMAT
+from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
 # from mswm.utils.settings import c.LAGGED_ENSEMBLE_MEMBER_LAGS
 # TODO replace with import of mswm.utils.settings.c.LAGGED_ENSEMBLE_MEMBER_LAGS
