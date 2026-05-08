@@ -297,12 +297,6 @@ if __name__ == "__main__":
         action="store_true",
         help=f"Run in restart mode. Read existing results json file {c.TEST_RESULTS_FILE} if it exists and skip indexes that already have a record in it.",
     )
-    parser.add_argument(
-        "--hydrofab_file",
-        type=str,
-        default=None,
-        help="Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.",
-    )
     cli_args.add_args_for_script(parser, cli_args.Script.TESTS)
     args = parser.parse_args()
     print(f"{__file__}: args: {json.dumps(vars(args), indent=2)}")

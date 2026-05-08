@@ -257,3 +257,14 @@ FORCING_STATIC_DIR = ArgsKwargs(
     },
     scripts=[Script.ALL],
 )
+
+
+FORCING_STATIC_DIR = ArgsKwargs(
+    args=["--hydrofab_file"],
+    kwargs={
+        "type": str,
+        "default": None,
+        "help": "Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.",
+    },
+    scripts=[Script.ALL],
+)

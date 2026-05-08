@@ -143,12 +143,6 @@ if __name__ == "__main__":
         type=str,
         help="If provided, will be used as the worker name, instead of letting cal mgr choose a random worker name. Only allowed for Optimization Algorithm DDS, which uses single instances of ngen. Does not affect 'default' realization (which is not a calibration).",
     )
-    parser.add_argument(
-        "--hydrofab_file",
-        type=str,
-        default=None,
-        help="Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.",
-    )
     cli_args.add_args_for_script(parser, cli_args.Script.CALIBRATION)
     args = parser.parse_args()
     cfg = RTECalibConfig(**vars(args))

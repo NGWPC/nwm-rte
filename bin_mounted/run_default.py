@@ -117,12 +117,6 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         to support the historical / retrospective forcing use case, e.g. AORC or NWM.""",
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    parser.add_argument(
-        "--hydrofab_file",
-        type=str,
-        default=None,
-        help="Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.",
-    )
     cli_args.add_args_for_script(parser, cli_args.Script.DEFAULT)
     return parser
 
