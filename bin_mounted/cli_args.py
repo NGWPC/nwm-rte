@@ -113,7 +113,7 @@ CYCLE_DATETIME = ArgsKwargs(
         "required": True,
         "help": f"""For a regular forecast, this is the start time.
 When cold-start is used, this is the *end* of the cold-start cycle.
-Format: {DEFAULT_DATETIME_FORMAT.replace("%", "%%")}.""",
+Format: {repr(DEFAULT_DATETIME_FORMAT.replace("%", "%%"))}.""",
     },
     scripts=[Script.FORECAST, Script.DEFAULT],
 )
