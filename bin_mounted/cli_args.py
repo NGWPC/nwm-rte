@@ -324,3 +324,14 @@ See class CalibTimeWindows for details.""",
     },
     scripts=[Script.CALIBRATION],
 )
+
+COLD_START_DATETIME = ArgsKwargs(
+    args=["-csdt", "--cold_start_datetime"],
+    kwargs={
+        "type": datetime_type,
+        "help": """If provided, a cold-start realization will be ran prior to the forecast,
+and this value will be the start time for the cold-start.
+Format: {DEFAULT_DATETIME_FORMAT}.""",
+    },
+    scripts=[Script.FORECAST],
+)

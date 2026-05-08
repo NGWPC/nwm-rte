@@ -110,13 +110,6 @@ def main(cfg: RTEForecastConfig):
 def cli_arg_parser() -> argparse.ArgumentParser:
     """Build and return the CLI argument parser"""
     parser = argparse.ArgumentParser(formatter_class=cli_args.HelpFormatter)
-    parser.add_argument(
-        "-csdt",
-        "--cold_start_datetime",
-        type=datetime_type,
-        help="If provided, a cold-start realization will be ran prior to the forecast, and this value will be the start time for the cold-start. Format: 'YYYY-MM-DD HH:mm:ss'.",
-        default=None,
-    )
     cli_args.add_args_for_script(parser, cli_args.Script.FORECAST)
     return parser
 
