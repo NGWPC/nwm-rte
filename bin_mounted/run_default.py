@@ -108,10 +108,10 @@ def cli_arg_parser() -> argparse.ArgumentParser:
     """Build and return the CLI argument parser"""
     parser = argparse.ArgumentParser(
         description="""Script for building and running default realizations
-        using realtime forcing configurations or historical / retrospective forcing.
-        The CLI arguments mostly follow that of run_forecast.py. The exception is
-        that "--duration" aka "-dur" (in days) was added to this script
-        to support the historical / retrospective forcing use case, e.g. AORC or NWM.""",
+using realtime forcing configurations or historical / retrospective forcing.
+The CLI arguments mostly follow that of run_forecast.py. The exception is
+that "--duration" aka "-dur" (in days) was added to this script
+to support the historical / retrospective forcing use case, e.g. AORC or NWM.""",
         formatter_class=cli_args.HelpFormatter,
     )
     cli_args.add_args_for_script(parser, cli_args.Script.DEFAULT)

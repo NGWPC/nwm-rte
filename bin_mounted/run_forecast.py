@@ -109,7 +109,11 @@ def main(cfg: RTEForecastConfig):
 
 def cli_arg_parser() -> argparse.ArgumentParser:
     """Build and return the CLI argument parser"""
-    parser = argparse.ArgumentParser(formatter_class=cli_args.HelpFormatter)
+    parser = argparse.ArgumentParser(
+        description="""Script for building and running a forecast realization,
+optionally with a coldstart.""",
+        formatter_class=cli_args.HelpFormatter,
+    )
     cli_args.add_args_for_script(parser, cli_args.Script.FORECAST)
     return parser
 

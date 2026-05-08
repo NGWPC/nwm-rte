@@ -25,7 +25,7 @@ import utils_testing_setup
 from calib.strategy import (
     Algorithm as CalOptimizationAlgo,
 )
-from configs import RTETestConfig, make_parallel_config
+from configs import RTETestConfig
 from execution_tests import (
     ForecastTest,
     LogParser,
@@ -202,37 +202,49 @@ def main(cfg: RTETestConfig):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(formatter_class=cli_args.HelpFormatter)
+    parser = argparse.ArgumentParser(
+        description="""Script for building and running a series of test
+realizations, optionally including calibration, coldstart, and forecasts,
+using various forcing configurations and model formulations.""",
+        formatter_class=cli_args.HelpFormatter,
+    )
     parser.add_argument(
         "-nofcst",
         "--skip_forecast",
         action="store_true",
-        help="Skip building and running forecasts. Incompatible with --do_all_forcing_configs and --do_coldstart",
+        help="""Provide to skip forecast (for testing calibrations only).
+Incompatible with --do_all_forcing_configs and --do_coldstart""",
     )
     parser.add_argument(
         "--quit_forecast_after_forcing_running",
         action="store_true",
-        help="THIS IS CURRENTLY NOT ALLOWED, pending updates. Instead of waiting for each forecast to finish, quit after the ngen log file indicates that forcing is running successfully.",
+        help="""THIS IS CURRENTLY NOT SUPPORTED, pending updates.
+Instead of waiting for each forecast to finish,
+quit after the ngen log file indicates that forcing
+is running successfully.
+THIS IS CURRENTLY NOT SUPPORTED.""",
     )
     parser.add_argument(
         "-quitfcdur",
         "--quit_forecast_after_duration",
         default=None,
         type=float,
-        help="Instead of waiting for each forecast to finish, quit after the specified elapsed processing duration in seconds.",
+        help="""Instead of waiting for each forecast to finish,
+quit after the specified elapsed processing duration in seconds.""",
     )
     parser.add_argument(
         "-calib",
         "--do_calibration",
         action="store_true",
-        help="Build and run calibration before forecasts",
+        help="Build and run a calibration before forecasts.",
     )
     parser.add_argument(
         "-quitcaldur",
         "--quit_calibration_after_duration",
         default=None,
         type=float,
-        help="Instead of waiting for each calibration to finish, quit after the specified elapsed processing duration in seconds.",
+        help="""For calibrations, instead of waiting for the realization
+to finish, quit after the specified processing duration. Units: seconds.""",
     )
     parser.add_argument(
         "-ofuncs",
@@ -240,7 +252,7 @@ if __name__ == "__main__":
         nargs="+",
         type=c.CalObjective,
         default=[c.CALIB_OBJECTIVE_FUNCTION],
-        help=f"List of objective functions for calibration. Default: {[c.CALIB_OBJECTIVE_FUNCTION]}",
+        help="List of objective functions for calibration.",
     )
     parser.add_argument(
         "-allofuncs",
@@ -254,7 +266,7 @@ if __name__ == "__main__":
         nargs="+",
         type=c.CalOptimizationAlgo,
         default=[c.CALIB_OPTIMIZATION_ALGO],
-        help=f"List of optimization algorithms for calibration. Default: {[c.CALIB_OPTIMIZATION_ALGO]}",
+        help="List of optimization algorithms for calibration.",
     )
     parser.add_argument(
         "-alloptalgos",
@@ -266,20 +278,24 @@ if __name__ == "__main__":
         "-allforcings",
         "--do_all_forcing_configs",
         action="store_true",
-        help=f"Run all forcing configurations rather than the default shorter default list. Default list: {c.FORECAST_FORCING_TYPES__TESTS}. Incompatible with --skip_forecast.",
+        help=f"""Run all forcing configurations rather than the default shorter default list.
+For reference, the default list is: {c.FORECAST_FORCING_TYPES__TESTS}.
+Incompatible with --skip_forecast.""",
     )
     parser.add_argument(
         "-mff",
         "--model_formulations_file",
-        help=f"""If provided, multiple model formulations will be ran, and this is a file path to a tsv file of the formulations list.
-        If not provided, then the default model formulation will be used: {c.DEFAULT_MODEL_FORMULATION_ARGS}.""",
+        help=f"""If provided, multiple model formulations will be ran,
+and this is a file path to a tsv file of the formulations list. If not provided,
+then the default model formulation will be used: {c.DEFAULT_MODEL_FORMULATION_ARGS}.""",
     )
     parser.add_argument(
         "-calfsrcs",
         "--calibration_forcing_sources",
         nargs="*",
         default=c.CALIB_FORCING_TYPES,
-        help=f"Sources of forcing data for calibration runs. If not provided then this default will be used: {c.CALIB_FORCING_TYPES}.",
+        help=f"""Sources of forcing data for calibration runs. If not provided,
+then this default will be used: {c.CALIB_FORCING_TYPES}.""",
     )
     parser.add_argument(
         "-cs",
@@ -290,12 +306,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "--noop",
         action="store_true",
-        help="Run in noop mode - only verify that the script can import libraries and basic setup, then exit without looking for data or running any workflows.",
+        help="""Run in noop mode - only verify that the script
+can import libraries and basic setup, then exit without looking
+for data or running any workflows.""",
     )
     parser.add_argument(
         "--restart",
         action="store_true",
-        help=f"Run in restart mode. Read existing results json file {c.TEST_RESULTS_FILE} if it exists and skip indexes that already have a record in it.",
+        help=f"""Run in restart mode. Read existing results json file {repr(c.TEST_RESULTS_FILE)}
+if it exists, and skip indexes that already have a record in it.""",
     )
     cli_args.add_args_for_script(parser, cli_args.Script.TESTS)
     args = parser.parse_args()

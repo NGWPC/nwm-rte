@@ -103,7 +103,8 @@ def main(cfg: RTECalibConfig):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Script for building and running calibration realizations using historical / retrospective forcing.",
+        description="""Script for building and running a calibration
+realization using historical / retrospective forcing.""",
         formatter_class=cli_args.HelpFormatter,
     )
     parser.add_argument(
