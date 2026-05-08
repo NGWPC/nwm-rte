@@ -8,9 +8,14 @@ import consts as c
 # from mswm.utils.settings import c.LAGGED_ENSEMBLE_MEMBER_LAGS
 # TODO replace with import of mswm.utils.settings.c.LAGGED_ENSEMBLE_MEMBER_LAGS
 from utils import (
+    configure_ngen_log,
+    datetime_from_str,
     datetime_type,
     effective_days_from_timedelta,
+    get_calibration_log_file_overwrite_path,
+    str_from_datetime,
     timedelta_from_effective_days,
+    timedelta_from_pandas_str,
 )
 
 
@@ -259,7 +264,7 @@ FORCING_STATIC_DIR = ArgsKwargs(
 )
 
 
-FORCING_STATIC_DIR = ArgsKwargs(
+HYDROFAB_FILE = ArgsKwargs(
     args=["--hydrofab_file"],
     kwargs={
         "type": str,
@@ -267,4 +272,51 @@ FORCING_STATIC_DIR = ArgsKwargs(
         "help": "Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.",
     },
     scripts=[Script.ALL],
+)
+
+
+WORKER_NAME = ArgsKwargs(
+    args=["--wrkr", "--worker_name"],
+    kwargs={
+        "type": str,
+        "help": """If provided, will be used as the worker name,
+instead of letting cal mgr choose a random worker name.
+Only allowed for Optimization Algorithm DDS, which uses
+single instances of ngen. Does not affect 'default'
+realization (which is not a calibration).""",
+    },
+    scripts=[Script.CALIBRATION],
+)
+
+
+CALIB_EVAL_DELAYMENT = ArgsKwargs(
+    args=["-evaldelay", "--calib_eval_delayment"],
+    kwargs={
+        "type": timedelta_from_pandas_str,
+        "default": c.CALIB_EVAL_DELAYMENT_DEFAULT,
+        "help": f"Pandas-style timedelta string. Default={c.CALIB_EVAL_DELAYMENT_DEFAULT}",
+    },
+    scripts=[Script.CALIBRATION],
+)
+
+
+CALIB_VALID_ADVANCE = ArgsKwargs(
+    args=["-validadvance", "--valid_sim_advancement"],
+    kwargs={
+        "type": timedelta_from_pandas_str,
+        "default": c.VALID_SIM_ADVANCEMENT_DEFAULT,
+        "help": f"Pandas-style timedelta string. Default={c.VALID_SIM_ADVANCEMENT_DEFAULT}",
+    },
+    scripts=[Script.CALIBRATION],
+)
+
+
+CALIB_EVAL_CURTAILMENT = ArgsKwargs(
+    args=["-evalcurtail", "--valid_eval_curtailment"],
+    kwargs={
+        "type": timedelta_from_pandas_str,
+        "default": c.VALID_EVAL_CURTAILMENT_DEFAULT,
+        "help": f"Pandas-style timedelta string. Default={c.VALID_EVAL_CURTAILMENT_DEFAULT}",
+    },
+    scripts=[Script.CALIBRATION],
 )

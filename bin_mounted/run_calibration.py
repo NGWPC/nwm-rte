@@ -116,33 +116,6 @@ if __name__ == "__main__":
         default=str_from_datetime(c.CALIB_SIM_START_DEFAULT),
         help=f"Start time for calibration. Default={str_from_datetime(c.CALIB_SIM_START_DEFAULT)},",
     )
-    parser.add_argument(
-        "-evaldelay",
-        "--calib_eval_delayment",
-        type=timedelta_from_pandas_str,
-        default=c.CALIB_EVAL_DELAYMENT_DEFAULT,
-        help=f"Pandas-style timedelta string. Default={c.CALIB_EVAL_DELAYMENT_DEFAULT}",
-    )
-    parser.add_argument(
-        "-validadvance",
-        "--valid_sim_advancement",
-        type=timedelta_from_pandas_str,
-        default=c.VALID_SIM_ADVANCEMENT_DEFAULT,
-        help=f"Pandas-style timedelta string. Default={c.VALID_SIM_ADVANCEMENT_DEFAULT}",
-    )
-    parser.add_argument(
-        "-evalcurtail",
-        "--valid_eval_curtailment",
-        type=timedelta_from_pandas_str,
-        default=c.VALID_EVAL_CURTAILMENT_DEFAULT,
-        help=f"Pandas-style timedelta string. Default={c.VALID_EVAL_CURTAILMENT_DEFAULT}",
-    )
-    parser.add_argument(
-        "-wrkr",
-        "--worker_name",
-        type=str,
-        help="If provided, will be used as the worker name, instead of letting cal mgr choose a random worker name. Only allowed for Optimization Algorithm DDS, which uses single instances of ngen. Does not affect 'default' realization (which is not a calibration).",
-    )
     cli_args.add_args_for_script(parser, cli_args.Script.CALIBRATION)
     args = parser.parse_args()
     cfg = RTECalibConfig(**vars(args))
