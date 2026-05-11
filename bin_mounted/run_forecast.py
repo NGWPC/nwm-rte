@@ -19,7 +19,7 @@ from mswm.build_inputs import RealizationBuilder
 from nwm_fcst_mgr.forecast import (
     run_forecast as run_fcst,
 )
-from utils import configure_ngen_log, datetime_type
+from utils import configure_ngen_log
 
 print = functools.partial(print, flush=True)
 
