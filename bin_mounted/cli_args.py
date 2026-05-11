@@ -13,7 +13,9 @@ from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 # from mswm.utils.settings import c.LAGGED_ENSEMBLE_MEMBER_LAGS
 # TODO replace with import of mswm.utils.settings.c.LAGGED_ENSEMBLE_MEMBER_LAGS
 from utils import (
+    datetime_from_str,
     datetime_type,
+    str_from_datetime,
     timedelta_from_effective_days,
     timedelta_from_pandas_str,
 )
@@ -76,7 +78,7 @@ class HelpFormatter(
     @staticmethod
     def _type_label(action: argparse.Action) -> str | None:
         if isinstance(action, argparse._StoreTrueAction):
-            return "switch(bool:StoreTrue)"
+            return "bool-switch(store-true)"
         type_name = getattr(getattr(action, "type", None), "__name__", None)
         if type_name == "str_to_bool":
             type_name = "bool"
@@ -110,34 +112,51 @@ def add_arg(parser: argparse.ArgumentParser, arg: ArgsKwargs) -> None:
     parser.add_argument(*arg.args, **arg.kwargs)
 
 
-DEL_SCRATCH = ArgsKwargs(
-    args=["-delscratch", "--delete_scratch_and_mesh_first"],
+GLOBAL_DOMAIN = ArgsKwargs(
+    args=["-gdomain", "--global_domain"],
     kwargs={
-        "action": "store_true",
-        "help": """Delete scratch dir and ESMF mesh files before the run,
-which forces ESMF and NetCDF actions to occur.""",
+        "type": str,
+        "default": c.GLOBAL_DOMAINS[0],
+        "choices": c.GLOBAL_DOMAINS,
+        "help": "Global domain/region of forcing data.",
     },
     scripts=[Script.ALL],
 )
 
-DEL_RAW = ArgsKwargs(
-    args=["-delraw", "--delete_forcing_raw_input_first"],
+GAGE_ID = ArgsKwargs(
+    args=["-g", "--gage_id"],
     kwargs={
-        "action": "store_true",
-        "help": f"""Delete contents of {repr(c.DIR_FORCING_RAW_INPUT)} before the run,
-which forces forcing data to be re-downloaded.""",
+        "type": str,
+        "default": c.DEFAULT_GAGE_ID,
+        "help": "Gage ID.",
     },
     scripts=[Script.ALL],
 )
 
-DURATION = ArgsKwargs(
-    args=["-dur", "--duration"],
+N_PROCS = ArgsKwargs(
+    args=["-n", "--nprocs"],
     kwargs={
-        "type": timedelta_from_effective_days,
-        "default": c.CALIB_SIM_DURATION_DEFAULT,
-        "help": """Duration of calibration or default realization. Units: days (integer).""",
+        "type": int,
+        "help": "Number of processors",
+        "default": c.DEFAULT_NPROCS,
     },
-    scripts=[Script.CALIBRATION, Script.DEFAULT],
+    scripts=[Script.ALL],
+)
+
+FORCING_CONFIGURATION = ArgsKwargs(
+    args=["-fconfig", "--forcing_configuration"],
+    kwargs={
+        "type": str,
+        "help": f"""Forcing configuration to use, e.g., 'short_range', 'standard_ana', 'aorc', etc.
+Choices and defaults vary per realization type:
+  Forecast Realization:
+    Default: {repr(c.FORECAST_FORCING_TYPES[0])}. Choices:{split_iter_to_chunked_str(c.FORECAST_FORCING_TYPES)}
+  Calibration Realization:
+    Default: {repr(c.CALIB_FORCING_TYPES[0])}. Choices: {split_iter_to_chunked_str(c.CALIB_FORCING_TYPES)}
+  Default Realization:
+    Default: {repr(c.CALIB_FORCING_TYPES[0])}. Choices: {split_iter_to_chunked_str(c.ALL_FORCING_TYPES)}""",
+    },
+    scripts=[Script.FORECAST, Script.CALIBRATION, Script.DEFAULT],
 )
 
 FCST_RUN_NAME = ArgsKwargs(
@@ -150,14 +169,14 @@ FCST_RUN_NAME = ArgsKwargs(
     scripts=[Script.FORECAST, Script.DEFAULT, Script.TESTS],
 )
 
-GAGE_ID = ArgsKwargs(
-    args=["-g", "--gage_id"],
+TIMESTAMP_RUN_NAME_SUFFIX = ArgsKwargs(
+    args=["-ts", "--timestamp_run_name"],
     kwargs={
-        "type": str,
-        "default": c.DEFAULT_GAGE_ID,
-        "help": "Gage ID.",
+        "dest": "add_timestamp_to_run_name",
+        "action": "store_true",
+        "help": "If provided, add a timestamp suffix to the run name.",
     },
-    scripts=[Script.ALL],
+    scripts=[Script.FORECAST, Script.DEFAULT],
 )
 
 CYCLE_DATETIME = ArgsKwargs(
@@ -172,15 +191,25 @@ Format: {repr(DEFAULT_DATETIME_FORMAT.replace("%", "%%"))}.""",
     scripts=[Script.FORECAST, Script.DEFAULT],
 )
 
-GLOBAL_DOMAIN = ArgsKwargs(
-    args=["-gdomain", "--global_domain"],
+COLD_START_DATETIME = ArgsKwargs(
+    args=["-csdt", "--cold_start_datetime"],
     kwargs={
-        "type": str,
-        "default": c.GLOBAL_DOMAINS[0],
-        "choices": c.GLOBAL_DOMAINS,
-        "help": "Global domain/region of forcing data.",
+        "type": datetime_type,
+        "help": """If provided, a cold-start realization will be ran prior to the forecast,
+and this value will be the start time for the cold-start.
+Format: {DEFAULT_DATETIME_FORMAT}.""",
     },
-    scripts=[Script.ALL],
+    scripts=[Script.FORECAST],
+)
+
+NWM_OUTPUT_VARIABLES = ArgsKwargs(
+    args=["-nwmout", "--nwm_output_vars_true"],
+    kwargs={
+        "dest": "nwm_output_vars",
+        "action": "store_true",
+        "help": "If provided, NWMOutputConfig.nwm_output_variables will be set to True",
+    },
+    scripts=[Script.FORECAST, Script.DEFAULT],
 )
 
 LAGGED_ENSEMBLE = ArgsKwargs(
@@ -214,18 +243,47 @@ provide them as empty strings e.g. `-le 'mem2' '' ''`.""",
     scripts=[Script.FORECAST, Script.DEFAULT],
 )
 
-MODELS_CSV = ArgsKwargs(
-    args=["-mf", "--model-formulation"],
+OBJECTIVE_FUNCTION = ArgsKwargs(
+    args=["-ofunc", "--objective_function"],
     kwargs={
-        "dest": "model_formulation_cli_csv",
-        "type": str,
-        "required": False,
-        "default": str(c.DEFAULT_MODEL_FORMULATION_ARGS[0]),
-        "help": """Provide this argument to specify a non-default model formulation.
-The value should be a comma-separated string of models that make up the formulation.
-Can be used in conjunction with ["-rz", "--root-zone"].""",
+        "type": c.CalObjective,
+        "help": """Objective function of previously-ran calibration realization
+for basis of forecast. Affects directory path.""",
+        "default": c.CALIB_OBJECTIVE_FUNCTION,
     },
-    scripts=[Script.DEFAULT, Script.CALIBRATION],
+    scripts=[Script.FORECAST, Script.CALIBRATION],
+)
+
+OPTIMIZATION_ALGORITHM = ArgsKwargs(
+    args=["-optalgo", "--optimization_algorithm"],
+    kwargs={
+        "type": c.CalOptimizationAlgo,
+        "help": """Optimization algorithm of previously-ran calibration realization
+for basis of forecast. Affects directory path.""",
+        "default": c.CALIB_OPTIMIZATION_ALGO,
+    },
+    scripts=[Script.FORECAST, Script.CALIBRATION],
+)
+
+CALIB_SIM_START_TIME = ArgsKwargs(
+    args=["-start", "--calib_sim_start"],
+    kwargs={
+        "type": datetime_from_str,
+        "required": False,
+        "default": str_from_datetime(c.CALIB_SIM_START_DEFAULT),
+        "help": "Start time for the calibration realization",
+    },
+    scripts=[Script.CALIBRATION],
+)
+
+CALIB_DURATION = ArgsKwargs(
+    args=["-dur", "--duration"],
+    kwargs={
+        "type": timedelta_from_effective_days,
+        "default": c.CALIB_SIM_DURATION_DEFAULT,
+        "help": """Duration of calibration or default realization. Units: days (integer).""",
+    },
+    scripts=[Script.CALIBRATION, Script.DEFAULT],
 )
 
 MODELS_RZ = ArgsKwargs(
@@ -239,99 +297,25 @@ MODELS_RZ = ArgsKwargs(
 The value should be either true/yes/1 or false/no/0.
 Can be used in conjunction with ["-mf", "--model-formulation"].""",
     },
-    scripts=[Script.DEFAULT, Script.CALIBRATION],
+    scripts=[Script.CALIBRATION, Script.DEFAULT],
 )
 
-TIMESTAMP_RUN_NAME_SUFFIX = ArgsKwargs(
-    args=["-ts", "--timestamp_run_name"],
+MODELS_CSV = ArgsKwargs(
+    args=["-mf", "--model-formulation"],
     kwargs={
-        "dest": "add_timestamp_to_run_name",
-        "action": "store_true",
-        "help": "If provided, add a timestamp suffix to the run name.",
-    },
-    scripts=[Script.FORECAST, Script.DEFAULT],
-)
-
-NWM_OUTPUT_VARIABLES = ArgsKwargs(
-    args=["-nwmout", "--nwm_output_vars_true"],
-    kwargs={
-        "dest": "nwm_output_vars",
-        "action": "store_true",
-        "help": "If provided, NWMOutputConfig.nwm_output_variables will be set to True",
-    },
-    scripts=[Script.FORECAST, Script.DEFAULT],
-)
-
-FORCING_CONFIGURATION = ArgsKwargs(
-    args=["-fconfig", "--forcing_configuration"],
-    kwargs={
+        "dest": "model_formulation_cli_csv",
         "type": str,
-        "help": f"""Forcing configuration to use, e.g., 'short_range', 'standard_ana', 'aorc', etc.
-Choices and defaults vary per realization type:
-  Forecast Realization:
-    Default: {repr(c.FORECAST_FORCING_TYPES[0])}. Choices:{split_iter_to_chunked_str(c.FORECAST_FORCING_TYPES)}
-  Calibration Realization:
-    Default: {repr(c.CALIB_FORCING_TYPES[0])}. Choices: {split_iter_to_chunked_str(c.CALIB_FORCING_TYPES)}
-  Default Realization:
-    Default: {repr(c.CALIB_FORCING_TYPES[0])}. Choices: {split_iter_to_chunked_str(c.ALL_FORCING_TYPES)}""",
+        "required": False,
+        "default": str(c.DEFAULT_MODEL_FORMULATION_ARGS[0]),
+        "help": """Provide this argument to specify a non-default model formulation.
+The value should be a comma-separated string of models that make up the formulation.
+Can be used in conjunction with ["-rz", "--root-zone"].""",
     },
-    scripts=[Script.FORECAST, Script.DEFAULT, Script.CALIBRATION],
+    scripts=[Script.CALIBRATION, Script.DEFAULT],
 )
 
-N_PROCS = ArgsKwargs(
-    args=["-n", "--nprocs"],
-    kwargs={
-        "type": int,
-        "help": "Number of processors",
-        "default": c.DEFAULT_NPROCS,
-    },
-    scripts=[Script.ALL],
-)
-
-OBJECTIVE_FUNCTION = ArgsKwargs(
-    args=["-ofunc", "--objective_function"],
-    kwargs={
-        "type": c.CalObjective,
-        "help": """Objective function of previously-ran calibration realization
-for basis of forecast. Affects directory path.""",
-        "default": c.CALIB_OBJECTIVE_FUNCTION,
-    },
-    scripts=[Script.CALIBRATION, Script.FORECAST],
-)
-
-OPTIMIZATION_ALGORITHM = ArgsKwargs(
-    args=["-optalgo", "--optimization_algorithm"],
-    kwargs={
-        "type": c.CalOptimizationAlgo,
-        "help": """Optimization algorithm of previously-ran calibration realization
-for basis of forecast. Affects directory path.""",
-        "default": c.CALIB_OPTIMIZATION_ALGO,
-    },
-    scripts=[Script.CALIBRATION, Script.FORECAST],
-)
-
-FORCING_STATIC_DIR = ArgsKwargs(
-    args=["-fstatic", "--forcing_static_dir"],
-    kwargs={
-        "type": str,
-        "default": c.FORCING_STATIC_DIR_DEFAULT,
-        "help": "Directory for static forcing files, used when forcing_provider is 'bmi'.",
-    },
-    scripts=[Script.ALL],
-)
-
-HYDROFAB_FILE = ArgsKwargs(
-    args=["--hydrofab_file"],
-    kwargs={
-        "type": str,
-        "default": None,
-        "help": "Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.",
-    },
-    scripts=[Script.ALL],
-)
-
-WORKER_NAME = ArgsKwargs(
-    args=["--wrkr", "--worker_name"],
+CALIB_WORKER_NAME = ArgsKwargs(
+    args=["-wrkr", "--worker_name"],
     kwargs={
         "type": str,
         "help": """If provided, will be used as the worker name,
@@ -380,13 +364,42 @@ See class CalibTimeWindows for details.""",
     scripts=[Script.CALIBRATION],
 )
 
-COLD_START_DATETIME = ArgsKwargs(
-    args=["-csdt", "--cold_start_datetime"],
+DEL_SCRATCH = ArgsKwargs(
+    args=["-delscratch", "--delete_scratch_and_mesh_first"],
     kwargs={
-        "type": datetime_type,
-        "help": """If provided, a cold-start realization will be ran prior to the forecast,
-and this value will be the start time for the cold-start.
-Format: {DEFAULT_DATETIME_FORMAT}.""",
+        "action": "store_true",
+        "help": """Delete scratch dir and ESMF mesh files before the run,
+which forces ESMF and NetCDF actions to occur.""",
     },
-    scripts=[Script.FORECAST],
+    scripts=[Script.ALL],
+)
+
+DEL_RAW = ArgsKwargs(
+    args=["-delraw", "--delete_forcing_raw_input_first"],
+    kwargs={
+        "action": "store_true",
+        "help": f"""Delete contents of {repr(c.DIR_FORCING_RAW_INPUT)} before the run,
+which forces forcing data to be re-downloaded.""",
+    },
+    scripts=[Script.ALL],
+)
+
+FORCING_STATIC_DIR = ArgsKwargs(
+    args=["-fstatic", "--forcing_static_dir"],
+    kwargs={
+        "type": str,
+        "default": c.FORCING_STATIC_DIR_DEFAULT,
+        "help": "Directory for static forcing files, used when forcing_provider is 'bmi'.",
+    },
+    scripts=[Script.ALL],
+)
+
+HYDROFAB_FILE = ArgsKwargs(
+    args=["--hydrofab_file"],
+    kwargs={
+        "type": str,
+        "default": None,
+        "help": "Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.",
+    },
+    scripts=[Script.ALL],
 )

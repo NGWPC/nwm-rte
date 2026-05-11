@@ -93,6 +93,17 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
     proc.check_returncode()
 
 
+def cli_arg_parser() -> argparse.ArgumentParser:
+    """Build and return the CLI argument parser"""
+    parser = argparse.ArgumentParser(
+        description="""Script for building and running a calibration
+realization using historical / retrospective forcing.""",
+        formatter_class=cli_args.HelpFormatter,
+    )
+    cli_args.add_args_for_script(parser, cli_args.Script.CALIBRATION)
+    return parser
+
+
 def main(cfg: RTECalibConfig):
     if cfg.delete_scratch_and_mesh_first:
         utils_testing_setup.delete_scratch_and_esmf_outputs(cfg)
@@ -102,19 +113,7 @@ def main(cfg: RTECalibConfig):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="""Script for building and running a calibration
-realization using historical / retrospective forcing.""",
-        formatter_class=cli_args.HelpFormatter,
-    )
-    parser.add_argument(
-        "-start",
-        "--calib_sim_start",
-        type=datetime_from_str,
-        default=str_from_datetime(c.CALIB_SIM_START_DEFAULT),
-        help="Start time for calibration.",
-    )
-    cli_args.add_args_for_script(parser, cli_args.Script.CALIBRATION)
+    parser = cli_arg_parser()
     args = parser.parse_args()
     cfg = RTECalibConfig(**vars(args))
     main(cfg)
