@@ -16,68 +16,43 @@ import time
 import cli_args
 import consts as c
 import utils_testing_setup
-from configs import CalibTimeWindows, RTECalibConfig
-from execution_tests import (
-    get_test_configs__calibration,
-)
+from configs import RTECalibConfig
 from mswm.build_inputs import RealizationBuilder
-from utils import (
-    configure_ngen_log,
-    datetime_from_str,
-    get_calibration_log_file_overwrite_path,
-    str_from_datetime,
-)
+from utils import configure_ngen_log, get_calibration_log_file_overwrite_path
 
 print = functools.partial(print, flush=True)
 
 
-def calibration__build_and_run(cfg: RTECalibConfig) -> None:
-    """Build calibration realizations and run them as tests."""
-
-    windows = CalibTimeWindows(
-        calib_sim_start=cfg.calib_sim_start,
-        calib_sim_duration=cfg.duration,
-        calib_eval_delayment=cfg.calib_eval_delayment,
-        valid_sim_advancement=cfg.valid_sim_advancement,
-        valid_eval_curtailment=cfg.valid_eval_curtailment,
-    )
-
-    all_config_overrides = get_test_configs__calibration(
-        nprocs=cfg.nprocs,
-        gage_id=cfg.gage_id,
-        hydrofab_file=cfg.hydrofab_file,
-        obj_func=cfg.objective_function,
-        optim_algo=cfg.optimization_algorithm,
-        model_formulation=cfg.model_formulation,
-        model_formulations_file=None,
-        forcing_config_types=[cfg.forcing_configuration],
-        global_domain=cfg.global_domain,
-        forcing_static_dir=cfg.forcing_static_dir,
-        windows=windows,
-        run_type="calibration",
-    )
-    assert (
-        len(all_config_overrides) == 1
-    )  # Can be > 1 in test runner, not in atomic calibration runner
-    config_overrides = all_config_overrides[0]
-
-    rb_kwargs = {"config_overrides": config_overrides}
-    rb = RealizationBuilder(**rb_kwargs)
+def build_calibration(cfg: RTECalibConfig) -> RealizationBuilder:
+    """Build calibration realization and return a RealizationBuilder instance."""
+    rb = RealizationBuilder(**cfg.mswm_RealizationBuilder_kwargs)
 
     if cfg.forcing_configuration not in c.CALIB_FORCING_TYPES:
         raise ValueError(
             f"cfg.default_realization = {cfg.default_realization} (calibration), but cfg.forcing_configuration {cfg.forcing_configuration} not in c.CALIB_FORCING_TYPES {c.CALIB_FORCING_TYPES}"
         )
     rb.build_calib_realization()
-    log_path = get_calibration_log_file_overwrite_path(rb)
+    return rb
+
+
+def get_calibration_cmd(
+    rb: RealizationBuilder, worker_name: str, log_path: str
+) -> list[str]:
+    """Get the command to run the calibration realization."""
     cmd = [
         "calibration",
         str(rb.calib_config_file),
         "--log_path_overwrite",
         log_path,
     ]
-    if cfg.worker_name:
-        cmd.extend(["--worker_name", cfg.worker_name])
+    if worker_name:
+        cmd.extend(["--worker_name", worker_name])
+    return cmd
+
+
+def run_calibration(cfg, rb: RealizationBuilder) -> None:
+    log_path = get_calibration_log_file_overwrite_path(rb)
+    cmd = get_calibration_cmd(cfg, rb, log_path)
     cwd = None
     msg_suffix = f" Log path: {log_path}"
 
@@ -93,6 +68,15 @@ def calibration__build_and_run(cfg: RTECalibConfig) -> None:
     proc.check_returncode()
 
 
+def main(cfg: RTECalibConfig):
+    if cfg.delete_scratch_and_mesh_first:
+        utils_testing_setup.delete_scratch_and_esmf_outputs(cfg)
+    if cfg.delete_forcing_raw_input_first:
+        utils_testing_setup.delete_forcing_raw_inputs()
+    rb = build_calibration(cfg)
+    run_calibration(cfg, rb)
+
+
 def cli_arg_parser() -> argparse.ArgumentParser:
     """Build and return the CLI argument parser"""
     parser = argparse.ArgumentParser(
@@ -104,16 +88,7 @@ realization using historical / retrospective forcing.""",
     return parser
 
 
-def main(cfg: RTECalibConfig):
-    if cfg.delete_scratch_and_mesh_first:
-        utils_testing_setup.delete_scratch_and_esmf_outputs(cfg)
-    if cfg.delete_forcing_raw_input_first:
-        utils_testing_setup.delete_forcing_raw_inputs()
-    calibration__build_and_run(cfg)
-
-
 if __name__ == "__main__":
     parser = cli_arg_parser()
     args = parser.parse_args()
-    cfg = RTECalibConfig(**vars(args))
-    main(cfg)
+    main(cfg=RTECalibConfig(**vars(args)))

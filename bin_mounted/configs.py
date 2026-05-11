@@ -2,7 +2,6 @@ import os
 import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Literal
 
 import consts as c
 import pandas as pd
@@ -12,6 +11,7 @@ import pandas as pd
 from consts import LAGGED_ENSEMBLE_MEMBER_LAGS
 from mswm.utils import settings as mswm_settings
 from mswm.utils.input_configuration import (
+    CalibConfig,
     DataFileConfig,
     ForcingConfig,
     GeneralConfig,
@@ -111,12 +111,71 @@ class ModelFormulation:
         if self.cfe_aet_rootzone is None:
             self.cfe_aet_rootzone = c.DEFAULT_MODEL_FORMULATION_ARGS[1]
 
-        pattern = "^[a-z][a-z0-9-\,]*[a-z]$"
+        pattern = "^[a-z][a-z0-9-,]*[a-z]$"
         if not re.fullmatch(pattern, self.models_csv):
             raise ValueError(
                 f"Expected models to match pattern {repr(pattern)} but got: {repr(self.models_csv)}"
             )
         self.cfe_aet_rootzone = booleanize(self.cfe_aet_rootzone)
+
+
+class CalibTimeWindows(BaseModel):
+    """Calibration time windows defined by a start time
+    and some timedelta offsets."""
+
+    calib_sim_start: datetime = Field(default=c.CALIB_SIM_START_DEFAULT)
+    calib_sim_duration: timedelta = Field(default=c.CALIB_SIM_DURATION_DEFAULT)
+    # Delayed start from calibration simulation, for warmup
+    calib_eval_delayment: timedelta = Field(default=c.CALIB_EVAL_DELAYMENT_DEFAULT)
+    # Validation simulation starts before calibration simulation, by this amount
+    valid_sim_advancement: timedelta = Field(default=c.VALID_SIM_ADVANCEMENT_DEFAULT)
+    # Valid eval window cut short by this amount
+    valid_eval_curtailment: timedelta = Field(default=c.VALID_EVAL_CURTAILMENT_DEFAULT)
+
+    @property
+    def calib_sim_end(self) -> datetime:
+        """End of the calibration simulation window."""
+        return self.calib_sim_start + self.calib_sim_duration
+
+    @property
+    def calib_eval_start(self) -> datetime:
+        """Start of the calibration evaluation window."""
+        return self.calib_sim_start + self.calib_eval_delayment
+
+    @property
+    def calib_eval_end(self) -> datetime:
+        """End of the calibration evaluation window."""
+        return self.calib_sim_end
+
+    @property
+    def valid_sim_start(self) -> datetime:
+        """Start of the validation simulation window."""
+        return self.calib_sim_start - self.valid_sim_advancement
+
+    @property
+    def valid_sim_end(self) -> datetime:
+        """End of the validation simulation window."""
+        return self.calib_sim_end
+
+    @property
+    def valid_eval_start(self) -> datetime:
+        """Start of the validation evaluation window."""
+        return self.calib_sim_start
+
+    @property
+    def valid_eval_end(self) -> datetime:
+        """End of the validation evaluation window."""
+        return self.calib_sim_end - self.valid_eval_curtailment
+
+    @property
+    def full_eval_start(self) -> datetime:
+        """Start of the full evaluation window"""
+        return self.calib_sim_start
+
+    @property
+    def full_eval_end(self) -> datetime:
+        """End of the full evaluation window"""
+        return self.calib_sim_end
 
 
 def build_model_formulations_for_test(
@@ -158,11 +217,27 @@ def build_model_formulations_for_test(
     return model_formulations
 
 
+class ForcingProviderPaths(BaseModel):
+    """Helper class for managing model paths."""
+
+    model_config = ConfigDict(strict=True)
+    global_domain: str  # e.g. CONUS. TODO restrict choices
+    forcing_static_dir: str
+
+    @property
+    def formulation_name(self) -> str:
+        """Formulation name, as a part of the model path."""
+        return f"test_{c.FORCING_PROVIDER}"
+
+
 class RTEBaseConfig(BaseModel):
     """Base RTE configuration class to be inherited by child classes.
     Triggers certain setup actions, such as creation of WCOSS-path symlinks.
     Classes that inherit from this should call super().model_post_init(__context) inside their own
-    model_post_init() method, if they have that method also defined in the child."""
+    model_post_init() method, if they have that method also defined in the child.
+
+    The primary usage of this class is to access property mswm_RealizationBuilder_kwargs
+    for building (and later running) a realization using MSWM."""
 
     # Set during init
     delete_scratch_and_mesh_first: bool
@@ -177,6 +252,8 @@ class RTEBaseConfig(BaseModel):
     nwm_output_vars: bool = Field(default=False)
     """Passed to MSWM NWMOutputConfig. Does not apply to calibration workflow."""
     hydrofab_file: str | None = Field(default=None)
+    fcst_run_name: str | None = Field(default=None)
+    cycle_datetime: datetime | None = Field(default=None)
 
     # Set after init (not provided as args)
     errors: list | None = Field(init=False, default=None)
@@ -187,13 +264,12 @@ class RTEBaseConfig(BaseModel):
     forcing_lag: str | None = Field(init=False, default=None)
     le__open_loop_state: str | None = Field(init=False, default=None)
     le__closed_loop_state: str | None = Field(init=False, default=None)
-    # For model formulation
-    model_formulation: ModelFormulation | None = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
         self.errors = []
         make_wcoss_path_symlinks()
-        self._parse_model_formulation_args()
+        if self.errors:
+            raise RuntimeError(self.errors)
 
     def _parse_lagged_ensemble_args(self):
         """Break up the multipart lagged ensemble arg into distinct args and set them.
@@ -223,21 +299,280 @@ class RTEBaseConfig(BaseModel):
                 "Lagged ensemble args for Open Loop State and Closed Loop State are not yet implemented in nwm-rte (should be provided as empty strings for now)"
             )
 
-    def _parse_model_formulation_args(self):
-        """Break up the multipart model formulation arg into distinct args and set them."""
-        self.model_formulation = ModelFormulation(
-            self.model_formulation_cli_csv,
-            self.model_formulation_cli_rootzone,
-        )
-
-    def _add_ts_to_run_name(self):
+    @property
+    def _fcst_run_name(self) -> str:
         if self.add_timestamp_to_run_name:
             if not self.fcst_run_name:
                 raise ValueError(
                     "Must provide fcst_run_name when using timestamp_run_name"
                 )
             now = datetime.now(tz=timezone.utc)
-            self.fcst_run_name = f"{self.fcst_run_name}_{now.strftime(c.RUN_NAME_TIMESTAMP_SUFFIX_FORMAT)}"
+            ret = f"{self.fcst_run_name}_{now.strftime(c.RUN_NAME_TIMESTAMP_SUFFIX_FORMAT)}"
+        else:
+            ret = f"{self.fcst_run_name}"
+        return ret
+
+    @property
+    def realtime_mode(self) -> bool:
+        if self.forcing_configuration in c.FORECAST_FORCING_TYPES + ["medium_range"]:
+            return True
+        else:
+            return False
+
+    @property
+    def forcing_provider_paths(self) -> ForcingProviderPaths:
+        fpp = ForcingProviderPaths(
+            global_domain=self.global_domain,
+            forcing_static_dir=self.forcing_static_dir,
+        )
+        return fpp
+
+    @property
+    def calib_windows(self) -> CalibTimeWindows:
+        windows = CalibTimeWindows(
+            calib_sim_start=self.calib_sim_start
+            if self.calib_sim_start
+            else c.CALIB_SIM_START_DEFAULT,
+            calib_sim_duration=self.duration
+            if self.duration
+            else c.CALIB_SIM_DURATION_DEFAULT,
+            calib_eval_delayment=c.CALIB_EVAL_DELAYMENT_DEFAULT,
+            valid_sim_advancement=c.VALID_SIM_ADVANCEMENT_DEFAULT,
+            valid_eval_curtailment=c.VALID_EVAL_CURTAILMENT_DEFAULT,
+        )
+        return windows
+
+    @property
+    def start_period__end_period(self) -> tuple[str | None, str | None]:
+        if isinstance(self, RTECalibConfig):
+            start_period = self.calib_windows.calib_eval_start.strftime(DDF)
+            end_period = self.calib_windows.calib_eval_end.strftime(DDF)
+        elif isinstance(self, RTEDefaultConfig) and not self.realtime_mode:
+            start_period = self.cycle_datetime.strftime(DDF)
+            end_period = (self.cycle_datetime + self.duration).strftime(DDF)
+        else:
+            start_period = None
+            end_period = None
+        return start_period, end_period
+
+    @property
+    def model_formulation(self) -> ModelFormulation:
+        mf = ModelFormulation(
+            self.model_formulation_cli_csv,
+            self.model_formulation_cli_rootzone,
+        )
+        return mf
+
+    @property
+    def run_type(self) -> str:
+        if isinstance(self, RTECalibConfig):
+            rt = "calibration"
+        elif isinstance(self, RTEDefaultConfig):
+            rt = "default"
+        elif isinstance(self, RTEForecastConfig):
+            rt = "default"
+        else:
+            raise ValueError(
+                f"Unexpected config class {type(self)}. Expected one of RTEForecastConfig, RTECalibConfig, or RTEDefaultConfig."
+            )
+        return rt
+
+    @property
+    def mswm_GeneralConfig(self) -> GeneralConfig:
+        start_period, end_period = self.start_period__end_period
+        return GeneralConfig(
+            basin=self.gage_id,
+            run_type=self.run_type,
+            models=self.model_formulation.models_csv,
+            formulation=self.forcing_provider_paths.formulation_name,
+            main_dir=c.DEFAULT_MAIN_DIR,
+            start_period=start_period,
+            end_period=end_period,
+            output_precip=True,
+            output_swe=True,
+            output_sm=True,
+            domain=self.global_domain.lower(),
+        )
+
+    @property
+    def mswm_ModulePropertiesConfig(self) -> ModulePropertiesConfig:
+        mpc = ModulePropertiesConfig(
+            cfe_aet_rootzone=self.model_formulation.cfe_aet_rootzone,
+        )
+        return mpc
+
+    @property
+    def mswm_NWMOutputConfig(self) -> NWMOutputConfig:
+        oc = NWMOutputConfig(output_nwm_vars=self.nwm_output_vars)
+        return oc
+
+    @property
+    def mswm_RegionalizationConfig(self) -> None:
+        return None
+
+    @property
+    def mswm_CalibConfig(self) -> CalibConfig | None:
+        if not isinstance(self, RTECalibConfig):
+            return None
+        cc = CalibConfig(
+            optimization_algorithm=self.optimization_algorithm,
+            swarm_size=c.CALIB_SWARM_SIZE,
+            c1=c.CALIB_PSO_C1,
+            c2=c.CALIB_PSO_C2,
+            w=c.CALIB_PSO_W,
+            objective_function=self.objective_function,
+            start_iteration=c.CALIB_ITER_START,
+            number_iteration=c.CALIB_ITER_COUNT,
+            calib_output_vars=True,
+            valid_output_vars=True,
+            calib_start_period=self.calib_windows.calib_sim_start.strftime(DDF),
+            calib_end_period=self.calib_windows.calib_sim_end.strftime(DDF),
+            calib_eval_start_period=self.calib_windows.calib_eval_start.strftime(DDF),
+            calib_eval_end_period=self.calib_windows.calib_eval_end.strftime(DDF),
+            valid_start_period=self.calib_windows.valid_sim_start.strftime(DDF),
+            valid_end_period=self.calib_windows.valid_sim_end.strftime(DDF),
+            valid_eval_start_period=self.calib_windows.valid_eval_start.strftime(DDF),
+            valid_eval_end_period=self.calib_windows.valid_eval_end.strftime(DDF),
+            full_eval_start_period=self.calib_windows.full_eval_start.strftime(DDF),
+            full_eval_end_period=self.calib_windows.full_eval_end.strftime(DDF),
+            save_plot_iter_freq=c.CALIB_SAVE_PLOT_ITER_FREQ,
+            ngen_cerf=False,
+            calib_parameter_file=c.CALIB_PARAMETERS_DIR,
+        )
+        return cc
+
+    @property
+    def mswm_ForcingConfig(self) -> ForcingConfig:
+        if isinstance(self, RTECalibConfig):
+            cdt = self.calib_windows.calib_sim_start.strftime(
+                mswm_settings.DEFAULT_DATETIME_FORMAT
+            )
+        elif isinstance(self, (RTEForecastConfig, RTEDefaultConfig)):
+            cdt = (
+                self.cycle_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT)
+                if self.cycle_datetime
+                else None
+            )
+        else:
+            raise ValueError(
+                f"Unexpected config class {type(self)}. Expected one of RTEForecastConfig, RTECalibConfig, or RTEDefaultConfig."
+            )
+        cold_start_datetime = (
+            self.cold_start_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT)
+            if isinstance(self, RTEForecastConfig) and self.cold_start_datetime
+            else None
+        )
+        fc = ForcingConfig(
+            forcing_provider=c.FORCING_PROVIDER,
+            forcing_dir=self.forcing_static_dir,
+            forcing_template_dir=c.FORCING_TEMPLATE_DIR,
+            root_dir=c.FORCING_ROOT_DIR,
+            forcing_configuration=self.forcing_configuration,
+            cycle_datetime=cdt,
+            cold_start_datetime=cold_start_datetime,
+            global_domain=self.global_domain,
+            forcing_static_dir=self.forcing_static_dir,
+            scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
+            forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
+        )
+        return fc
+
+    @property
+    def mswm_DataFileConfig(self) -> DataFileConfig:
+        obs_dir, nwmretro_file, errors = get_data_paths_for_lstm(
+            self.global_domain,
+            self.gage_id,
+            models_csv=self.model_formulation.models_csv,
+        )
+        if errors:
+            raise RuntimeError(errors)
+        dfc = DataFileConfig(
+            **(
+                c.DATAFILE_LIBS
+                | {
+                    "obs_dir": obs_dir,
+                    "nwmretro_file": nwmretro_file,
+                    "hydrofab_file": self.hydrofab_file,
+                }
+            )
+        )
+        return dfc
+
+    @property
+    def mswm_ParallelConfig(self) -> ParallelConfig:
+        pc = make_parallel_config(self.nprocs)
+        return pc
+
+    @property
+    def mswm_InputConfig(self) -> InputConfig:
+        general = self.mswm_GeneralConfig
+        module_properties = self.mswm_ModulePropertiesConfig
+        nwm_output = self.mswm_NWMOutputConfig
+        regionalization = self.mswm_RegionalizationConfig
+        calibration = self.mswm_CalibConfig
+        forcing = self.mswm_ForcingConfig
+        data_file = self.mswm_DataFileConfig
+        parallel = self.mswm_ParallelConfig
+        ic = InputConfig(
+            General=general,
+            ModuleProperties=module_properties,
+            NWMOutput=nwm_output,
+            Regionalization=regionalization,
+            Calibration=calibration,
+            Forcing=forcing,
+            DataFile=data_file,
+            Parallel=parallel,
+        )
+        return ic
+
+    @property
+    def mswm_RealizationBuilder_kwargs(self) -> dict:
+        """Build and return a dictionary for creating a RealizationBuilder instance."""
+        kwargs = {
+            # "input_path": forecast_vars.forecast_input_config,
+            "valid_yaml": self.valid_best_yaml,
+            "fcst_run_name": self._fcst_run_name,
+            "config_overrides": self.mswm_InputConfig,
+            "use_lagged_ens": self.use_lagged_ensemble,
+            "lagged_ens_mem": self.lagged_ens_mem,
+            "forcing_lag": self.forcing_lag,
+        }
+        if self.errors:
+            raise RuntimeError(self.errors)
+        return kwargs
+
+    @property
+    def run_dir_base(self) -> str:
+        """Run directory root"""
+        ret = f"{c.DEFAULT_MAIN_DIR}/{self.objective_function.value}_{self.optimization_algorithm.value}/test_{c.FORCING_PROVIDER}/{self.gage_id}"
+        if not os.path.isdir(ret):
+            msg = f"Not a directory: {repr(ret)}. Please review choices for objective function, optimization algorithm, and gage, which affect this path."
+            raise NotADirectoryError(msg)
+        return ret
+
+    @property
+    def run_dir_input(self) -> str:
+        """Input run directory"""
+        return f"{self.run_dir_base}/Input"
+
+    @property
+    def run_dir_output(self) -> str:
+        """Output run directory"""
+        return f"{self.run_dir_base}/Output"
+
+    @property
+    def ngen_log_file(self) -> str:
+        """ngen stdout + stderr stream log file"""
+        return f"{self.run_dir_base}/logs/ngen.log"
+
+    @property
+    def valid_best_yaml(self) -> str:
+        """Validation yaml file (output from previously-ran calibration realization)"""
+        return (
+            f"{self.run_dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
+            if isinstance(self, RTEForecastConfig)
+            else None
+        )
 
 
 class RTEDefaultConfig(RTEBaseConfig):
@@ -246,14 +581,6 @@ class RTEDefaultConfig(RTEBaseConfig):
 
     Attributes
     ----------
-    delete_scratch_and_mesh_first: bool
-        Causes scratch dir and intermediary mesh to be deleted first
-    delete_forcing_raw_input_first: bool
-        Causes realtime forcing data cache dir to be deleted first
-    global_domain: str
-        e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
-    forcing_static_dir :
-        Forcing static directory
     cycle_datetime: datetime
         Start time of the realization
     duration: timedelta | None
@@ -262,13 +589,6 @@ class RTEDefaultConfig(RTEBaseConfig):
         Forcing configuration, e.g. "aorc" or "short_range"
     fcst_run_name: str
         Name of the forecast realization run. Affects a directory name.
-    nprocs: int = Field(ge=1)
-        Number of processors to use
-    # The following are set after init during self.model_post_init(). Do not provide
-    realtime_mode: bool = Field(init=False, default=None)
-        Realtime mode
-    realization_builder_kwargs: dict = Field(init=False, default=None)
-        Realization builder kwargs (passed to `nwm-msw-mgr`)
     """
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
@@ -280,129 +600,10 @@ class RTEDefaultConfig(RTEBaseConfig):
     # For medium-range lagged ensemble
     lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
 
-    # Set after init
-    realtime_mode: bool = Field(init=False, default=None)
-
-    # Other derived attrs (not passed to __init__)
-    realization_builder_kwargs: dict = Field(init=False, default=None)
-
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
-        super()._add_ts_to_run_name()
-
-        if self.forcing_configuration not in c.FORECAST_FORCING_TYPES + [
-            "medium_range"
-        ]:
-            self.realtime_mode = False
-        else:
-            self.realtime_mode = True
-
-        # if (not self.realtime_mode) and (not self.duration):
-        #     self.errors.extend(
-        #         [
-        #             f"Forcing configuration {repr(self.forcing_configuration)} is *not* realtime, and requires that CLI arg -dur aka --duration is provided, but it was not."
-        #         ]
-        #     )
-        # if self.realtime_mode and self.duration:
-        #     self.errors.extend(
-        #         [
-        #             f"Forcing configuration {repr(self.forcing_configuration)} *is* realtime, but CLI arg -dur aka --duration was also provided (it should not be)."
-        #         ]
-        #     )
-
-        super()._parse_lagged_ensemble_args()
-        self.realization_builder_kwargs = self._make_realization_builder_kwargs()
         if self.errors:
             raise RuntimeError(self.errors)
-
-    def _make_realization_builder_kwargs(self) -> dict:
-        """Build and return a dictionary for creating a RealizationBuilder instance."""
-        fpp = ForcingProviderPaths(
-            global_domain=self.global_domain,
-            forcing_static_dir=self.forcing_static_dir,
-        )
-
-        windows = CalibTimeWindows(
-            calib_sim_start=self.cycle_datetime,
-            calib_sim_duration=self.duration
-            if self.duration
-            else c.CALIB_SIM_DURATION_DEFAULT,
-            calib_eval_delayment=c.CALIB_EVAL_DELAYMENT_DEFAULT,
-            valid_sim_advancement=c.VALID_SIM_ADVANCEMENT_DEFAULT,
-            valid_eval_curtailment=c.VALID_EVAL_CURTAILMENT_DEFAULT,
-        )
-
-        if self.realtime_mode:
-            start_period = None
-            end_period = None
-        else:
-            start_period = windows.calib_eval_start.strftime(DDF)
-            end_period = windows.calib_eval_end.strftime(DDF)
-
-        cycle_datetime = self.cycle_datetime.strftime(
-            mswm_settings.DEFAULT_DATETIME_FORMAT
-        )
-
-        obs_dir, nwmretro_file, errors = get_data_paths_for_lstm(
-            self.global_domain,
-            self.gage_id,
-            models_csv=self.model_formulation.models_csv,
-        )
-        if errors:
-            raise RuntimeError(errors)
-
-        realization_kwargs = {
-            # "input_path": forecast_vars.forecast_input_config,
-            "fcst_run_name": self.fcst_run_name,
-            "config_overrides": InputConfig(
-                General=GeneralConfig(
-                    basin=self.gage_id,
-                    run_type="default",
-                    models=self.model_formulation.models_csv,
-                    formulation=fpp.formulation_name,
-                    main_dir=c.DEFAULT_MAIN_DIR,
-                    start_period=start_period,
-                    end_period=end_period,
-                    output_precip=True,
-                    output_swe=True,
-                    output_sm=True,
-                    domain=self.global_domain.lower(),
-                ),
-                Forcing=ForcingConfig(
-                    forcing_provider=c.FORCING_PROVIDER,
-                    forcing_dir=self.forcing_static_dir,
-                    forcing_template_dir=c.FORCING_TEMPLATE_DIR,
-                    root_dir=c.FORCING_ROOT_DIR,
-                    forcing_configuration=self.forcing_configuration,
-                    cycle_datetime=cycle_datetime,
-                    cold_start_datetime=None,
-                    global_domain=self.global_domain,
-                    forcing_static_dir=self.forcing_static_dir,
-                    scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
-                    forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
-                ),
-                NWMOutput=NWMOutputConfig(nwm_output_variables=self.nwm_output_vars),
-                DataFile=DataFileConfig(
-                    **(
-                        c.DATAFILE_LIBS
-                        | {
-                            "obs_dir": obs_dir,
-                            "nwmretro_file": nwmretro_file,
-                            "hydrofab_file": self.hydrofab_file,
-                        }
-                    ),
-                ),
-                Parallel=make_parallel_config(self.nprocs),
-                ModuleProperties=ModulePropertiesConfig(
-                    cfe_aet_rootzone=self.model_formulation.cfe_aet_rootzone,
-                ),
-            ),
-            # Lagged ensemble args
-            "use_lagged_ens": self.use_lagged_ensemble,
-            "lagged_ens_mem": self.lagged_ens_mem,
-            "forcing_lag": self.forcing_lag,
-        }
-        return realization_kwargs
 
 
 class RTECalibConfig(RTEBaseConfig):
@@ -410,16 +611,10 @@ class RTECalibConfig(RTEBaseConfig):
 
     Attributes
     ----------
-    delete_scratch_and_mesh_first: bool
-        Causes scratch dir and intermediary mesh to be deleted first
-    delete_forcing_raw_input_first: bool
-        Causes realtime forcing data cache dir to be deleted first
     objective_function: c.CalObjective
         Objective function, e.g. "kge"
     optimization_algorithm: c.CalOptimizationAlgo
         Optimization algorithm, e.g. "dds"
-    nprocs: int = Field(ge=1)
-        Number of processors to use
     calib_sim_start: datetime
         Calibration start time
     duration: timedelta
@@ -432,17 +627,8 @@ class RTECalibConfig(RTEBaseConfig):
         Used for evaluation / validation time windowing
     forcing_configuration: str
         Source of forcing data, e.g. "aorc" or "nwm"
-    global_domain: str
-        e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
-    forcing_static_dir: str
-        Forcing static directory
     worker_name: str | None
         Name of the ngen worker (used to build a directory name)
-    # The following are set after init during self.model_post_init(). Do not provide.
-    obs_dir: str | None = Field(init=False, default=None)
-        Directory of observed flow data
-    nwmretro_file: str | None = Field(init=False, default=None)
-        File containing retrospective NWM flow data
     """
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
@@ -456,10 +642,6 @@ class RTECalibConfig(RTEBaseConfig):
     valid_eval_curtailment: timedelta
     forcing_configuration: str
     worker_name: str | None
-
-    # Set after init
-    obs_dir: str | None = Field(init=False, default=None)
-    nwmretro_file: str | None = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
@@ -484,18 +666,10 @@ class RTEForecastConfig(RTEBaseConfig):
 
     Attributes
     ----------
-    delete_scratch_and_mesh_first: bool
-        Causes scratch dir and intermediary mesh to be deleted first
-    delete_forcing_raw_input_first: bool
-        Causes realtime forcing data cache dir to be deleted first
     objective_function: c.CalObjective
         Affects input realization path. Objective function of previously-ran calibration realization, e.g. "kge"
     optimization_algorithm: c.CalOptimizationAlgo
         Affects input realization path. Optimization algorithm of previously-ran calibration realization, e.g. "dds"
-    global_domain: str
-        e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
-    forcing_static_dir: str
-        Forcing static directory
     cycle_datetime: datetime | None
         Start time of the realization (or end time for coldstart, if `cold_start_datetime` is provided)
     cold_start_datetime: datetime | None
@@ -504,21 +678,6 @@ class RTEForecastConfig(RTEBaseConfig):
         Forcing configuration, e.g. "aorc" or "short_range"
     fcst_run_name: str
         Name of the forecast realization run
-    nprocs: int = Field(ge=1)
-        Number of processors to use
-    # The following are set after init during self.model_post_init(). Do not provide.
-    run_dir_base: str = Field(init=False, default=None)
-        Run directory root
-    run_dir_input: str = Field(init=False, default=None)
-        Input run directory
-    run_dir_output: str = Field(init=False, default=None)
-        Output run directory
-    ngen_log_file: str = Field(init=False, default=None)
-        ngen stdout + stderr stream log file
-    valid_best_yaml: str = Field(init=False, default=None)
-        Validation yaml file (output from previously-ran calibration realization)
-    realization_builder_kwargs: dict = Field(init=False, default=None)
-        Realization builder kwargs (passed to `nwm-msw-mgr`)
     """
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
@@ -533,81 +692,20 @@ class RTEForecastConfig(RTEBaseConfig):
     # For medium-range lagged ensemble
     lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
 
-    # Derived paths (not passed to __init__)
-    run_dir_base: str = Field(init=False, default=None)
-    run_dir_input: str = Field(init=False, default=None)
-    run_dir_output: str = Field(init=False, default=None)
-    ngen_log_file: str = Field(init=False, default=None)
-    valid_best_yaml: str = Field(init=False, default=None)
-
-    # Other derived attrs (not passed to __init__)
-    realization_builder_kwargs: dict = Field(init=False, default=None)
-
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
-        super()._add_ts_to_run_name()
-        if self.forcing_configuration not in c.FORECAST_FORCING_TYPES:
+        # Raw "medium_range" is for lagged ensemble mode
+        if self.forcing_configuration not in c.FORECAST_FORCING_TYPES + [
+            "medium_range"
+        ]:
             self.errors.append(
                 ValueError(
                     f"Unexpected forcing_configuration: {self.forcing_configuration} (for forecast, choose from: {c.FORECAST_FORCING_TYPES})"
                 )
             )
-
-        self.run_dir_base = f"{c.DEFAULT_MAIN_DIR}/{self.objective_function.value}_{self.optimization_algorithm.value}/test_{c.FORCING_PROVIDER}/{self.gage_id}"
-        if not os.path.isdir(self.run_dir_base):
-            msg = f"Not a directory: {repr(self.run_dir_base)}. Please review choices for objective function, optimization algorithm, and gage, which affect this path."
-            raise NotADirectoryError(msg)
-
-        self.run_dir_input = f"{self.run_dir_base}/Input"
-        self.run_dir_output = f"{self.run_dir_base}/Output"
-        self.ngen_log_file = f"{self.run_dir_base}/logs/ngen.log"
-        self.valid_best_yaml = f"{self.run_dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
-
         super()._parse_lagged_ensemble_args()
-        self._make_realization_builder_kwargs()
-
         if self.errors:
             raise RuntimeError(self.errors)
-
-    def _make_realization_builder_kwargs(self) -> None:
-        """Build and set a dictionary for creating a RealizationBuilder instance."""
-        realization_kwargs = {
-            # "input_path": forecast_vars.forecast_input_config,
-            "valid_yaml": self.valid_best_yaml,
-            "fcst_run_name": self.fcst_run_name,
-            "config_overrides": InputConfig(
-                Forcing=ForcingConfig(
-                    forcing_provider=c.FORCING_PROVIDER,
-                    forcing_dir=self.forcing_static_dir,
-                    forcing_template_dir=c.FORCING_TEMPLATE_DIR,
-                    root_dir=c.FORCING_ROOT_DIR,
-                    forcing_configuration=self.forcing_configuration,
-                    cycle_datetime=self.cycle_datetime.strftime(
-                        mswm_settings.DEFAULT_DATETIME_FORMAT
-                    ),
-                    cold_start_datetime=self.cold_start_datetime.strftime(
-                        mswm_settings.DEFAULT_DATETIME_FORMAT
-                    )
-                    if self.cold_start_datetime
-                    else None,
-                    global_domain=self.global_domain,
-                    forcing_static_dir=self.forcing_static_dir,
-                    scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
-                    forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
-                ),
-                NWMOutput=NWMOutputConfig(nwm_output_variables=self.nwm_output_vars),
-                DataFile=DataFileConfig(**(c.DATAFILE_LIBS)),
-                Parallel=make_parallel_config(self.nprocs),
-                ModuleProperties=ModulePropertiesConfig(
-                    cfe_aet_rootzone=self.model_formulation.cfe_aet_rootzone,
-                ),
-            ),
-            # Lagged ensemble args
-            "use_lagged_ens": self.use_lagged_ensemble,
-            "lagged_ens_mem": self.lagged_ens_mem,
-            "forcing_lag": self.forcing_lag,
-        }
-        self.realization_builder_kwargs = realization_kwargs
 
 
 class RTETestConfig(RTEBaseConfig):
@@ -615,10 +713,6 @@ class RTETestConfig(RTEBaseConfig):
 
     Attributes
     ----------
-    delete_scratch_and_mesh_first: bool
-        Causes scratch dir and intermediary mesh to be deleted first
-    delete_forcing_raw_input_first: bool
-        Causes realtime forcing data cache dir to be deleted first
     skip_forecast: bool
         Causes forecast to be skipped (only do calibration)
     quit_forecast_after_forcing_running: bool
@@ -635,6 +729,10 @@ class RTETestConfig(RTEBaseConfig):
         For calibration, causes all objective functions to be used.
     optimization_algorithms: list[c.CalOptimizationAlgo]
         For calibration, list of optimization algorithms to run, e.g. "dds". Replaced with full list when do_all_optimization_algorithms = True
+    model_formulations_file: str | None
+        File containing model formulations to iterate over
+    calibration_forcing_sources: list[str]
+        Calibration forcing configurations, e.g. "aorc" "nwm"
     do_all_optimization_algorithms: bool
         For calibration, causes all optimization algorithms to be used.
     do_all_forcing_configs: bool
@@ -643,12 +741,6 @@ class RTETestConfig(RTEBaseConfig):
         Causes coldstart to be ran before forecast.
     fcst_run_name: str
         Name of the forecast realization run. Affects a directory name.
-    nprocs: int = Field(ge=1)
-        Number of processors to use
-    global_domain: str
-        e.g. "CONUS", "Hawaii", "Alaska", "PuertoRico"
-    forcing_static_dir: str
-        Forcing static directory
     noop: bool
         Causes a noop to occur (for confirming that Python packages are importable).
     """
@@ -676,7 +768,6 @@ class RTETestConfig(RTEBaseConfig):
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
-        super()._add_ts_to_run_name()
 
         if self.quit_forecast_after_forcing_running:
             self.errors.append(
@@ -685,7 +776,7 @@ class RTETestConfig(RTEBaseConfig):
                 )
             )
 
-        errors_extend = parse_fcst_run_name(self.fcst_run_name)
+        errors_extend = parse_fcst_run_name(self._fcst_run_name)
         self.errors.extend(errors_extend)
 
         if self.do_all_objective_functions:
@@ -757,78 +848,6 @@ def parse_fcst_run_name(fcst_run_name: str) -> list[Exception]:
             )
         )
     return errors
-
-
-class ForcingProviderPaths(BaseModel):
-    """Helper class for managing model paths."""
-
-    model_config = ConfigDict(strict=True)
-    global_domain: str  # e.g. CONUS. TODO restrict choices
-    forcing_static_dir: str
-
-    @property
-    def formulation_name(self) -> str:
-        """Formulation name, as a part of the model path."""
-        return f"test_{c.FORCING_PROVIDER}"
-
-
-class CalibTimeWindows(BaseModel):
-    """Calibration time windows defined by a start time
-    and some timedelta offsets."""
-
-    calib_sim_start: datetime = Field(default=c.CALIB_SIM_START_DEFAULT)
-    calib_sim_duration: timedelta = Field(default=c.CALIB_SIM_DURATION_DEFAULT)
-    # Delayed start from calibration simulation, for warmup
-    calib_eval_delayment: timedelta = Field(default=c.CALIB_EVAL_DELAYMENT_DEFAULT)
-    # Validation simulation starts before calibration simulation, by this amount
-    valid_sim_advancement: timedelta = Field(default=c.VALID_SIM_ADVANCEMENT_DEFAULT)
-    # Valid eval window cut short by this amount
-    valid_eval_curtailment: timedelta = Field(default=c.VALID_EVAL_CURTAILMENT_DEFAULT)
-
-    @property
-    def calib_sim_end(self) -> datetime:
-        """End of the calibration simulation window."""
-        return self.calib_sim_start + self.calib_sim_duration
-
-    @property
-    def calib_eval_start(self) -> datetime:
-        """Start of the calibration evaluation window."""
-        return self.calib_sim_start + self.calib_eval_delayment
-
-    @property
-    def calib_eval_end(self) -> datetime:
-        """End of the calibration evaluation window."""
-        return self.calib_sim_end
-
-    @property
-    def valid_sim_start(self) -> datetime:
-        """Start of the validation simulation window."""
-        return self.calib_sim_start - self.valid_sim_advancement
-
-    @property
-    def valid_sim_end(self) -> datetime:
-        """End of the validation simulation window."""
-        return self.calib_sim_end
-
-    @property
-    def valid_eval_start(self) -> datetime:
-        """Start of the validation evaluation window."""
-        return self.calib_sim_start
-
-    @property
-    def valid_eval_end(self) -> datetime:
-        """End of the validation evaluation window."""
-        return self.calib_sim_end - self.valid_eval_curtailment
-
-    @property
-    def full_eval_start(self) -> datetime:
-        """Start of the full evaluation window"""
-        return self.calib_sim_start
-
-    @property
-    def full_eval_end(self) -> datetime:
-        """End of the full evaluation window"""
-        return self.calib_sim_end
 
 
 def get_data_paths_for_lstm(

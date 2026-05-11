@@ -28,7 +28,7 @@ print = functools.partial(print, flush=True)
 def build_default_realization(cfg: RTEDefaultConfig) -> RealizationBuilder:
     """Build and return a non-coldstart forecast realization"""
     print("Building default realization...")
-    rb = RealizationBuilder(**cfg.realization_builder_kwargs)
+    rb = RealizationBuilder(**cfg.mswm_RealizationBuilder_kwargs)
     rb.build_default_realization()
     configure_ngen_log(rb.work_dir, "default")
     return rb
@@ -63,7 +63,7 @@ def run_default(
     Returns: The path to the ngen stdout + stderr log file.
     """
     ngen_log_description = "default"
-    output_dir = os.path.join(rb.work_dir, "Output", "Default_Run", cfg.fcst_run_name)
+    output_dir = os.path.join(rb.work_dir, "Output", "Default_Run", cfg._fcst_run_name)
 
     if clear_output_dir and os.path.exists(output_dir):
         print(f"Deleting output dir: {output_dir}")
@@ -121,5 +121,4 @@ to support the historical / retrospective forcing use case, e.g. AORC or NWM."""
 if __name__ == "__main__":
     parser = cli_arg_parser()
     args = parser.parse_args()
-    cfg = RTEDefaultConfig(**vars(args))
-    main(cfg)
+    main(cfg=RTEDefaultConfig(**vars(args)))

@@ -11,23 +11,16 @@ from datetime import datetime, timezone
 from enum import StrEnum
 
 import consts as c
+import run_calibration
 from configs import (
-    CalibTimeWindows,
-    ForcingProviderPaths,
     ModelFormulation,
+    RTECalibConfig,
+    RTETestConfig,
     build_model_formulations_for_test,
-    get_data_paths_for_lstm,
     make_parallel_config,
 )
 from mswm.build_inputs import RealizationBuilder
-from mswm.utils.input_configuration import (
-    CalibConfig,
-    DataFileConfig,
-    ForcingConfig,
-    GeneralConfig,
-    InputConfig,
-    ModulePropertiesConfig,
-)
+from mswm.utils.input_configuration import ForcingConfig, InputConfig
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
 from nwm_fcst_mgr.forecast import ConfigCache, ForecastExecutionManager, RunStatus
@@ -38,136 +31,53 @@ print = functools.partial(print, flush=True)
 
 
 def get_test_configs__calibration(
-    nprocs: int = c.DEFAULT_NPROCS,
-    gage_id: str = c.DEFAULT_GAGE_ID,
-    hydrofab_file: str | None = None,
+    cfg: RTETestConfig,
     obj_func: c.CalObjective = c.CALIB_OBJECTIVE_FUNCTION,
     optim_algo: c.CalOptimizationAlgo = c.CALIB_OPTIMIZATION_ALGO,
-    model_formulation: ModelFormulation | None = None,
-    # For iterating over multiple model formulations
-    model_formulations_file: str | None = None,
-    forcing_config_types=c.CALIB_FORCING_TYPES,
-    global_domain: str = c.GLOBAL_DOMAINS[0],
-    forcing_static_dir: str = c.FORCING_STATIC_DIR_DEFAULT,
-    windows: CalibTimeWindows = CalibTimeWindows(),
-    run_type: str = "calibration",
-) -> list[InputConfig]:
+) -> list[RTECalibConfig]:
     """Build and return a list of InputConfig instances to be used for building calibration realizations.
     If the model_formulations_file is provided, it will be parsed to determine which formulations to run.
     Otherwise, the default formulation from consts.DEFAULT_MODEL_FORMULATION_ARGS will be ran."""
-    if run_type not in ("calibration", "default"):
-        raise ValueError(f"Unexpected run_type: {run_type}")
-
-    if model_formulations_file:
-        model_formulations = build_model_formulations_for_test(model_formulations_file)
-    elif model_formulation is not None:
-        model_formulations = [model_formulation]
+    if cfg.model_formulations_file:
+        model_formulations = build_model_formulations_for_test(
+            cfg.model_formulations_file
+        )
+    elif cfg.model_formulation is not None:
+        model_formulations = [cfg.model_formulation]
     else:
         model_formulations = [ModelFormulation(*c.DEFAULT_MODEL_FORMULATION_ARGS)]
 
-    fpp = ForcingProviderPaths(
-        global_domain=global_domain,
-        forcing_static_dir=forcing_static_dir,
-    )
+    calib_configs: list[RTECalibConfig] = []
 
-    configs: list[InputConfig] = []
-
-    calibration = CalibConfig(
-        optimization_algorithm=optim_algo,
-        swarm_size=c.CALIB_SWARM_SIZE,
-        c1=c.CALIB_PSO_C1,
-        c2=c.CALIB_PSO_C2,
-        w=c.CALIB_PSO_W,
-        objective_function=obj_func,
-        start_iteration=c.CALIB_ITER_START,
-        number_iteration=c.CALIB_ITER_COUNT,
-        calib_output_vars=True,
-        valid_output_vars=True,
-        calib_start_period=windows.calib_sim_start.strftime(DDF),
-        calib_end_period=windows.calib_sim_end.strftime(DDF),
-        calib_eval_start_period=windows.calib_eval_start.strftime(DDF),
-        calib_eval_end_period=windows.calib_eval_end.strftime(DDF),
-        valid_start_period=windows.valid_sim_start.strftime(DDF),
-        valid_end_period=windows.valid_sim_end.strftime(DDF),
-        valid_eval_start_period=windows.valid_eval_start.strftime(DDF),
-        valid_eval_end_period=windows.valid_eval_end.strftime(DDF),
-        full_eval_start_period=windows.full_eval_start.strftime(DDF),
-        full_eval_end_period=windows.full_eval_end.strftime(DDF),
-        save_plot_iter_freq=c.CALIB_SAVE_PLOT_ITER_FREQ,
-        ngen_cerf=False,
-        calib_parameter_file=c.CALIB_PARAMETERS_DIR,
-    )
-
-    parallel = make_parallel_config(nprocs)
-
-    for mf, fct in itertools.product(model_formulations, forcing_config_types):
-        general = GeneralConfig(
-            basin=gage_id,
-            run_type=run_type,
-            models=mf.models_csv,
-            formulation=fpp.formulation_name,
-            main_dir=c.DEFAULT_MAIN_DIR,
-            start_period=windows.calib_eval_start.strftime(DDF),
-            end_period=windows.calib_eval_end.strftime(DDF),
-            output_precip=True,
-            output_swe=True,
-            output_sm=True,
-            domain=global_domain.lower(),
+    for mf, fct in itertools.product(
+        model_formulations, cfg.calibration_forcing_sources
+    ):
+        parser = run_calibration.cli_arg_parser()
+        args = parser.parse_args(
+            [
+                "--objective_function",
+                f"{obj_func.value}",
+                "--optimization_algorithm",
+                f"{optim_algo.value}",
+                "--forcing_configuration",
+                f"{fct}",
+                "--model-formulation",
+                f"{mf.models_csv}",
+                "--root-zone",
+                f"{mf.cfe_aet_rootzone}",
+                "--hydrofab_file",
+                "/s3/ngwpc-dev/rte-test-data/gages/gauge_01123000.gpkg",
+            ]
         )
+        calib_config = RTECalibConfig(**vars(args))
+        calib_configs.append(calib_config)
 
-        module_properties = ModulePropertiesConfig(cfe_aet_rootzone=mf.cfe_aet_rootzone)
-
-        forcing = ForcingConfig(
-            forcing_provider=c.FORCING_PROVIDER,
-            forcing_dir=forcing_static_dir,
-            forcing_template_dir=c.FORCING_TEMPLATE_DIR,
-            root_dir=c.FORCING_ROOT_DIR,
-            forcing_configuration=fct,
-            cycle_datetime=windows.calib_sim_start.strftime(DDF),
-            cold_start_datetime=None,
-            global_domain=global_domain,
-            forcing_static_dir=forcing_static_dir,
-            scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
-            forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
-        )
-
-        obs_dir, nwmretro_file, errors = get_data_paths_for_lstm(
-            global_domain,
-            gage_id,
-            models_csv=mf.models_csv,
-        )
-        if errors:
-            raise RuntimeError(errors)
-
-        datafile = DataFileConfig(
-            **(
-                c.DATAFILE_LIBS
-                | {
-                    "obs_dir": obs_dir,
-                    "nwmretro_file": nwmretro_file,
-                    "hydrofab_file": hydrofab_file,
-                }
-            ),
-        )
-
-        configs.append(
-            InputConfig(
-                General=general,
-                ModuleProperties=module_properties,
-                Calibration=calibration,
-                Forcing=forcing,
-                DataFile=datafile,
-                Parallel=parallel,
-            )
-        )
-
-    return configs
+    return calib_configs
 
 
 def get_test_configs__forecast(
-    do_all_forcing_configs: bool,
+    cfg: RTETestConfig,
     use_cold_start: bool = False,
-    nprocs: int = c.DEFAULT_NPROCS,
 ) -> list[InputConfig]:
     """Build and return a list of InputConfig instances to be used for building forecast realizations."""
     configs: list[InputConfig] = []
@@ -179,7 +89,7 @@ def get_test_configs__forecast(
         cold_start_datetime = None
         cycle_datetime = c.DT_START_FORECAST.strftime(DDF)
 
-    if do_all_forcing_configs:
+    if cfg.do_all_forcing_configs:
         forcing_config_types = c.FORECAST_FORCING_TYPES
     else:
         forcing_config_types = c.FORECAST_FORCING_TYPES__TESTS
@@ -188,16 +98,17 @@ def get_test_configs__forecast(
         general = None
         forcing = ForcingConfig(
             forcing_provider=c.FORCING_PROVIDER,
-            forcing_dir=self.forcing_static_dir,
+            forcing_dir=cfg.forcing_static_dir,
             forcing_template_dir=c.FORCING_TEMPLATE_DIR,
             root_dir=c.FORCING_ROOT_DIR,
             forcing_configuration=fct,
             cycle_datetime=cycle_datetime,
             cold_start_datetime=cold_start_datetime,
+            global_domain=cfg.global_domain,
             scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
             forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
         )
-        parallel = make_parallel_config(nprocs)
+        parallel = make_parallel_config(cfg.nprocs)
         configs.append(InputConfig(General=general, Forcing=forcing, Parallel=parallel))
 
     return configs
@@ -342,14 +253,9 @@ class ForecastTest(BaseModel):
         self.calib_log = LogParser(path=calib_log_path_overwrite)
 
         print(f"Running calibration, will log to: {repr(self.calib_log.path)}")
-        cmd = [
-            "calibration",
-            str(self.rb.calib_config_file),
-            "--log_path_overwrite",
-            self.calib_log.path,
-        ]
-        if worker_name:
-            cmd.extend(["--worker_name", worker_name])
+        cmd = run_calibration.get_calibration_cmd(
+            self.rb, worker_name, self.calib_log.path
+        )
         print(f"Running command args: {cmd}")
         try:
             proc = subprocess.run(
@@ -362,13 +268,19 @@ class ForecastTest(BaseModel):
         except subprocess.TimeoutExpired as e:
             if not quit_calibration_after_duration:
                 raise e
-            stderr_str = e.stderr.decode()
+            if e.stderr is not None:
+                stderr_str = e.stderr.decode()
+            else:
+                stderr_str = ""
         except subprocess.CalledProcessError as e:
             print(f"Calibration failed with exception {type(e)}: {repr(e)}.")
             self.fcst_exe_stat = TestStat.FAIL
             self.fcst_exe_excep = e
             self.fcst_exe_excep_tb = traceback.format_exc().splitlines()
-            stderr_str = e.stderr.decode()
+            if e.stderr is not None:
+                stderr_str = e.stderr.decode()
+            else:
+                stderr_str = ""
         else:
             self.fcst_exe_stat = TestStat.PASS
             stderr_str = proc.stderr.decode()

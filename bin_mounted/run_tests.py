@@ -44,27 +44,21 @@ def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
     """Build calibration realizations and run them as tests."""
     perms = cfg.get_calib_permutations()
     for obj_func, optim_algo, _ in perms:
-        all_config_overrides = get_test_configs__calibration(
-            nprocs=cfg.nprocs,
-            gage_id=cfg.gage_id,
-            hydrofab_file=cfg.hydrofab_file,
+        rte_calib_configs = get_test_configs__calibration(
+            cfg,
             obj_func=obj_func,
             optim_algo=optim_algo,
-            model_formulations_file=cfg.model_formulations_file,
-            forcing_config_types=cfg.calibration_forcing_sources,
-            global_domain=cfg.global_domain,
-            forcing_static_dir=cfg.forcing_static_dir,
         )
 
-        for i, config_overrides in enumerate(all_config_overrides):
-            fc = config_overrides.Forcing.forcing_configuration
+        for i, calib_config in enumerate(rte_calib_configs):
+            fc = calib_config.forcing_configuration
             worker_name = (
-                f"test_{i}_{config_overrides.General.models.replace(',', '_')}_rootzone={config_overrides.ModuleProperties.cfe_aet_rootzone}"
+                f"test_{i}_{calib_config.mswm_GeneralConfig.models.replace(',', '_')}_rootzone={calib_config.mswm_ModulePropertiesConfig.cfe_aet_rootzone}"
                 if optim_algo == CalOptimizationAlgo.dds
                 else None
             )
-            rb_kwargs = {"config_overrides": config_overrides}
-            msg_prefix = f"i={i} (ilimit={len(all_config_overrides) - 1}) worker_name={worker_name} Calibration with forcing={repr(fc)}, models={repr(config_overrides.General.models)}, cfe_aet_rootzone={config_overrides.ModuleProperties.cfe_aet_rootzone}, obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}, obs_dir={config_overrides.DataFile.obs_dir}, nwmretro_file={config_overrides.DataFile.nwmretro_file}"
+            rb_kwargs = calib_config.mswm_RealizationBuilder_kwargs
+            msg_prefix = f"i={i} (ilimit={len(rte_calib_configs) - 1}) worker_name={worker_name} Calibration with forcing={repr(fc)}, models={repr(calib_config.mswm_GeneralConfig.models)}, cfe_aet_rootzone={calib_config.mswm_ModulePropertiesConfig.cfe_aet_rootzone}, obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}, obs_dir={calib_config.mswm_DataFileConfig.obs_dir}, nwmretro_file={calib_config.mswm_DataFileConfig.nwmretro_file}"
 
             if cfg.restart and i + 1 <= len(tm.prev_results):
                 print(f"Skipping since restart={cfg.restart}: {msg_prefix}")
@@ -100,14 +94,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
     `cs` controls whether coldstart is used (not `cfg.do_coldstart`).
     """
     for obj_func, optim_algo, test_paths in cfg.get_calib_permutations():
-        test_configs = get_test_configs__forecast(
-            cfg.do_all_forcing_configs,
-            use_cold_start=cs,
-            gage_id=cfg.gage_id,
-            global_domain=cfg.global_domain,
-            forcing_static_dir=cfg.forcing_static_dir,
-            nprocs=cfg.nprocs,
-        )
+        test_configs = get_test_configs__forecast(cfg, use_cold_start=cs)
         for tc in test_configs:
             if (
                 cfg.quit_forecast_after_forcing_running
@@ -128,7 +115,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
             rb_kwargs = {
                 # "input_path": test_paths.dir_input,
                 "valid_yaml": test_paths.valid_yaml,
-                "fcst_run_name": cfg.fcst_run_name,
+                "fcst_run_name": cfg._fcst_run_name,
                 "config_overrides": config_overrides,
                 "use_cold_start": cs,
             }
@@ -141,7 +128,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
                 rb_kwargs=rb_kwargs,
                 ### TODO update this to work with new EWTS per-rank logs, and new RTE log paths
                 # ngen_log=LogParser(
-                #     path=f"{test_paths.dir_output}/{run_type}/{cfg.fcst_run_name}/logs/ngen.log"
+                #     path=f"{test_paths.dir_output}/{run_type}/{cfg._fcst_run_name}/logs/ngen.log"
                 # ),
             )
 
@@ -160,7 +147,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
                     quit_forecast_after_duration=cfg.quit_forecast_after_duration,
                 )
 
-            tm.add_forecast_test()
+            tm.add_forecast_test(t)
             tm.evaluate_test_results(raise_if_any_failed=False)
 
 
@@ -338,5 +325,4 @@ if it exists, and skip indexes that already have a record in it.""",
 if __name__ == "__main__":
     parser = cli_arg_parser()
     args = parser.parse_args()
-    cfg = RTETestConfig(**vars(args))
-    main(cfg)
+    main(cfg=RTETestConfig(**vars(args)))

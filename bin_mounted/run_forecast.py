@@ -51,7 +51,7 @@ def build_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
 
 def build_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
     """Build and return a non-coldstart forecast realization."""
-    rb_kwargs_final = cfg.realization_builder_kwargs | {
+    rb_kwargs_final = cfg.mswm_RealizationBuilder_kwargs | {
         "use_cold_start": False,
     }
 
@@ -121,5 +121,4 @@ optionally with a coldstart.""",
 if __name__ == "__main__":
     parser = cli_arg_parser()
     args = parser.parse_args()
-    cfg = RTEForecastConfig(**vars(args))
-    main(cfg)
+    main(cfg=RTEForecastConfig(**vars(args)))
