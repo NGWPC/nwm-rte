@@ -201,7 +201,16 @@ def main(cfg: RTETestConfig):
     tm.evaluate_test_results()
 
 
-if __name__ == "__main__":
+def cli_arg_parser() -> argparse.ArgumentParser:
+    """Build and return the CLI argument parser"""
+    parser = argparse.ArgumentParser(
+        description="""Script for building and running a series of test
+realizations, optionally including calibration, coldstart, and forecasts,
+using various forcing configurations and model formulations.""",
+        formatter_class=cli_args.HelpFormatter,
+    )
+    cli_args.add_args_for_script(parser, cli_args.Script.TESTS)
+
     parser = argparse.ArgumentParser(
         description="""Script for building and running a series of test
 realizations, optionally including calibration, coldstart, and forecasts,
@@ -251,7 +260,7 @@ to finish, quit after the specified processing duration. Units: seconds.""",
         "--objective_functions",
         nargs="+",
         type=c.CalObjective,
-        default=[c.CALIB_OBJECTIVE_FUNCTION.value],
+        default=[c.CALIB_OBJECTIVE_FUNCTION],
         help="List of objective functions for calibration.",
     )
     parser.add_argument(
@@ -265,7 +274,7 @@ to finish, quit after the specified processing duration. Units: seconds.""",
         "--optimization_algorithms",
         nargs="+",
         type=c.CalOptimizationAlgo,
-        default=[c.CALIB_OPTIMIZATION_ALGO.value],
+        default=[c.CALIB_OPTIMIZATION_ALGO],
         help="List of optimization algorithms for calibration.",
     )
     parser.add_argument(
@@ -320,5 +329,14 @@ if it exists, and skip indexes that already have a record in it.""",
     args = parser.parse_args()
     print(f"{__file__}: args: {json.dumps(vars(args), indent=2)}")
 
+    cfg = RTETestConfig(**vars(args))
+    main(cfg)
+
+    return parser
+
+
+if __name__ == "__main__":
+    parser = cli_arg_parser()
+    args = parser.parse_args()
     cfg = RTETestConfig(**vars(args))
     main(cfg)
