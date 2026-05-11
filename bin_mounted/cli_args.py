@@ -281,7 +281,7 @@ CALIB_DURATION = ArgsKwargs(
     kwargs={
         "type": timedelta_from_effective_days,
         "default": c.CALIB_SIM_DURATION_DEFAULT,
-        "help": """Duration of calibration or default realization. Units: days (integer).""",
+        "help": """Duration of calibration or default realization. Units: days (integer). Ignored by default realization when a realtime forcing configuration is chosen.""",
     },
     scripts=[Script.CALIBRATION, Script.DEFAULT],
 )

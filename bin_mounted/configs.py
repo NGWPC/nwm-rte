@@ -297,18 +297,18 @@ class RTEDefaultConfig(RTEBaseConfig):
         else:
             self.realtime_mode = True
 
-        if (not self.realtime_mode) and (not self.duration):
-            self.errors.extend(
-                [
-                    f"Forcing configuration {repr(self.forcing_configuration)} is *not* realtime, and requires that CLI arg -dur aka --duration is provided, but it was not."
-                ]
-            )
-        if self.realtime_mode and self.duration:
-            self.errors.extend(
-                [
-                    f"Forcing configuration {repr(self.forcing_configuration)} *is* realtime, but CLI arg -dur aka --duration was also provided (it should not be)."
-                ]
-            )
+        # if (not self.realtime_mode) and (not self.duration):
+        #     self.errors.extend(
+        #         [
+        #             f"Forcing configuration {repr(self.forcing_configuration)} is *not* realtime, and requires that CLI arg -dur aka --duration is provided, but it was not."
+        #         ]
+        #     )
+        # if self.realtime_mode and self.duration:
+        #     self.errors.extend(
+        #         [
+        #             f"Forcing configuration {repr(self.forcing_configuration)} *is* realtime, but CLI arg -dur aka --duration was also provided (it should not be)."
+        #         ]
+        #     )
 
         super()._parse_lagged_ensemble_args()
         self.realization_builder_kwargs = self._make_realization_builder_kwargs()
