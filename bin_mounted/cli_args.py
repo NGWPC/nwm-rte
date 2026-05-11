@@ -1,3 +1,7 @@
+"""CLI args for executable Python scripts/modules.
+The instances of ArgsKwargs defined in this file are auto-discovered by add_args_for_script()
+"""
+
 import argparse
 import sys
 from dataclasses import dataclass
@@ -16,6 +20,8 @@ from utils import (
 
 
 class Script(StrEnum):
+    """Enum used to classify which script(s) each CLI arg should be added to, to keep the args lists DRY."""
+
     DEFAULT = "run_default"
     CALIBRATION = "run_calibration"
     FORECAST = "run_forecast"
@@ -34,6 +40,17 @@ class ArgsKwargs:
     scripts: list[Script]
 
 
+def add_args_for_script(parser: argparse.ArgumentParser, script: Script) -> None:
+    """Auto-discover the instances of ArgsKwargs in this file and add them to the provided parser,
+    if they match the type of Script provided."""
+    current_module = sys.modules[__name__]
+    for symbol_name in dir(current_module):
+        item = getattr(current_module, symbol_name)
+        if type(item) is ArgsKwargs:
+            if script in item.scripts or Script.ALL in item.scripts:
+                add_arg(parser, item)
+
+
 class HelpFormatter(
     argparse.RawTextHelpFormatter,
     argparse.ArgumentDefaultsHelpFormatter,
@@ -45,16 +62,25 @@ class HelpFormatter(
         return super()._format_action(action) + "\n"
 
     def _format_action_invocation(self, action):
-        """Remove metavar and add [boolean switch] for args that are boolean flags."""
+        """Remove metavar and add [bool switch] for args that are boolean flags."""
         if action.option_strings:
             flags = ", ".join(action.option_strings)
-            if isinstance(action, argparse._StoreTrueAction):
-                flags = f"{flags} [boolean switch]"
+            # Add type to flags line
+            flags = f"{flags} : {self._type_label(action)}"
             # Add default value to flags line
-            if action.default is not argparse.SUPPRESS and action.default is not None:
-                flags = f"{flags} (default: {action.default})"
+            if action.default is not argparse.SUPPRESS:
+                flags = f"{flags} default={repr(action.default)}"
             return flags
         return ""
+
+    @staticmethod
+    def _type_label(action: argparse.Action) -> str | None:
+        if isinstance(action, argparse._StoreTrueAction):
+            return "switch(bool:StoreTrue)"
+        type_name = getattr(getattr(action, "type", None), "__name__", None)
+        if type_name == "str_to_bool":
+            type_name = "bool"
+        return f"type={type_name}"
 
     def _get_help_string(self, action):
         """Return raw help without default appended (default being added to top line in other method)"""
@@ -77,15 +103,6 @@ def split_iter_to_chunked_str(
     if prepend_chunk_separator:
         result = chunk_separator + result
     return result
-
-
-def add_args_for_script(parser: argparse.ArgumentParser, script: Script) -> None:
-    current_module = sys.modules[__name__]
-    for symbol_name in dir(current_module):
-        item = getattr(current_module, symbol_name)
-        if type(item) is ArgsKwargs:
-            if script in item.scripts or Script.ALL in item.scripts:
-                add_arg(parser, item)
 
 
 def add_arg(parser: argparse.ArgumentParser, arg: ArgsKwargs) -> None:
@@ -203,7 +220,7 @@ MODELS_CSV = ArgsKwargs(
         "dest": "model_formulation_cli_csv",
         "type": str,
         "required": False,
-        "default": c.DEFAULT_MODEL_FORMULATION_ARGS[0],
+        "default": str(c.DEFAULT_MODEL_FORMULATION_ARGS[0]),
         "help": """Provide this argument to specify a non-default model formulation.
 The value should be a comma-separated string of models that make up the formulation.
 Can be used in conjunction with ["-rz", "--root-zone"].""",
@@ -217,7 +234,7 @@ MODELS_RZ = ArgsKwargs(
         "dest": "model_formulation_cli_rootzone",
         "type": str,
         "required": False,
-        "default": c.DEFAULT_MODEL_FORMULATION_ARGS[1],
+        "default": str(c.DEFAULT_MODEL_FORMULATION_ARGS[1]),
         "help": """Provided value is converted to Boolean and passed as `cfe_aet_rootzone`.
 The value should be either true/yes/1 or false/no/0.
 Can be used in conjunction with ["-mf", "--model-formulation"].""",
