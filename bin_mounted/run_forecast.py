@@ -8,18 +8,17 @@ For settings that are not exposed by CLI arguments, see primarily `consts.py`.
 See `run_fcst.sh` for example calls.
 """
 
-import functools
 import argparse
+import functools
 
+import cli_args
+import consts as c
+import utils_testing_setup
+from configs import RTEForecastConfig
 from mswm.build_inputs import RealizationBuilder
 from nwm_fcst_mgr.forecast import (
     run_forecast as run_fcst,
 )
-
-import cli_args
-import consts as c
-from configs import RTEForecastConfig
-import utils_testing_setup
 from utils import configure_ngen_log, datetime_type
 
 print = functools.partial(print, flush=True)
@@ -43,22 +42,20 @@ def build_realization(
     return rb
 
 
-def build_run_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
-    """Build and run a coldstart forecast realization."""
+def build_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
+    """Build and return a coldstart forecast realization."""
     rb_kwargs_final = cfg.realization_builder_kwargs | {"use_cold_start": True}
     rb = build_realization(cfg, rb_kwargs_final, "cs")
-    run_realization(rb, cfg)
     return rb
 
 
-def build_run_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
+def build_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
     """Build and return a non-coldstart forecast realization."""
     rb_kwargs_final = cfg.realization_builder_kwargs | {
         "use_cold_start": False,
     }
 
     rb = build_realization(cfg, rb_kwargs_final, "fcst")
-    run_realization(rb, cfg)
     return rb
 
 
@@ -103,10 +100,10 @@ def main(cfg: RTEForecastConfig):
         )
 
     if cfg.cold_start_datetime:
-        rb_cs = build_run_coldstart_realization(cfg)
+        rb_cs = build_coldstart_realization(cfg)
         run_realization(rb_cs, cfg)
     if cfg.cycle_datetime:
-        rb_fcst = build_run_forecast_realization(cfg)
+        rb_fcst = build_forecast_realization(cfg)
         run_realization(rb_fcst, cfg)
 
 
