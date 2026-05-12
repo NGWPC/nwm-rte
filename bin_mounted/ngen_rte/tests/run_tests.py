@@ -22,20 +22,20 @@ import sys
 from calib.strategy import (
     Algorithm as CalOptimizationAlgo,
 )
+from pydantic.json import pydantic_encoder
+
 from ngen_rte import consts as c
 from ngen_rte.configs import RTETestConfig
 from ngen_rte.run_config import cli_args
 from ngen_rte.tests import utils_testing_setup
 from ngen_rte.tests.execution_tests import (
     ForecastTest,
-    LogParser,
     TestsManager,
     TestStat,
     get_test_configs__calibration,
     get_test_configs__forecast,
 )
 from ngen_rte.utils import configure_ngen_log
-from pydantic.json import pydantic_encoder
 
 print = functools.partial(print, flush=True)
 
@@ -123,7 +123,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
                 f"\n\n##########\n### {msg_prefix}: setting up test with rb_kwargs = {rb_kwargs}"
             )
 
-            run_type = "Cold_Start_Run" if cs else "Forecast_Run"
+            # run_type = "Cold_Start_Run" if cs else "Forecast_Run"
             t = ForecastTest(
                 rb_kwargs=rb_kwargs,
                 ### TODO update this to work with new EWTS per-rank logs, and new RTE log paths

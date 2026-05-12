@@ -16,7 +16,6 @@ from nwm_fcst_mgr.forecast import (
     run_forecast as run_fcst,
 )
 
-from ngen_rte import consts as c
 from ngen_rte.configs import RTEForecastConfig
 from ngen_rte.run_config import cli_args
 from ngen_rte.tests import utils_testing_setup
