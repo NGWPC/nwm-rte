@@ -122,9 +122,12 @@ class RTEBaseConfig(BaseModel):
         Called by child classes which define the necessary attributes."""
         if self.lagged_ensemble_args:
             if self.forcing_configuration != "medium_range":
-                raise ValueError(
-                    f"lagged ensemble only supported for medium_range, but forcing configuration {repr(self.forcing_configuration)} was provided"
+                self.errors.append(
+                    ValueError(
+                        f"lagged ensemble only supported for medium_range, but forcing configuration {repr(self.forcing_configuration)} was provided"
+                    )
                 )
+                return
 
             self.use_lagged_ensemble = True
 
@@ -136,13 +139,17 @@ class RTEBaseConfig(BaseModel):
             self.le__closed_loop_state = closed_ls if closed_ls.strip() else None
 
             if self.lagged_ens_mem not in LAGGED_ENSEMBLE_MEMBER_LAGS:
-                raise KeyError(
-                    f"Invalid lagged ensemble member {repr(self.lagged_ens_mem)} (choose from: {list(LAGGED_ENSEMBLE_MEMBER_LAGS)})"
+                self.errors.append(
+                    KeyError(
+                        f"Invalid lagged ensemble member {repr(self.lagged_ens_mem)} (choose from: {list(LAGGED_ENSEMBLE_MEMBER_LAGS)})"
+                    )
                 )
 
         if self.le__open_loop_state or self.le__closed_loop_state:
-            raise NotImplementedError(
-                "Lagged ensemble args for Open Loop State and Closed Loop State are not yet implemented in nwm-rte (should be provided as empty strings for now)"
+            self.errors.append(
+                NotImplementedError(
+                    "Lagged ensemble args for Open Loop State and Closed Loop State are not yet implemented in nwm-rte (should be provided as empty strings for now)"
+                )
             )
 
     @property
@@ -561,18 +568,19 @@ class RTEForecastConfig(RTEBaseConfig):
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
-        # Raw "medium_range" is for lagged ensemble mode
-        if self.forcing_configuration not in c.FORECAST_FORCING_TYPES + [
-            "medium_range"
-        ]:
-            self.errors.append(
-                ValueError(
-                    f"Unexpected forcing_configuration: {self.forcing_configuration} (for forecast, choose from: {c.FORECAST_FORCING_TYPES})"
-                )
-            )
         super()._parse_lagged_ensemble_args()
+        self._check_time_config()
         if self.errors:
             raise RuntimeError(self.errors)
+
+    def _check_time_config(self) -> None:
+        """Validate the configuration"""
+        if not (self.cold_start_datetime or self.cycle_datetime):
+            self.errors.append(
+                ValueError(
+                    "Must provide cold_start_datetime or cycle_datetime (or both), but neither were provided."
+                )
+            )
 
 
 class RTETestConfig(RTEBaseConfig):

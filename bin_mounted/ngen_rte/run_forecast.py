@@ -94,11 +94,6 @@ def main(cfg: RTEForecastConfig):
     if cfg.delete_forcing_raw_input_first:
         utils_testing_setup.delete_forcing_raw_inputs()
 
-    if not (cfg.cold_start_datetime or cfg.cycle_datetime):
-        raise ValueError(
-            "Must provide --cold_start_datetime or --cycle_datetime or both, but neither were provided."
-        )
-
     if cfg.cold_start_datetime:
         rb_cs = build_coldstart_realization(cfg)
         run_realization(rb_cs, cfg)
