@@ -329,7 +329,6 @@ class RTEBaseConfig(BaseModel):
             forcing_configuration=self.forcing_configuration,
             cycle_datetime=cdt,
             cold_start_datetime=cold_start_datetime,
-            global_domain=self.global_domain,
             forcing_static_dir=self.forcing_static_dir,
             scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
             forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
