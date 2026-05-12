@@ -296,13 +296,13 @@ jobs:
           # Source the script to get docker_run function and config
           source ./run.sh
           # Call docker_run with --noop flag
-          docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --noop
+          docker_run python -um "ngen_rte.tests.run_tests" --noop
 
       - name: Run RTE pytest
         env:
           TARGET_IMAGE_NAME: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
         run: |
-          ./.devcontainer/pytest/run_pytest_external.sh
+          ./run_pytest_external.sh
 
   # run container security scan using Trivy
   container-scanning:

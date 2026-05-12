@@ -1,62 +1,118 @@
-usage: run_calibration.py [-h] [-delscratch] [-delraw]
-                          [-ofunc OBJECTIVE_FUNCTION]
-                          [-optalgo OPTIMIZATION_ALGORITHM] [-n NPROCS]
-                          [-g GAGE_ID GAGE_ID]
-                          [-start CALIB_SIM_START] [-dur CALIB_SIM_DURATION]
-                          [-evaldelay CALIB_EVAL_DELAYMENT]
-                          [-validadvance VALID_SIM_ADVANCEMENT]
+usage: run_calibration.py [-h] [-dur DURATION]
                           [-evalcurtail VALID_EVAL_CURTAILMENT]
-                          [-fsrc {nwm,aorc}]
+                          [-evaldelay CALIB_EVAL_DELAYMENT]
+                          [-start CALIB_SIM_START]
+                          [-validadvance VALID_SIM_ADVANCEMENT]
+                          [-wrkr WORKER_NAME] [-delraw] [-delscratch]
+                          [-e {test,oe}] [-fconfig FORCING_CONFIGURATION]
+                          [-fstatic FORCING_STATIC_DIR] [-g GAGE_ID]
                           [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
-                          [-fprovider {bmi,csv}] [-fstatic FORCING_STATIC_DIR]
-                          [-wrkr WORKER_NAME] [-mf MODEL_FORMULATION_CLI_CSV]
-                          [-rz MODEL_FORMULATION_CLI_ROOTZONE]
+                          [--hydrofab_file HYDROFAB_FILE]
+                          [-mf MODEL_FORMULATION_CLI_CSV]
+                          [-rz MODEL_FORMULATION_CLI_ROOTZONE] [-n NPROCS]
+                          [-ofunc OBJECTIVE_FUNCTION]
+                          [-optalgo OPTIMIZATION_ALGORITHM]
 
-Script for building and running calibration realizations using historical / retrospective forcing.
+Script for building and running a calibration
+realization using historical / retrospective forcing.
 
 options:
-  -h, --help            show this help message and exit
-  -delscratch, --delete_scratch_and_mesh_first
-                        Delete scratch dir and ESMF mesh files before the run, which forces ESMF and NetCDF actions to occur.
-  -delraw, --delete_forcing_raw_input_first
-                        Delete contents of '/ngen-app/data/raw_input' before the run, which forces forcing data to be re-downloaded.
-  -ofunc OBJECTIVE_FUNCTION, --objective_function OBJECTIVE_FUNCTION
-                        Objective function for calibration. Default: Objective.kge
-  -optalgo OPTIMIZATION_ALGORITHM, --optimization_algorithm OPTIMIZATION_ALGORITHM
-                        Optimization algorithm for calibration. Default: Algorithm.dds
-  -n NPROCS, --nprocs NPROCS
-                        Replaces default value for nprocs (1) and subsequently the ParallelConfig instance that is passed to MSWM.
-  -g GAGE_ID, --gage_id GAGE_ID GAGE_ID
-                        Calibration gage ID. If not provided, then this default will be used: 01123000
-  --hydrofab_file HYDROFAB_FILE
+  -h, --help : type=None
+                        show this help message and exit
+
+  -dur, --duration : type=timedelta_from_effective_days default=datetime.timedelta(days=1, seconds=82800)
+                        Duration of calibration or default realization. Units: days (integer). Ignored by default realization when a realtime forcing configuration is chosen.
+
+  -evalcurtail, --valid_eval_curtailment : type=timedelta_from_pandas_str default=datetime.timedelta(0)
+                        Used to calculate the end of the validation evaluation.
+                        Format: pandas-style timedelta string.
+                        See class CalibTimeWindows for details.
+
+  -evaldelay, --calib_eval_delayment : type=timedelta_from_pandas_str default=datetime.timedelta(0)
+                        Used to calculate the start time of the calibration evaluation.
+                        Format: pandas-style timedelta string.
+                        See class CalibTimeWindows for details.
+
+  -start, --calib_sim_start : type=datetime_from_str default='2013-07-25 00:00:00'
+                        Start time for the calibration realization
+
+  -validadvance, --valid_sim_advancement : type=timedelta_from_pandas_str default=datetime.timedelta(0)
+                        
+                        Used to calculate the start time of the validation simulation.
+                        Format: pandas-style timedelta string.
+                        See class CalibTimeWindows for details.
+
+  -wrkr, --worker_name : type=str default=None
+                        If provided, will be used as the worker name,
+                        instead of letting cal mgr choose a random worker name.
+                        Only allowed for Optimization Algorithm DDS, which uses
+                        single instances of ngen. Does not affect 'default'
+                        realization (which is not a calibration).
+
+  -delraw, --delete_forcing_raw_input_first : bool-switch(store-true) default=False
+                        Delete contents of '/ngen-app/data/raw_input' before the run,
+                        which forces forcing data to be re-downloaded.
+
+  -delscratch, --delete_scratch_and_mesh_first : bool-switch(store-true) default=False
+                        Delete scratch dir and ESMF mesh files before the run,
+                        which forces ESMF and NetCDF actions to occur.
+
+  -e, --environment : type=str default='test'
+                        Operating environment. Affects name of server used to fetch input data. Passed to MSWM GeneralConfig.
+
+  -fconfig, --forcing_configuration : type=str default=None
+                        Forcing configuration to use, e.g., 'short_range', 'standard_ana', 'aorc', etc.
+                        Choices and defaults vary per realization type:
+                          Forecast Realization:
+                            Default: 'standard_ana'. Choices:
+                            'standard_ana', 'standard_ana_alaska', 'standard_ana_hawaii'
+                            'standard_ana_puertorico', 'extended_ana', 'extended_ana_alaska'
+                            'short_range', 'short_range_alaska', 'short_range_hawaii'
+                            'short_range_puertorico', 'short_range_extended_alaska', 'medium_range_blend'
+                            'medium_range_blend_alaska', 'long_range_mem1', 'long_range_mem2'
+                            'long_range_mem3', 'long_range_mem4'
+                          Calibration Realization:
+                            Default: 'aorc'. Choices: 
+                            'aorc', 'nwm'
+                          Default Realization:
+                            Default: 'aorc'. Choices: 
+                            'standard_ana', 'standard_ana_alaska', 'standard_ana_hawaii'
+                            'standard_ana_puertorico', 'extended_ana', 'extended_ana_alaska'
+                            'short_range', 'short_range_alaska', 'short_range_hawaii'
+                            'short_range_puertorico', 'short_range_extended_alaska', 'medium_range_blend'
+                            'medium_range_blend_alaska', 'long_range_mem1', 'long_range_mem2'
+                            'long_range_mem3', 'long_range_mem4', 'aorc'
+                            'nwm', 'medium_range'
+
+  -fstatic, --forcing_static_dir : type=str default='/ngen-app/data'
+                        Directory for static forcing files, used when forcing_provider is 'bmi'.
+
+  -g, --gage_id : type=str default='01123000'
+                        Gage ID.
+
+  -gdomain, --global_domain : type=str default='CONUS'
+                        Global domain/region of forcing data.
+
+  --hydrofab_file : type=str default=None
                         Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.
-  -start CALIB_SIM_START, --calib_sim_start CALIB_SIM_START
-                        Start time for calibration. Default=2013-07-25 00:00:00,
-  -dur CALIB_SIM_DURATION, --calib_sim_duration CALIB_SIM_DURATION
-                        Duration of calibration, in days (provide integer). Default=2
-  -evaldelay CALIB_EVAL_DELAYMENT, --calib_eval_delayment CALIB_EVAL_DELAYMENT
-                        Pandas-style timedelta string. Default=0:00:00
-  -validadvance VALID_SIM_ADVANCEMENT, --valid_sim_advancement VALID_SIM_ADVANCEMENT
-                        Pandas-style timedelta string. Default=0:00:00
-  -evalcurtail VALID_EVAL_CURTAILMENT, --valid_eval_curtailment VALID_EVAL_CURTAILMENT
-                        Pandas-style timedelta string. Default=0:00:00
-  -fsrc {nwm,aorc}, --forcing_source {nwm,aorc}
-                        Source of forcing data. Default=aorc. Choices for calibration: ['nwm', 'aorc']
-  -gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}, --global_domain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}
-                        Region of forcing data. Default=CONUS
-  -fprovider {bmi,csv}, --forcing_provider {bmi,csv}
-                        Forcing provider. Default=bmi
-  -fstatic FORCING_STATIC_DIR, --forcing_static_dir FORCING_STATIC_DIR
-                        Directory for static forcing files, used when forcing_provider is 'bmi'. Default=/ngen-app/data
-  -wrkr WORKER_NAME, --worker_name WORKER_NAME
-                        If provided, will be used as the worker name, instead of letting cal mgr choose a random worker name. Only allowed for Optimization Algorithm DDS, which uses single instances of ngen. Does not affect 'default' realization (which is not a calibration).
-  -mf MODEL_FORMULATION_CLI_CSV, --model-formulation MODEL_FORMULATION_CLI_CSV
+
+  -mf, --model-formulation : type=str default='noah-owp-modular,cfe-s'
                         Provide this argument to specify a non-default model formulation.
-                                The value should be a comma-separated string of models that make up the formulation.
-                                Can be used in conjunction with ["-rz", "--root-zone"].
-                                Default: noah-owp-modular,cfe-s.
-  -rz MODEL_FORMULATION_CLI_ROOTZONE, --root-zone MODEL_FORMULATION_CLI_ROOTZONE
+                        The value should be a comma-separated string of models that make up the formulation.
+                        Can be used in conjunction with ["-rz", "--root-zone"].
+
+  -rz, --root-zone : type=str default='False'
                         Provided value is converted to Boolean and passed as `cfe_aet_rootzone`.
-                                The value should be either true/yes/1 or false/no/0.
-                                Can be used in conjunction with ["-mf", "--model-formulation"].
-                                Default: False.
+                        The value should be either true/yes/1 or false/no/0.
+                        Can be used in conjunction with ["-mf", "--model-formulation"].
+
+  -n, --nprocs : type=int default=1
+                        Number of processors
+
+  -ofunc, --objective_function : type=Objective default=<Objective.kge: 'kge'>
+                        Objective function of previously-ran calibration realization
+                        for basis of forecast. Affects directory path.
+
+  -optalgo, --optimization_algorithm : type=Algorithm default=<Algorithm.dds: 'dds'>
+                        Optimization algorithm of previously-ran calibration realization
+                        for basis of forecast. Affects directory path.

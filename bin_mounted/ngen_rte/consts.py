@@ -1,22 +1,24 @@
 """Constants"""
 
-from datetime import datetime, timedelta
 import getpass
 import json
 import os
+from datetime import datetime, timedelta
 
 from calib.strategy import (
-    Objective as CalObjective,
     Algorithm as CalOptimizationAlgo,
+)
+from calib.strategy import (
+    Objective as CalObjective,
 )
 
 RUN_NAME_TIMESTAMP_SUFFIX_FORMAT = r"%Y%m%d-%H%M%S-%f"
 
+FORCING_PROVIDER = "bmi"
+
+
 ### .config section [Forcing]
 DEFAULT_FORECAST_RUN_NAME = "fcst_run1"
-
-FORCING_PROVIDER_DEFAULT = "bmi"
-FORCING_PROVIDER_CHOICES = [FORCING_PROVIDER_DEFAULT]
 
 # For BMI forcing
 FORCING_TEMPLATE_DIR = "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
@@ -29,6 +31,7 @@ DT_END_COLDSTART = DT_START_FORECAST
 
 ### .config section [General]
 DEFAULT_GAGE_ID = "01123000"
+DEFAULT_ENVIRONMENT = "test"
 
 DEFAULT_MODEL_FORMULATION_ARGS = ("noah-owp-modular,cfe-s", False)
 # DEFAULT_MODEL_FORMULATION_ARGS = ("snow-17,noah-owp-modular,smp,lasam,t-route", False)
@@ -80,13 +83,13 @@ TEST_RESULTS_FILE = os.path.join(
 TEST_HYDROFAB_FILE = f"/s3/ngwpc-dev/rte-test-data/gages/gauge_{DEFAULT_GAGE_ID}.gpkg"
 
 ### See this for full list of forcing configuration types: mswm.utils.input_configuration.mswm_valid_configs
-FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = [
+FORECAST_FORCING_TYPES__TESTS = [
     "short_range",
     "standard_ana",
     "medium_range_blend",
 ]
-# FORECAST_FORCING_CONFIGURATION_TYPES__DEFAULT = ["short_range"]
-FORECAST_FORCING_CONFIGURATION_TYPES__ALL = [
+# FORECAST_FORCING_TYPES__TESTS = ["short_range"]
+FORECAST_FORCING_TYPES = [
     "standard_ana",
     "standard_ana_alaska",
     "standard_ana_hawaii",
@@ -106,26 +109,18 @@ FORECAST_FORCING_CONFIGURATION_TYPES__ALL = [
     "long_range_mem4",
 ]
 
-CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT = "aorc"
-CALIB_FORCING_CONFIGURATION_TYPES = [
-    "nwm",
-    CALIB_FORCING_CONFIGURATION_TYPE_DEFAULT,
-]
+CALIB_FORCING_TYPES = ["aorc", "nwm"]
 
-ALL_FORCING_CONFIGURATION_TYPES = (
-    FORECAST_FORCING_CONFIGURATION_TYPES__ALL
-    + CALIB_FORCING_CONFIGURATION_TYPES
-    + ["medium_range"]
-)
+ALL_FORCING_TYPES = FORECAST_FORCING_TYPES + CALIB_FORCING_TYPES + ["medium_range"]
 
-CALIB_GLOBAL_DOMAIN_DEFAULT = "CONUS"
-CALIB_GLOBAL_DOMAIN_CHOICES = [
-    CALIB_GLOBAL_DOMAIN_DEFAULT,
+GLOBAL_DOMAINS = [
+    "CONUS",
     "Alaska",
     "Hawaii",
     "Puerto_Rico",
     "GL",  # Guam / Luta
 ]
+"""The first value is the default"""
 
 FORCING_STATIC_DIR_DEFAULT = "/ngen-app/data"
 
@@ -165,7 +160,7 @@ DATAFILE_LIBS = {
 }
 
 
-SRC_LOG_CONFIG_JSON = "/ngen-app/bin/bin_mounted/ngen_logging.json"
+SRC_LOG_CONFIG_JSON = "/ngen-app/bin/bin_mounted/ngen_rte/run_config/ngen_logging.json"
 # Must match config.bashrc
 RTE_NGEN_LOG_BEHAVIOR_KEY = "NGEN_LOG_TO_RTE"
 # Must match EWTS, nwm-cal-mgr, and nwm-fcst-mgr
@@ -176,7 +171,9 @@ NGEN_STDOUT_STDERR_LOG_FILE_BASENAME = "ngen_stdout_stderr.log"
 SCRATCH_DIR_OVERRIDE: str | None = None
 FORCING_PRODUCT_VERSIONS_PATH: str | None = None
 # SCRATCH_DIR_OVERRIDE: str | None = "/foo/bar/scratch"
-# FORCING_PRODUCT_VERSIONS_PATH: str | None = "/ngen-app/bin/bin_mounted/ngen_forcing_vers.json"
+# FORCING_PRODUCT_VERSIONS_PATH: str | None = (
+#     "/ngen-app/bin/bin_mounted/ngen_rte/run_config/ngen_forcing_vers.json"
+# )
 ### Parsing the json file if provided
 if FORCING_PRODUCT_VERSIONS_PATH is not None:
     with open(FORCING_PRODUCT_VERSIONS_PATH, "r") as f:
