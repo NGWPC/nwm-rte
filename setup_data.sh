@@ -72,7 +72,7 @@ aws s3 cp "${TEST_RUN_HYDROFABRIC__SOURCE}" "${S3_ROOT__HOST}/ngwpc-dev/rte-test
 # Data for oCONUS NWM
 aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_Alaska.nc" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/"
 aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_Hawaii.nc" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/"
-aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_PuertoRico.nc" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/geo_em_Puerto_Rico.nc"
+aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_Puerto_Rico.nc" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/"
 
 aws s3 cp "s3://ngwpc-dev/rte-test-data/geogrid/GEOGRID_LDASOUT_Spatial_Metadata_AK.nc" "${RUN_NGEN_ROOT__HOST}/data/GEOGRID_LDASOUT_Spatial_Metadata_AK.nc"
 
