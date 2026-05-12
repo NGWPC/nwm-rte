@@ -93,7 +93,7 @@ class RTEBaseConfig(BaseModel):
     cycle_datetime: datetime | None = Field(default=None)
 
     # Set after init (not provided as args)
-    _time_at_init: datetime | None = Field(init=False, default=None)
+    time_at_init: datetime | None = Field(init=False, default=None)
     """Time at class instantiation."""
     errors: list[Exception] | None = Field(init=False, default=None)
     """List of exceptions encountered during init."""
@@ -111,7 +111,7 @@ class RTEBaseConfig(BaseModel):
     """File path for lagged ensemble closed loop state."""
 
     def model_post_init(self, __context) -> None:
-        self._time_at_init = datetime.now(tz=timezone.utc)
+        self.time_at_init = datetime.now(tz=timezone.utc)
         self.errors = []
         make_wcoss_path_symlinks()
         if self.errors:
@@ -153,7 +153,7 @@ class RTEBaseConfig(BaseModel):
                 raise ValueError(
                     "Must provide fcst_run_name when using timestamp_run_name"
                 )
-            return f"{self.fcst_run_name}_{self._time_at_init.strftime(c.RUN_NAME_TIMESTAMP_SUFFIX_FORMAT)}"
+            return f"{self.fcst_run_name}_{self.time_at_init.strftime(c.RUN_NAME_TIMESTAMP_SUFFIX_FORMAT)}"
         else:
             return f"{self.fcst_run_name}"
 
