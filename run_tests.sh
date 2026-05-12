@@ -5,10 +5,12 @@ source run.sh
 
 ## 
 ## \brief
-## Run a series of "forecast" realizations via `run_tests.py` with various forcing configurations, optionally with "calibration" realizations first.
+## Example commands for running a series of "forecast" realizations via [`run_tests.py`](python_cli_help__run_tests.py.txt) with various forcing configurations,
+## optionally preceded by building and running "calibration" realizations first.
+## See CLI args for [`run_tests.py`](python_cli_help__run_tests.py.txt).
 ## 
 ## \desc
-## Source `./run.sh` to call its `docker_run` command for running `run_tests.py`.  It requires that the ngen runtime environment image has already been built using `./ngen_rte_build.sh`.
+## Source `./run.sh` to call its `docker_run` command for running [`run_tests.py`](python_cli_help__run_tests.py.txt).  It requires that the ngen runtime environment image has already been built using `./ngen_rte_build.sh`.
 ## 
 ## When realizations fail, this program does not halt, but rather moves to the next configuration type in the list, with the goal of "trying" many different realization configurations in one call.
 ## 
@@ -38,30 +40,30 @@ fcst_run_name=${1:-"fcst_run1"}
 set -x
 
 
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --help
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --noop
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --fcst_run_name "${fcst_run_name}"
-docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -g "01121330" --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -g "02207385" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -g "02207385" --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_coldstart --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_forcing_running --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --quit_forecast_after_duration 15 --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --help --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --do_coldstart --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_all_forcing_configs --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_all_forcing_configs --quit_forecast_after_forcing_running --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_all_forcing_configs --quit_forecast_after_duration 15 --fcst_run_name "${fcst_run_name}"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --do_coldstart --do_all_forcing_configs --fcst_run_name "${fcst_run_name}"
+# docker_run python -um "ngen_rte.tests.run_tests" --help
+# docker_run python -um "ngen_rte.tests.run_tests" --noop
+# docker_run python -um "ngen_rte.tests.run_tests" --do_calibration --fcst_run_name "${fcst_run_name}"
+docker_run python -um "ngen_rte.tests.run_tests" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
+# docker_run python -um "ngen_rte.tests.run_tests" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
+# docker_run python -um "ngen_rte.tests.run_tests" -g "01121330" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
+# docker_run python -um "ngen_rte.tests.run_tests" -g "01121330" --fcst_run_name "${fcst_run_name}"
+# docker_run python -um "ngen_rte.tests.run_tests" -g "02207385" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}"
+# docker_run python -um "ngen_rte.tests.run_tests" -g "02207385" --fcst_run_name "${fcst_run_name}"
+# docker_run python -um "ngen_rte.tests.run_tests" --fcst_run_name "${fcst_run_name}"
+# docker_run python -um "ngen_rte.tests.run_tests" --do_coldstart --fcst_run_name "${fcst_run_name}"
+# docker_run python -um "ngen_rte.tests.run_tests" --quit_forecast_after_forcing_running --fcst_run_name "${fcst_run_name}"
+# docker_run python -um "ngen_rte.tests.run_tests" --quit_forecast_after_duration 15 --fcst_run_name "${fcst_run_name}"
+# docker_run python -um "ngen_rte.tests.run_tests" --help --fcst_run_name "${fcst_run_name}"
+# docker_run python -um "ngen_rte.tests.run_tests" --do_calibration --do_coldstart --fcst_run_name "${fcst_run_name}"
+# docker_run python -um "ngen_rte.tests.run_tests" --do_all_forcing_configs --fcst_run_name "${fcst_run_name}"
+# docker_run python -um "ngen_rte.tests.run_tests" --do_all_forcing_configs --quit_forecast_after_forcing_running --fcst_run_name "${fcst_run_name}"
+# docker_run python -um "ngen_rte.tests.run_tests" --do_all_forcing_configs --quit_forecast_after_duration 15 --fcst_run_name "${fcst_run_name}"
+# docker_run python -um "ngen_rte.tests.run_tests" --do_calibration --do_coldstart --do_all_forcing_configs --fcst_run_name "${fcst_run_name}"
 
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" -calfsrcs "aorc" -mff "/ngen-app/nwm-automation-scripts/model_formulations/formulations_munged_setup.tsv" -calib -nofcst -fcname "${fcst_run_name}_test_forms"
+# docker_run python -um "ngen_rte.tests.run_tests" -calfsrcs "aorc" -mff "/ngen-app/nwm-automation-scripts/model_formulations/formulations_munged_setup.tsv" -calib -nofcst -rname "${fcst_run_name}_test_forms"
 # docker_run python "/ngen-app/bin/bin_mounted/parse_test_results.py" -mff "/ngen-app/nwm-automation-scripts/model_formulations/formulations_munged_setup.tsv"
 
 # TEST_HYDROFAB_FILE="/s3/ngwpc-dev/rte-test-data/gages/gauge_01123000.gpkg"
-# docker_run python "/ngen-app/bin/bin_mounted/run_tests.py" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}" --hydrofab_file "${TEST_HYDROFAB_FILE}"
+# docker_run python -um "ngen_rte.tests.run_tests" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}" --hydrofab_file "${TEST_HYDROFAB_FILE}"
 
 exit 0

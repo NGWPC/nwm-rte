@@ -28,7 +28,7 @@ Called by [`run_default.sh`](../reference/shell.md#run_default.sh)
 
 [`run_default.py --help`](python_cli_help__run_default.py.txt)
 
-::: run_default
+::: ngen_rte.run_default
 
 
 ### run_calibration.py
@@ -37,7 +37,7 @@ Called by [`run_calib.sh`](../reference/shell.md#run_calib.sh)
 
 [`run_calibration.py --help`](python_cli_help__run_calibration.py.txt)
 
-::: run_calibration
+::: ngen_rte.run_calibration
 
 
 ### run_forecast.py
@@ -46,7 +46,7 @@ Called by [`run_fcst.sh`](../reference/shell.md#run_fcst.sh)
 
 [`run_forecast.py --help`](python_cli_help__run_forecast.py.txt)
 
-::: run_forecast
+::: ngen_rte.run_forecast
 
 
 ### run_tests.py
@@ -55,14 +55,14 @@ Called by [`run_tests.sh`](../reference/shell.md#run_tests.sh)
 
 [`run_tests.py --help`](python_cli_help__run_tests.py.txt)
 
-::: run_tests
+::: ngen_rte.tests.run_tests
 
 
 ## Python Constants
 
 Currently `bin_mounted/consts.py` contains variables which rarely need editing, except for the `MODELS` formulation list. Soon, the `MODELS` variable will be parameterized as CLI argument(s).
 
-::: consts
+::: ngen_rte.consts
     options:
       members:
         - MODELS
@@ -72,7 +72,7 @@ Currently `bin_mounted/consts.py` contains variables which rarely need editing, 
 
 These mimic the CLI interfaces and perform some additional argument parsing and preparation of classes that are passed to other components of the system.
 
-::: configs
+::: ngen_rte.configs
 
 
 ## Regionalization Workflows
@@ -87,4 +87,4 @@ Here is the argparse help menu of `run_regionalization.py`:
 
 For more information, see the `nwm-region-mgr` repository.
 
-::: run_regionalization
+::: ngen_rte.run_regionalization

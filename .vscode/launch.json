@@ -77,7 +77,8 @@
             "name": "run_forecast.py -n 2",
             "type": "debugpy",
             "request": "launch",
-            "program": "./bin_mounted/run_forecast.py",
+            "cwd": "${workspaceFolder}/bin_mounted",
+            "module": "ngen_rte.run_forecast",
             "justMyCode": false,
             "console": "integratedTerminal",
             "python": "${command:python.interpreterPath}",
@@ -90,6 +91,8 @@
                 "short_range",
                 "-n",
                 "2",
+                "--hydrofab_file",
+                "/s3/ngwpc-dev/rte-test-data/gages/gauge_01123000.gpkg"
             ],
         },
         //// 

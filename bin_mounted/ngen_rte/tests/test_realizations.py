@@ -1,14 +1,12 @@
-"""Tests for building and running ngen realizations."""
+"""Tests for building and running ngen realizations. Called by pytest."""
 
 import logging
 import os
 
 from mswm.build_inputs import RealizationBuilder
 
-from bin_mounted import run_default
-from bin_mounted import configs
-from bin_mounted import consts as c
-
+from ngen_rte import configs, run_default
+from ngen_rte import consts as c
 
 # def test_build_default_realization():
 #     _, _ = _build_default_realization()
@@ -26,7 +24,9 @@ def test_run_default_realization():
         log_lines = log_content.splitlines()
 
     for i, line in enumerate(log_lines):
-        logging.info(f"Line {i} of {repr(os.path.basename(output_ngen_stdout_stderr_log))}: {line}")
+        logging.info(
+            f"Line {i} of {repr(os.path.basename(output_ngen_stdout_stderr_log))}: {line}"
+        )
 
     critical_lines = [x for x in log_lines if "CRITICAL" in x]
     fatal_lines = [x for x in log_lines if "FATAL" in x]
@@ -46,7 +46,7 @@ def _build_default_config() -> configs.RTEDefaultConfig:
             "aorc",
             "--cycle_datetime",
             "2013-07-25 00:00:00",
-            "--historical_sim_duration",
+            "--duration",
             "2",
             "--fcst_run_name",
             "test_default_aorc",

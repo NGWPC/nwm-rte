@@ -1,5 +1,4 @@
-usage: run_tests.py [-h] [-delscratch] [-delraw] [-nofcst]
-                    [--quit_forecast_after_forcing_running]
+usage: run_tests.py [-h] [-nofcst] [--quit_forecast_after_forcing_running]
                     [-quitfcdur QUIT_FORECAST_AFTER_DURATION] [-calib]
                     [-quitcaldur QUIT_CALIBRATION_AFTER_DURATION]
                     [-ofuncs OBJECTIVE_FUNCTIONS [OBJECTIVE_FUNCTIONS ...]]
@@ -8,58 +7,113 @@ usage: run_tests.py [-h] [-delscratch] [-delraw] [-nofcst]
                     [-alloptalgos] [-allforcings]
                     [-mff MODEL_FORMULATIONS_FILE]
                     [-calfsrcs [CALIBRATION_FORCING_SOURCES ...]] [-cs]
-                    [-fcname FCST_RUN_NAME] [-n NPROCS]
-                    [-g GAGE_ID GAGE_ID]
-                    [-fregion {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
-                    [-fstatic FORCING_STATIC_DIR] [-fprovider {bmi,csv}]
-                    [--noop] [--restart]
+                    [--noop] [--restart] [-delraw] [-delscratch]
+                    [-e {test,oe}] [-rname FCST_RUN_NAME]
+                    [-fstatic FORCING_STATIC_DIR] [-g GAGE_ID]
+                    [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
+                    [--hydrofab_file HYDROFAB_FILE] [-n NPROCS]
+
+Script for building and running a series of test
+realizations, optionally including calibration, coldstart, and forecasts,
+using various forcing configurations and model formulations.
 
 options:
-  -h, --help            show this help message and exit
-  -delscratch, --delete_scratch_and_mesh_first
-                        Delete scratch dir and ESMF mesh files before the run, which forces ESMF and NetCDF actions to occur.
-  -delraw, --delete_forcing_raw_input_first
-                        Delete contents of '/ngen-app/data/raw_input' before the run, which forces forcing data to be re-downloaded.
-  -nofcst, --skip_forecast
-                        Skip building and running forecasts. Incompatible with --do_all_forcing_configs and --do_coldstart
-  --quit_forecast_after_forcing_running
-                        THIS IS CURRENTLY NOT ALLOWED, pending updates. Instead of waiting for each forecast to finish, quit after the ngen log file indicates that forcing is running successfully.
-  -quitfcdur QUIT_FORECAST_AFTER_DURATION, --quit_forecast_after_duration QUIT_FORECAST_AFTER_DURATION
-                        Instead of waiting for each forecast to finish, quit after the specified elapsed processing duration in seconds.
-  -calib, --do_calibration
-                        Build and run calibration before forecasts
-  -quitcaldur QUIT_CALIBRATION_AFTER_DURATION, --quit_calibration_after_duration QUIT_CALIBRATION_AFTER_DURATION
-                        Instead of waiting for each calibration to finish, quit after the specified elapsed processing duration in seconds.
-  -ofuncs OBJECTIVE_FUNCTIONS [OBJECTIVE_FUNCTIONS ...], --objective_functions OBJECTIVE_FUNCTIONS [OBJECTIVE_FUNCTIONS ...]
-                        List of objective functions for calibration. Default: [<Objective.kge: 'kge'>]
-  -allofuncs, --do_all_objective_functions
-                        For calibration, causes all objective functions to be executed: [<Objective.kge: 'kge'>, <Objective.nse: 'nse'>, <Objective.nnse: 'nnse'>, <Objective.nselog: 'nselog'>, <Objective.corr: 'corr'>, <Objective.rmse: 'rmse'>, <Objective.mae: 'mae'>, <Objective.rsr: 'rsr'>, <Objective.pbias: 'pbias'>, <Objective.lseg_fdc: 'lseg_fdc'>, <Objective.hseg_fdc: 'hseg_fdc'>, <Objective.csi: 'csi'>, <Objective.far: 'far'>, <Objective.pod: 'pod'>, <Objective.pkbias: 'pkbias'>, <Objective.pkte: 'pkte'>, <Objective.evbias: 'evbias'>, <Objective.none: 'none'>]
-  -optalgos OPTIMIZATION_ALGORITHMS [OPTIMIZATION_ALGORITHMS ...], --optimization_algorithms OPTIMIZATION_ALGORITHMS [OPTIMIZATION_ALGORITHMS ...]
-                        List of optimization algorithms for calibration. Default: [<Algorithm.dds: 'dds'>]
-  -alloptalgos, --do_all_optimization_algorithms
-                        For calibration, causes all optimization algorithms to be executed: [<Algorithm.dds: 'dds'>, <Algorithm.pso: 'pso'>, <Algorithm.gwo: 'gwo'>, <Algorithm.none: 'none'>]
-  -allforcings, --do_all_forcing_configs
-                        Run all forcing configurations rather than the default shorter default list. Default list: ['short_range', 'standard_ana', 'medium_range_blend']. Incompatible with --skip_forecast.
-  -mff MODEL_FORMULATIONS_FILE, --model_formulations_file MODEL_FORMULATIONS_FILE
-                        If provided, multiple model formulations will be ran, and this is a file path to a tsv file of the formulations list.
-                                If not provided, then the default model formulation will be used: ('noah-owp-modular,cfe-s', False).
-  -calfsrcs [CALIBRATION_FORCING_SOURCES ...], --calibration_forcing_sources [CALIBRATION_FORCING_SOURCES ...]
-                        Sources of forcing data for calibration runs. If not provided then this default will be used: ['nwm', 'aorc'].
-  -cs, --do_coldstart   Causes use_cold_start to be True for all forecasts
-  -fcname FCST_RUN_NAME, --fcst_run_name FCST_RUN_NAME
-                        Replaces default value for fcst_run_name ('fcst_run1')
-  -n NPROCS, --nprocs NPROCS
-                        Replaces default value for nprocs (1) and subsequently the ParallelConfig instance that is passed to MSWM.
-  -g GAGE_ID, --gage_id GAGE_ID
-                        Calibration gage ID. If not provided, then this default will be used: 01123000
-  --hydrofab_file HYDROFAB_FILE
+  -h, --help : type=None
+                        show this help message and exit
+
+  -nofcst, --skip_forecast : bool-switch(store-true) default=False
+                        Provide to skip forecast (for testing calibrations only).
+                        Incompatible with --do_all_forcing_configs and --do_coldstart
+
+  --quit_forecast_after_forcing_running : bool-switch(store-true) default=False
+                        THIS IS CURRENTLY NOT SUPPORTED, pending updates.
+                        Instead of waiting for each forecast to finish,
+                        quit after the ngen log file indicates that forcing
+                        is running successfully.
+                        THIS IS CURRENTLY NOT SUPPORTED.
+
+  -quitfcdur, --quit_forecast_after_duration : type=float default=None
+                        Instead of waiting for each forecast to finish,
+                        quit after the specified elapsed processing duration in seconds.
+
+  -calib, --do_calibration : bool-switch(store-true) default=False
+                        Build and run a calibration before forecasts.
+
+  -quitcaldur, --quit_calibration_after_duration : type=float default=None
+                        For calibrations, instead of waiting for the realization
+                        to finish, quit after the specified processing duration. Units: seconds.
+
+  -ofuncs, --objective_functions : type=Objective default=[<Objective.kge: 'kge'>]
+                        List of objective functions for calibration.
+
+  -allofuncs, --do_all_objective_functions : bool-switch(store-true) default=False
+                        For calibration, causes all objective functions to be executed: 
+                            'kge', 'nse', 'nnse'
+                            'nselog', 'corr', 'rmse'
+                            'mae', 'rsr', 'pbias'
+                            'lseg_fdc', 'hseg_fdc', 'csi'
+                            'far', 'pod', 'pkbias'
+                            'pkte', 'evbias', 'none'
+
+  -optalgos, --optimization_algorithms : type=Algorithm default=[<Algorithm.dds: 'dds'>]
+                        List of optimization algorithms for calibration.
+
+  -alloptalgos, --do_all_optimization_algorithms : bool-switch(store-true) default=False
+                        For calibration, causes all optimization algorithms to be executed: 
+                            'dds', 'pso', 'gwo'
+                            'none'
+
+  -allforcings, --do_all_forcing_configs : bool-switch(store-true) default=False
+                        Run all forcing configurations rather than the default shorter default list.
+                        For reference, the default list is: ['short_range', 'standard_ana', 'medium_range_blend'].
+                        Incompatible with --skip_forecast.
+
+  -mff, --model_formulations_file : type=None default=None
+                        If provided, multiple model formulations will be ran,
+                        and this is a file path to a tsv file of the formulations list. If not provided,
+                        then the default model formulation will be used: ('noah-owp-modular,cfe-s', False).
+
+  -calfsrcs, --calibration_forcing_sources : type=None default=['aorc', 'nwm']
+                        Sources of forcing data for calibration runs. If not provided,
+                        then this default will be used: ['aorc', 'nwm'].
+
+  -cs, --do_coldstart : bool-switch(store-true) default=False
+                        Causes use_cold_start to be True for all forecasts
+
+  --noop : bool-switch(store-true) default=False
+                        Run in noop mode - only verify that the script
+                        can import libraries and basic setup, then exit without looking
+                        for data or running any workflows.
+
+  --restart : bool-switch(store-true) default=False
+                        Run in restart mode. Read existing results json file '/ngen-app/bin/bin_mounted/ngen_rte/forecast_tests_results.json'
+                        if it exists, and skip indexes that already have a record in it.
+
+  -delraw, --delete_forcing_raw_input_first : bool-switch(store-true) default=False
+                        Delete contents of '/ngen-app/data/raw_input' before the run,
+                        which forces forcing data to be re-downloaded.
+
+  -delscratch, --delete_scratch_and_mesh_first : bool-switch(store-true) default=False
+                        Delete scratch dir and ESMF mesh files before the run,
+                        which forces ESMF and NetCDF actions to occur.
+
+  -e, --environment : type=str default='test'
+                        Operating environment. Affects name of server used to fetch input data. Passed to MSWM GeneralConfig.
+
+  -rname, --fcst_run_name : type=str default='fcst_run1'
+                        Forecast run name.
+
+  -fstatic, --forcing_static_dir : type=str default='/ngen-app/data'
+                        Directory for static forcing files, used when forcing_provider is 'bmi'.
+
+  -g, --gage_id : type=str default='01123000'
+                        Gage ID.
+
+  -gdomain, --global_domain : type=str default='CONUS'
+                        Global domain/region of forcing data.
+
+  --hydrofab_file : type=str default=None
                         Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.
-  -fregion {CONUS,Alaska,Hawaii,Puerto_Rico,GL}, --global_domain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}
-                        Region of forcing data. Default=CONUS
-  -fstatic FORCING_STATIC_DIR, --forcing_static_dir FORCING_STATIC_DIR
-                        Directory for static forcing files, used when forcing_provider is 'bmi'. Default=/ngen-app/data
-  -fprovider {bmi,csv}, --forcing_provider {bmi,csv}
-                        Forcing provider. Default=bmi
-  --noop                Run in noop mode - only verify that the script can import libraries and basic setup, then exit without looking for data or running any workflows.
-  --restart             Run in restart mode. Read existing results json file /ngen-app/bin/bin_mounted/forecast_tests_results.json if it exists and skip indexes that already have a record in it.
-  
+
+  -n, --nprocs : type=int default=1
+                        Number of processors
