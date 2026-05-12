@@ -44,7 +44,7 @@ def build_realization(
 
 def build_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
     """Build and return a coldstart forecast realization."""
-    rb_kwargs_final = cfg.realization_builder_kwargs | {"use_cold_start": True}
+    rb_kwargs_final = cfg.mswm_RealizationBuilder_kwargs | {"use_cold_start": True}
     rb = build_realization(cfg, rb_kwargs_final, "cs")
     return rb
 
