@@ -6,7 +6,8 @@ set -x
 
 ## 
 ## \brief
-## Run realizations of various types.
+## Example commands for running realizations of various types.
+## See CLI args for [`run_forecast.py`](python_cli_help__run_forecast.py.txt), [`run_default.py`](python_cli_help__run_default.py.txt), [`run_calibration.py`](python_cli_help__run_calibration.py.txt), and [`run_tests.py`](python_cli_help__run_tests.py.txt).
 ## 
 ## \desc
 ## Source `./run.sh` to call its `docker_run` command for running realizations of various types ("default", "calibration", and "forecast").  It requires that the ngen runtime environment image has already been built using `./ngen_rte_build.sh`.

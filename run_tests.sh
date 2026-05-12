@@ -5,10 +5,12 @@ source run.sh
 
 ## 
 ## \brief
-## Run a series of "forecast" realizations via `run_tests.py` with various forcing configurations, optionally with "calibration" realizations first.
+## Example commands for running a series of "forecast" realizations via [`run_tests.py`](python_cli_help__run_tests.py.txt) with various forcing configurations,
+## optionally preceded by building and running "calibration" realizations first.
+## See CLI args for [`run_tests.py`](python_cli_help__run_tests.py.txt).
 ## 
 ## \desc
-## Source `./run.sh` to call its `docker_run` command for running `run_tests.py`.  It requires that the ngen runtime environment image has already been built using `./ngen_rte_build.sh`.
+## Source `./run.sh` to call its `docker_run` command for running [`run_tests.py`](python_cli_help__run_tests.py.txt).  It requires that the ngen runtime environment image has already been built using `./ngen_rte_build.sh`.
 ## 
 ## When realizations fail, this program does not halt, but rather moves to the next configuration type in the list, with the goal of "trying" many different realization configurations in one call.
 ## 

@@ -6,7 +6,7 @@ set -x
 
 ## 
 ## \brief
-## Run "default" realizations.
+## Example commands for running "default" realizations.  See CLI args for [`run_default.py`](python_cli_help__run_default.py.txt).
 ## 
 ## \desc
 ## Source `./run.sh` to call its `docker_run` command for running "default" realizations.  It requires that the ngen runtime environment image has already been built using `./ngen_rte_build.sh`.
@@ -37,7 +37,7 @@ docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "standard_ana" -dt "2
 # Medium Range
 docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "medium_range_blend" -dt "2026-03-30 06:00:00" -rname "default_mr"
 
-### Medium Range Lagged Ensemble
+# Medium Range Lagged Ensemble
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "default_mr_le" -le "no_da" "" ""
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "default_mr_le" -le "mem1" "" ""
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "default_mr_le" -le "mem2" "" ""
@@ -46,7 +46,7 @@ docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "medium_range_blend" 
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "default_mr_le" -le "mem5" "" ""
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "default_mr_le" -le "mem6" "" ""
 
-### Historical / Retrospective Forcing
+# Historical / Retrospective Forcing
 docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc"
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc" -mf "snow-17,noah-owp-modular,smp,lasam,t-route" -rz "true"
 

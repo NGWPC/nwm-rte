@@ -5,7 +5,7 @@ source run.sh
 
 ## 
 ## \brief
-## Run "forecast" realizations.
+## Example commands for running "forecast" realizations.  See CLI args for [`run_forecast.py`](python_cli_help__run_forecast.py.txt).
 ## 
 ## \desc
 ## Source `./run.sh` to call its `docker_run` command for running "forecast" realizations.  It requires that the ngen runtime environment image has already been built using `./ngen_rte_build.sh`.
@@ -44,10 +44,10 @@ docker_run python -um "ngen_rte.run_forecast" -dt "2025-09-15 00:00:00" -rname "
 
 # docker_run python -um "ngen_rte.run_forecast" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_ana" -fconfig standard_ana
 
-### Medium Range
+# Medium Range
 # docker_run python -um "ngen_rte.run_forecast" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr" -fconfig medium_range_no_da
 
-### Medium Range Lagged Ensemble Members
+# Medium Range Lagged Ensemble Members
 # docker_run python -um "ngen_rte.run_forecast" -n 2 -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr_le" -fconfig medium_range -le "no_da" "" ""
 # docker_run python -um "ngen_rte.run_forecast" -n 2 -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr_le" -fconfig medium_range -le "mem1" "" ""
 # docker_run python -um "ngen_rte.run_forecast" -n 2 -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr_le" -fconfig medium_range -le "mem2" "" ""

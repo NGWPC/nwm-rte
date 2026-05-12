@@ -6,7 +6,7 @@ set -x
 
 ## 
 ## \brief
-## Run "calibration" realizations.
+## Example commands for running "calibration" realizations.  See CLI args for [`run_calibration.py`](python_cli_help__run_calibration.py.txt).
 ## 
 ## \desc
 ## Source `./run.sh` to call its `docker_run` command for running "calibration" realizations.  It requires that the ngen runtime environment image has already been built using `./ngen_rte_build.sh`.
