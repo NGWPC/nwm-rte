@@ -103,7 +103,7 @@ class RTEBaseConfig(BaseModel):
     """Boolean indicating that lagged ensemble is to be used. Passed to MSWM."""
     lagged_ens_mem: str | None = Field(init=False, default=None)
     """Lagged ensemble member name. Passed to MSWM."""
-    forcing_lag: str | None = Field(init=False, default=None)
+    forcing_lag: int | None = Field(init=False, default=None)
     """Lagged ensemble forcing lag. Looked up based on lagged ensemble member name. Passed to MSWM."""
     le__open_loop_state: str | None = Field(init=False, default=None)
     """File path for lagged ensemble open loop state."""
