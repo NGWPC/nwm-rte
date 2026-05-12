@@ -107,6 +107,7 @@ class RTEBaseConfig(BaseModel):
 
     @property
     def _fcst_run_name(self) -> str:
+        """Adaptive forecast run name that optionally can have a timestamped suffix appended to the end."""
         if self.add_timestamp_to_run_name:
             if not self.fcst_run_name:
                 raise ValueError(
@@ -120,6 +121,7 @@ class RTEBaseConfig(BaseModel):
 
     @property
     def realtime_mode(self) -> bool:
+        """Realtime mode boolean, leveraged by default realization which can run both realtime and historical/retrospective configurations."""
         if self.forcing_configuration in c.FORECAST_FORCING_TYPES + ["medium_range"]:
             return True
         else:
@@ -127,6 +129,7 @@ class RTEBaseConfig(BaseModel):
 
     @property
     def forcing_provider_paths(self) -> ForcingProviderPaths:
+        """Helper class for managing forcing provider paths."""
         fpp = ForcingProviderPaths(
             global_domain=self.global_domain,
             forcing_static_dir=self.forcing_static_dir,
@@ -135,6 +138,7 @@ class RTEBaseConfig(BaseModel):
 
     @property
     def calib_windows(self) -> CalibTimeWindows:
+        """Class of various calibration time windows."""
         windows = CalibTimeWindows(
             calib_sim_start=self.calib_sim_start
             if self.calib_sim_start
@@ -150,6 +154,7 @@ class RTEBaseConfig(BaseModel):
 
     @property
     def start_period__end_period(self) -> tuple[str | None, str | None]:
+        """Tuple of start period and end period for calibration and default realizations."""
         if isinstance(self, RTECalibConfig):
             start_period = self.calib_windows.calib_eval_start.strftime(DDF)
             end_period = self.calib_windows.calib_eval_end.strftime(DDF)
@@ -163,6 +168,7 @@ class RTEBaseConfig(BaseModel):
 
     @property
     def model_formulation(self) -> ModelFormulation:
+        """Model formulation helper class for MSWM models list and rootzone parameter."""
         mf = ModelFormulation(
             self.model_formulation_cli_csv,
             self.model_formulation_cli_rootzone,
@@ -171,6 +177,7 @@ class RTEBaseConfig(BaseModel):
 
     @property
     def run_type(self) -> str:
+        """Run type for MSWM GeneralConfig"""
         if isinstance(self, RTECalibConfig):
             rt = "calibration"
         elif isinstance(self, RTEDefaultConfig):
@@ -185,6 +192,7 @@ class RTEBaseConfig(BaseModel):
 
     @property
     def mswm_GeneralConfig(self) -> GeneralConfig:
+        """MSWM GeneralConfig instance"""
         start_period, end_period = self.start_period__end_period
         return GeneralConfig(
             basin=self.gage_id,
@@ -203,6 +211,7 @@ class RTEBaseConfig(BaseModel):
 
     @property
     def mswm_ModulePropertiesConfig(self) -> ModulePropertiesConfig:
+        """MSWM ModulePropertiesConfig instance"""
         mpc = ModulePropertiesConfig(
             cfe_aet_rootzone=self.model_formulation.cfe_aet_rootzone,
         )
@@ -210,15 +219,18 @@ class RTEBaseConfig(BaseModel):
 
     @property
     def mswm_NWMOutputConfig(self) -> NWMOutputConfig:
+        """MSWM NWMOutputConfig instance"""
         oc = NWMOutputConfig(output_nwm_vars=self.nwm_output_vars)
         return oc
 
     @property
     def mswm_RegionalizationConfig(self) -> None:
+        """MSWM RegionalizationConfig instance"""
         return None
 
     @property
     def mswm_CalibConfig(self) -> CalibConfig | None:
+        """MSWM CalibConfig instance"""
         if not isinstance(self, RTECalibConfig):
             return None
         cc = CalibConfig(
@@ -250,6 +262,8 @@ class RTEBaseConfig(BaseModel):
 
     @property
     def mswm_ForcingConfig(self) -> ForcingConfig:
+        """MSWM ForcingConfig instance.
+        Contains dynamic logic for handling different types of child classes of RTEBaseConfig."""
         if isinstance(self, RTECalibConfig):
             cdt = self.calib_windows.calib_sim_start.strftime(
                 mswm_settings.DEFAULT_DATETIME_FORMAT
@@ -286,6 +300,7 @@ class RTEBaseConfig(BaseModel):
 
     @property
     def mswm_DataFileConfig(self) -> DataFileConfig:
+        """MSWM DataFileConfig instance."""
         obs_dir, nwmretro_file, errors = get_data_paths_for_lstm(
             self.global_domain,
             self.gage_id,
@@ -307,11 +322,13 @@ class RTEBaseConfig(BaseModel):
 
     @property
     def mswm_ParallelConfig(self) -> ParallelConfig:
+        """MSWM ParallelConfig instance."""
         pc = make_parallel_config(self.nprocs)
         return pc
 
     @property
     def mswm_InputConfig(self) -> InputConfig:
+        """MSWM InputConfig instance. This is the composite MSWM class that contains the other sub-config classes."""
         general = self.mswm_GeneralConfig
         module_properties = self.mswm_ModulePropertiesConfig
         nwm_output = self.mswm_NWMOutputConfig
@@ -334,7 +351,7 @@ class RTEBaseConfig(BaseModel):
 
     @property
     def mswm_RealizationBuilder_kwargs(self) -> dict:
-        """Build and return a dictionary for creating a RealizationBuilder instance."""
+        """Full set of kwargs that are passed to MSWM RealizationBuilder's constructor for bulding a realization."""
         kwargs = {
             # "input_path": forecast_vars.forecast_input_config,
             "valid_yaml": self.valid_best_yaml,
@@ -634,7 +651,7 @@ class RTETestConfig(RTEBaseConfig):
 
 
 def make_parallel_config(nprocs: int) -> ParallelConfig:
-    """Build and return the ParallelConfig instance."""
+    """MSWM ParallelConfig instance."""
     if nprocs and nprocs > 1:
         parallel = ParallelConfig(
             parallel_ngen_exe=c.NGEN_BIN__LINK,
