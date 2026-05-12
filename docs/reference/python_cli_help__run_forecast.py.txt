@@ -3,7 +3,6 @@ usage: run_forecast.py [-h] [-csdt COLD_START_DATETIME] -dt CYCLE_DATETIME
                        [-rname FCST_RUN_NAME] [-fconfig FORCING_CONFIGURATION]
                        [-fstatic FORCING_STATIC_DIR] [-g GAGE_ID]
                        [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
-                       [--hydrofab_file HYDROFAB_FILE]
                        [-le LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS]
                        [-nwmout] [-n NPROCS] [-ofunc OBJECTIVE_FUNCTION]
                        [-optalgo OPTIMIZATION_ALGORITHM] [-ts]
@@ -71,9 +70,6 @@ options:
 
   -gdomain, --global_domain : type=str default='CONUS'
                         Global domain/region of forcing data.
-
-  --hydrofab_file : type=str default=None
-                        Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.
 
   -le, --lagged-ensemble : type=str default=None
                         Provide this multi-part argument to run one member

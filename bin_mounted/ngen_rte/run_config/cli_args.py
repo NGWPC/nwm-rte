@@ -1,5 +1,6 @@
 """CLI args for executable Python scripts/modules.
-The instances of ArgsKwargs defined in this file are auto-discovered by add_args_for_script()
+
+The instances of ArgsKwargs defined in this file are auto-discovered by add_args_for_script().
 """
 
 import argparse
@@ -413,5 +414,5 @@ HYDROFAB_FILE = ArgsKwargs(
         "default": None,
         "help": "Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.",
     },
-    scripts=[Script.ALL],
+    scripts=[Script.CALIBRATION, Script.DEFAULT, Script.TESTS],
 )
