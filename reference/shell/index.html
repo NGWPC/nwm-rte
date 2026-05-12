@@ -1908,7 +1908,7 @@ of those repositories (already cloned, checked out, pulled). <code>./setup_clone
 
   <strong>Usage</strong>
     <pre><code>From `nwm-rte` repository root:
-./.devcontainer/pytest/run_pytest_external.sh
+./run_pytest_external.sh
 </code></pre>
 
 
@@ -2007,13 +2007,11 @@ which is typically sourced by other scripts and ran externally.</p>
 
 
 <h2 id="run_default.sh">run_default.sh<a href="#run_default.sh" class="headerlink" title="Permanent link">#</a></h2>
-  <p>Run "default" realizations.</p>
+  <p>Example commands for running "default" realizations.  See CLI args for <a href="../python_cli_help__run_default.py.txt"><code>run_default.py</code></a>.</p>
 
   <strong>Usage</strong>
     <pre><code>./run_default.sh 
-
- Medium Range Lagged Ensemble
- Historical / Retrospective Forcing</code></pre>
+</code></pre>
 
   <strong>Description</strong>
       <p>Source <code>./run.sh</code> to call its <code>docker_run</code> command for running "default" realizations.  It requires that the ngen runtime environment image has already been built using <code>./ngen_rte_build.sh</code>.</p>
@@ -2045,7 +2043,7 @@ which is typically sourced by other scripts and ran externally.</p>
 
 
 <h2 id="run_calib.sh">run_calib.sh<a href="#run_calib.sh" class="headerlink" title="Permanent link">#</a></h2>
-  <p>Run "calibration" realizations.</p>
+  <p>Example commands for running "calibration" realizations.  See CLI args for <a href="../python_cli_help__run_calibration.py.txt"><code>run_calibration.py</code></a>.</p>
 
   <strong>Usage</strong>
     <pre><code>./run_calib.sh 
@@ -2081,13 +2079,11 @@ which is typically sourced by other scripts and ran externally.</p>
 
 
 <h2 id="run_fcst.sh">run_fcst.sh<a href="#run_fcst.sh" class="headerlink" title="Permanent link">#</a></h2>
-  <p>Run "forecast" realizations.</p>
+  <p>Example commands for running "forecast" realizations.  See CLI args for <a href="../python_cli_help__run_forecast.py.txt"><code>run_forecast.py</code></a>.</p>
 
   <strong>Usage</strong>
     <pre><code>./run_fcst.sh 
-
- Medium Range
- Medium Range Lagged Ensemble Members</code></pre>
+</code></pre>
 
   <strong>Description</strong>
       <p>Source <code>./run.sh</code> to call its <code>docker_run</code> command for running "forecast" realizations.  It requires that the ngen runtime environment image has already been built using <code>./ngen_rte_build.sh</code>.</p>
@@ -2129,7 +2125,8 @@ which is typically sourced by other scripts and ran externally.</p>
 
 
 <h2 id="run_suite.sh">run_suite.sh<a href="#run_suite.sh" class="headerlink" title="Permanent link">#</a></h2>
-  <p>Run realizations of various types.</p>
+  <p>Example commands for running realizations of various types.
+See CLI args for <a href="../python_cli_help__run_forecast.py.txt"><code>run_forecast.py</code></a>, <a href="../python_cli_help__run_default.py.txt"><code>run_default.py</code></a>, <a href="../python_cli_help__run_calibration.py.txt"><code>run_calibration.py</code></a>, and <a href="../python_cli_help__run_tests.py.txt"><code>run_tests.py</code></a>.</p>
 
   <strong>Usage</strong>
     <pre><code>./run_suite.sh 
@@ -2165,14 +2162,16 @@ which is typically sourced by other scripts and ran externally.</p>
 
 
 <h2 id="run_tests.sh">run_tests.sh<a href="#run_tests.sh" class="headerlink" title="Permanent link">#</a></h2>
-  <p>Run a series of "forecast" realizations via <code>run_tests.py</code> with various forcing configurations, optionally with "calibration" realizations first.</p>
+  <p>Example commands for running a series of "forecast" realizations via <a href="../python_cli_help__run_tests.py.txt"><code>run_tests.py</code></a> with various forcing configurations,
+optionally preceded by building and running "calibration" realizations first.
+See CLI args for <a href="../python_cli_help__run_tests.py.txt"><code>run_tests.py</code></a>.</p>
 
   <strong>Usage</strong>
     <pre><code>./run_tests.sh 
 </code></pre>
 
   <strong>Description</strong>
-      <p>Source <code>./run.sh</code> to call its <code>docker_run</code> command for running <code>run_tests.py</code>.  It requires that the ngen runtime environment image has already been built using <code>./ngen_rte_build.sh</code>.</p>
+      <p>Source <code>./run.sh</code> to call its <code>docker_run</code> command for running <a href="../python_cli_help__run_tests.py.txt"><code>run_tests.py</code></a>.  It requires that the ngen runtime environment image has already been built using <code>./ngen_rte_build.sh</code>.</p>
 <p>When realizations fail, this program does not halt, but rather moves to the next configuration type in the list, with the goal of "trying" many different realization configurations in one call.</p>
 <p>The status of each configuration's build step and run step is reported and written to a json file at the end.</p>
 <p>The Python script <code>run_tests.py</code> includes options for stopping realizations mid-way through their run, rather than waiting for them to complete.</p>
