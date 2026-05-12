@@ -409,6 +409,7 @@ class RTEDefaultConfig(RTEBaseConfig):
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
+        super()._parse_lagged_ensemble_args()
         if self.errors:
             raise RuntimeError(self.errors)
 
