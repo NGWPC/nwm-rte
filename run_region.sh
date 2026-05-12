@@ -233,8 +233,10 @@ if $DELETE_RUNTIME_DIR; then
     trap cleanup EXIT
 fi
 
-# script to run with docker run
-SCRIPT="${REPOS_COMMON_ROOT__HOST}/nwm-rte/bin_mounted/run_regionalization.py"
+# Python module to run with docker run
+RUN_REGION_MODULE="ngen_rte.run_regionalization"
+# Parent dir of where the ngen_rte module is mounted inside the container (for setting PYTHONPATH)
+CONTAINER_PYTHONPATH="${REPOS_COMMON_ROOT__HOST}/nwm-rte/bin_mounted"
 
 # docker image to use
 TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:${IMAGE_TAG}"
@@ -255,6 +257,7 @@ function docker_run {
         --entrypoint python \
         --user "$(id -u):$(id -g)" \
         -e WORK_DIR="${WORK_DIR}" \
+        -e PYTHONPATH="${CONTAINER_PYTHONPATH}" \
         -e REPOS_COMMON_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}" \
         -e HOME="${RUNTIME_DIR_TMP}/home" \
         -w "${WORK_DIR}" \
@@ -265,14 +268,14 @@ function docker_run {
         -v "${CONFIG_DIR}:${CONFIG_DIR}" \
         -v "${RUNTIME_DIR_TMP}/run_ngen/data:/ngencerf-app/runtime_data" \
         -v "${RUNTIME_DIR_TMP}/docker_logs/run:/ngencerf/data/run-logs" \
-        --rm ${TARGET_IMAGE_NAME} "$@"
+        --rm ${TARGET_IMAGE_NAME} -um "$@"
 }
 
 # Run requested workflow steps
-$parreg  && docker_run "$SCRIPT" -c "$CONFIG_DIR" --parreg
-$formreg && docker_run "$SCRIPT" -c "$CONFIG_DIR" --formreg
-$ngen    && docker_run "$SCRIPT" -c "$CONFIG_DIR" --ngen
-$eval    && docker_run "$SCRIPT" -c "$CONFIG_DIR" --eval
+$parreg  && docker_run "$RUN_REGION_MODULE" -c "$CONFIG_DIR" --parreg
+$formreg && docker_run "$RUN_REGION_MODULE" -c "$CONFIG_DIR" --formreg
+$ngen    && docker_run "$RUN_REGION_MODULE" -c "$CONFIG_DIR" --ngen
+$eval    && docker_run "$RUN_REGION_MODULE" -c "$CONFIG_DIR" --eval
 
 echo "All requested workflows (${selected_workflows[*]}) completed successfully."
 exit 0

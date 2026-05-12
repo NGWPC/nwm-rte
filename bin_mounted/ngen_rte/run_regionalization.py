@@ -83,6 +83,7 @@ if __name__ == "__main__":
     parser.add_argument("--eval", dest="run_eval", action="store_true")
     args = parser.parse_args()
 
-    assert os.path.exists(args.config_dir)
+    if not os.path.isdir(args.config_dir):
+        raise NotADirectoryError(args.config_dir)
 
     main(**vars(args))
