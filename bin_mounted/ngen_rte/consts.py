@@ -159,7 +159,7 @@ DATAFILE_LIBS = {
 }
 
 
-SRC_LOG_CONFIG_JSON = "/ngen-app/bin/bin_mounted/ngen_logging.json"
+SRC_LOG_CONFIG_JSON = "/ngen-app/bin/bin_mounted/ngen_rte/run_config/ngen_logging.json"
 # Must match config.bashrc
 RTE_NGEN_LOG_BEHAVIOR_KEY = "NGEN_LOG_TO_RTE"
 # Must match EWTS, nwm-cal-mgr, and nwm-fcst-mgr
@@ -170,7 +170,7 @@ NGEN_STDOUT_STDERR_LOG_FILE_BASENAME = "ngen_stdout_stderr.log"
 SCRATCH_DIR_OVERRIDE: str | None = None
 FORCING_PRODUCT_VERSIONS_PATH: str | None = None
 # SCRATCH_DIR_OVERRIDE: str | None = "/foo/bar/scratch"
-# FORCING_PRODUCT_VERSIONS_PATH: str | None = "/ngen-app/bin/bin_mounted/ngen_forcing_vers.json"
+# FORCING_PRODUCT_VERSIONS_PATH: str | None = "/ngen-app/bin/bin_mounted/ngen_rte/run_config/ngen_forcing_vers.json"
 ### Parsing the json file if provided
 if FORCING_PRODUCT_VERSIONS_PATH is not None:
     with open(FORCING_PRODUCT_VERSIONS_PATH, "r") as f:

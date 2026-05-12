@@ -7,12 +7,12 @@ import sys
 from dataclasses import dataclass
 from enum import StrEnum
 
-import consts as c
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
+from ngen_rte import consts as c
 
 # from mswm.utils.settings import c.LAGGED_ENSEMBLE_MEMBER_LAGS
 # TODO replace with import of mswm.utils.settings.c.LAGGED_ENSEMBLE_MEMBER_LAGS
-from utils import (
+from ngen_rte.utils import (
     datetime_from_str,
     datetime_type,
     str_from_datetime,

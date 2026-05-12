@@ -4,9 +4,8 @@ import logging
 import os
 
 from mswm.build_inputs import RealizationBuilder
-
-from bin_mounted import configs, run_default
-from bin_mounted import consts as c
+from ngen_rte import configs, run_default
+from ngen_rte import consts as c
 
 # def test_build_default_realization():
 #     _, _ = _build_default_realization()

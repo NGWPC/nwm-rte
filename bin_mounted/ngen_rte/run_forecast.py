@@ -11,15 +11,16 @@ See `run_fcst.sh` for example calls.
 import argparse
 import functools
 
-import cli_args
-import consts as c
-import utils_testing_setup
-from configs import RTEForecastConfig
 from mswm.build_inputs import RealizationBuilder
 from nwm_fcst_mgr.forecast import (
     run_forecast as run_fcst,
 )
-from utils import configure_ngen_log
+
+from ngen_rte import consts as c
+from ngen_rte.configs import RTEForecastConfig
+from ngen_rte.run_config import cli_args
+from ngen_rte.tests import utils_testing_setup
+from ngen_rte.utils import configure_ngen_log
 
 print = functools.partial(print, flush=True)
 

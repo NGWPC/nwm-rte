@@ -1,8 +1,8 @@
 import os
 import shutil
 
-import consts as c
-from configs import RTETestConfig
+from ngen_rte import consts as c
+from ngen_rte.configs import RTETestConfig
 
 
 def delete_test_output_dir(cfg: RTETestConfig) -> None:

@@ -19,14 +19,14 @@ import functools
 import json
 import sys
 
-import cli_args
-import consts as c
-import utils_testing_setup
 from calib.strategy import (
     Algorithm as CalOptimizationAlgo,
 )
-from configs import RTETestConfig
-from execution_tests import (
+from ngen_rte import consts as c
+from ngen_rte.configs import RTETestConfig
+from ngen_rte.run_config import cli_args
+from ngen_rte.tests import utils_testing_setup
+from ngen_rte.tests.execution_tests import (
     ForecastTest,
     LogParser,
     TestsManager,
@@ -34,8 +34,8 @@ from execution_tests import (
     get_test_configs__calibration,
     get_test_configs__forecast,
 )
+from ngen_rte.utils import configure_ngen_log
 from pydantic.json import pydantic_encoder
-from utils import configure_ngen_log
 
 print = functools.partial(print, flush=True)
 

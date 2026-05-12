@@ -1,16 +1,15 @@
 """Read the test results json from a previous run of `run_tests.py` and distill human-readable reporting info"""
 
 import argparse
-from dataclasses import dataclass
 import functools
 import json
 import os
+from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
-
-from execution_tests import TestStat
-import consts as c
+from ngen_rte import consts as c
+from ngen_rte.tests.execution_tests import TestStat
 
 print = functools.partial(print, flush=True)
 

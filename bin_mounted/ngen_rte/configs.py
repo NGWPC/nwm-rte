@@ -3,12 +3,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
-import consts as c
 import pandas as pd
-
-# from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
-# TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
-from consts import LAGGED_ENSEMBLE_MEMBER_LAGS
 from mswm.utils import settings as mswm_settings
 from mswm.utils.input_configuration import (
     CalibConfig,
@@ -23,7 +18,13 @@ from mswm.utils.input_configuration import (
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.dataclasses import dataclass as pydantic_dataclass
-from utils import booleanize, make_wcoss_path_symlinks
+
+from ngen_rte import consts as c
+
+# from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
+# TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
+from ngen_rte.consts import LAGGED_ENSEMBLE_MEMBER_LAGS
+from ngen_rte.utils import booleanize, make_wcoss_path_symlinks
 
 
 @dataclass

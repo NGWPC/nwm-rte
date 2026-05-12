@@ -6,10 +6,11 @@ import pathlib
 import shutil
 from datetime import datetime, timedelta, timezone
 
-import consts as c
 import pandas as pd
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
+
+from ngen_rte import consts as c
 
 
 def make_symlink(link_path: str, target_path: str) -> None:
