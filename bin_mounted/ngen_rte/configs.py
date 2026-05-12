@@ -29,7 +29,7 @@ from ngen_rte.other_classes import (
     TestPaths,
 )
 from ngen_rte.utils import (
-    get_data_paths_for_lstm,
+    get_paths_for_observed_and_retro_data,
     make_wcoss_path_symlinks,
     parse_fcst_run_name,
 )
@@ -339,7 +339,7 @@ class RTEBaseConfig(BaseModel):
     @property
     def mswm_DataFileConfig(self) -> DataFileConfig:
         """MSWM DataFileConfig instance."""
-        obs_dir, nwmretro_file, errors = get_data_paths_for_lstm(
+        obs_dir, nwmretro_file, errors = get_paths_for_observed_and_retro_data(
             self.global_domain,
             self.gage_id,
             models_csv=self.model_formulation.models_csv,

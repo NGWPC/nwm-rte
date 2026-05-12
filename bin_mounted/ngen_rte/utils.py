@@ -169,7 +169,7 @@ def parse_fcst_run_name(fcst_run_name: str) -> list[Exception]:
     return errors
 
 
-def get_data_paths_for_lstm(
+def get_paths_for_observed_and_retro_data(
     global_domain: str,
     gage_id: str,
     models_csv: str,
