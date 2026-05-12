@@ -64,7 +64,9 @@ def run_default(
     Returns: The path to the ngen stdout + stderr log file.
     """
     ngen_log_description = "default"
-    output_dir = os.path.join(rb.work_dir, "Output", "Default_Run", cfg._fcst_run_name)
+    output_dir = os.path.join(
+        rb.work_dir, "Output", "Default_Run", cfg._fcst_run_name_formatted
+    )
 
     if clear_output_dir and os.path.exists(output_dir):
         print(f"Deleting output dir: {output_dir}")

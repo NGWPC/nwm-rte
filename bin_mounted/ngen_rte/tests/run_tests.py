@@ -115,7 +115,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
             rb_kwargs = {
                 # "input_path": test_paths.dir_input,
                 "valid_yaml": test_paths.valid_yaml,
-                "fcst_run_name": cfg._fcst_run_name,
+                "fcst_run_name": cfg._fcst_run_name_formatted,
                 "config_overrides": config_overrides,
                 "use_cold_start": cs,
             }
@@ -128,7 +128,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
                 rb_kwargs=rb_kwargs,
                 ### TODO update this to work with new EWTS per-rank logs, and new RTE log paths
                 # ngen_log=LogParser(
-                #     path=f"{test_paths.dir_output}/{run_type}/{cfg._fcst_run_name}/logs/ngen.log"
+                #     path=f"{test_paths.dir_output}/{run_type}/{cfg._fcst_run_name_formatted}/logs/ngen.log"
                 # ),
             )
 

@@ -62,6 +62,7 @@ class RTEBaseConfig(BaseModel):
     cycle_datetime: datetime | None = Field(default=None)
 
     # Set after init (not provided as args)
+    time_at_init: datetime | None = Field(init=False, default=None)
     errors: list | None = Field(init=False, default=None)
 
     # For lagged ensemble
@@ -72,6 +73,7 @@ class RTEBaseConfig(BaseModel):
     le__closed_loop_state: str | None = Field(init=False, default=None)
 
     def model_post_init(self, __context) -> None:
+        self.time_at_init = datetime.now(tz=timezone.utc)
         self.errors = []
         make_wcoss_path_symlinks()
         if self.errors:
@@ -106,18 +108,16 @@ class RTEBaseConfig(BaseModel):
             )
 
     @property
-    def _fcst_run_name(self) -> str:
+    def _fcst_run_name_formatted(self) -> str:
         """Adaptive forecast run name that optionally can have a timestamped suffix appended to the end."""
         if self.add_timestamp_to_run_name:
             if not self.fcst_run_name:
                 raise ValueError(
                     "Must provide fcst_run_name when using timestamp_run_name"
                 )
-            now = datetime.now(tz=timezone.utc)
-            ret = f"{self.fcst_run_name}_{now.strftime(c.RUN_NAME_TIMESTAMP_SUFFIX_FORMAT)}"
+            return f"{self.fcst_run_name}_{self.time_at_init.strftime(c.RUN_NAME_TIMESTAMP_SUFFIX_FORMAT)}"
         else:
-            ret = f"{self.fcst_run_name}"
-        return ret
+            return f"{self.fcst_run_name}"
 
     @property
     def realtime_mode(self) -> bool:
@@ -355,7 +355,7 @@ class RTEBaseConfig(BaseModel):
         kwargs = {
             # "input_path": forecast_vars.forecast_input_config,
             "valid_yaml": self.valid_best_yaml,
-            "fcst_run_name": self._fcst_run_name,
+            "fcst_run_name": self._fcst_run_name_formatted,
             "config_overrides": self.mswm_InputConfig,
             "use_lagged_ens": self.use_lagged_ensemble,
             "lagged_ens_mem": self.lagged_ens_mem,
@@ -601,7 +601,7 @@ class RTETestConfig(RTEBaseConfig):
                 )
             )
 
-        errors_extend = parse_fcst_run_name(self._fcst_run_name)
+        errors_extend = parse_fcst_run_name(self._fcst_run_name_formatted)
         self.errors.extend(errors_extend)
 
         if self.do_all_objective_functions:
