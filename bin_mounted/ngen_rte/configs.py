@@ -95,7 +95,7 @@ class RTEBaseConfig(BaseModel):
     # Set after init (not provided as args)
     time_at_init: datetime | None = Field(init=False, default=None)
     """Time at class instantiation."""
-    errors: list[Exception] | None = Field(init=False, default=None)
+    errors: list | None = Field(init=False, default=None)
     """List of exceptions encountered during init."""
 
     # For lagged ensemble.  Used by run_forecast.py and run_default.py.  See CLI args for those scripts and see _parse_lagged_ensemble_args() for details.
