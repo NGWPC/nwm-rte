@@ -10,22 +10,23 @@ import traceback
 from datetime import datetime, timezone
 from enum import StrEnum
 
+import pandas as pd
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils.input_configuration import ForcingConfig, InputConfig
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
+from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
+from nwm_fcst_mgr.forecast import ConfigCache, ForecastExecutionManager, RunStatus
+from pydantic import BaseModel, ConfigDict, Field, validate_call
+from pydantic.json import pydantic_encoder
+
 from ngen_rte import consts as c
 from ngen_rte import run_calibration
 from ngen_rte.configs import (
     ModelFormulation,
     RTECalibConfig,
     RTETestConfig,
-    build_model_formulations_for_test,
     make_parallel_config,
 )
-from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
-from nwm_fcst_mgr.forecast import ConfigCache, ForecastExecutionManager, RunStatus
-from pydantic import BaseModel, ConfigDict, Field, validate_call
-from pydantic.json import pydantic_encoder
 
 print = functools.partial(print, flush=True)
 
@@ -112,6 +113,45 @@ def get_test_configs__forecast(
         configs.append(InputConfig(General=general, Forcing=forcing, Parallel=parallel))
 
     return configs
+
+
+def build_model_formulations_for_test(
+    model_formulations_file: str | None = None,
+) -> list[ModelFormulation]:
+    """If model_formulations_file is provided, then parse it to return a list of ModelFormulation instance.
+    Otherwise, return a list of length 1 using consts.DEFAULT_MODEL_FORMULATION_ARGS"""
+    model_formulations = []
+
+    if model_formulations_file is None:
+        model_formulations.append(ModelFormulation(*c.DEFAULT_MODEL_FORMULATION_ARGS))
+    else:
+        print(f"Reading: {model_formulations_file}")
+        if not model_formulations_file.endswith(".tsv"):
+            raise ValueError(
+                f"Expected model_formulations_file to end with .tsv (indicating tab-separated values) but received: {model_formulations_file}"
+            )
+        df = pd.read_csv(model_formulations_file, sep="\t")
+        for i, row in df.iterrows():
+            formulation_csv = row["formulation_mswm"]
+            rz_raw = row["uses_root_zone"]
+            if str(rz_raw).lower().strip() in ("true", "1", "yes"):
+                rz = True
+            elif str(rz_raw).lower().strip() in ("false", "0", "no"):
+                rz = False
+            else:
+                raise ValueError(
+                    f"Unexpected value for uses_root_zone of row {i} of file {model_formulations_file}: {row}"
+                )
+
+            # # NOTE for testing a small batch
+            # if len(model_formulations) > 2:
+            #     break
+            # if rz is not True:
+            #     continue
+
+            model_formulations.append(ModelFormulation(formulation_csv, rz))
+
+    return model_formulations
 
 
 class TestStat(StrEnum):

@@ -3,6 +3,7 @@
 import json
 import os
 import pathlib
+import re
 import shutil
 from datetime import datetime, timedelta, timezone
 
@@ -154,3 +155,63 @@ def booleanize(booly: str | bool) -> bool:
             )
     else:
         raise TypeError(f"Unexpected booly type: {type(booly)}")
+
+
+def parse_fcst_run_name(fcst_run_name: str) -> list[Exception]:
+    """Validate the provided forecast run name, and return a list of errors."""
+    errors: list[Exception] = []
+    if fcst_run_name != fcst_run_name.strip():
+        errors.append(
+            ValueError(
+                f"Whitespace found on end of fcst_run_name: {repr(fcst_run_name)}"
+            )
+        )
+    return errors
+
+
+def get_data_paths_for_lstm(
+    global_domain: str,
+    gage_id: str,
+    models_csv: str,
+) -> tuple[str | None, str | None, list[Exception]]:
+    """Build and return two data paths needed for LSTM model,
+    as well as a list of errors encountered during this function.
+    Return None for obs_dir and nwmretro_file if not LSTM."""
+
+    errors: list[Exception] = []
+
+    if "lstm" in models_csv.lower():
+        obs_dir = find_obs_dir(global_domain, gage_id)
+        nwmretro_file = f"{c.NWM_RETRO_STREAMFLOW_DIR}/{gage_id}.csv"
+        if not os.path.exists(obs_dir):
+            errors.append(NotADirectoryError(obs_dir))
+        if not os.path.exists(nwmretro_file):
+            errors.append(FileNotFoundError(nwmretro_file))
+    else:
+        obs_dir = None
+        nwmretro_file = None
+
+    return obs_dir, nwmretro_file, errors
+
+
+def find_obs_dir(global_domain: str, gage_id: str) -> str:
+    """Search the grandparent directory of observed flow csv files to determine
+    the directory that contains one of them.  Assert that only one such csv file is found.
+    If multiple are found, then this function needs to be reworked to handle more complex
+    situations, such as multiple vintages of this data existing on disk."""
+    grandparent = f"{c.DEFAULT_MAIN_DIR}/data/streamflow_observations/{global_domain}"
+    print(f"Searching directory for observed flow files: {grandparent}")
+    candidate_csvs = []
+    for root, dirs, files in os.walk(grandparent):
+        dirs.sort()
+        files.sort()
+        for fn in files:
+            pattern = f"^{gage_id}_hourly_discharge.csv$"
+            if re.fullmatch(pattern, fn):
+                candidate_csvs.append(os.path.join(root, fn))
+    if len(candidate_csvs) != 1:
+        raise ValueError(
+            f"Expected to find 1 candidate csv for observed flow for global_domain={global_domain}, gage_id={gage_id}, but found {len(candidate_csvs)} when searching from {repr(grandparent)}: {candidate_csvs}"
+        )
+    obs_dir = os.path.dirname(candidate_csvs[0])
+    return obs_dir

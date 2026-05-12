@@ -1,9 +1,8 @@
+"""Primary configuration classes. Pydantic BaseModels directly associated with CLI executables."""
+
 import os
-import re
-from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
-import pandas as pd
 from mswm.utils import settings as mswm_settings
 from mswm.utils.input_configuration import (
     CalibConfig,
@@ -17,218 +16,23 @@ from mswm.utils.input_configuration import (
 )
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 from pydantic import BaseModel, ConfigDict, Field
-from pydantic.dataclasses import dataclass as pydantic_dataclass
 
 from ngen_rte import consts as c
 
 # from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 # TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
 from ngen_rte.consts import LAGGED_ENSEMBLE_MEMBER_LAGS
-from ngen_rte.utils import booleanize, make_wcoss_path_symlinks
-
-
-@dataclass
-class TestPaths:
-    """
-    Paths dependent on calibration settings.
-    If iterating over a list of objective functions or optimization algorithms,
-    obj_func and optim_algo may need to be replaced on the fly during the iterations.
-    """
-
-    gage_id: str
-    obj_func: c.CalObjective | None
-    optim_algo: c.CalOptimizationAlgo | None
-    global_domain: str
-    forcing_static_dir: str
-
-    def update_obj_func_and_optim_algo(
-        self, obj_func: c.CalObjective, optim_algo: c.CalOptimizationAlgo
-    ) -> None:
-        """Informal setter for obj_func and optim_algo"""
-        self.obj_func = obj_func
-        self.optim_algo = optim_algo
-
-    @property
-    def fpp(self):
-        """Build and return a ForcingProviderPaths instance to assist with setup."""
-        return ForcingProviderPaths(
-            global_domain=self.global_domain,
-            forcing_static_dir=self.forcing_static_dir,
-        )
-
-    @property
-    def dir_base(self) -> str:
-        """The base directory of the model (can contain calibrations and forecasts)."""
-        if not (self.obj_func and self.optim_algo):
-            raise ValueError(
-                "obj_func and optim_algo must be set before calling this method"
-            )
-        return f"{c.DEFAULT_MAIN_DIR}/{self.obj_func.value}_{self.optim_algo.value}/{self.fpp.formulation_name}/{self.gage_id}"
-
-    @property
-    def dir_input(self) -> str:
-        """The Input directory of the model"""
-        return f"{self.dir_base}/Input"
-
-    @property
-    def dir_output(self) -> str:
-        """The Output directory of the model"""
-        return f"{self.dir_base}/Output"
-
-    @property
-    def ngen_log_file(self) -> str:
-        """The ngen.log file of the model"""
-        return f"{self.dir_base}/logs/ngen.log"
-
-    @property
-    def calib_config_file(self) -> str:
-        """Path to example input calibration config file"""
-        return f"{self.dir_base}/configs/input_calibration_{c.FORCING_PROVIDER}.config"
-        # return f"{self.dir_base}/configs/input_calibration_{c.FORCING_PROVIDER}_short.config"
-
-    @property
-    def fcst_config_file(self) -> str:
-        """Path to example input forecast config file"""
-        return f"{self.dir_base}/configs/input_forecast.config"
-
-    @property
-    def valid_yaml(self) -> str:
-        """Path to validation yaml config file"""
-        return f"{self.dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
-
-
-@pydantic_dataclass
-class ModelFormulation:
-    """Each formulation is defined by comma-separated string of models, and a rootzone flag.
-    i.e. some formulations involve running with or without rootzone enabled."""
-
-    models_csv: str | None
-    cfe_aet_rootzone: bool | str | None
-    """This may start as a bool or a str, but then is converted to a bool during __post_init__."""
-
-    def __post_init__(self):
-        if self.models_csv is None:
-            self.models_csv = c.DEFAULT_MODEL_FORMULATION_ARGS[0]
-        if self.cfe_aet_rootzone is None:
-            self.cfe_aet_rootzone = c.DEFAULT_MODEL_FORMULATION_ARGS[1]
-
-        pattern = "^[a-z][a-z0-9-,]*[a-z]$"
-        if not re.fullmatch(pattern, self.models_csv):
-            raise ValueError(
-                f"Expected models to match pattern {repr(pattern)} but got: {repr(self.models_csv)}"
-            )
-        self.cfe_aet_rootzone = booleanize(self.cfe_aet_rootzone)
-
-
-class CalibTimeWindows(BaseModel):
-    """Calibration time windows defined by a start time
-    and some timedelta offsets."""
-
-    calib_sim_start: datetime = Field(default=c.CALIB_SIM_START_DEFAULT)
-    calib_sim_duration: timedelta = Field(default=c.CALIB_SIM_DURATION_DEFAULT)
-    # Delayed start from calibration simulation, for warmup
-    calib_eval_delayment: timedelta = Field(default=c.CALIB_EVAL_DELAYMENT_DEFAULT)
-    # Validation simulation starts before calibration simulation, by this amount
-    valid_sim_advancement: timedelta = Field(default=c.VALID_SIM_ADVANCEMENT_DEFAULT)
-    # Valid eval window cut short by this amount
-    valid_eval_curtailment: timedelta = Field(default=c.VALID_EVAL_CURTAILMENT_DEFAULT)
-
-    @property
-    def calib_sim_end(self) -> datetime:
-        """End of the calibration simulation window."""
-        return self.calib_sim_start + self.calib_sim_duration
-
-    @property
-    def calib_eval_start(self) -> datetime:
-        """Start of the calibration evaluation window."""
-        return self.calib_sim_start + self.calib_eval_delayment
-
-    @property
-    def calib_eval_end(self) -> datetime:
-        """End of the calibration evaluation window."""
-        return self.calib_sim_end
-
-    @property
-    def valid_sim_start(self) -> datetime:
-        """Start of the validation simulation window."""
-        return self.calib_sim_start - self.valid_sim_advancement
-
-    @property
-    def valid_sim_end(self) -> datetime:
-        """End of the validation simulation window."""
-        return self.calib_sim_end
-
-    @property
-    def valid_eval_start(self) -> datetime:
-        """Start of the validation evaluation window."""
-        return self.calib_sim_start
-
-    @property
-    def valid_eval_end(self) -> datetime:
-        """End of the validation evaluation window."""
-        return self.calib_sim_end - self.valid_eval_curtailment
-
-    @property
-    def full_eval_start(self) -> datetime:
-        """Start of the full evaluation window"""
-        return self.calib_sim_start
-
-    @property
-    def full_eval_end(self) -> datetime:
-        """End of the full evaluation window"""
-        return self.calib_sim_end
-
-
-def build_model_formulations_for_test(
-    model_formulations_file: str | None = None,
-) -> list[ModelFormulation]:
-    """If model_formulations_file is provided, then parse it to return a list of ModelFormulation instance.
-    Otherwise, return a list of length 1 using consts.DEFAULT_MODEL_FORMULATION_ARGS"""
-    model_formulations = []
-
-    if model_formulations_file is None:
-        model_formulations.append(ModelFormulation(*c.DEFAULT_MODEL_FORMULATION_ARGS))
-    else:
-        print(f"Reading: {model_formulations_file}")
-        if not model_formulations_file.endswith(".tsv"):
-            raise ValueError(
-                f"Expected model_formulations_file to end with .tsv (indicating tab-separated values) but received: {model_formulations_file}"
-            )
-        df = pd.read_csv(model_formulations_file, sep="\t")
-        for i, row in df.iterrows():
-            formulation_csv = row["formulation_mswm"]
-            rz_raw = row["uses_root_zone"]
-            if str(rz_raw).lower().strip() in ("true", "1", "yes"):
-                rz = True
-            elif str(rz_raw).lower().strip() in ("false", "0", "no"):
-                rz = False
-            else:
-                raise ValueError(
-                    f"Unexpected value for uses_root_zone of row {i} of file {model_formulations_file}: {row}"
-                )
-
-            # # NOTE for testing a small batch
-            # if len(model_formulations) > 2:
-            #     break
-            # if rz is not True:
-            #     continue
-
-            model_formulations.append(ModelFormulation(formulation_csv, rz))
-
-    return model_formulations
-
-
-class ForcingProviderPaths(BaseModel):
-    """Helper class for managing model paths."""
-
-    model_config = ConfigDict(strict=True)
-    global_domain: str
-    forcing_static_dir: str
-
-    @property
-    def formulation_name(self) -> str:
-        """Formulation name, as a part of the model path."""
-        return f"test_{c.FORCING_PROVIDER}"
+from ngen_rte.other_classes import (
+    CalibTimeWindows,
+    ForcingProviderPaths,
+    ModelFormulation,
+    TestPaths,
+)
+from ngen_rte.utils import (
+    get_data_paths_for_lstm,
+    make_wcoss_path_symlinks,
+    parse_fcst_run_name,
+)
 
 
 class RTEBaseConfig(BaseModel):
@@ -837,63 +641,3 @@ def make_parallel_config(nprocs: int) -> ParallelConfig:
     else:
         parallel = ParallelConfig(nprocs=nprocs)
     return parallel
-
-
-def parse_fcst_run_name(fcst_run_name: str) -> list[Exception]:
-    """Validate the provided forecast run name, and return a list of errors."""
-    errors: list[Exception] = []
-    if fcst_run_name != fcst_run_name.strip():
-        errors.append(
-            ValueError(
-                f"Whitespace found on end of fcst_run_name: {repr(fcst_run_name)}"
-            )
-        )
-    return errors
-
-
-def get_data_paths_for_lstm(
-    global_domain: str,
-    gage_id: str,
-    models_csv: str,
-) -> tuple[str | None, str | None, list[Exception]]:
-    """Build and return two data paths needed for LSTM model,
-    as well as a list of errors encountered during this function.
-    Return None for obs_dir and nwmretro_file if not LSTM."""
-
-    errors: list[Exception] = []
-
-    if "lstm" in models_csv.lower():
-        obs_dir = find_obs_dir(global_domain, gage_id)
-        nwmretro_file = f"{c.NWM_RETRO_STREAMFLOW_DIR}/{gage_id}.csv"
-        if not os.path.exists(obs_dir):
-            errors.append(NotADirectoryError(obs_dir))
-        if not os.path.exists(nwmretro_file):
-            errors.append(FileNotFoundError(nwmretro_file))
-    else:
-        obs_dir = None
-        nwmretro_file = None
-
-    return obs_dir, nwmretro_file, errors
-
-
-def find_obs_dir(global_domain: str, gage_id: str) -> str:
-    """Search the grandparent directory of observed flow csv files to determine
-    the directory that contains one of them.  Assert that only one such csv file is found.
-    If multiple are found, then this function needs to be reworked to handle more complex
-    situations, such as multiple vintages of this data existing on disk."""
-    grandparent = f"{c.DEFAULT_MAIN_DIR}/data/streamflow_observations/{global_domain}"
-    print(f"Searching directory for observed flow files: {grandparent}")
-    candidate_csvs = []
-    for root, dirs, files in os.walk(grandparent):
-        dirs.sort()
-        files.sort()
-        for fn in files:
-            pattern = f"^{gage_id}_hourly_discharge.csv$"
-            if re.fullmatch(pattern, fn):
-                candidate_csvs.append(os.path.join(root, fn))
-    if len(candidate_csvs) != 1:
-        raise ValueError(
-            f"Expected to find 1 candidate csv for observed flow for global_domain={global_domain}, gage_id={gage_id}, but found {len(candidate_csvs)} when searching from {repr(grandparent)}: {candidate_csvs}"
-        )
-    obs_dir = os.path.dirname(candidate_csvs[0])
-    return obs_dir
