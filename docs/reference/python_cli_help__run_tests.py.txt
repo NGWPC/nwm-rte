@@ -86,7 +86,7 @@ options:
                         for data or running any workflows.
 
   --restart : bool-switch(store-true) default=False
-                        Run in restart mode. Read existing results json file '/ngen-app/bin/bin_mounted/forecast_tests_results.json'
+                        Run in restart mode. Read existing results json file '/ngen-app/bin/bin_mounted/ngen_rte/forecast_tests_results.json'
                         if it exists, and skip indexes that already have a record in it.
 
   -delraw, --delete_forcing_raw_input_first : bool-switch(store-true) default=False
