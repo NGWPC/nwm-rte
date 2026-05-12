@@ -9,7 +9,7 @@ source config.bashrc
 ## Runs an ephemeral docker container to execute `python -m pytest` and quit. An alternative to running `pytest` inside an interactive Dev Container.
 ## 
 ## \usage From `nwm-rte` repository root:
-## ./.devcontainer/pytest/run_pytest_external.sh
+## ./run_pytest_external.sh
 ## 
 ## \note
 ## Uses OS env var TARGET_IMAGE_NAME if it is set, otherwise default to "ngen_rte_ghcr".
