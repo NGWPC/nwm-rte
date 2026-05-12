@@ -171,7 +171,9 @@ NGEN_STDOUT_STDERR_LOG_FILE_BASENAME = "ngen_stdout_stderr.log"
 SCRATCH_DIR_OVERRIDE: str | None = None
 FORCING_PRODUCT_VERSIONS_PATH: str | None = None
 # SCRATCH_DIR_OVERRIDE: str | None = "/foo/bar/scratch"
-# FORCING_PRODUCT_VERSIONS_PATH: str | None = "/ngen-app/bin/bin_mounted/ngen_rte/run_config/ngen_forcing_vers.json"
+# FORCING_PRODUCT_VERSIONS_PATH: str | None = (
+#     "/ngen-app/bin/bin_mounted/ngen_rte/run_config/ngen_forcing_vers.json"
+# )
 ### Parsing the json file if provided
 if FORCING_PRODUCT_VERSIONS_PATH is not None:
     with open(FORCING_PRODUCT_VERSIONS_PATH, "r") as f:
