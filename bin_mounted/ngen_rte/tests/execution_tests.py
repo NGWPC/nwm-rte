@@ -1,4 +1,4 @@
-# ruff: noqa: E741
+"""Test logic for iteating over various forecast and calibration realiztion types, trapping errors and writing results to a json file"""
 
 import functools
 import itertools

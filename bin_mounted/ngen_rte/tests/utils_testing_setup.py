@@ -1,3 +1,5 @@
+"""Misc utilities for testing setup and teardown, and assertions on test config paths."""
+
 import os
 import shutil
 

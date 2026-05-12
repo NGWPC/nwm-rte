@@ -1,9 +1,10 @@
-"""Tests for building and running ngen realizations."""
+"""Tests for building and running ngen realizations. Called by pytest."""
 
 import logging
 import os
 
 from mswm.build_inputs import RealizationBuilder
+
 from ngen_rte import configs, run_default
 from ngen_rte import consts as c
 

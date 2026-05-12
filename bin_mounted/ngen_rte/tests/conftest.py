@@ -1,4 +1,7 @@
+"""Pytest fixtures"""
+
 import os
+
 import pytest
 
 
