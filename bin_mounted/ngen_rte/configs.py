@@ -222,7 +222,7 @@ class ForcingProviderPaths(BaseModel):
     """Helper class for managing model paths."""
 
     model_config = ConfigDict(strict=True)
-    global_domain: str  # e.g. CONUS. TODO restrict choices
+    global_domain: str
     forcing_static_dir: str
 
     @property
