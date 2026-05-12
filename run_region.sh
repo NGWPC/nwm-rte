@@ -236,7 +236,7 @@ fi
 # Python module to run with docker run
 RUN_REGION_MODULE="ngen_rte.run_regionalization"
 # Parent dir of where the ngen_rte module is mounted inside the container (for setting PYTHONPATH)
-CONTAINER_PYTHONPATH="${REPOS_COMMON_ROOT__HOST}/nwm-rte/bin_mounted"
+CONTAINER_PYTHONPATH_ENTRY="${REPOS_COMMON_ROOT__HOST}/nwm-rte/bin_mounted"
 
 # docker image to use
 TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:${IMAGE_TAG}"
@@ -250,14 +250,17 @@ if $PULL_IMAGE || ! docker image inspect "${TARGET_IMAGE_NAME}" >/dev/null 2>&1;
     docker pull "${TARGET_IMAGE_NAME}"
 fi
 
-# Docker run function
-# To run ngen-forcing with debug log, add below: -e "FORCING_LOGLEVEL=DEBUG" \
+echo "Getting existing PYTHONPATH from the container..."
+CONTAINER_PYTHONPATH_EXISTING="$(docker run --rm --entrypoint sh ${TARGET_IMAGE_NAME} -lc 'printf "%s" "$PYTHONPATH"')"
+echo "Existing PYTHONPATH from the container: ${CONTAINER_PYTHONPATH_EXISTING}"
+CONTAINER_PYTHONPATH_COMBINED="${CONTAINER_PYTHONPATH_EXISTING}:${CONTAINER_PYTHONPATH_ENTRY}"
+
 function docker_run {
     docker run \
         --entrypoint python \
         --user "$(id -u):$(id -g)" \
         -e WORK_DIR="${WORK_DIR}" \
-        -e PYTHONPATH="${CONTAINER_PYTHONPATH}" \
+        -e PYTHONPATH="${CONTAINER_PYTHONPATH_COMBINED}" \
         -e REPOS_COMMON_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}" \
         -e HOME="${RUNTIME_DIR_TMP}/home" \
         -w "${WORK_DIR}" \
