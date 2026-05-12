@@ -112,6 +112,18 @@ def add_arg(parser: argparse.ArgumentParser, arg: ArgsKwargs) -> None:
     parser.add_argument(*arg.args, **arg.kwargs)
 
 
+ENVIRONMENT = ArgsKwargs(
+    args=["-e", "--environment"],
+    kwargs={
+        "type": str,
+        "default": c.DEFAULT_ENVIRONMENT,
+        "choices": ["test", "oe"],
+        "help": "Operating environment. Affects name of server used to fetch input data. Passed to MSWM GeneralConfig.",
+    },
+    scripts=[Script.ALL],
+)
+
+
 GLOBAL_DOMAIN = ArgsKwargs(
     args=["-gdomain", "--global_domain"],
     kwargs={

@@ -47,6 +47,7 @@ class RTEBaseConfig(BaseModel):
     # Set during init
     delete_scratch_and_mesh_first: bool
     delete_forcing_raw_input_first: bool
+    environment: str
     nprocs: int = Field(ge=1)
     global_domain: str
     forcing_static_dir: str
@@ -187,6 +188,7 @@ class RTEBaseConfig(BaseModel):
         start_period, end_period = self.start_period__end_period
         return GeneralConfig(
             basin=self.gage_id,
+            environment=self.environment,
             run_type=self.run_type,
             models=self.model_formulation.models_csv,
             formulation=self.forcing_provider_paths.formulation_name,

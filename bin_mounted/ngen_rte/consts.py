@@ -31,6 +31,7 @@ DT_END_COLDSTART = DT_START_FORECAST
 
 ### .config section [General]
 DEFAULT_GAGE_ID = "01123000"
+DEFAULT_ENVIRONMENT = "test"
 
 DEFAULT_MODEL_FORMULATION_ARGS = ("noah-owp-modular,cfe-s", False)
 # DEFAULT_MODEL_FORMULATION_ARGS = ("snow-17,noah-owp-modular,smp,lasam,t-route", False)

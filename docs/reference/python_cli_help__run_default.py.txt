@@ -1,5 +1,5 @@
 usage: run_default.py [-h] [-dur DURATION] -dt CYCLE_DATETIME [-delraw]
-                      [-delscratch] [-rname FCST_RUN_NAME]
+                      [-delscratch] [-e {test,oe}] [-rname FCST_RUN_NAME]
                       [-fconfig FORCING_CONFIGURATION]
                       [-fstatic FORCING_STATIC_DIR] [-g GAGE_ID]
                       [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
@@ -34,6 +34,9 @@ options:
   -delscratch, --delete_scratch_and_mesh_first : bool-switch(store-true) default=False
                         Delete scratch dir and ESMF mesh files before the run,
                         which forces ESMF and NetCDF actions to occur.
+
+  -e, --environment : type=str default='test'
+                        Operating environment. Affects name of server used to fetch input data. Passed to MSWM GeneralConfig.
 
   -rname, --fcst_run_name : type=str default='fcst_run1'
                         Forecast run name.
