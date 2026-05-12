@@ -42,7 +42,39 @@ class RTEBaseConfig(BaseModel):
     model_post_init() method, if they have that method also defined in the child.
 
     The primary usage of this class is to access property mswm_RealizationBuilder_kwargs
-    for building (and later running) a realization using MSWM."""
+    for building (and later running) a realization using MSWM.
+
+    Attributes
+    ----------
+    delete_scratch_and_mesh_first: bool
+        Causes scratch dir and intermediate mesh file to be deleted before building the realization. Use with caution.
+    delete_forcing_raw_input_first: bool
+        Causes forcing raw input dir to be deleted before building the realization. Use with caution.
+    environment: str
+        Operating environment, e.g. 'test' or 'oe'.
+    nprocs: int = Field(ge=1)
+        Number of processors to use for ngen execution.
+    global_domain: str
+        Global domain, e.g. "CONUS" or "Hawaii". Must agree with the ID of the basin / gage / VPU being simulated.
+    forcing_static_dir: str
+        Directory for static forcing data.
+    gage_id: str
+        Gage ID.
+    model_formulation_cli_csv: str | None = Field(default=None)
+        Comma-separated string of model names comprising the formulation.
+    model_formulation_cli_rootzone: str | None = Field(default=None)
+        Boolean for model formulation rootzone parameter.
+    add_timestamp_to_run_name: bool = Field(default=False)
+        Boolean causing the final forecast run name to contain a timestamp suffix.
+    nwm_output_vars: bool = Field(default=False)
+        Boolean causing NWM output variables to be included in the output. Passed to MSWM NWMOutputConfig. Does not apply to calibration workflow.
+    hydrofab_file: str | None = Field(default=None)
+        Optional hydrofabric file path. If provided, bypasses MSWM Icefabric server API call.
+    fcst_run_name: str | None = Field(default=None)
+        Forecast run name.
+    cycle_datetime: datetime | None = Field(default=None)
+        Cycle datetime for forecast
+    """
 
     # Set during init
     delete_scratch_and_mesh_first: bool
@@ -56,24 +88,30 @@ class RTEBaseConfig(BaseModel):
     model_formulation_cli_rootzone: str | None = Field(default=None)
     add_timestamp_to_run_name: bool = Field(default=False)
     nwm_output_vars: bool = Field(default=False)
-    """Passed to MSWM NWMOutputConfig. Does not apply to calibration workflow."""
     hydrofab_file: str | None = Field(default=None)
     fcst_run_name: str | None = Field(default=None)
     cycle_datetime: datetime | None = Field(default=None)
 
     # Set after init (not provided as args)
-    time_at_init: datetime | None = Field(init=False, default=None)
-    errors: list | None = Field(init=False, default=None)
+    _time_at_init: datetime | None = Field(init=False, default=None)
+    """Time at class instantiation."""
+    errors: list[Exception] | None = Field(init=False, default=None)
+    """List of exceptions encountered during init."""
 
-    # For lagged ensemble
+    # For lagged ensemble.  Used by run_forecast.py and run_default.py.  See CLI args for those scripts and see _parse_lagged_ensemble_args() for details.
     use_lagged_ensemble: bool | None = Field(init=False, default=False)
+    """Boolean indicating that lagged ensemble is to be used. Passed to MSWM."""
     lagged_ens_mem: str | None = Field(init=False, default=None)
+    """Lagged ensemble member name. Passed to MSWM."""
     forcing_lag: str | None = Field(init=False, default=None)
+    """Lagged ensemble forcing lag. Looked up based on lagged ensemble member name. Passed to MSWM."""
     le__open_loop_state: str | None = Field(init=False, default=None)
+    """File path for lagged ensemble open loop state."""
     le__closed_loop_state: str | None = Field(init=False, default=None)
+    """File path for lagged ensemble closed loop state."""
 
     def model_post_init(self, __context) -> None:
-        self.time_at_init = datetime.now(tz=timezone.utc)
+        self._time_at_init = datetime.now(tz=timezone.utc)
         self.errors = []
         make_wcoss_path_symlinks()
         if self.errors:
@@ -115,7 +153,7 @@ class RTEBaseConfig(BaseModel):
                 raise ValueError(
                     "Must provide fcst_run_name when using timestamp_run_name"
                 )
-            return f"{self.fcst_run_name}_{self.time_at_init.strftime(c.RUN_NAME_TIMESTAMP_SUFFIX_FORMAT)}"
+            return f"{self.fcst_run_name}_{self._time_at_init.strftime(c.RUN_NAME_TIMESTAMP_SUFFIX_FORMAT)}"
         else:
             return f"{self.fcst_run_name}"
 
@@ -413,6 +451,8 @@ class RTEDefaultConfig(RTEBaseConfig):
         Forcing configuration, e.g. "aorc" or "short_range"
     fcst_run_name: str
         Name of the forecast realization run. Affects a directory name.
+    lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
+        See CLI help menu for [`run_default.py`](python_cli_help__run_default.py.txt) for details.
     """
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
@@ -503,6 +543,8 @@ class RTEForecastConfig(RTEBaseConfig):
         Forcing configuration, e.g. "aorc" or "short_range"
     fcst_run_name: str
         Name of the forecast realization run
+    lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
+        See CLI help menu for [`run_forecast.py`](python_cli_help__run_forecast.py.txt) for details.
     """
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
@@ -568,6 +610,8 @@ class RTETestConfig(RTEBaseConfig):
         Name of the forecast realization run. Affects a directory name.
     noop: bool
         Causes a noop to occur (for confirming that Python packages are importable).
+    restart: bool
+        Causes the test to be restarted by reading the existing c.TEST_RESULTS_FILE and skipping configurations which had completed earlier. Can be used when long-running tests are interrupted. Use with caution.
     """
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
