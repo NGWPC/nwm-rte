@@ -29,7 +29,6 @@ set -x
 
 # Short Range
 docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr"
-docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr" --checkpoint_interval 3
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr" -g "12175500"
 # Short Range with NWM Output Variables
 docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr_nwm_output" -nwmout
@@ -53,5 +52,10 @@ docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "aorc" -dt "2013-07-2
 
 # TEST_HYDROFAB_FILE="/s3/ngwpc-dev/rte-test-data/gages/gauge_01123000.gpkg"
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc" --hydrofab_file "${TEST_HYDROFAB_FILE}"
+
+# Checkpoint restart
+# docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr" --checkpoint_interval 3
+docker_run python -um "ngen_rte.run_restart" -src "/ngwpc/run_ngen/default/test_bmi/01123000/" -dst "/ngwpc/run_ngen/default/test_bmi_restart/01123000/" \
+    -csp "/ngwpc/run_ngen/default/test_bmi/01123000/checkpoint/" -oname "default_sr_restart"
 
 exit 0
