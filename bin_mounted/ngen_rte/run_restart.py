@@ -5,118 +5,85 @@ A run can only be restarted if the original run was configured to save checkpoin
 """
 
 import argparse
+import functools
 import json
+import os
+import subprocess
+import time
 from pathlib import Path
 
 from mswm.utils.checkpoint_restart import checkpoint_restart
-from mswm.build_inputs import RealizationBuilder
 
-from ngen_rte.configs import RTEAsyncConfig
-from ngen_rte.execution.ngen_async import NgenRunnerAsync
+from ngen_rte import consts as c
 from ngen_rte.run_config import cli_args
-from ngen_rte.logger import initialize_logger
-from ngen_rte.utils import (
-    _rte_transmit_job_complete,
-    _rte_transmit_job_failed,
-    _rte_transmit_job_start,
-    transmit,
-)
 
-LOG = initialize_logger()
+print = functools.partial(print, flush=True)
 
 
-def infer_gage_id(src_path: str) -> str:
-    """Infer gage ID from source run directory path"""
-    return Path(src_path).resolve().name
-
-
-def infer_rb(dst_path: str, src_path: str) -> RealizationBuilder:
-    """Infer and return a minimal RealizationBuilder from the destination directory structure"""
+def infer_ngen_cmd(dst_path: str) -> list[str]:
+    """Infer and return the ngen command based on the destination directory structure"""
     dst = Path(dst_path).resolve()
-    input_dir = dst / "Input"
 
+    input_dir = dst / "Input"
     ngen_bin = input_dir / "ngen"
     if not ngen_bin.exists():
-        msg = f"ngen binary not found at: {ngen_bin}"
-        LOG.critical(msg)
-        raise FileNotFoundError(msg)
+        raise FileNotFoundError(f"ngen binary not found at: {ngen_bin}")
+
+    gpkg_files = list(input_dir.glob("*.gpkg"))
+    if not gpkg_files:
+        raise FileNotFoundError(f"No .gpkg file found in destination run folder: {input_dir}")
+    gpkg_file = str(gpkg_files[0])
 
     realization_files = list(dst.rglob("*realization*.json"))
     if not realization_files:
-        msg = f"No realization file found in destination run folder: {input_dir}"
-        LOG.critical(msg)
-        raise FileNotFoundError(msg)
+        raise FileNotFoundError(f"No realization file found in destination run folder: {input_dir}")
     realization_file = str(realization_files[0])
 
-    part_files = list(input_dir.rglob("*partition*.json"))
-    part_file = str(part_files[0]) if part_files else None
+    # Construct ngen run command
+    cmd = [str(ngen_bin), gpkg_file, "all", gpkg_file, "all", realization_file]
 
-    if part_file:
+    # Refactor run command if partition was used
+    part_files = list(input_dir.rglob("*partition*.json"))
+    if part_files:
+        part_file = str(part_files[0])
         with open(part_file) as f:
             partitions = json.load(f)
         nprocs = len(partitions.get("partitions", []))
-    else:
-        nprocs = 1
+        cmd = ["mpirun", "-n", str(nprocs)] + cmd + [part_file]
 
-    # Read realization file and retrieve checkpoint save path and frequency
-    with open(realization_file) as f:
-        real_config = json.load(f)
-    state_saving = real_config.get("state_saving", [])
-    save_config = next((s for s in state_saving if s.get("direction") == "save"), None)
-    if save_config is None:
-        LOG.info("No state saving configuration found in realization file")
-
-    rb = RealizationBuilder.__new__(RealizationBuilder)
-    rb.realization_file = realization_file
-    rb.part_file = part_file
-    rb.work_dir = str(dst)
-    rb.valid_yaml = None
-    rb.run_type = "checkpoint"
-    rb.basin = infer_gage_id(src_path)
-    rb.input_configs = {"Parallel": {"nprocs": nprocs}}
-    rb.checkpoint_interval = save_config.get("frequency")
-    rb.save_checkpoint_to = save_config.get("path")
-    return rb
+    return cmd
 
 
-def run_restart(rb: RealizationBuilder) -> None:
+def run_restart(src_path: str, dst_path: str, checkpoint_state_path: str, output_name: str) -> str:
     """
-    Run the provided checkpoint restart realization.
+    Call checkpoint_restart, then execute the ngen run from the destination path
+
+    Returns the path to the ngen stdout + stderr log file
     """
-
-    LOG.info("Running restart realization")
-    ngen_runner = NgenRunnerAsync(rb=rb, postprocess=False)
-    ngen_runner.start()
-    ngen_runner.stream_status_until_complete()
-    ngen_runner.close()
-
-
-def _main(src_path: str, dst_path: str) -> None:
-
+    print(f"Running checkpoint_restart: {src_path} -> {dst_path}")
     checkpoint_restart(
         src_path=src_path,
         dst_path=dst_path,
+        checkpoint_state_path=checkpoint_state_path,
     )
 
-    rb = infer_rb(dst_path, src_path)
-    cfg = RTEAsyncConfig(
-        nprocs=rb.input_configs["Parallel"]["nprocs"],
+    cmd = infer_ngen_cmd(dst_path)
+
+    # TODO: Not entirely sure how to handle the output directory on a restart, since we don't have easy access to the formatted forecast name
+    output_dir = os.path.join(dst_path, "Output", "Default_Run", output_name)
+    os.makedirs(output_dir, exist_ok=True)
+    ngen_log = os.path.join(output_dir, c.NGEN_STDOUT_STDERR_LOG_FILE_BASENAME)
+
+    print(f"\nStarting restart run via command: {cmd}, cwd={output_dir}")
+    start = time.perf_counter()
+    with open(ngen_log, "a+") as f:
+        proc = subprocess.run(cmd, check=False, cwd=output_dir, stdout=f, stderr=f)
+    print(
+        f"\nFinished restart run in {((time.perf_counter() - start) / 60):.1f} minutes."
+        f"\nReturn code {proc.returncode}.\nCommand was: {cmd}, cwd={output_dir}."
     )
-    cfg.configure_ngen_log(rb)
-    LOG.info(f"Starting restart run from: {dst_path}")
-    run_restart(rb)
-
-
-def main(src_path: str, dst_path: str) -> None:
-    _rte_transmit_job_start()
-    try:
-        _main(src_path, dst_path)
-    except Exception as e:
-        transmit(exc=e)
-        _rte_transmit_job_failed()
-        raise e
-    else:
-        _rte_transmit_job_complete()
+    proc.check_returncode()
+    return ngen_log
 
 
 def cli_arg_parser() -> argparse.ArgumentParser:
@@ -126,13 +93,17 @@ def cli_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--src_path", "-src", required=True, help="Path to the existing run to restart from.")
     parser.add_argument("--dst_path", "-dst", required=True, help="Path to the new restart run destination. Defaults to src_path + '_restart'.")
+    parser.add_argument("--checkpoint_state_path", "-csp", required=True, help="Path to the checkpoint state folder.")
+    parser.add_argument("--output_name", "-oname", required=True, help="Name for the restart run output directory.")
     return parser
 
 
 if __name__ == "__main__":
     parser = cli_arg_parser()
     args = parser.parse_args()
-    main(
+    run_restart(
         src_path=args.src_path,
         dst_path=args.dst_path,
+        checkpoint_state_path=args.checkpoint_state_path,
+        output_name=args.output_name
     )
