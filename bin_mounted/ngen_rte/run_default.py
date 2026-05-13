@@ -11,11 +11,10 @@ See `run_default.sh` for example calls.
 import argparse
 import functools
 import os
-import shutil
-import subprocess
-import time
+from pathlib import Path
 
 from mswm.build_inputs import RealizationBuilder
+from nwm_fcst_mgr.forecast import run_forecast as run_fcst
 
 from ngen_rte import consts as c
 from ngen_rte.configs import RTEDefaultConfig
@@ -35,61 +34,36 @@ def build_default_realization(cfg: RTEDefaultConfig) -> RealizationBuilder:
     return rb
 
 
-def get_ngen_cmd(cfg: RTEDefaultConfig, rb: RealizationBuilder) -> list[str]:
-    """Build and return the ngen command as a list of strings.
-    rb must have already been built, e.g. rb.build_default_realization() already called."""
-    cmd = [
-        os.path.join(rb.input_dir, "ngen"),
-        rb.cat_file,
-        "all",
-        rb.nexus_file,
-        "all",
-        rb.realization_file,
-    ]
-    if cfg.nprocs > 1:
-        cmd = ["mpirun", "-n", f"{cfg.nprocs}"] + cmd + [rb.part_file]
-    return cmd
-
-
-def run_default(
-    rb: RealizationBuilder,
-    cfg: RTEDefaultConfig,
-    clear_output_dir: bool = False,
-) -> str:
+def run_default(rb: RealizationBuilder, cfg: RTEDefaultConfig) -> None:
     """Run the provided default realization.
     Realization should already be built (rb.build_default_realization() already called).
-
-    If clear_output_dir, the contents of the output dir will be deleted (recursively) before running the realization.
-
-    Returns: The path to the ngen stdout + stderr log file.
     """
-    ngen_log_description = "default"
-    output_dir = os.path.join(
-        rb.work_dir, "Output", "Default_Run", cfg._fcst_run_name_formatted
-    )
-
-    if clear_output_dir and os.path.exists(output_dir):
-        print(f"Deleting output dir: {output_dir}")
-        shutil.rmtree(output_dir)
-
-    cwd = output_dir
-    output_ngen_stdout_stderr_log = os.path.join(
-        output_dir, c.NGEN_STDOUT_STDERR_LOG_FILE_BASENAME
-    )
-    cmd = get_ngen_cmd(cfg, rb)
-
     print(
-        f"\n\nStarting {ngen_log_description} with configuration: {cfg.model_dump_json(indent=2)}\n\nvia command args: {cmd} with cwd={cwd}."
+        f"Running default realization with configuration: {cfg.mswm_RealizationBuilder_kwargs}"
     )
-    start = time.perf_counter()
-    os.makedirs(output_dir, exist_ok=True)
-    with open(output_ngen_stdout_stderr_log, "a+") as f:
-        proc = subprocess.run(cmd, check=False, cwd=cwd, stdout=f, stderr=f)
-    print(
-        f"\nFinished {ngen_log_description} with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nReturn code {proc.returncode}.\nCommand was: {cmd}, with cwd={cwd}."
+
+    out_dir = Path(rb.realization_file).parent
+    assert out_dir == Path(rb.work_dir), (
+        f"Expected rb.realization_file.parent {repr(out_dir)} to be the same as rb.work_dir {repr(rb.work_dir)}"
     )
-    proc.check_returncode()
-    return output_ngen_stdout_stderr_log
+    rank2ngenlog = {
+        i: str(out_dir / f"{out_dir.name}_ngen_mpi_process_{i}.log")
+        for i in range(cfg.nprocs)
+    }
+
+    print(f"Calling: {run_fcst}")
+    # TODO make this async for streaming logs
+    run_fcst(
+        real_path=str(rb.realization_file),
+        valid_yaml=None,
+        no_valid=True,
+        partition_file=rb.part_file,
+    )
+    print(f"Finished calling: {run_fcst}")
+
+    for _, log_path in rank2ngenlog.items():
+        if not os.path.exists(log_path):
+            raise FileNotFoundError(log_path)
 
 
 def main(cfg: RTEDefaultConfig):
@@ -103,7 +77,6 @@ def main(cfg: RTEDefaultConfig):
         utils_testing_setup.delete_forcing_raw_inputs()
 
     rb = build_default_realization(cfg)
-    print(f"Running default realization: {rb.input_configs['Forcing']}")
     run_default(rb, cfg)
 
 
