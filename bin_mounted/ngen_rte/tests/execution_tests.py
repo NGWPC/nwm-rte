@@ -105,7 +105,6 @@ def get_test_configs__forecast(
             forcing_configuration=fct,
             cycle_datetime=cycle_datetime,
             cold_start_datetime=cold_start_datetime,
-            global_domain=cfg.global_domain,
             scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
             forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
         )
