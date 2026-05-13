@@ -417,34 +417,12 @@ HYDROFAB_FILE = ArgsKwargs(
     scripts=[Script.CALIBRATION, Script.DEFAULT, Script.TESTS],
 )
 
-LOAD_STATE_FROM = ArgsKwargs(
-    args=["-lsf", "--load_state_from"],
-    kwargs={
-        "type": str,
-        "default": None,
-        "help": "Path to existing state file to load at start of run.",
-    },
-    scripts=[Script.DEFAULT, Script.FORECAST],
-)
-
-SAVE_STATE = ArgsKwargs(
-    args=["-ss", "--save_state"],
-    kwargs={
-        "action": "store_true",
-        "help": "If provided, save the model state at the end of the run.",
-    },
-    scripts=[Script.DEFAULT, Script.FORECAST],
-)
-
-LOOKBACK = ArgsKwargs(
-    args=["-lb", "--lookback"],
+CHECKPOINT_INTERVAL = ArgsKwargs(
+    args=["-c", "--checkpoint_interval"],
     kwargs={
         "type": int,
         "default": None,
-        "help": """If provided, override the forcing template `LookBack` value (in minutes).
-This controls the analysis (AnA) simulation window for AnA forcing configurations,
-e.g. 'standard_ana' or 'extended_ana'. The simulated window length in hours is
-`LookBack/60 - 1`, ending at the cycle datetime (-dt). Ignored if not provided.""",
+        "help": "Checkpointing interval in integer number of timesteps. If provided, enables checkpointing during the run.",
     },
     scripts=[Script.DEFAULT],
 )
