@@ -208,6 +208,7 @@ require_dir "${forcing_config_dir}"
 # Create run-time temporary directory with timestamp to avoid conflicts between simultaneous runs
 RUNTIME_DIR_TMP=$(mktemp -d "${WORK_DIR}/run_time_XXXXXXXX")
 ensure_dir "$RUNTIME_DIR_TMP"
+chmod a+rx "${RUNTIME_DIR_TMP}"
 echo "Created run-time temporary directory: ${RUNTIME_DIR_TMP}."
 
 # create runtime directories for forcing
@@ -233,8 +234,10 @@ if $DELETE_RUNTIME_DIR; then
     trap cleanup EXIT
 fi
 
-# script to run with docker run
-SCRIPT="${REPOS_COMMON_ROOT__HOST}/nwm-rte/bin_mounted/run_regionalization.py"
+# Python module to run with docker run
+RUN_REGION_MODULE="ngen_rte.run_regionalization"
+# Parent dir of where the ngen_rte module is mounted inside the container (for setting PYTHONPATH)
+CONTAINER_PYTHONPATH_ENTRY="${REPOS_COMMON_ROOT__HOST}/nwm-rte/bin_mounted"
 
 # docker image to use
 TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:${IMAGE_TAG}"
@@ -248,13 +251,17 @@ if $PULL_IMAGE || ! docker image inspect "${TARGET_IMAGE_NAME}" >/dev/null 2>&1;
     docker pull "${TARGET_IMAGE_NAME}"
 fi
 
-# Docker run function
-# To run ngen-forcing with debug log, add below: -e "FORCING_LOGLEVEL=DEBUG" \
+echo "Getting existing PYTHONPATH from the container..."
+CONTAINER_PYTHONPATH_EXISTING="$(docker run --rm --entrypoint sh ${TARGET_IMAGE_NAME} -lc 'printf "%s" "$PYTHONPATH"')"
+echo "Existing PYTHONPATH from the container: ${CONTAINER_PYTHONPATH_EXISTING}"
+CONTAINER_PYTHONPATH_COMBINED="${CONTAINER_PYTHONPATH_EXISTING}:${CONTAINER_PYTHONPATH_ENTRY}"
+
 function docker_run {
     docker run \
         --entrypoint python \
         --user "$(id -u):$(id -g)" \
         -e WORK_DIR="${WORK_DIR}" \
+        -e PYTHONPATH="${CONTAINER_PYTHONPATH_COMBINED}" \
         -e REPOS_COMMON_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}" \
         -e HOME="${RUNTIME_DIR_TMP}/home" \
         -w "${WORK_DIR}" \
@@ -265,14 +272,14 @@ function docker_run {
         -v "${CONFIG_DIR}:${CONFIG_DIR}" \
         -v "${RUNTIME_DIR_TMP}/run_ngen/data:/ngencerf-app/runtime_data" \
         -v "${RUNTIME_DIR_TMP}/docker_logs/run:/ngencerf/data/run-logs" \
-        --rm ${TARGET_IMAGE_NAME} "$@"
+        --rm ${TARGET_IMAGE_NAME} -um "$@"
 }
 
 # Run requested workflow steps
-$parreg  && docker_run "$SCRIPT" -c "$CONFIG_DIR" --parreg
-$formreg && docker_run "$SCRIPT" -c "$CONFIG_DIR" --formreg
-$ngen    && docker_run "$SCRIPT" -c "$CONFIG_DIR" --ngen
-$eval    && docker_run "$SCRIPT" -c "$CONFIG_DIR" --eval
+$parreg  && docker_run "$RUN_REGION_MODULE" -c "$CONFIG_DIR" --parreg
+$formreg && docker_run "$RUN_REGION_MODULE" -c "$CONFIG_DIR" --formreg
+$ngen    && docker_run "$RUN_REGION_MODULE" -c "$CONFIG_DIR" --ngen
+$eval    && docker_run "$RUN_REGION_MODULE" -c "$CONFIG_DIR" --eval
 
 echo "All requested workflows (${selected_workflows[*]}) completed successfully."
 exit 0
