@@ -416,3 +416,13 @@ HYDROFAB_FILE = ArgsKwargs(
     },
     scripts=[Script.CALIBRATION, Script.DEFAULT, Script.TESTS],
 )
+
+CHECKPOINT_INTERVAL = ArgsKwargs(
+    args=["-c", "--checkpoint_interval"],
+    kwargs={
+        "type": int,
+        "default": None,
+        "help": "Checkpointing interval in integer number of timesteps. If provided, enables checkpointing during the run.",
+    },
+    scripts=[Script.DEFAULT],
+)

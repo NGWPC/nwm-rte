@@ -81,6 +81,8 @@ class RTEBaseConfig(BaseModelStrict):
         Forecast run name.
     cycle_datetime: datetime | None = Field(default=None)
         Cycle datetime for forecast
+    checkpoint_interval: int = Field(default=None)
+        Integer number of timesteps for interval of checkpoint output
     """
 
     # Set during init
@@ -98,6 +100,7 @@ class RTEBaseConfig(BaseModelStrict):
     hydrofab_file: str | None = Field(default=None)
     fcst_run_name: str | None = Field(default=None)
     cycle_datetime: datetime | None = Field(default=None)
+    checkpoint_interval: int | None = Field(default=None)
 
     # Set after init (not provided as args)
     time_at_init: datetime | None = Field(init=False, default=None)
@@ -469,6 +472,7 @@ class RTEBaseConfig(BaseModelStrict):
             "use_lagged_ens": self.use_lagged_ensemble,
             "lagged_ens_mem": self.lagged_ens_mem,
             "forcing_lag": self.forcing_lag,
+            "checkpoint_interval": self.checkpoint_interval,
         }
         if self.errors:
             raise RuntimeError(self.errors)
