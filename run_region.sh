@@ -207,6 +207,7 @@ require_dir "${forcing_config_dir}"
 
 # Create run-time temporary directory with timestamp to avoid conflicts between simultaneous runs
 RUNTIME_DIR_TMP=$(mktemp -d "${WORK_DIR}/run_time_XXXXXXXX")
+chmod a+rx "${RUNTIME_DIR_TMP}"
 ensure_dir "$RUNTIME_DIR_TMP"
 echo "Created run-time temporary directory: ${RUNTIME_DIR_TMP}."
 
