@@ -11,6 +11,9 @@ set -x
 ### Reinstall forcing (Python package only)
 # python -m pip install -e ./src/ngen-forcing
 
+### Reinstall nwm-ewts (Python package only)
+# python -m pip install -e ./src/nwm-ewts/runtime/python/ewts
+
 ### Reinstall various components
 # python -m pip install -e ./src/nwm-fcst-mgr
 # python -m pip install -e ./src/nwm-msw-mgr

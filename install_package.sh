@@ -14,13 +14,19 @@ set -euo pipefail
 ## Treats ngen-forcing reinstall as special since it necessarily is already installed in the base image,
 ## so if it is specified here, it receives a `--force-reinstall` flag.
 ## 
-## Has 4 positional arguments and 0 named arguments.
+## Has 6 positional arguments and 0 named arguments.
 ## 
 ## \option python_exe
 ## The python executable to use for installation
 ## 
+## \option gh_org
+## The GitHub organization name
+## 
 ## \option repo_name
 ## The name of the repository to be installed
+## 
+## \option distribution
+## The name of the distribution to be installed (often the same as the repository name, but not always).
 ## 
 ## \option repo_remote_tag
 ## If "LOCAL", then install from local code. If empty string, skip installation. If other string, install that ref (tag, branch, or commit) from GitHub.
@@ -31,35 +37,42 @@ set -euo pipefail
 ## \usage ./install_package.sh python nwm-region-mgr development "[parreg]"
 ## 
 
+flags=()
+subdirectory=()
+git_info_output_dir="/ngen-app/git-info"
+
+
 python_exe=$1
 gh_org=$2
 repo_name=$3
-repo_remote_tag=$4
-extras=$5
+distribution=$4
+repo_remote_tag=$5
+extras=$6
+
+
+if [ "$repo_name" = "ngen-forcing" ]; then
+    # force-reinstall nwm-ewts since it is already installed in the base image.
+    flags+=("--force-reinstall")
+elif [ "$repo_name" = "nwm-ewts" ]; then
+    # force-reinstall nwm-ewts since it is already installed in the base image.
+    flags+=("--force-reinstall")
+    # As of 5/15/26 nwm-ewts needs to be installed from a subdirectory of its repo.
+    subdirectory+=("#subdirectory=runtime/python/ewts")
+fi
+
 
 if [ "$repo_remote_tag" = "LOCAL" ]; then
     echo "Installing '${repo_name}' from local with extras '${extras}'"
     tar --exclude=".venv" -zcf "/tmp/${repo_name}.tgz" -C "/src/${gh_org}" "${repo_name}"
-    (set -x; ${python_exe} -m pip install /tmp/${repo_name}.tgz${extras})
+    (set -x; ${python_exe} -m pip install "${distribution}${extras:+$extras} @ file:///tmp/${repo_name}.tgz${subdirectory[@]}")
     rm /tmp/${repo_name}.tgz
-    ${python_exe} add_git_info.py --gh_org ${gh_org} --local_repo_path "/src/${gh_org}/${repo_name}" --output_dir "/ngen-app/git-info"
+    ${python_exe} add_git_info.py --gh_org ${gh_org} --local_repo_path "/src/${gh_org}/${repo_name}" --output_dir "${git_info_output_dir}"
 
 # elif tag is not empty
 elif [ -n "$repo_remote_tag" ]; then
     echo "Installing '${repo_name}' from GitHub at tag '${repo_remote_tag}' with extras '${extras}'"
-
-    flags=()
-    if [ "$repo_name" = "ngen-forcing" ]; then
-        flags+=("--force-reinstall")
-    fi
-
-    if [ -n "$extras" ]; then
-        (set -x; ${python_exe} -m pip install "${flags[@]}" "${repo_name}${extras} @ git+https://github.com/${gh_org}/${repo_name}@${repo_remote_tag}")
-    else
-        (set -x; ${python_exe} -m pip install "${flags[@]}" "https://github.com/${gh_org}/${repo_name}/archive/${repo_remote_tag}.tar.gz")
-    fi
-    # (set -x; ${python_exe} -m pip install "${repo_name}${extras} @ git+https://github.com/${gh_org}/${repo_name}@${repo_remote_tag}")
-    ${python_exe} add_git_info.py --gh_org ${gh_org} --remote_repo_name "${repo_name}" --remote_branch "${repo_remote_tag}" --output_dir "/ngen-app/git-info"
+    (set -x; ${python_exe} -m pip install "${flags[@]}" "${distribution}${extras:+$extras} @ git+https://github.com/${gh_org}/${repo_name}@${repo_remote_tag}${subdirectory[@]}")
+    ${python_exe} add_git_info.py --gh_org ${gh_org} --remote_repo_name "${repo_name}" --remote_branch "${repo_remote_tag}" --output_dir "${git_info_output_dir}"
 
 # tag is empty
 else

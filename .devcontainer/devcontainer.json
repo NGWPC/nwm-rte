@@ -40,6 +40,8 @@
         "source=${localWorkspaceFolder}/bin_mounted,target=/ngen-app/bin/bin_mounted,type=bind",
         //////
         ////// (Optional) for local code of component packages, allowing convenient debugger interaction ("editable" pip installs, VS Code editor breakpoints, etc)
+        // ewts
+        "source=${localWorkspaceFolder}/../nwm-ewts,target=/workspaces/nwm-rte/src/nwm-ewts,type=bind",
         // ngen
         "source=${localWorkspaceFolder}/../ngen,target=/workspaces/nwm-rte/src/ngen,type=bind",
         // Forcing
