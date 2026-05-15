@@ -14,11 +14,15 @@ import os
 from pathlib import Path
 
 from mswm.build_inputs import RealizationBuilder
+from NextGen_Forcings_Engine_BMI.NextGen_Forcings_Engine.status_report import (
+    extract_payload_from_log_msg,
+)
 from nwm_fcst_mgr.forecast import run_forecast as run_fcst
 
 from ngen_rte import consts as c
 from ngen_rte.configs import RTEDefaultConfig
 from ngen_rte.run_config import cli_args
+from ngen_rte.status.status import NgenStatus
 from ngen_rte.tests import utils_testing_setup
 from ngen_rte.utils import configure_ngen_log
 
@@ -42,14 +46,7 @@ def run_default(rb: RealizationBuilder, cfg: RTEDefaultConfig) -> None:
         f"Running default realization with configuration: {cfg.mswm_RealizationBuilder_kwargs}"
     )
 
-    out_dir = Path(rb.realization_file).parent
-    assert out_dir == Path(rb.work_dir), (
-        f"Expected rb.realization_file.parent {repr(out_dir)} to be the same as rb.work_dir {repr(rb.work_dir)}"
-    )
-    rank2ngenlog = {
-        i: str(out_dir / f"{out_dir.name}_ngen_mpi_process_{i}.log")
-        for i in range(cfg.nprocs)
-    }
+    ngen_stat = NgenStatus(cfg=cfg, rb=rb)
 
     print(f"Calling: {run_fcst}")
     # TODO make this async for streaming logs
@@ -60,10 +57,6 @@ def run_default(rb: RealizationBuilder, cfg: RTEDefaultConfig) -> None:
         partition_file=rb.part_file,
     )
     print(f"Finished calling: {run_fcst}")
-
-    for _, log_path in rank2ngenlog.items():
-        if not os.path.exists(log_path):
-            raise FileNotFoundError(log_path)
 
 
 def main(cfg: RTEDefaultConfig):
