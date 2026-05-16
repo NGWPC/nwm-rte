@@ -58,19 +58,19 @@ def run_calibration(cfg, rb: RealizationBuilder) -> None:
     cwd = None
     msg_suffix = f" Log path: {log_path}"
 
-    ngen_stat = NgenStatus(cfg=cfg, rb=rb)
-
     configure_ngen_log(rb.work_dir, "cal")
+    start = time.perf_counter()
+
+    ngen_stat = NgenStatus(cfg=cfg, rb=rb)
     print(
         f"\n\nStarting calibration with configuration: {cfg.model_dump_json(indent=2)}\n\nvia command args: {cmd} with cwd={cwd}.{msg_suffix}"
     )
-    start = time.perf_counter()
     proc = subprocess.run(cmd, check=False, cwd=cwd)
     print(
         f"\nFinished calibration with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nReturn code {proc.returncode}.\nCommand was: {cmd}, with cwd={cwd}.{msg_suffix}"
     )
-
     ngen_stat.log_all_payloads()
+
     proc.check_returncode()
 
 

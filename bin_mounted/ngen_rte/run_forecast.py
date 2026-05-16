@@ -18,6 +18,7 @@ from nwm_fcst_mgr.forecast import (
 
 from ngen_rte.configs import RTEForecastConfig
 from ngen_rte.run_config import cli_args
+from ngen_rte.status.status import NgenStatus
 from ngen_rte.tests import utils_testing_setup
 from ngen_rte.utils import configure_ngen_log
 
@@ -75,6 +76,7 @@ def run_realization(
     elif rb.use_warm_start:
         raise NotImplementedError("use_warm_start not yet implemented in nwm-rte")
     else:
+        ngen_status = NgenStatus(cfg=cfg, rb=rb)
         print(f"Calling: {run_fcst}")
         run_fcst(
             valid_yaml=cfg.valid_best_yaml,
@@ -82,6 +84,7 @@ def run_realization(
             partition_file=rb.part_file,
         )
         print(f"Finished calling: {run_fcst}")
+        ngen_status.log_all_payloads()
 
 
 def main(cfg: RTEForecastConfig):

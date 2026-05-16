@@ -2,14 +2,9 @@
 
 import functools
 import os
-from datetime import datetime, timezone
 
+from ewts.data_payloads import Payload, extract_payload_from_log_msg
 from mswm.build_inputs import RealizationBuilder
-from NextGen_Forcings_Engine_BMI.NextGen_Forcings_Engine.status_report import (
-    Payload,
-    extract_payload_from_log_msg,
-)
-from ngen_rte import consts as c
 from ngen_rte.configs import (
     RTEBaseConfig,
     RTECalibConfig,
@@ -17,7 +12,7 @@ from ngen_rte.configs import (
     RTEForecastConfig,
     RTETestConfig,
 )
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 print = functools.partial(print, flush=True)
 
@@ -33,11 +28,21 @@ class NgenStatus(BaseModel):
 
     @property
     def ngen_log_dir(self):
-        if self.rb.work_dir != os.path.dirname(self.rb.realization_file):
+        if str(self.rb.work_dir) != str(os.path.dirname(self.rb.realization_file)):
             raise ValueError(
                 f"Expected RealizationBuilder work_dir to match parent of RealizationBuilder realization_file, but got: {self.rb.work_dir} vs {os.path.dirname(self.rb.realization_file)}."
             )
-        return self.rb.work_dir
+        if isinstance(self.cfg, RTEDefaultConfig):
+            nld = self.rb.work_dir
+        elif isinstance(self.cfg, RTECalibConfig):
+            nld = self.rb.work_dir
+        elif isinstance(self.cfg, RTEForecastConfig):
+            nld = os.path.join(self.rb.work_dir, "Input")
+        elif isinstance(self.cfg, RTETestConfig):
+            raise NotImplementedError(f"Unsupported config type: {type(self.cfg)}")
+        else:
+            raise NotImplementedError(f"Unsupported config type: {type(self.cfg)}")
+        return nld
 
     @property
     def ngen_log_dir_basename(self) -> str:
@@ -50,7 +55,7 @@ class NgenStatus(BaseModel):
             # NOTE determine where the 'calib' prefix is derived from and parameterize it instead of hardcoding it here.
             bn = f"calib_ngen_mpi_process_{mpi_rank}.log"
         elif isinstance(self.cfg, RTEForecastConfig):
-            raise NotImplementedError(f"Unsupported config type: {type(self.cfg)}")
+            bn = f"{self.rb.fcst_run_name}_ngen_mpi_process_{mpi_rank}.log"
         elif isinstance(self.cfg, RTETestConfig):
             raise NotImplementedError(f"Unsupported config type: {type(self.cfg)}")
         else:
@@ -70,15 +75,19 @@ class NgenStatus(BaseModel):
     def mpirank2payloads(self) -> dict[int, list[Payload]]:
         """Mapping of MPI rank to list of payloads extracted from that rank's ngen log file."""
         d: dict[int, list[Payload]] = {}
+        payload_count_per_rank: dict[int, int] = {r: 0 for r in range(self.cfg.nprocs)}
         for mpi_rank, ngen_log in self.mpirank2ngenlog.items():
             if not os.path.exists(ngen_log):
                 raise FileNotFoundError(ngen_log)
+            print(f"Reading: {ngen_log}")
             with open(ngen_log) as f:
                 lines = f.readlines()
             for line in lines:
                 payload = extract_payload_from_log_msg(line)
                 if payload is not None:
                     d.setdefault(mpi_rank, []).append(payload)
+                    payload_count_per_rank[mpi_rank] += 1
+        print(f"Count of payloads per rank: {payload_count_per_rank}")
         return d
 
     def log_all_payloads(self):

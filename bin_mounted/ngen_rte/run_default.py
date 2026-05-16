@@ -10,16 +10,10 @@ See `run_default.sh` for example calls.
 
 import argparse
 import functools
-import os
-from pathlib import Path
 
 from mswm.build_inputs import RealizationBuilder
-from NextGen_Forcings_Engine_BMI.NextGen_Forcings_Engine.status_report import (
-    extract_payload_from_log_msg,
-)
 from nwm_fcst_mgr.forecast import run_forecast as run_fcst
 
-from ngen_rte import consts as c
 from ngen_rte.configs import RTEDefaultConfig
 from ngen_rte.run_config import cli_args
 from ngen_rte.status.status import NgenStatus
@@ -47,7 +41,6 @@ def run_default(rb: RealizationBuilder, cfg: RTEDefaultConfig) -> None:
     )
 
     ngen_stat = NgenStatus(cfg=cfg, rb=rb)
-
     print(f"Calling: {run_fcst}")
     # TODO make this async for streaming logs
     run_fcst(
@@ -57,6 +50,7 @@ def run_default(rb: RealizationBuilder, cfg: RTEDefaultConfig) -> None:
         partition_file=rb.part_file,
     )
     print(f"Finished calling: {run_fcst}")
+    ngen_stat.log_all_payloads()
 
 
 def main(cfg: RTEDefaultConfig):
