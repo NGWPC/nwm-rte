@@ -17,8 +17,9 @@ from mswm.build_inputs import RealizationBuilder
 
 from ngen_rte import consts as c
 from ngen_rte.configs import RTECalibConfig
+
+# from ngen_rte.execution.ngen_logs import NgenLogsParser
 from ngen_rte.run_config import cli_args
-from ngen_rte.status.status import NgenStatus
 from ngen_rte.tests import utils_testing_setup
 from ngen_rte.utils import configure_ngen_log, get_calibration_log_file_overwrite_path
 
@@ -61,7 +62,7 @@ def run_calibration(cfg, rb: RealizationBuilder) -> None:
     configure_ngen_log(rb.work_dir, "cal")
     start = time.perf_counter()
 
-    ngen_stat = NgenStatus(cfg=cfg, rb=rb)
+    # ngen_parser = NgenLogsParser(cfg=cfg, rb=rb)
     print(
         f"\n\nStarting calibration with configuration: {cfg.model_dump_json(indent=2)}\n\nvia command args: {cmd} with cwd={cwd}.{msg_suffix}"
     )
@@ -69,7 +70,7 @@ def run_calibration(cfg, rb: RealizationBuilder) -> None:
     print(
         f"\nFinished calibration with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nReturn code {proc.returncode}.\nCommand was: {cmd}, with cwd={cwd}.{msg_suffix}"
     )
-    ngen_stat.log_all_payloads()
+    # ngen_parser.log_all_payloads()
 
     proc.check_returncode()
 

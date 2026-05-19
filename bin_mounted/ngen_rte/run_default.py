@@ -12,11 +12,10 @@ import argparse
 import functools
 
 from mswm.build_inputs import RealizationBuilder
-from nwm_fcst_mgr.forecast import run_forecast as run_fcst
 
 from ngen_rte.configs import RTEDefaultConfig
+from ngen_rte.execution.ngen_async import NgenRunnerAsync
 from ngen_rte.run_config import cli_args
-from ngen_rte.status.status import NgenStatus
 from ngen_rte.tests import utils_testing_setup
 from ngen_rte.utils import configure_ngen_log
 
@@ -39,18 +38,9 @@ def run_default(rb: RealizationBuilder, cfg: RTEDefaultConfig) -> None:
     print(
         f"Running default realization with configuration: {cfg.mswm_RealizationBuilder_kwargs}"
     )
-
-    ngen_stat = NgenStatus(cfg=cfg, rb=rb)
-    print(f"Calling: {run_fcst}")
-    # TODO make this async for streaming logs
-    run_fcst(
-        real_path=str(rb.realization_file),
-        valid_yaml=None,
-        no_valid=True,
-        partition_file=rb.part_file,
-    )
-    print(f"Finished calling: {run_fcst}")
-    ngen_stat.log_all_payloads()
+    ngen_runner = NgenRunnerAsync(cfg=cfg, rb=rb)
+    ngen_runner.start()
+    ngen_runner.stream_status_until_complete()
 
 
 def main(cfg: RTEDefaultConfig):
