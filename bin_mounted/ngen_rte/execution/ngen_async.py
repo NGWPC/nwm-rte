@@ -127,11 +127,17 @@ class NgenRunnerAsync(BaseModel):
     def _iter_new_log_parts(
         self, final: bool = False
     ) -> Generator[tuple[int, LogParts], None, None]:
-        """Generator that yields (mpi_rank, log_parts) tuples for each new message."""
+        """Generator that yields (mpi_rank, log_parts) tuples for each new message.
+        If this is the final call, wait FINAL_WAIT seconds before reading logs, and optionally call postprocess() before that."""
         if final:
             if self.postprocess:
-                print("Calling execution mgr postprocess()")
-                self.fem.postprocess(suppress_output=self.suppress_output)
+                if self.fem._status != RunStatus.EXECUTION_SUCCESS:
+                    print(
+                        f"Would have called execution mgr postprocess(), but cannot since status = {self.fem._status}"
+                    )
+                else:
+                    print("Calling execution mgr postprocess()")
+                    self.fem.postprocess(suppress_output=self.suppress_output)
             print(f"Waiting {FINAL_WAIT} seconds before final read of ngen logs...")
             time.sleep(FINAL_WAIT)
         print(
@@ -154,7 +160,7 @@ class NgenRunnerAsync(BaseModel):
                 self.fem.poll_ngen_flush_log()
                 yield from self._iter_new_log_parts()
         except Exception as e:
-            raise RuntimeError(f"Error while polling for forecast status: {e}") from e
+            raise RuntimeError(f"Error while monitoring ngen run: {e}") from e
         finally:
             yield from self._iter_new_log_parts(final=True)
 
