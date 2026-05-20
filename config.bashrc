@@ -175,6 +175,12 @@ MNT__S3_DATA__CONTAINER_2="${MNT__S3_DATA__HOST}"
 ## \env MNT__NWM_REGION_MGR__INPUT_DATA Host path to input data from `nwm-region-mgr` repository for regionalization workflows. Mounted by the container.
 MNT__NWM_REGION_MGR__INPUT_DATA="${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr/data/inputs"
 
+
+### Remote data sources for setup_data.sh and setup_data_one_gage.sh
+SOURCE_BUCKET_DEV="ngwpc-dev"
+EDFS_API_VERSION=v1
+
+
 ### Logging functions
 BASENAME="$(basename "$(readlink -f "$0")")"
 function log_to_stderr() { echo "[$(date -u +'%Y-%m-%dT%H:%M:%S%z')] ${BASENAME}: ${LINENO}: $*" >&2; }
@@ -182,3 +188,40 @@ function info() { log_to_stderr INFO: $*; }
 function warning() { log_to_stderr WARNING: $*; }
 function error() { log_to_stderr ERROR: $*; }
 function fatal() { log_to_stderr FATAL ERROR: $*; exit 1; }
+
+
+### File operation functions
+
+## \brief Make the directory
+function mkdir_p () {
+    info "Making dir: ${1}"
+    mkdir -p "${1}"
+}
+
+## \brief Assert that the provided path does not start with "s3:" or "/".
+function assert_not_startswith_s3_or_slash () {
+    if [[ "${1}" =~ ^(s3:|/) ]]; then
+        fatal "Path may not start with s3: or slash. Provided: ${1}"
+    fi
+}
+
+## \brief Assert that the s3 path exists. Form should be "${bucket}/${key}" (no leading "s3://" nor leading "/").
+function s3_test_exists() {
+    assert_not_startswith_s3_or_slash "${1}"
+    info "Testing if exists: s3://${1}"
+    aws s3 ls s3://${1} > /dev/null || fatal "Does not exist: s3://${1}"
+}
+
+## \brief Call aws s3 sync on the provided paths after asserting that the source path exists. Form should be "${bucket}/${key}" (no leading "s3://" nor leading "/").
+function s3_sync() {
+    s3_test_exists "${1}"
+    info "Syncing s3://${1}/ -> ${2}/"
+    aws s3 sync "s3://${1}/" "${2}/"
+}
+
+## \brief Call aws s3 cp on the provided paths after asserting that the source path exists. Form should be "${bucket}/${key}" (no leading "s3://" nor leading "/").
+function s3_copy() {
+    assert_not_startswith_s3_or_slash "${1}"
+    info "Copying s3://${1} -> ${2}"
+    aws s3 cp "s3://${1}" "${2}"
+}

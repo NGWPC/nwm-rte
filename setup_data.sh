@@ -2,7 +2,6 @@
 
 set -euo pipefail
 source config.bashrc
-set -x
 
 ## 
 ## \brief
@@ -23,14 +22,14 @@ set -x
 ## \usage ./setup_data.sh -r
 ## 
 
-mkdir -p "${RUN_NGEN_ROOT__HOST}"
-mkdir -p "${S3_ROOT__HOST}"
+mkdir_p "${RUN_NGEN_ROOT__HOST}"
+mkdir_p "${S3_ROOT__HOST}"
 
 # Download regionalization data
 # Check if --regionalization or -r flag (argument) is passed
 if [[ "$@" =~ (--regionalization|-r) ]]; then
-    aws s3 sync "s3://ngwpc-dev/regionalization/data/inputs/" "${MNT__NWM_REGION_MGR__INPUT_DATA}/"
-    aws s3 sync "s3://ngwpc-dev/regionalization/data/inputs/ngen/module_parameter_files/" "${MNT__NWM_REGION_MGR__INPUT_DATA}/module_parameter_files/"
+    s3_sync "${SOURCE_BUCKET_DEV}/regionalization/data/inputs" "${MNT__NWM_REGION_MGR__INPUT_DATA}"
+    s3_sync "${SOURCE_BUCKET_DEV}/regionalization/data/inputs/ngen/module_parameter_files" "${MNT__NWM_REGION_MGR__INPUT_DATA}/module_parameter_files"
 fi
 
 # NOTE if updating these, also need to update run_tests.py
@@ -39,42 +38,42 @@ TEST_GAGE="06821500"
 DOMAIN="CONUS"
 WORKFLOW_INPUT_CONFIG_ROOT="${RUN_NGEN_ROOT__HOST}/configs"
 
-DATA__PARAMETERS__S3_SOURCE="s3://ngwpc-dev/rte-test-data/parameters"
+DATA__RTE_TEST__S3_SOURCE="${SOURCE_BUCKET_DEV}/rte-test-data"
+
+DATA__ESMF_MESH_NWM_DIR__S3="${DATA__RTE_TEST__S3_SOURCE}/esmf/esmf_mesh/NWM/domain"
+DATA__ESMF_MESH_NWM_DIR__HOST="${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain"
+
+DATA__PARAMETERS__S3_SOURCE="${DATA__RTE_TEST__S3_SOURCE}/parameters"
 DATA__PARAMETERS__HOST="${RUN_NGEN_ROOT__HOST}/data"
 
-DATA__GEO_EM_CONUS_NC__S3_SOURCE="s3://ngwpc-dev/rte-test-data/esmf/geo_em_CONUS.nc"
-DATA__GEO_EM_CONUS_NC__HOST="${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/geo_em_CONUS.nc"
+TEST_RUN_CONFIG__CALIBRATION__SOURCE="${DATA__RTE_TEST__S3_SOURCE}/configs/input_calibration_bmi_nhf.config"
+TEST_RUN_CONFIG__FORECAST__SOURCE="${DATA__RTE_TEST__S3_SOURCE}/configs/input_forecast_nhf.config"
+TEST_RUN_HYDROFABRIC_2p2_GAGE__SOURCE="${DATA__RTE_TEST__S3_SOURCE}/gages/gauge_${TEST_GAGE}.gpkg"
 
-TEST_RUN_CONFIG__CALIBRATION__SOURCE="s3://ngwpc-dev/rte-test-data/configs/input_calibration_bmi_nhf.config"
-TEST_RUN_CONFIG__FORECAST__SOURCE="s3://ngwpc-dev/rte-test-data/configs/input_forecast_nhf.config"
-TEST_RUN_HYDROFABRIC__SOURCE="s3://ngwpc-dev/rte-test-data/gages/gauge_${TEST_GAGE}.gpkg"
 
 # Download test gage data using setup_data_one_gage.sh
-./setup_data_one_gage.sh "${TEST_GAGE}" "${DOMAIN}"
+./setup_data_one_gage.sh "${TEST_GAGE}" "${TEST_DOMAIN}"
 
 # Download various ngen parameterization files
-aws s3 sync "${DATA__PARAMETERS__S3_SOURCE}/" "${DATA__PARAMETERS__HOST}/"
-aws s3 cp "${DATA__GEO_EM_CONUS_NC__S3_SOURCE}" "${DATA__GEO_EM_CONUS_NC__HOST}"
+s3_sync "${DATA__PARAMETERS__S3_SOURCE}" "${DATA__PARAMETERS__HOST}"
+
+# Download ESMF mesh files for NWM forcing (CONUS and oCONUS)
+s3_sync "${DATA__ESMF_MESH_NWM_DIR__S3}" "${DATA__ESMF_MESH_NWM_DIR__HOST}"
 
 # Download .config files
-mkdir -p "${WORKFLOW_INPUT_CONFIG_ROOT}"
+mkdir_p "${WORKFLOW_INPUT_CONFIG_ROOT}"
 
 # Calibration config file
 # curl -O --output-dir "${WORKFLOW_INPUT_CONFIG_ROOT}/" "https://raw.githubusercontent.com/NGWPC/nwm-msw-mgr/development/src/mswm/example_inputs/calibration/input_calibration.config"
-aws s3 cp "${TEST_RUN_CONFIG__CALIBRATION__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROOT}/"
+s3_copy "${TEST_RUN_CONFIG__CALIBRATION__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROOT}/"
 
 # Forecast config file
 # curl -O --output-dir "${WORKFLOW_INPUT_CONFIG_ROOT}/" "https://raw.githubusercontent.com/NGWPC/nwm-msw-mgr/development/src/mswm/example_inputs/forecast/input_forecast.config"
-aws s3 cp "${TEST_RUN_CONFIG__FORECAST__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROOT}/"
+s3_copy "${TEST_RUN_CONFIG__FORECAST__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROOT}/"
 
-# Test geopackage file
-aws s3 cp "${TEST_RUN_HYDROFABRIC__SOURCE}" "${S3_ROOT__HOST}/ngwpc-dev/rte-test-data/gages/"
+# Download gpkg for hydrofabric 2.2 test gage
+s3_copy "${TEST_RUN_HYDROFABRIC_2p2_GAGE__SOURCE}" "${S3_ROOT__HOST}/ngwpc-dev/rte-test-data/gages/"
 
-# Data for oCONUS NWM
-aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_Alaska.nc" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/"
-aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_Hawaii.nc" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/"
-aws s3 cp "s3://ngwpc-dev/kyle.larkin/esmf/geo_em_Puerto_Rico.nc" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain/"
 
-aws s3 cp "s3://ngwpc-dev/rte-test-data/geogrid/GEOGRID_LDASOUT_Spatial_Metadata_AK.nc" "${RUN_NGEN_ROOT__HOST}/data/GEOGRID_LDASOUT_Spatial_Metadata_AK.nc"
-
+set -x
 exit 0
