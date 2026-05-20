@@ -1,8 +1,15 @@
-"""Async ngen execution, live status polling, live log parsing."""
+"""Async ngen execution, live status polling, live log parsing.
+Reads ngen's per-MPI-rank logs.
+TODO: Read the ngen proc's stdout+stderr streams (or associated log file).
+TODO: Read msw-mgr's log.
+TODO: Read fcst-mgr's log.
+TODO: Make log discovery (in ngen_logs.py) more robust, and add support for behavior of optional NGEN_LOG_TO_RTE env var.
+"""
 
 import os
 import time
 from collections.abc import Generator
+from dataclasses import asdict
 from datetime import datetime, timezone
 
 from ewts import LogParts
@@ -34,6 +41,9 @@ NGEN_EXECUTION_POLL_CONTINUE_STATUSES = {
 When the status is no longer in this set, this indicates that ngen has stopped
 (finished, crashed, timed out, or intentionally stopped)."""
 
+FINAL_WAIT = 2
+"""After status indicates that the ngen run has stopped, wait this many seconds before reading the logs one last time."""
+
 
 class NgenRunnerAsync(BaseModel):
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
@@ -41,6 +51,10 @@ class NgenRunnerAsync(BaseModel):
     cfg: RTEBaseConfig
     rb: RealizationBuilder
     parse_only_rank: int | None = PARSE_ONLY_RANK
+    postprocess: bool = False
+    """If True, call ForecastExecutionManager.postprocess() after ngen finishes, before the final log reads."""
+    suppress_output: bool = False
+    """Passed to ForecastExecutionManager.postprocess()"""
 
     fem: ForecastExecutionManager | None = Field(default=None, init=False)
     logs_parser: _NgenLogsParser | None = Field(default=None, init=False)
@@ -53,9 +67,13 @@ class NgenRunnerAsync(BaseModel):
         )
 
     def __del__(self):
-        """This destructor calls the ForecastExecutionManager's context close() method."""
+        self.close()
+
+    def close(self):
+        """Called by destructor. Call the ForecastExecutionManager's close() method and destroy it."""
         if self.fem is not None:
             self.fem.close()
+            self.fem = None
 
     def start(self) -> None:
         """Start the ngen forecast run asynchronously."""
@@ -106,8 +124,16 @@ class NgenRunnerAsync(BaseModel):
             raise ValueError(f"Unsupported config type: {type(self.cfg)}")
         return config_cache
 
-    def _iter_new_log_parts(self) -> Generator[tuple[int, LogParts], None, None]:
-        """Generator that yields (mpi_rank, log_parts) tuples for each new message payload."""
+    def _iter_new_log_parts(
+        self, final: bool = False
+    ) -> Generator[tuple[int, LogParts], None, None]:
+        """Generator that yields (mpi_rank, log_parts) tuples for each new message."""
+        if final:
+            if self.postprocess:
+                print("Calling execution mgr postprocess()")
+                self.fem.postprocess(suppress_output=self.suppress_output)
+            print(f"Waiting {FINAL_WAIT} seconds before final read of ngen logs...")
+            time.sleep(FINAL_WAIT)
         print(
             f"Execution mgr: {self.fem._status} at {datetime.now(timezone.utc).isoformat()}"
         )
@@ -117,12 +143,11 @@ class NgenRunnerAsync(BaseModel):
     def _iter_new_log_parts_until_complete(
         self,
     ) -> Generator[tuple[int, LogParts], None, None]:
-        """Generator that yields (mpi_rank, log_parts) tuples for each new message payload."""
+        """Generator that yields (mpi_rank, log_parts) tuples for each new message, until ngen finishes."""
         if self.fem is None:
             raise RuntimeError("Execution mgr is not set. Call start() first.")
 
         first = True
-        final_wait = 2
         try:
             while first or self.fem._status in NGEN_EXECUTION_POLL_CONTINUE_STATUSES:
                 first = False
@@ -131,9 +156,7 @@ class NgenRunnerAsync(BaseModel):
         except Exception as e:
             raise RuntimeError(f"Error while polling for forecast status: {e}") from e
         finally:
-            print(f"Waiting {final_wait} seconds before final read of ngen logs...")
-            time.sleep(final_wait)
-            yield from self._iter_new_log_parts()
+            yield from self._iter_new_log_parts(final=True)
 
     def _transmit(self, mpi_rank: int, log_parts: LogParts) -> None:
         """Transmit information about the run."""
@@ -143,5 +166,5 @@ class NgenRunnerAsync(BaseModel):
             print(f"Concern: rank {mpi_rank}: {log_parts}")
         if log_parts.payload:
             print(
-                f"Transmitting payload from rank {mpi_rank}: {log_parts.payload.dict()}"
+                f"Transmitting payload from rank {mpi_rank}: {asdict(log_parts.payload)}"
             )

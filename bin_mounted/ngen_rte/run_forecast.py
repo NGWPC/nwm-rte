@@ -86,9 +86,12 @@ def run_realization(
         # print(f"Finished calling: {run_fcst}")
         # ngen_logs.log_all_payloads()
 
-        ngen_runner = NgenRunnerAsync(cfg=cfg, rb=rb)
+        ngen_runner = NgenRunnerAsync(
+            cfg=cfg, rb=rb, postprocess=True, suppress_output=False
+        )
         ngen_runner.start()
         ngen_runner.stream_status_until_complete()
+        ngen_runner.close()  # Can also let __del__ handle this.
 
 
 def main(cfg: RTEForecastConfig):

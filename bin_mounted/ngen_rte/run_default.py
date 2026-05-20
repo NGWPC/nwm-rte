@@ -38,9 +38,13 @@ def run_default(rb: RealizationBuilder, cfg: RTEDefaultConfig) -> None:
     print(
         f"Running default realization with configuration: {cfg.mswm_RealizationBuilder_kwargs}"
     )
-    ngen_runner = NgenRunnerAsync(cfg=cfg, rb=rb)
+    # For default realization, currently postprocess needs suppress_output=True
+    ngen_runner = NgenRunnerAsync(
+        cfg=cfg, rb=rb, postprocess=True, suppress_output=True
+    )
     ngen_runner.start()
     ngen_runner.stream_status_until_complete()
+    ngen_runner.close()  # Can also let __del__ handle this.
 
 
 def main(cfg: RTEDefaultConfig):
