@@ -5,6 +5,7 @@ import os
 import time
 import traceback
 
+import ngen_rte.consts as c
 from ewts import LogParts, parts_of_log_line
 from mswm.build_inputs import RealizationBuilder
 from ngen_rte.configs import (
@@ -52,20 +53,9 @@ class _NgenLogsParser(BaseModel):
 
     @property
     def ngen_log_dir(self):
-        if str(self.rb.work_dir) != str(os.path.dirname(self.rb.realization_file)):
-            raise ValueError(
-                f"Expected RealizationBuilder work_dir to match parent of RealizationBuilder realization_file, but got: {self.rb.work_dir} vs {os.path.dirname(self.rb.realization_file)}."
-            )
-        if isinstance(self.cfg, RTEDefaultConfig):
-            nld = self.rb.work_dir
-        elif isinstance(self.cfg, RTECalibConfig):
-            nld = self.rb.work_dir
-        elif isinstance(self.cfg, RTEForecastConfig):
-            nld = os.path.join(self.rb.work_dir, "Input")
-        elif isinstance(self.cfg, RTETestConfig):
-            raise NotImplementedError(f"Unsupported config type: {type(self.cfg)}")
-        else:
-            raise NotImplementedError(f"Unsupported config type: {type(self.cfg)}")
+        nld = os.environ.get(c.NGEN_LOG_DIR_KEY, None)
+        if not nld:
+            raise RuntimeError(f"Environment variable {c.NGEN_LOG_DIR_KEY} is not set.")
         return nld
 
     @property
@@ -74,16 +64,18 @@ class _NgenLogsParser(BaseModel):
 
     def ngen_log_basename(self, mpi_rank: int):
         if isinstance(self.cfg, RTEDefaultConfig):
-            bn = f"{self.ngen_log_dir_basename}_ngen_mpi_process_{mpi_rank}.log"
+            bn_prefix = self.rb.basin
         elif isinstance(self.cfg, RTECalibConfig):
             # NOTE determine where the 'calib' prefix is derived from and parameterize it instead of hardcoding it here.
-            bn = f"calib_ngen_mpi_process_{mpi_rank}.log"
+            bn_prefix = "calib"
         elif isinstance(self.cfg, RTEForecastConfig):
-            bn = f"{self.rb.fcst_run_name}_ngen_mpi_process_{mpi_rank}.log"
+            bn_prefix = self.rb.fcst_run_name
         elif isinstance(self.cfg, RTETestConfig):
             raise NotImplementedError(f"Unsupported config type: {type(self.cfg)}")
         else:
             raise NotImplementedError(f"Unsupported config type: {type(self.cfg)}")
+
+        bn = f"{bn_prefix}_ngen_mpi_process_{mpi_rank}.log"
         return bn
 
     def ngen_log_path(self, mpi_rank: int) -> str:
