@@ -170,7 +170,9 @@ MNT__NWM_REGION_MGR__INPUT_DATA="${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr/data/
 
 
 ### Remote data sources for setup_data.sh and setup_data_one_gage.sh
+## \env SOURCE_BUCKET_DEV Name of cloud bucket (no s3:// prefix in the string), used by setup_data.sh and setup_data_one_gage.sh
 SOURCE_BUCKET_DEV="ngwpc-dev"
+## \env EDFS_API_VERSION For EDFS API URL for nwm-rte setup scripts. Used to construct URL path component. Not used during actual runtime.
 EDFS_API_VERSION=v1
 
 
