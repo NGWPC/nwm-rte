@@ -53,8 +53,8 @@ NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE:-"NO"}
 ## \env REPO_TAG_FCST_MGR Source for `nwm-fcst-mgr`.
 REPO_TAG_FCST_MGR=${REPO_TAG_FCST_MGR:-"development"}
 ## \env REPO_TAG_MSW_MGR Source for `nwm-mswm-mgr`.
-REPO_TAG_MSW_MGR=${REPO_TAG_MSW_MGR:-"development"}
-## \env REPO_TAG_CAL_MGR Source for `nwm-cal-mgr`.
+#REPO_TAG_MSW_MGR=${REPO_TAG_MSW_MGR:-"development"}
+REPO_TAG_MSW_MGR="LOCAL"
 REPO_TAG_CAL_MGR=${REPO_TAG_CAL_MGR:-"development"}
 ## \env REPO_TAG_REGION_MGR Source for `nwm-region-mgr`.
 REPO_TAG_REGION_MGR=${REPO_TAG_REGION_MGR:-"development"}
@@ -79,16 +79,19 @@ REPO_TAG_EVAL=${REPO_TAG_EVAL:-"development"}
 ## * `"build_from_local"` and `"build_from_remote"` cause the `ngen` base image to be built from the bottom up (build ngen-forcing, then build ngen, then add the RTE layers). The former uses the existing state of the codebase currently on disk for `ngen-forcing` and for `ngen`, and the latter uses the provided GH refs for sourcing the codebases of `ngen-forcing` and `ngen`.
 ## 
 
-NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"ghcr"}
+NGEN_SOURCE_MODE="build_from_local"
+#NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"ghcr"}
+#NGEN_BASE__REMOTE_GHCR_TAG="ghcr"
 ## \env NGEN_BASE__REMOTE_GHCR_TAG (Only used when `NGEN_SOURCE_MODE="ghcr"`). GHCR image tag to use, e.g. `"latest"` or a commit hash.
 NGEN_BASE__REMOTE_GHCR_TAG=${NGEN_BASE__REMOTE_GHCR_TAG:-"latest"}
 
 # NGEN_SOURCE_MODE="existing_local_tag"
 ## \env NGEN_BASE__EXISTING_LOCAL_TAG (Only used when `NGEN_SOURCE_MODE="existing_local_tag"`). Choose any existing local image tag.
 # NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"existing_local_tag"}
-NGEN_BASE__EXISTING_LOCAL_TAG=${NGEN_BASE__EXISTING_LOCAL_TAG:-"ngen:localdebug"}
+#NGEN_BASE__EXISTING_LOCAL_TAG=${NGEN_BASE__EXISTING_LOCAL_TAG:-"ngen:localdebug"}
+#NGEN_BASE__EXISTING_LOCAL_TAG=${NGEN_BASE__EXISTING_LOCAL_TAG:-"ngen:checkpoint"}
+NGEN_BASE__EXISTING_LOCAL_TAG=${NGEN_BASE__EXISTING_LOCAL_TAG:-"ngen:nwmoutput"}
 
-# NGEN_SOURCE_MODE="build_from_local"
 
 # NGEN_SOURCE_MODE="build_from_remote"
 ## \env FORCING_BASE_REMOTE_TAG Only used when `NGEN_SOURCE_MODE="build_from_remote"`. Source of the `ngen-forcing` codebase. Choose any GitHub ref.
@@ -98,6 +101,7 @@ NGEN_BASE_REMOTE_TAG=${NGEN_BASE_REMOTE_TAG:-"development"}
 
 #### Target Image Name
 ## \env TARGET_IMAGE_NAME Freeform name for output image tag that is built.
+#TARGET_IMAGE_NAME="ngen_rte:ghcr"
 TARGET_IMAGE_NAME=${TARGET_IMAGE_NAME:-"ngen_rte_${NGEN_SOURCE_MODE}"}
 
 #### Misc
@@ -132,9 +136,11 @@ REPOS_COMMON_ROOT__HOST=${THIS_SCRIPTS_GRANDPARENT_DIR}
 ## \env RUN_NGEN_ROOT__HOST Root of the working data associated with running realizations (dirs for realizations and for intermediary data).
 RUN_NGEN_ROOT__HOST=${RUN_NGEN_ROOT__HOST:-"${REPOS_COMMON_ROOT__HOST}/run_ngen"}
 ## \env MNT__RUN_NGEN__HOST Alias for `RUN_NGEN_ROOT__HOST`. Host path mounted by the container.
-MNT__RUN_NGEN__HOST="${RUN_NGEN_ROOT__HOST}"
+#MNT__RUN_NGEN__HOST="${RUN_NGEN_ROOT__HOST}"
+MNT__RUN_NGEN__HOST="/contrib/lfs/h1/owp/ptmp/Zhengtao.Cui/test/tmp"
 ## \env MNT__RUN_NGEN__CONTAINER_1 1st of 2 paths within the container to which the host disk path described by `MNT__RUN_NGEN__HOST` is mounted.
-MNT__RUN_NGEN__CONTAINER_1="/ngwpc/run_ngen"
+#MNT__RUN_NGEN__CONTAINER_1="/ngwpc/run_ngen"
+MNT__RUN_NGEN__CONTAINER_1="/ngwpc/tmp"
 ## \env MNT__RUN_NGEN__CONTAINER_2 2nd of 2 paths within the container to which the host disk path described by `MNT__RUN_NGEN__HOST` is mounted.
 MNT__RUN_NGEN__CONTAINER_2="${MNT__RUN_NGEN__HOST}"
 
@@ -142,6 +148,7 @@ MNT__RUN_NGEN__CONTAINER_2="${MNT__RUN_NGEN__HOST}"
 ## \env MNT__MODULE_PARAM_FILES_DIR__HOST Host path to input module parameter files from `nwm-msw-mgr` repository. Mounted by the container.
 MNT__MODULE_PARAM_FILES_DIR__HOST="${REPOS_COMMON_ROOT__HOST}/nwm-msw-mgr/src/mswm/module_parameter_files"
 ## \env MNT__MODULE_PARAM_FILES_DIR__CONTAINER_1 1st of 2 paths within the container to which the host disk path described by `MNT__MODULE_PARAM_FILES_DIR__HOST` is mounted.
+
 MNT__MODULE_PARAM_FILES_DIR__CONTAINER_1="/ngen-app/nwm-msw-mgr/src/mswm/module_parameter_files"
 ## \env MNT__MODULE_PARAM_FILES_DIR__CONTAINER_2 2nd of 2 paths within the container to which the host disk path described by `MNT__MODULE_PARAM_FILES_DIR__HOST` is mounted.
 MNT__MODULE_PARAM_FILES_DIR__CONTAINER_2="${REPOS_COMMON_ROOT__HOST}/nwm-msw-mgr/src/mswm/module_parameter_files"

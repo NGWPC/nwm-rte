@@ -82,7 +82,6 @@ RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/
     --mount=type=bind,src=ngen-forcing,dst=/src/${GH_ORG}/ngen-forcing \
     "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "ngen-forcing" "${REPO_TAG_NGEN_FORCING}" ""
 
-
 ##################################################
 #### BEGIN SECOND STAGE: Adding a separate Python venv for nwm.eval and nwm.verf
 FROM ngen_rte_base AS ngen_rte_eval_verf
@@ -114,6 +113,18 @@ ARG REPO_TAG_EVAL
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
     --mount=type=bind,src=nwm-eval-mgr,dst=/src/${GH_ORG}/nwm-eval-mgr \
     "/src/${GH_ORG}/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "${GH_ORG}" "nwm-eval-mgr" "${REPO_TAG_EVAL}" ""
+
+RUN mkdir -p /ngwpc/exec
+RUN mkdir -p /ngwpc/lib
+COPY --from=ngen_rte_base /ngen-app/ngen/cmake_build/ngen /ngwpc/exec/ngen
+COPY --from=ngen_rte_base /ngen-app/ngen/cmake_build/partitionGenerator /ngwpc/exec/partitionGenerator
+COPY --from=ngen_rte_base /ngen-app/ngen/extern/cfe/cmake_build/libcfebmi.so* /ngwpc/lib/
+COPY --from=ngen_rte_base /ngen-app/ngen/extern/sloth/cmake_build/libslothmodel.so* /ngwpc/lib/
+COPY --from=ngen_rte_base /ngen-app/ngen/extern/noah-owp-modular/cmake_build/libsurfacebmi.so* /ngwpc/lib/
+COPY --from=ngen_rte_base /ngen-app/ngen/extern/SoilMoistureProfiles/cmake_build/libsmpbmi.so* /ngwpc/lib/
+COPY --from=ngen_rte_base /ngen-app/ngen/extern/SoilFreezeThaw/cmake_build/libsftbmi.so* /ngwpc/lib/
+
+RUN ls -R /ngwpc
 
 ##############################
 #### Clean up: reset PATH and PYTHONPATH

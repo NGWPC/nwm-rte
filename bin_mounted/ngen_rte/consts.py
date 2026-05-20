@@ -21,7 +21,9 @@ FORCING_PROVIDER = "bmi"
 DEFAULT_FORECAST_RUN_NAME = "fcst_run1"
 
 # For BMI forcing
-FORCING_TEMPLATE_DIR = "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
+#FORCING_TEMPLATE_DIR = "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
+FORCING_TEMPLATE_DIR = "/ngwpc/parm/forcingConfigs"
+#FORCING_ROOT_DIR = "/ngen-app/data"
 FORCING_ROOT_DIR = "/ngen-app/data"
 DIR_FORCING_RAW_INPUT = os.path.join(FORCING_ROOT_DIR, "raw_input")
 DT_START_FORECAST = datetime(year=2025, month=9, day=15, hour=0, minute=0, second=0)
@@ -38,8 +40,8 @@ DEFAULT_MODEL_FORMULATION_ARGS = ("noah-owp-modular,cfe-s", False)
 # DEFAULT_MODEL_FORMULATION_ARGS = ("lstm", False)
 """Used to construct configs.ModelFormulation. 1st arg is csv str of models, 2nd arg is Boolean passed to ModulePropertiesConfig.cfe_aet_rootzone"""
 
-DEFAULT_MAIN_DIR = "/ngwpc/run_ngen"
-
+#DEFAULT_MAIN_DIR = "/ngwpc/run_ngen"
+DEFAULT_MAIN_DIR = "/ngwpc/tmp"
 
 ### .config section [Calibration]
 CALIB_OBJECTIVE_FUNCTION = CalObjective.kge
@@ -65,8 +67,14 @@ VALID_EVAL_CURTAILMENT_DEFAULT = timedelta(hours=0)  # Gets subtracted
 
 
 ### .config section [DataFile]
-MODULE_PARAMETER_FILES_DIR = "/ngen-app/nwm-msw-mgr/src/mswm/module_parameter_files"
+#MODULE_PARAMETER_FILES_DIR = "/ngen-app/nwm-msw-mgr/src/mswm/module_parameter_files"
+MODULE_PARAMETER_FILES_DIR = "/ngwpc/parm/module_parameter_files"
 NGEN_DIR = "/ngen-app/ngen"
+EXEC_DIR = "/ngwpc/exec"
+LIB_DIR = "/ngwpc/lib"
+
+#HYDROFABRIC_DIR = "/s3/ngwpc-hydrofabric"
+HYDROFABRIC_DIR = "/ngwpc/parm/ngwpc-hydrofabric"
 NWM_RETRO_STREAMFLOW_DIR = "/s3/ngwpc-dev/ngen-static-files/nwm_retrospective"
 
 
@@ -129,7 +137,7 @@ NGEN_BIN__TARGET = f"{NGEN_DIR}/cmake_build/ngen"
 PARTITION_GENERATOR_BIN__TARGET = f"{NGEN_DIR}/cmake_build/partitionGenerator"
 ### This is where we create symlinks that point to the above paths
 WCOSS_LOG_NAME = getpass.getuser()
-WCOSS_NWM_VERS = "vX.Y.Z"
+WCOSS_NWM_VERS = "v4.0.0"
 # Pattern from: https://www.nco.ncep.noaa.gov/idsb/implementation_standards/ImplementationStandards.v11.0.0.pdf
 NGEN_EXE_DIR = (
     f"/lfs/h1/owp/nwm/noscrub/{WCOSS_LOG_NAME}/test/packages/nwm.{WCOSS_NWM_VERS}/exec"
@@ -145,18 +153,21 @@ DATAFILE_LIBS = {
     "ueb_parameter_dir": f"{MODULE_PARAMETER_FILES_DIR}/ueb",
     "lasam_parameter_dir": f"{MODULE_PARAMETER_FILES_DIR}/lasam",
     "lstm_parameter_dir": f"{MODULE_PARAMETER_FILES_DIR}/lstm",
-    "ngen_exe_file": NGEN_BIN__LINK,
-    "sloth_lib": f"{NGEN_DIR}/extern/sloth/cmake_build/libslothmodel.so",
-    "cfe_lib": f"{NGEN_DIR}/extern/cfe/cmake_build/libcfebmi.so",
-    "lasam_lib": f"{NGEN_DIR}/extern/LASAM/cmake_build/liblasambmi.so",
-    "noah_owp_modular_lib": f"{NGEN_DIR}/extern/noah-owp-modular/cmake_build/libsurfacebmi.so",
-    "pet_lib": f"{NGEN_DIR}/extern/evapotranspiration/evapotranspiration/cmake_build/libpetbmi.so",
-    "sac_sma_lib": f"{NGEN_DIR}/extern/sac-sma/cmake_build/libsacbmi.so",
-    "sft_lib": f"{NGEN_DIR}/extern/SoilFreezeThaw/cmake_build/libsftbmi.so",
-    "smp_lib": f"{NGEN_DIR}/extern/SoilMoistureProfiles/cmake_build/libsmpbmi.so",
-    "snow_17_lib": f"{NGEN_DIR}/extern/snow17/cmake_build/libsnow17bmi.so",
-    "topmodel_lib": f"{NGEN_DIR}/extern/topmodel/cmake_build/libtopmodelbmi.so",
-    "ueb_lib": f"{NGEN_DIR}/extern/ueb-bmi/cmake_build/src/libbmiuebcxx.so",
+    "sac_sma_parameter_dir": HYDROFABRIC_DIR,
+    "snow_17_parameter_dir": HYDROFABRIC_DIR,
+    "attributes_file": f"{DEFAULT_MAIN_DIR}/data/conus_model_attributes.parquet",
+    "ngen_exe_file": f"{EXEC_DIR}/ngen",
+    "sloth_lib": f"{LIB_DIR}/libslothmodel.so",
+    "cfe_lib": f"{LIB_DIR}/libcfebmi.so",
+    "lasam_lib": f"{LIB_DIR}/liblasambmi.so",
+    "noah_owp_modular_lib": f"{LIB_DIR}/libsurfacebmi.so",
+    "pet_lib": f"{LIB_DIR}/libpetbmi.so",
+    "sac_sma_lib": f"{LIB_DIR}/libsacbmi.so",
+    "sft_lib": f"{LIB_DIR}/libsftbmi.so",
+    "smp_lib": f"{LIB_DIR}/libsmpbmi.so",
+    "snow_17_lib": f"{LIB_DIR}/libsnow17bmi.so",
+    "topmodel_lib": f"{LIB_DIR}/libtopmodelbmi.so",
+    "ueb_lib": f"{LIB_DIR}/libbmiuebcxx.so",
 }
 
 
@@ -168,12 +179,17 @@ NGEN_LOG_DIR_KEY = "NGEN_RESULTS_DIR"
 NGEN_STDOUT_STDERR_LOG_FILE_BASENAME = "ngen_stdout_stderr.log"
 
 ### These for WCOSS paths
-SCRATCH_DIR_OVERRIDE: str | None = None
-FORCING_PRODUCT_VERSIONS_PATH: str | None = None
+#SCRATCH_DIR_OVERRIDE: str | None = None
+#FORCING_PRODUCT_VERSIONS_PATH: str | None = None
 # SCRATCH_DIR_OVERRIDE: str | None = "/foo/bar/scratch"
 # FORCING_PRODUCT_VERSIONS_PATH: str | None = (
 #     "/ngen-app/bin/bin_mounted/ngen_rte/run_config/ngen_forcing_vers.json"
 # )
+SCRATCH_DIR_OVERRIDE: str | None = "/lfs/h1/owp/ptmp/test/tmp/scratch"
+# INPUT_FORCING_DIRS_OVERRIDE_ROOT: str | None = "/foo/bar/forcing_input"
+INPUT_FORCING_DIRS_OVERRIDE_ROOT: str | None = "/lfs/h1/ops/prod/com"
+FORCING_PRODUCT_VERSIONS_PATH: str | None = "/ngen-app/bin/bin_mounted/ngen_rte/run_config/ngen_forcing_vers.json"
+
 ### Parsing the json file if provided
 if FORCING_PRODUCT_VERSIONS_PATH is not None:
     with open(FORCING_PRODUCT_VERSIONS_PATH, "r") as f:

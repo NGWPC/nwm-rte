@@ -34,7 +34,8 @@ if [[ "$@" =~ (--regionalization|-r) ]]; then
 fi
 
 # NOTE if updating these, also need to update run_tests.py
-TEST_GAGE="01123000"
+#TEST_GAGE="01123000"
+TEST_GAGE="06821500"
 DOMAIN="CONUS"
 WORKFLOW_INPUT_CONFIG_ROOT="${RUN_NGEN_ROOT__HOST}/configs"
 
