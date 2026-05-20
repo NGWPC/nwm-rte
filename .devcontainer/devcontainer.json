@@ -34,6 +34,8 @@
         "source=${localWorkspaceFolder}/../run_ngen/data,target=/ngen-app/data,type=bind",
         // Data
         "source=${localWorkspaceFolder}/../s3,target=/s3,type=bind",
+        // Data
+        "source=${localWorkspaceFolder}/../nwm-msw-mgr/src/mswm/module_parameter_files,target=/ngen-app/nwm-msw-mgr/src/mswm/module_parameter_files,type=bind",
         // For saving certain forcing cache files to host disk and preserving them between runs. e.g. "/tmp/aorc_ce4b1034_2013.nc".
         "source=${localWorkspaceFolder}/.devcontainer/tmp,target=/tmp,type=bind",
         // Scripts from nwm-rte repository
