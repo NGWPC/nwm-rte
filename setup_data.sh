@@ -13,14 +13,27 @@ source config.bashrc
 ##
 ## Uses various OS env vars from `config.bashrc`.
 ## 
-## Has 0 positional arguments and 1 named argument.
+## Has 0 positional arguments and 2 named arguments.
+## 
+## \option -a, --api-environment
+## For EDFS API URL for nwm-rte setup scripts. Used to construct URL subdomain. Not used during ngen runtime. See -e, --environment in the ngen runtime CLI scripts.
+## Default: 'test'. Common choices: ['test', 'oe'].
 ## 
 ## \option -r, --regionalization
 ## If provided, extra data will be downloaded for the regionalization workflow. Should be ran *after* cloning the `nwm-region-mgr` repository.
 ## 
 ## \usage ./setup_data.sh
-## \usage ./setup_data.sh -r
+## \usage ./setup_data.sh -a 'oe'
+## \usage ./setup_data.sh -a 'test' -r
+## \usage ./setup_data.sh -a 'oe' -r
 ## 
+
+# Parse named arg -a, --api-environment
+if [[ "$@" =~ (--api-environment|-a)[[:space:]]+([^ ]+) ]]; then
+    EDFS_API_ENVIRONMENT="${BASH_REMATCH[2]}"
+else
+    EDFS_API_ENVIRONMENT="test"
+fi
 
 mkdir_p "${RUN_NGEN_ROOT__HOST}"
 mkdir_p "${S3_ROOT__HOST}"
@@ -47,11 +60,11 @@ DATA__PARAMETERS__HOST="${RUN_NGEN_ROOT__HOST}/data"
 
 TEST_RUN_CONFIG__CALIBRATION__SOURCE="${DATA__RTE_TEST__S3_SOURCE}/configs/input_calibration_bmi_nhf.config"
 TEST_RUN_CONFIG__FORECAST__SOURCE="${DATA__RTE_TEST__S3_SOURCE}/configs/input_forecast_nhf.config"
-TEST_RUN_HYDROFABRIC_2p2_GAGE__SOURCE="${DATA__RTE_TEST__S3_SOURCE}/gages/gauge_${TEST_GAGE}.gpkg"
+TEST_RUN_HYDROFABRIC_NHF_GAGE__SOURCE="${DATA__RTE_TEST__S3_SOURCE}/gages/gauge_${TEST_GAGE}.gpkg"
 
 
 # Download test gage data using setup_data_one_gage.sh
-./setup_data_one_gage.sh "${TEST_GAGE}" "${TEST_DOMAIN}"
+./setup_data_one_gage.sh "${TEST_GAGE}" "${TEST_DOMAIN}" "${EDFS_API_ENVIRONMENT}"
 
 # Download various ngen parameterization files
 s3_sync "${DATA__PARAMETERS__S3_SOURCE}" "${DATA__PARAMETERS__HOST}"
@@ -70,8 +83,8 @@ s3_copy "${TEST_RUN_CONFIG__CALIBRATION__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROOT}
 # curl -O --output-dir "${WORKFLOW_INPUT_CONFIG_ROOT}/" "https://raw.githubusercontent.com/NGWPC/nwm-msw-mgr/development/src/mswm/example_inputs/forecast/input_forecast.config"
 s3_copy "${TEST_RUN_CONFIG__FORECAST__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROOT}/"
 
-# Download gpkg for hydrofabric 2.2 test gage
-s3_copy "${TEST_RUN_HYDROFABRIC_2p2_GAGE__SOURCE}" "${S3_ROOT__HOST}/ngwpc-dev/rte-test-data/gages/"
+# Download gpkg for hydrofabric NHF test gage
+s3_copy "${TEST_RUN_HYDROFABRIC_NHF_GAGE__SOURCE}" "${S3_ROOT__HOST}/ngwpc-dev/rte-test-data/gages/"
 
 
 set -x
