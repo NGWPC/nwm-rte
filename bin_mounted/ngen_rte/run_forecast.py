@@ -22,11 +22,9 @@ print = functools.partial(print, flush=True)
 
 
 def build_realization(
-    cfg: RTEForecastConfig,
-    rb_kwargs_final: dict,
-    log_label: str,
+    cfg: RTEForecastConfig, rb_kwargs_final: dict
 ) -> RealizationBuilder:
-    """Build and return a forecast realization, applygin the provided rb_kwargs_final as-is."""
+    """Build and return a forecast realization, applying the provided rb_kwargs_final as-is to support optional coldstart."""
     print(f"Building realization: {rb_kwargs_final}")
     rb = RealizationBuilder(**rb_kwargs_final)
     rb.build_fcst_realization()
@@ -41,7 +39,7 @@ def build_realization(
 def build_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
     """Build and return a coldstart forecast realization."""
     rb_kwargs_final = cfg.mswm_RealizationBuilder_kwargs | {"use_cold_start": True}
-    rb = build_realization(cfg, rb_kwargs_final, "cs")
+    rb = build_realization(cfg, rb_kwargs_final)
     return rb
 
 
@@ -51,14 +49,11 @@ def build_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
         "use_cold_start": False,
     }
 
-    rb = build_realization(cfg, rb_kwargs_final, "fcst")
+    rb = build_realization(cfg, rb_kwargs_final)
     return rb
 
 
-def run_realization(
-    rb: RealizationBuilder,
-    cfg: RTEForecastConfig,
-) -> None:
+def run_realization(rb: RealizationBuilder, cfg: RTEForecastConfig) -> None:
     """Run the realization, which can be a coldstart, forecast, or lagged ensemble."""
     # partition_file = getattr(rb, "part_file", None)
 
