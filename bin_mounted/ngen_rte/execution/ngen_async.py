@@ -11,6 +11,7 @@ import time
 from collections.abc import Generator
 from dataclasses import asdict
 from datetime import datetime, timezone
+from pathlib import Path
 
 from ewts import LogParts
 from mswm.build_inputs import RealizationBuilder
@@ -20,7 +21,11 @@ from ngen_rte.configs import (
     RTEDefaultConfig,
     RTEForecastConfig,
 )
-from ngen_rte.execution.ngen_logs import _NgenLogsParser
+from ngen_rte.execution.ngen_logs import (
+    _LogParserBase,
+    _LogParserGeneric,
+    _LogParserNgen,
+)
 from nwm_fcst_mgr.exceptions import (
     NgenCalledProcessError,
     NgenIntentionallyStoppedError,
@@ -57,13 +62,16 @@ class NgenRunnerAsync(BaseModel):
     """Passed to ForecastExecutionManager.postprocess()"""
 
     fem: ForecastExecutionManager | None = Field(default=None, init=False)
-    logs_parser: _NgenLogsParser | None = Field(default=None, init=False)
+    parsers: list[_LogParserBase] = Field(default_factory=list, init=False)
+    """The ngen parser is assumed to be the first in the list"""
 
     def model_post_init(self, __context) -> None:
-        self.logs_parser = _NgenLogsParser(
-            cfg=self.cfg,
-            rb=self.rb,
-            parse_only_rank=self.parse_only_rank,
+        self.parsers.append(
+            _LogParserNgen(
+                cfg=self.cfg,
+                rb=self.rb,
+                parse_only_rank=self.parse_only_rank,
+            )
         )
 
     def __del__(self):
@@ -89,6 +97,7 @@ class NgenRunnerAsync(BaseModel):
                 partition_file=self.rb.part_file,
             )
             self.fem.preprocess()
+            self.parsers.append(_LogParserGeneric(log_file_path=self.fem.log_file_path))
             self.fem.execute(wait=False, log_file_open_mode="w")
         elif isinstance(self.cfg, RTECalibConfig):
             raise NotImplementedError(f"Unsupported config type: {type(self.cfg)}")
@@ -98,8 +107,12 @@ class NgenRunnerAsync(BaseModel):
     def stream_status_until_complete(self) -> None:
         """Stream status updates from the running forecast until completion."""
         try:
-            for mpi_rank, new_log_parts in self._iter_new_log_parts_until_complete():
-                self._transmit(mpi_rank, new_log_parts)
+            for (
+                mpi_rank,
+                new_log_parts,
+                log_file,
+            ) in self._iter_new_log_parts_until_complete():
+                self._transmit(mpi_rank, new_log_parts, log_file)
         except NgenCalledProcessError as e:
             raise RuntimeError(f"Error during forecast run: {e}") from e
         except NgenIntentionallyStoppedError as e:
@@ -113,8 +126,8 @@ class NgenRunnerAsync(BaseModel):
         errors: list[Exception] = []
         for mpi_rank in range(self.cfg.nprocs):
             if (
-                mpi_rank not in self.logs_parser.log_lines_hash_cache
-                or len(self.logs_parser.log_lines_hash_cache[mpi_rank]) == 0
+                mpi_rank not in self.parsers[0].log_lines_hash_cache
+                or len(self.parsers[0].log_lines_hash_cache[mpi_rank]) == 0
             ):
                 errors.append(
                     RuntimeError(
@@ -140,8 +153,8 @@ class NgenRunnerAsync(BaseModel):
 
     def _iter_new_log_parts(
         self, final: bool = False
-    ) -> Generator[tuple[int, LogParts], None, None]:
-        """Generator that yields (mpi_rank, log_parts) tuples for each new message.
+    ) -> Generator[tuple[int, LogParts, Path | str], None, None]:
+        """Generator that yields (mpi_rank, log_parts, log_file) tuples for each new message.
         If this is the final call, wait FINAL_WAIT seconds before reading logs, and optionally call postprocess() before that."""
         if final:
             if self.postprocess:
@@ -152,18 +165,19 @@ class NgenRunnerAsync(BaseModel):
                 else:
                     print("Calling execution mgr postprocess()")
                     self.fem.postprocess(suppress_output=self.suppress_output)
-            print(f"Waiting {FINAL_WAIT} seconds before final read of ngen logs...")
+            print(f"Waiting {FINAL_WAIT} seconds before final read of logs...")
             time.sleep(FINAL_WAIT)
         print(
             f"Execution mgr: {self.fem._status} at {datetime.now(timezone.utc).isoformat()}"
         )
-        for mpi_rank, new_log_parts in self.logs_parser._new_log_parts():
-            yield mpi_rank, new_log_parts
+        for parser in self.parsers:
+            for mpi_rank, new_log_parts, log_file in parser._new_log_parts():
+                yield mpi_rank, new_log_parts, log_file
 
     def _iter_new_log_parts_until_complete(
         self,
-    ) -> Generator[tuple[int, LogParts], None, None]:
-        """Generator that yields (mpi_rank, log_parts) tuples for each new message, until ngen finishes."""
+    ) -> Generator[tuple[int, LogParts, Path | str], None, None]:
+        """Generator that yields (mpi_rank, log_parts, log_file) tuples for each new message, until ngen finishes."""
         if self.fem is None:
             raise RuntimeError("Execution mgr is not set. Call start() first.")
 
@@ -178,13 +192,15 @@ class NgenRunnerAsync(BaseModel):
         finally:
             yield from self._iter_new_log_parts(final=True)
 
-    def _transmit(self, mpi_rank: int, log_parts: LogParts) -> None:
+    def _transmit(
+        self, mpi_rank: int, log_parts: LogParts, log_file: Path | str
+    ) -> None:
         """Transmit information about the run."""
         # TODO implement actual transmission logic (send to file or service)
         # TODO get these log levels from an enum (from ewts?)
         if log_parts.level in ("WARNING", "ERROR", "CRITICAL", "SEVERE", "FATAL"):
-            print(f"Concern: rank {mpi_rank}: {log_parts}")
+            print(f"Concern: {Path(log_file).name}: rank {mpi_rank}: {log_parts}")
         if log_parts.payload:
             print(
-                f"Transmitting payload from rank {mpi_rank}: {asdict(log_parts.payload)}"
+                f"Transmitting payload from {Path(log_file).name}: rank {mpi_rank}: {asdict(log_parts.payload)}"
             )
