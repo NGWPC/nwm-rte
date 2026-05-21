@@ -96,8 +96,8 @@ class NgenRunnerAsync(BaseModel):
                 config_cache=config_cache,
                 partition_file=self.rb.part_file,
             )
-            self.fem.preprocess()
             self.parsers.append(_LogParserGeneric(log_file_path=self.fem.log_file_path))
+            self.fem.preprocess()
             self.fem.execute(wait=False, log_file_open_mode="w")
         elif isinstance(self.cfg, RTECalibConfig):
             raise NotImplementedError(f"Unsupported config type: {type(self.cfg)}")
