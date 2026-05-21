@@ -168,7 +168,6 @@ class _LogParserGeneric(_LogParserBase):
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
     log_file_path: Path | str
-    """Only used by child class _LogParserGeneric, where one component may have a single log file. Explicit file path."""
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call _LogParserBase's post init
