@@ -30,8 +30,9 @@ class _NgenLogsParser(BaseModel):
     rb: RealizationBuilder
     parse_only_rank: int | None
 
-    log_lines_hash_cache: set[int] = Field(default_factory=set, init=False)
-    """Used to track signatures (raw hashes) of log lines already found"""
+    log_lines_hash_cache: dict[int, set[int]] = Field(default_factory=dict, init=False)
+    """Used to track signatures (raw hashes) of log lines already found.
+    Dictionary keyed on MPI rank, with each value being a set of hashes of log lines found for that rank."""
 
     def model_post_init(self, __context) -> None:
         if self.parse_only_rank is not None:
@@ -42,13 +43,15 @@ class _NgenLogsParser(BaseModel):
         self.__throttle_last_time = None
 
     def _line_is_new(self, mpi_rank: int, line: str) -> bool:
-        """Hash the log line with its mpi_rank.
-        Return True if the hash has been seen already, otherwise return False."""
+        """Hash the log line and store the hash in a dict keyed on mpi_rank.
+        Return True if the hash has been seen already for that rank, otherwise return False."""
         h = hash((mpi_rank, line))
-        if h in self.log_lines_hash_cache:
+        self.log_lines_hash_cache.setdefault(mpi_rank, set())
+        s = self.log_lines_hash_cache[mpi_rank]
+        if h in s:
             return False
         else:
-            self.log_lines_hash_cache.add(h)
+            s.add(h)
             return True
 
     @property

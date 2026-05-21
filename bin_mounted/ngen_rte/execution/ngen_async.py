@@ -109,8 +109,20 @@ class NgenRunnerAsync(BaseModel):
         finally:
             if self.fem is not None:
                 self.fem.close()
-            if not self.logs_parser.log_lines_hash_cache:
-                raise RuntimeError("No MPI rank log lines were parsed")
+                self.fem = None
+        errors: list[Exception] = []
+        for mpi_rank in range(self.cfg.nprocs):
+            if (
+                mpi_rank not in self.logs_parser.log_lines_hash_cache
+                or len(self.logs_parser.log_lines_hash_cache[mpi_rank]) == 0
+            ):
+                errors.append(
+                    RuntimeError(
+                        f"No log lines were parsed for MPI rank ngen logs for rank {mpi_rank}."
+                    )
+                )
+        if errors:
+            raise RuntimeError(errors)
 
     def _make_config_cache(self) -> ConfigCache | None:
         """Make and return a ConfigCache based on the type of cfg."""
