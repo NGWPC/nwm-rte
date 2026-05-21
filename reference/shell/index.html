@@ -1682,7 +1682,21 @@ as well as the runtime environment itself (e.g. mount paths).</p>
         <code>MNT__NWM_REGION_MGR__INPUT_DATA</code>:
         <div class="doc doc-md-description">
           <p>Host path to input data from <code>nwm-region-mgr</code> repository for regionalization workflows. Mounted by the container.
- Logging functions</p>
+ Remote data sources for setup_data.sh and setup_data_one_gage.sh</p>
+        </div>
+      </li>
+      <li>
+        <code>SOURCE_BUCKET_DEV</code>:
+        <div class="doc doc-md-description">
+          <p>Name of cloud bucket (no s3:// prefix in the string), used by setup_data.sh and setup_data_one_gage.sh</p>
+        </div>
+      </li>
+      <li>
+        <code>EDFS_API_VERSION</code>:
+        <div class="doc doc-md-description">
+          <p>For EDFS API URL for nwm-rte setup scripts. Used to construct URL path component. Not used during actual runtime.
+ Logging functions
+ File operation functions</p>
         </div>
       </li>
   </ul>
@@ -1771,18 +1785,27 @@ Includes CLI option for a shallow (depth 1) clone or full clone. It will not alt
 
   <strong>Usage</strong>
     <pre><code>./setup_data.sh </code></pre>
-    <pre><code>./setup_data.sh -r
+    <pre><code>./setup_data.sh -a &#39;oe&#39;</code></pre>
+    <pre><code>./setup_data.sh -a &#39;test&#39; -r</code></pre>
+    <pre><code>./setup_data.sh -a &#39;oe&#39; -r
 </code></pre>
 
   <strong>Description</strong>
       <p>Download input data from S3 and from APIs.  Not needed for the "default" gage at the "default" realization, since those inputs are included in the repository.
 Calls <code>./setup_data_one_gage.sh</code> for the default gage ID.</p>
 <p>Uses various OS env vars from <code>config.bashrc</code>.</p>
-<p>Has 0 positional arguments and 1 named argument.</p>
+<p>Has 0 positional arguments and 2 named arguments.</p>
 
 
   <strong>Options</strong>
     <ul>
+        <li>
+<code class="option_short">-a</code>, <code>--api-environment</code>:
+          <div class="doc doc-md-description">
+            <p>For EDFS API URL for nwm-rte setup scripts. Used to construct URL subdomain. Not used during ngen runtime. See -e, --environment in the ngen runtime CLI scripts.
+Default: 'test'. Common choices: ['test', 'oe'].</p>
+          </div>
+        </li>
         <li>
 <code class="option_short">-r</code>, <code>--regionalization</code>:
           <div class="doc doc-md-description">
@@ -1814,7 +1837,7 @@ Calls <code>./setup_data_one_gage.sh</code> for the default gage ID.</p>
   <p>Download input data for one gage.</p>
 
   <strong>Usage</strong>
-    <pre><code>./setup_data_one_gage.sh &#34;01121330&#34; &#34;CONUS&#34;
+    <pre><code>./setup_data_one_gage.sh &#34;01121330&#34; &#34;CONUS&#34; &#34;test&#34;
 </code></pre>
 
   <strong>Description</strong>
@@ -1822,7 +1845,7 @@ Calls <code>./setup_data_one_gage.sh</code> for the default gage ID.</p>
 Not needed for the "default" gage at the "default" realization, since those inputs are included in the repository.
 Downloads all vintages of hydrofabric associated with one gage ID.</p>
 <p>Uses various OS env vars from <code>config.bashrc</code>.</p>
-<p>Has 2 positional arguments and 0 named arguments.</p>
+<p>Has 3 positional arguments and 0 named arguments.</p>
 
 
   <strong>Options</strong>
@@ -1837,6 +1860,13 @@ Downloads all vintages of hydrofabric associated with one gage ID.</p>
 <code>DOMAIN</code>:
           <div class="doc doc-md-description">
             <p>The domain that the gage ID resides in, e.g. <code>"CONUS"</code></p>
+          </div>
+        </li>
+        <li>
+<code>EDFS_API_ENVIRONMENT</code>:
+          <div class="doc doc-md-description">
+            <p>For EDFS API URL for nwm-rte setup scripts. Used to construct URL subdomain. Not used during ngen runtime. See -e, --environment in the ngen runtime CLI scripts.
+Default: 'test'. Choices: ['test', 'oe'].</p>
           </div>
         </li>
     </ul>
