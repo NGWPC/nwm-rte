@@ -30,6 +30,9 @@ class _LogParserBase(BaseModel):
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
+    tolerant: bool = False
+    """Passed on to ``ewts.parts_of_log_line()`` to control whether parsing errors are tolerated or raise exceptions."""
+
     log_lines_hash_cache: dict[int | None, set[int]] = Field(
         default_factory=dict, init=False
     )
@@ -98,7 +101,7 @@ class _LogParserBase(BaseModel):
                         continue
                     line = line.rstrip()
                     try:
-                        parts = parts_of_log_line(line)
+                        parts = parts_of_log_line(line, tolerant=self.tolerant)
                     except Exception as e:
                         print(
                             f"Error parsing line into parts: {line}. Error: {e}. Traceback: {traceback.format_exc()}"

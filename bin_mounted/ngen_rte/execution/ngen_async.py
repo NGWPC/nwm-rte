@@ -1,9 +1,6 @@
 """Async ngen execution, live status polling, live log parsing.
 Reads ngen's per-MPI-rank logs.
-TODO: Read the ngen proc's stdout+stderr streams (or associated log file).
 TODO: Read msw-mgr's log.
-TODO: Read fcst-mgr's log.
-TODO: Make log discovery (in ngen_logs.py) more robust, and add support for behavior of optional NGEN_LOG_TO_RTE env var.
 """
 
 import os
@@ -66,7 +63,7 @@ class NgenRunnerAsync(BaseModel):
     """The ngen parser is assumed to be the first in the list"""
 
     def model_post_init(self, __context) -> None:
-        self.parsers.append(
+        self._add_log_parser(
             _LogParserNgen(
                 cfg=self.cfg,
                 rb=self.rb,
@@ -83,6 +80,10 @@ class NgenRunnerAsync(BaseModel):
             self.fem.close()
             self.fem = None
 
+    def _add_log_parser(self, parser: _LogParserBase) -> None:
+        """Add a log parser to the list of parsers to read from."""
+        self.parsers.append(parser)
+
     def start(self) -> None:
         """Start the ngen forecast run asynchronously."""
         if self.fem is not None:
@@ -96,7 +97,16 @@ class NgenRunnerAsync(BaseModel):
                 config_cache=config_cache,
                 partition_file=self.rb.part_file,
             )
-            self.parsers.append(_LogParserGeneric(log_file_path=self.fem.log_file_path))
+            # Watch log files for the nwm_fcst_mgr package and the ngen subprocess stdout+stderr.
+            self._add_log_parser(
+                _LogParserGeneric(log_file_path=self.fem.fcst_mgr_log_file_path)
+            )
+            self._add_log_parser(
+                _LogParserGeneric(
+                    log_file_path=self.fem.ngen_proc_stdout_stderr_log_file_path,
+                    tolerant=True,
+                )
+            )
             self.fem.preprocess()
             self.fem.execute(wait=False, log_file_open_mode="w")
         elif isinstance(self.cfg, RTECalibConfig):
