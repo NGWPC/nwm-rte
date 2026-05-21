@@ -17,7 +17,6 @@ from ngen_rte.configs import RTEDefaultConfig
 from ngen_rte.execution.ngen_async import NgenRunnerAsync
 from ngen_rte.run_config import cli_args
 from ngen_rte.tests import utils_testing_setup
-from ngen_rte.utils import configure_ngen_log
 
 print = functools.partial(print, flush=True)
 
@@ -27,7 +26,6 @@ def build_default_realization(cfg: RTEDefaultConfig) -> RealizationBuilder:
     print("Building default realization...")
     rb = RealizationBuilder(**cfg.mswm_RealizationBuilder_kwargs)
     rb.build_default_realization()
-    configure_ngen_log(rb.work_dir, "default")
     return rb
 
 
@@ -58,6 +56,7 @@ def main(cfg: RTEDefaultConfig):
         utils_testing_setup.delete_forcing_raw_inputs()
 
     rb = build_default_realization(cfg)
+    cfg.configure_ngen_log(rb)
     run_default(rb, cfg)
 
 

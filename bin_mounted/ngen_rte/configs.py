@@ -1,8 +1,11 @@
 """Primary configuration classes. Pydantic BaseModels directly associated with CLI executables."""
 
+import json
 import os
+import shutil
 from datetime import datetime, timedelta, timezone
 
+from mswm.build_inputs import RealizationBuilder
 from mswm.utils import settings as mswm_settings
 from mswm.utils.input_configuration import (
     CalibConfig,
@@ -116,6 +119,64 @@ class RTEBaseConfig(BaseModel):
         make_wcoss_path_symlinks()
         if self.errors:
             raise RuntimeError(self.errors)
+
+    def configure_ngen_log(self, rb: RealizationBuilder) -> None:
+        """Configure the ngen logging, by setting the associated OS env variable for the directory to hold the logs,
+        and copying the associated json file into that directory.
+
+        ``fallback_log_dir`` is ignored when the RTE OS env var key NGEN_LOG_TO_RTE is true.
+        It is used to emulate behavior of nwm-cal-mgr and nwm-fcst-mgr (what they would use without RTE).
+
+        Parameters
+        ----------
+        rb : RealizationBuilder
+            An already built realization.
+        """
+        now_str = datetime.now(timezone.utc).strftime(r"%Y%m%d_%H%M%S_%f")
+
+        label = rb.run_type
+        if rb.use_cold_start:
+            label = f"{label}_cs"
+        if isinstance(self, RTETestConfig):
+            label = f"{label}_test"
+
+        if rb.run_type == "default":
+            fallback_log_dir = str(rb.work_dir)
+        elif rb.run_type == "forecast":
+            fallback_log_dir = str(rb.input_dir)
+        elif rb.run_type == "calibration":
+            fallback_log_dir = str(rb.work_dir)
+        else:
+            raise RuntimeError(f"Unexpected run_type: {rb.run_type}")
+
+        # Confirm that it's valid json content
+        print(f"Reading: {c.SRC_LOG_CONFIG_JSON}")
+        with open(c.SRC_LOG_CONFIG_JSON) as f:
+            try:
+                _ = json.load(f)
+            except Exception as e:
+                raise RuntimeError(
+                    f"Could not read or parse as json: {c.SRC_LOG_CONFIG_JSON}: {e}"
+                ) from e
+
+        # Decide the dir
+        setting_val = os.environ.get(c.RTE_NGEN_LOG_BEHAVIOR_KEY, "").lower().strip()
+        if setting_val in ("yes", "true"):
+            log_dir = os.path.join("/ngen-app/rte_ngen_logs", f"{now_str}_{label}")
+        elif setting_val in ("no", "false", ""):
+            log_dir = fallback_log_dir
+        else:
+            raise ValueError(
+                f"Invalid value for key {repr(c.RTE_NGEN_LOG_BEHAVIOR_KEY)}: {repr(setting_val)} (expected YES or NO, defaulting to NO if not provided)"
+            )
+
+        # Make the dir, copy the log json config into it, and set the OS env var for ngen to be able to find it.
+        print(f"Making directory: {log_dir}")
+        os.makedirs(log_dir, exist_ok=True)
+        print(f"Copying: {c.SRC_LOG_CONFIG_JSON} -> {log_dir}/")
+        shutil.copy2(c.SRC_LOG_CONFIG_JSON, log_dir)
+        print(f"Setting OS env var {c.NGEN_LOG_DIR_KEY} to {log_dir}")
+        os.environ[c.NGEN_LOG_DIR_KEY] = log_dir
 
     def _parse_lagged_ensemble_args(self):
         """Break up the multipart lagged ensemble arg into distinct args and set them.

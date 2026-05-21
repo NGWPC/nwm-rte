@@ -12,15 +12,11 @@ import argparse
 import functools
 
 from mswm.build_inputs import RealizationBuilder
-from nwm_fcst_mgr.forecast import (
-    run_forecast as run_fcst,
-)
 
 from ngen_rte.configs import RTEForecastConfig
 from ngen_rte.execution.ngen_async import NgenRunnerAsync
 from ngen_rte.run_config import cli_args
 from ngen_rte.tests import utils_testing_setup
-from ngen_rte.utils import configure_ngen_log
 
 print = functools.partial(print, flush=True)
 
@@ -34,7 +30,6 @@ def build_realization(
     print(f"Building realization: {rb_kwargs_final}")
     rb = RealizationBuilder(**rb_kwargs_final)
     rb.build_fcst_realization()
-    configure_ngen_log(rb.input_dir, log_label)
     print(f"Wrote: {rb.realization_file}")
     if cfg.nprocs > 1 and not rb.part_file:
         raise ValueError(
@@ -106,9 +101,11 @@ def main(cfg: RTEForecastConfig):
 
     if cfg.cold_start_datetime:
         rb_cs = build_coldstart_realization(cfg)
+        cfg.configure_ngen_log(rb_cs)
         run_realization(rb_cs, cfg)
     if cfg.cycle_datetime:
         rb_fcst = build_forecast_realization(cfg)
+        cfg.configure_ngen_log(rb_fcst)
         run_realization(rb_fcst, cfg)
 
 

@@ -355,7 +355,6 @@ class ForecastTest(BaseModel):
         try:
             config_cache = ConfigCache(self.rb.valid_yaml)
             with ForecastExecutionManager(
-                valid_yaml=self.rb.valid_yaml,
                 real_path=str(self.rb.realization_file),
                 config_cache=config_cache,
             ) as self.fcst_exe_mgr:

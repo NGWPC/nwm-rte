@@ -35,7 +35,6 @@ from ngen_rte.tests.execution_tests import (
     get_test_configs__calibration,
     get_test_configs__forecast,
 )
-from ngen_rte.utils import configure_ngen_log
 
 print = functools.partial(print, flush=True)
 
@@ -76,7 +75,7 @@ def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
             )
 
             if t.rb_stat == TestStat.PASS:
-                configure_ngen_log(t.rb.work_dir, "cal_test")
+                cfg.configure_ngen_log(t.rb)
                 # Execute the realization via ngen, trapping exceptions and logs into class attrs
                 print(f"### {msg_prefix}: executing calibration realization")
                 t.execute_calibration(
@@ -140,7 +139,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
 
             if t.rb_stat == TestStat.PASS:
                 # Execute the realization via ngen, trapping exceptions and logs into class attrs
-                configure_ngen_log(t.rb.input_dir, "fcst_test")
+                cfg.configure_ngen_log(t.rb)
                 print(f"### {msg_prefix}: executing realization via ngen")
                 t.execute_forecast(
                     quit_forecast_after_forcing_running=cfg.quit_forecast_after_forcing_running,

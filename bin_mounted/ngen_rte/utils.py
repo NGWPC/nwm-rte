@@ -39,50 +39,6 @@ def datetime_type(datetime_str) -> datetime:
     return datetime.strptime(datetime_str, DEFAULT_DATETIME_FORMAT)
 
 
-def configure_ngen_log(fallback_log_dir: str | pathlib.Path, label: str) -> None:
-    """Configure the ngen logging, by
-    setting the associated OS env variable for the directory to hold the logs, and
-    copying the associated json file into that directory.
-    Parameters:
-        fallback_log_dir : str
-            Is ignored when the RTE OS env var key NGEN_LOG_TO_RTE is true.
-            Used to emulate behavior of nwm-cal-mgr and nwm-fcst-mgr (what they would use without RTE)
-        label : str
-            Is ignored when the RTE OS env var key NGEN_LOG_TO_RTE is false.
-            Used to build the timestamped dir name.
-    """
-    fallback_log_dir = str(fallback_log_dir)  # In case it arrived as a pathlib.Path
-    now_str = datetime.now(timezone.utc).strftime(r"%Y%m%d_%H%M%S_%f")
-    # Confirm that it's valid json content
-    print(f"Reading: {c.SRC_LOG_CONFIG_JSON}")
-    with open(c.SRC_LOG_CONFIG_JSON) as f:
-        try:
-            _ = json.load(f)
-        except Exception as e:
-            raise RuntimeError(
-                f"Could not read or parse as json: {c.SRC_LOG_CONFIG_JSON}: {e}"
-            ) from e
-
-    # Decide the dir
-    setting_val = os.environ.get(c.RTE_NGEN_LOG_BEHAVIOR_KEY, "").lower().strip()
-    if setting_val in ("yes", "true"):
-        log_dir = os.path.join("/ngen-app/rte_ngen_logs", f"{now_str}_{label}")
-    elif setting_val in ("no", "false", ""):
-        log_dir = fallback_log_dir
-    else:
-        raise ValueError(
-            f"Invalid value for key {repr(c.RTE_NGEN_LOG_BEHAVIOR_KEY)}: {repr(setting_val)} (expected YES or NO, defaulting to NO if not provided)"
-        )
-
-    # Make the dir, copy the log json config into it, and set the OS env var for ngen to be able to find it.
-    print(f"Making directory: {log_dir}")
-    os.makedirs(log_dir, exist_ok=True)
-    print(f"Copying: {c.SRC_LOG_CONFIG_JSON} -> {log_dir}/")
-    shutil.copy2(c.SRC_LOG_CONFIG_JSON, log_dir)
-    print(f"Setting OS env var {c.NGEN_LOG_DIR_KEY} to {log_dir}")
-    os.environ[c.NGEN_LOG_DIR_KEY] = log_dir
-
-
 def datetime_from_str(datetime_str: str) -> datetime:
     """Convert string to datetime object"""
     return datetime.strptime(datetime_str, DEFAULT_DATETIME_FORMAT)

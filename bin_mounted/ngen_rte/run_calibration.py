@@ -21,7 +21,7 @@ from ngen_rte.configs import RTECalibConfig
 # from ngen_rte.execution.ngen_logs import NgenLogsParser
 from ngen_rte.run_config import cli_args
 from ngen_rte.tests import utils_testing_setup
-from ngen_rte.utils import configure_ngen_log, get_calibration_log_file_overwrite_path
+from ngen_rte.utils import get_calibration_log_file_overwrite_path
 
 print = functools.partial(print, flush=True)
 
@@ -59,7 +59,7 @@ def run_calibration(cfg, rb: RealizationBuilder) -> None:
     cwd = None
     msg_suffix = f" Log path: {log_path}"
 
-    configure_ngen_log(rb.work_dir, "cal")
+    cfg.configure_ngen_log(rb)
     start = time.perf_counter()
 
     # ngen_parser = NgenLogsParser(cfg=cfg, rb=rb)
