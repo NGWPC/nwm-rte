@@ -28,8 +28,6 @@
         "source=${localWorkspaceFolder}/bin_mounted/ngen_rte/tests/test_data/s3,target=/s3,type=bind",
         // For test data committed to ngen-forcing repository
         "source=${localWorkspaceFolder}/../ngen-forcing,target=/ngwpc/ngen-forcing,type=bind",
-        // For test data committed to nwm-msw-mgr repository
-        "source=${localWorkspaceFolder}/../nwm-msw-mgr,target=/ngen-app/nwm-msw-mgr,type=bind",
         // For seeing output data on the host disk
         "source=${localWorkspaceFolder}/../run_ngen,target=/ngwpc/run_ngen,type=bind"
     ],
