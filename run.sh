@@ -66,12 +66,8 @@ function docker_run {
         -v "${MNT__RUN_NGEN__HOST}/data/ngen-static-files:/ngencerf/data/ngen-static-files" \
         -v "${MNT__RUN_NGEN__HOST}/data/GEOGRID_LDASOUT_Spatial_Metadata_AK.nc:/ngen-app/data/GEOGRID_LDASOUT_Spatial_Metadata_AK.nc" \
         \
-        -v "${MNT__NGEN_FORCING__HOST}:${MNT__NGEN_FORCING__CONTAINER_1}" \
-        -v "${MNT__NGEN_FORCING__HOST}:${MNT__NGEN_FORCING__CONTAINER_2}" \
         -v "${MNT__S3_DATA__HOST}:${MNT__S3_DATA__CONTAINER_1}" \
         -v "${MNT__S3_DATA__HOST}:${MNT__S3_DATA__CONTAINER_2}" \
-        -v "${MNT__MODULE_PARAM_FILES_DIR__HOST}:${MNT__MODULE_PARAM_FILES_DIR__CONTAINER_1}" \
-        -v "${MNT__MODULE_PARAM_FILES_DIR__HOST}:${MNT__MODULE_PARAM_FILES_DIR__CONTAINER_2}" \
         -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
         -v "$(pwd)/ngen_logs:/ngen-app/rte_ngen_logs" \
         -v "$(pwd)/.devcontainer/tmp:/tmp" \
