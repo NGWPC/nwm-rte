@@ -38,14 +38,6 @@
         "source=${localWorkspaceFolder}/.devcontainer/tmp,target=/tmp,type=bind",
         // Scripts from nwm-rte repository
         "source=${localWorkspaceFolder}/bin_mounted,target=/ngen-app/bin/bin_mounted,type=bind",
-        // For forcing config files from .../ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/
-        // TODO bake these into the ngen-forcing Python package so we don't need to mount them from local paths.
-        "source=${localWorkspaceFolder}/../ngen-forcing,target=/ngwpc/ngen-forcing,type=bind",
-        //////
-        ////// For replicating ngenCERF environment
-        "source=${localWorkspaceFolder}/../run_ngen/data,target=/ngencerf/data/bmi_forcing_work,type=bind",
-        "source=${localWorkspaceFolder}/../run_ngen/data/ngen-cal-work,target=/ngencerf/data/ngen-cal-work,type=bind",
-        "source=${localWorkspaceFolder}/../run_ngen/data/ngen-static-files,target=/ngencerf/data/ngen-static-files,type=bind",
         //////
         ////// (Optional) for local code of component packages, allowing convenient debugger interaction ("editable" pip installs, VS Code editor breakpoints, etc)
         // ngen
