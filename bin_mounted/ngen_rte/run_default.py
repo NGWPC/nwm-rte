@@ -17,16 +17,9 @@ from ngen_rte.configs import RTEDefaultConfig
 from ngen_rte.execution.ngen_async import NgenRunnerAsync
 from ngen_rte.run_config import cli_args
 from ngen_rte.tests import utils_testing_setup
+from ngen_rte.utils import build_realization
 
 print = functools.partial(print, flush=True)
-
-
-def build_default_realization(cfg: RTEDefaultConfig) -> RealizationBuilder:
-    """Build and return a non-coldstart forecast realization"""
-    print("Building default realization...")
-    rb = RealizationBuilder(**cfg.mswm_RealizationBuilder_kwargs)
-    rb.build_default_realization()
-    return rb
 
 
 def run_default(rb: RealizationBuilder, cfg: RTEDefaultConfig) -> None:
@@ -55,7 +48,9 @@ def main(cfg: RTEDefaultConfig):
     if cfg.delete_forcing_raw_input_first:
         utils_testing_setup.delete_forcing_raw_inputs()
 
-    rb = build_default_realization(cfg)
+    rb = build_realization(
+        cfg.mswm_RealizationBuilder_kwargs, build_method="build_default_realization"
+    )
     cfg.configure_ngen_log(rb)
     run_default(rb, cfg)
 

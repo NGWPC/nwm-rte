@@ -27,6 +27,7 @@ from ngen_rte.configs import (
     RTETestConfig,
     make_parallel_config,
 )
+from ngen_rte.utils import build_realization
 
 print = functools.partial(print, flush=True)
 
@@ -251,8 +252,7 @@ class ForecastTest(BaseModel):
         build_method must be a valid build_method of RealizationBuilder, e.g. 'build_fcst_realization' or 'build_calibration_realization'.
         """
         try:
-            self.rb = RealizationBuilder(**self.rb_kwargs)
-            getattr(self.rb, build_method)()
+            self.rb = build_realization(self.rb_kwargs, build_method=build_method)
         except Exception as e:
             print(
                 f"Caught unexpected exception in main thread while instantiating RealizationBuilder or calling method {repr(build_method)}: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."

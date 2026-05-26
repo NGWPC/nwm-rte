@@ -9,7 +9,6 @@ Reads logs for:
 import os
 import time
 from collections.abc import Generator
-from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -26,6 +25,7 @@ from ngen_rte.execution.ngen_logs import (
     _LogParserGeneric,
     _LogParserNgen,
 )
+from ngen_rte.utils import transmit
 from nwm_fcst_mgr.exceptions import (
     NgenCalledProcessError,
     NgenIntentionallyStoppedError,
@@ -136,7 +136,7 @@ class NgenRunnerAsync(BaseModel):
                 new_log_parts,
                 log_file,
             ) in self._iter_new_log_parts_until_complete():
-                self._transmit(mpi_rank, new_log_parts, log_file)
+                transmit(mpi_rank, new_log_parts, log_file)
         except NgenCalledProcessError as e:
             raise RuntimeError(f"Error during forecast run: {e}") from e
         except NgenIntentionallyStoppedError as e:
@@ -216,16 +216,3 @@ class NgenRunnerAsync(BaseModel):
             raise RuntimeError(f"Error while monitoring ngen run: {e}") from e
         finally:
             yield from self._iter_new_log_parts(final=True)
-
-    def _transmit(
-        self, mpi_rank: int, log_parts: LogParts, log_file: Path | str
-    ) -> None:
-        """Transmit information about the run."""
-        # TODO implement actual transmission logic (send to file or service)
-        # TODO get these log levels from an enum (from ewts?)
-        if log_parts.level in ("WARNING", "ERROR", "CRITICAL", "SEVERE", "FATAL"):
-            print(f"Concern: {Path(log_file).name}: rank {mpi_rank}: {log_parts}")
-        if log_parts.payload:
-            print(
-                f"Transmitting payload from {Path(log_file).name}: rank {mpi_rank}: {asdict(log_parts.payload)}"
-            )

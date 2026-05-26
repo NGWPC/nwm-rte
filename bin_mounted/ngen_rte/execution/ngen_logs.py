@@ -6,9 +6,8 @@ import time
 import traceback
 from pathlib import Path
 
-import ewts
 import ngen_rte.consts as c
-from ewts import EwtsLogger, LogParts, get_logger, parts_of_log_line
+from ewts import LogParts, parts_of_log_line
 from mswm.build_inputs import RealizationBuilder
 from ngen_rte.configs import (
     RTEBaseConfig,

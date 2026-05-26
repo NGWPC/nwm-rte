@@ -17,40 +17,9 @@ from ngen_rte.configs import RTEForecastConfig
 from ngen_rte.execution.ngen_async import NgenRunnerAsync
 from ngen_rte.run_config import cli_args
 from ngen_rte.tests import utils_testing_setup
+from ngen_rte.utils import build_realization
 
 print = functools.partial(print, flush=True)
-
-
-def build_realization(
-    cfg: RTEForecastConfig, rb_kwargs_final: dict
-) -> RealizationBuilder:
-    """Build and return a forecast realization, applying the provided rb_kwargs_final as-is to support optional coldstart."""
-    print(f"Building realization: {rb_kwargs_final}")
-    rb = RealizationBuilder(**rb_kwargs_final)
-    rb.build_fcst_realization()
-    print(f"Wrote: {rb.realization_file}")
-    if cfg.nprocs > 1 and not rb.part_file:
-        raise ValueError(
-            f"Expected partition file since cfg.nprocs > 1 ({cfg.nprocs}), but it is {repr(rb.part_file)}"
-        )
-    return rb
-
-
-def build_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
-    """Build and return a coldstart forecast realization."""
-    rb_kwargs_final = cfg.mswm_RealizationBuilder_kwargs | {"use_cold_start": True}
-    rb = build_realization(cfg, rb_kwargs_final)
-    return rb
-
-
-def build_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
-    """Build and return a non-coldstart forecast realization."""
-    rb_kwargs_final = cfg.mswm_RealizationBuilder_kwargs | {
-        "use_cold_start": False,
-    }
-
-    rb = build_realization(cfg, rb_kwargs_final)
-    return rb
 
 
 def run_realization(rb: RealizationBuilder, cfg: RTEForecastConfig) -> None:
@@ -95,11 +64,18 @@ def main(cfg: RTEForecastConfig):
         utils_testing_setup.delete_forcing_raw_inputs()
 
     if cfg.cold_start_datetime:
-        rb_cs = build_coldstart_realization(cfg)
+        rb_cs = build_realization(
+            cfg.mswm_RealizationBuilder_kwargs | {"use_cold_start": True},
+            "build_fcst_realization",
+        )
         cfg.configure_ngen_log(rb_cs)
         run_realization(rb_cs, cfg)
+
     if cfg.cycle_datetime:
-        rb_fcst = build_forecast_realization(cfg)
+        rb_fcst = build_realization(
+            cfg.mswm_RealizationBuilder_kwargs | {"use_cold_start": False},
+            "build_fcst_realization",
+        )
         cfg.configure_ngen_log(rb_fcst)
         run_realization(rb_fcst, cfg)
 

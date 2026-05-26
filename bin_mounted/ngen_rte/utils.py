@@ -1,17 +1,138 @@
 """Misc utilities and type handlers"""
 
-import json
 import os
-import pathlib
 import re
-import shutil
+import traceback
+from dataclasses import asdict, dataclass, field, fields
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import pandas as pd
+from ewts import LogParts, Status
+from ewts import Payload as Pld
+from ewts.modules import ModuleKey
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
 from ngen_rte import consts as c
+
+TRANSMISSION_CONCERN_LOG_LEVELS = (
+    "WARNING",
+    "ERROR",
+    "CRITICAL",
+    "SEVERE",
+    "FATAL",
+)
+
+
+class MSWMRealizationBuilderInitializeError(Exception):
+    """Raised when MSWM fails to initialize an instance of RealizationBuilder"""
+
+
+class MSWMRealizationBuilderBuildError(Exception):
+    """Raised when MSWM fails to build a realization using an instance of RealizationBuilder"""
+
+
+@dataclass
+class ExcInfo:
+    """Break up an exception instance into its type, message, traceback object,
+    and formatted traceback string (escaped)."""
+
+    e: Exception
+    typ: type = field(init=False)
+    msg: str = field(init=False)
+    tb: str = field(init=False)
+
+    def __post_init__(self):
+        self.typ = type(self.e)
+        self.msg = str(self.e)
+        # Make the traceback string, then escape it.
+        tb = "".join(traceback.format_exception(self.e))
+        self.tb = tb.replace("\n", "\\n").replace("\t", "\\t")
+
+
+def transmit(
+    mpi_rank: int | None = None,
+    log_parts: LogParts = None,
+    log_file: Path | str | None = None,
+    exc: Exception | None = None,
+) -> None:
+    """Transmit information about the run.
+
+    TODO Currently this simply calls print() with the relevant information.
+    Actual transmission logic should be implemented (send to file or service).
+    """
+    log_file_bn = Path(log_file).name if log_file else None
+    exc_info = ExcInfo(exc) if exc is not None else None
+    if log_parts and log_parts.level in TRANSMISSION_CONCERN_LOG_LEVELS:
+        print(f"Concern: {log_file_bn}: rank {mpi_rank}: {log_parts}")
+    if log_parts.payload:
+        print(
+            f"Transmitting payload from log {log_file_bn}: rank {mpi_rank}: {asdict(log_parts.payload)}. Exception: {asdict(exc_info) if exc_info else None}"
+        )
+
+
+def LogParts_payload_only(payload: Pld) -> LogParts:
+    """Factory for a LogParts containing only the payload attribute.
+    For transmitting structured data that is not associated with a particular log line."""
+    kwargs = {f.name: None for f in fields(LogParts)}
+    kwargs["payload"] = payload
+    kwargs["tolerant"] = True
+    return LogParts(**kwargs)
+
+
+def build_realization(rb_kwargs: dict, build_method: str) -> RealizationBuilder:
+    """Build a realization using the provided RealizationBuilder kwargs
+    and name of build method. Catch errors and send transmissions."""
+    modnm = ModuleKey.MSW_MGR.value
+    print(f"Building realization: {rb_kwargs}")
+
+    e_wrapped = None
+
+    transmit(
+        log_parts=LogParts_payload_only(
+            Pld(Status.INITTING, msg="Initializing RealizationBuilder", modnm=modnm)
+        )
+    )
+    try:
+        rb = RealizationBuilder(**rb_kwargs)
+    except Exception as e:
+        msg = f"Failed to initialize RealizationBuilder with kwargs: {rb_kwargs}"
+        e_wrapped = MSWMRealizationBuilderInitializeError(msg)
+        e_wrapped.__cause__ = e
+    else:
+        transmit(
+            log_parts=LogParts_payload_only(
+                Pld(Status.INITTED, msg="Initialized RealizationBuilder", modnm=modnm)
+            )
+        )
+        transmit(
+            log_parts=LogParts_payload_only(
+                Pld(Status.STARTING, msg=f"Calling: {build_method}", modnm=modnm)
+            )
+        )
+        try:
+            getattr(rb, build_method)()
+        except Exception as e:
+            msg = f"Failed to build realization with method {repr(build_method)} from kwargs: {rb_kwargs}"
+            e_wrapped = MSWMRealizationBuilderBuildError(msg)
+            e_wrapped.__cause__ = e
+        else:
+            transmit(
+                log_parts=LogParts_payload_only(
+                    Pld(Status.COMPLETE, msg=f"Finished: {build_method}", modnm=modnm)
+                )
+            )
+
+    if e_wrapped is not None:
+        transmit(
+            log_parts=LogParts_payload_only(Pld(Status.ERROR, msg=msg, modnm=modnm)),
+            exc=e_wrapped,
+        )
+        raise e_wrapped
+
+    print(f"Wrote: {rb.realization_file}")
+    return rb
 
 
 def make_symlink(link_path: str, target_path: str) -> None:
