@@ -1,0 +1,160 @@
+site_name: "Runtime Environment for the NWM NextGen Framework"
+site_description: Runtime Environment for the National Water Model (NWM) NextGen Water Modeling Framework (ngen)
+site_author: Max Kipp
+# site_url: https://NGWPC.github.io/nwm-rte
+
+# repo_name: NGWPC/nwm-rte
+# repo_url: https://github.com/NGWPC/nwm-rte
+edit_uri: ""
+
+copyright: Copyright &copy; 2025-2026 Raytheon Company. BSD-2-Clause License.
+
+nav:
+- Home: README.md
+- User Guide:
+  - Build Architecture: user-guide/build-architecture.md
+  - Orientation: user-guide/orientation.md
+  - Get Started: user-guide/get-started.md
+  - Configuration: user-guide/configuration.md
+  - DevContainer and Debugger: user-guide/devcon-debug.md
+  - Custom Builds: user-guide/custom-builds.md
+  - Regionalization Workflows: user-guide/regionalization.md
+  - Caveats: user-guide/caveats.md
+- Reference:
+  - Reference Home: reference/home.md
+  - Shell: reference/shell.md
+  - Python: reference/python.md
+- Contributing: CONTRIBUTING.md
+- Terms: TERMS.md
+- License: LICENSE.md
+
+plugins:
+- search
+# - mike:
+#     alias_type: symlink
+#     canonical_version: stable
+# - redirects:
+#     redirect_maps:
+#       'README.md': 'UNDER_CONSTRUCTION.md'
+- mkdocstrings:
+    default_handler: python
+    handlers:
+      python:
+        paths:
+        - bin_mounted
+        options:
+          docstring_style: numpy
+          docstring_section_style: spacy
+          show_source: true
+          show_root_heading: true
+          show_root_full_path: true
+          show_symbol_type_heading: true
+          show_symbol_type_toc: true
+          members_order: source
+          merge_init_into_class: false
+          separate_signature: true
+          signature_crossrefs: true
+          show_signature_annotations: true
+
+# exclude_docs: |
+
+# hooks:
+# - docs/hooks.py
+
+extra_css:
+- stylesheets/extra.css
+
+theme:
+  name: materialx
+  topbar_style: primary
+  palette:
+  - media: (prefers-color-scheme)
+    toggle:
+      icon: material/brightness-auto
+      name: Switch to light mode
+  - media: '(prefers-color-scheme: light)'
+    scheme: default
+    primary: indigo
+    accent: indigo
+    toggle:
+      icon: material/brightness-7
+      name: Switch to dark mode
+  - media: '(prefers-color-scheme: dark)'
+    scheme: slate
+    primary: black
+    accent: black
+    toggle:
+      icon: material/brightness-4
+      name: Switch to system preference
+  icon:
+    edit: material/pencil
+    view: material/eye
+    repo: fontawesome/brands/github
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+  - content.action.edit
+  - content.code.annotate
+  - content.code.copy
+  - content.tabs.link
+  - navigation.collapse
+  - navigation.expand
+  - navigation.footer
+  - navigation.indexes
+  - navigation.instant
+  - navigation.instant.progress
+  - navigation.path
+  - navigation.indexes
+  - navigation.tabs
+  - navigation.tabs.sticky
+  - navigation.top
+  - navigation.tracking
+  - search.highlight
+  - search.share
+  - search.suggest
+  - toc.follow
+  - toc.integrate
+
+markdown_extensions:
+- abbr
+- admonition
+- attr_list
+- def_list
+- footnotes
+- md_in_html
+- tables
+- toc:
+    toc_depth: 3
+    permalink: '#'
+- pymdownx.arithmatex:
+    generic: true
+- pymdownx.betterem:
+    smart_enable: all
+- pymdownx.caret
+- pymdownx.critic
+- pymdownx.details
+- pymdownx.highlight:
+    anchor_linenums: true
+    line_spans: __span
+    pygments_lang_class: true
+- pymdownx.inlinehilite
+- pymdownx.keys
+# - pymdownx.magiclink:
+#     normalize_issue_symbols: true
+#     repo_url_shorthand: true
+#     user: NGWPC
+#     repo: nwm-rte
+- pymdownx.mark
+- pymdownx.smartsymbols
+- pymdownx.snippets
+- pymdownx.superfences:
+    custom_fences:
+    - name: mermaid
+      class: mermaid
+      format: !!python/name:pymdownx.superfences.fence_code_format
+- pymdownx.tabbed:
+    alternate_style: true
+- pymdownx.tasklist:
+    custom_checkbox: true
+- pymdownx.tilde

@@ -1,0 +1,30 @@
+[project]
+name = "nwm-rte"
+authors = [
+]
+
+description = "Runtime Environment for the National Water Model (NWM) NextGen Water Modeling Framework (ngen)"
+readme = { file = "README.md", content-type = "text/markdown" }
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+dependencies = []
+dynamic = ["version"]
+
+optional-dependencies.test = ["pytest"]
+
+optional-dependencies.docs = [
+  "mike>=2",
+  "mkdocs>=1.6",
+  "mkdocs-materialx>=10.1.1",
+  "mkdocs-redirects",
+  "mkdocstrings[python]>=0.27",
+  "mkdocstrings-shell",
+  "ruff",
+]
+
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+line-length = 88

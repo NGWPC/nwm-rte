@@ -1,0 +1,114 @@
+usage: run_forecast.py [-h] [-csdt COLD_START_DATETIME] -dt CYCLE_DATETIME
+                       [-delraw] [-delscratch] [-e {test,oe}]
+                       [-rname FCST_RUN_NAME] [-fconfig FORCING_CONFIGURATION]
+                       [-fstatic FORCING_STATIC_DIR] [-g GAGE_ID]
+                       [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
+                       [-le LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS]
+                       [-nwmout] [-n NPROCS] [-ofunc OBJECTIVE_FUNCTION]
+                       [-optalgo OPTIMIZATION_ALGORITHM] [-ts]
+
+Script for building and running a forecast realization,
+optionally with a coldstart.
+
+options:
+  -h, --help : type=None
+                        show this help message and exit
+
+  -csdt, --cold_start_datetime : type=datetime_type default=None
+                        If provided, a cold-start realization will be ran prior to the forecast,
+                        and this value will be the start time for the cold-start.
+                        Format: {DEFAULT_DATETIME_FORMAT}.
+
+  -dt, --cycle_datetime : type=datetime_type default=None
+                        For a regular forecast, this is the start time.
+                        When cold-start is used, this is the *end* of the cold-start cycle.
+                        Format: '%Y-%m-%d %H:%M:%S'.
+
+  -delraw, --delete_forcing_raw_input_first : bool-switch(store-true) default=False
+                        Delete contents of '/ngen-app/data/raw_input' before the run,
+                        which forces forcing data to be re-downloaded.
+
+  -delscratch, --delete_scratch_and_mesh_first : bool-switch(store-true) default=False
+                        Delete scratch dir and ESMF mesh files before the run,
+                        which forces ESMF and NetCDF actions to occur.
+
+  -e, --environment : type=str default='test'
+                        Operating environment. Affects name of server used to fetch input data. Passed to MSWM GeneralConfig.
+
+  -rname, --fcst_run_name : type=str default='fcst_run1'
+                        Forecast run name.
+
+  -fconfig, --forcing_configuration : type=str default=None
+                        Forcing configuration to use, e.g., 'short_range', 'standard_ana', 'aorc', etc.
+                        Choices and defaults vary per realization type:
+                          Forecast Realization:
+                            Default: 'standard_ana'. Choices:
+                            'standard_ana', 'standard_ana_alaska', 'standard_ana_hawaii'
+                            'standard_ana_puertorico', 'extended_ana', 'extended_ana_alaska'
+                            'short_range', 'short_range_alaska', 'short_range_hawaii'
+                            'short_range_puertorico', 'short_range_extended_alaska', 'medium_range_blend'
+                            'medium_range_blend_alaska', 'long_range_mem1', 'long_range_mem2'
+                            'long_range_mem3', 'long_range_mem4'
+                          Calibration Realization:
+                            Default: 'aorc'. Choices: 
+                            'aorc', 'nwm'
+                          Default Realization:
+                            Default: 'aorc'. Choices: 
+                            'standard_ana', 'standard_ana_alaska', 'standard_ana_hawaii'
+                            'standard_ana_puertorico', 'extended_ana', 'extended_ana_alaska'
+                            'short_range', 'short_range_alaska', 'short_range_hawaii'
+                            'short_range_puertorico', 'short_range_extended_alaska', 'medium_range_blend'
+                            'medium_range_blend_alaska', 'long_range_mem1', 'long_range_mem2'
+                            'long_range_mem3', 'long_range_mem4', 'aorc'
+                            'nwm', 'medium_range'
+
+  -fstatic, --forcing_static_dir : type=str default='/ngen-app/data'
+                        Directory for static forcing files, used when forcing_provider is 'bmi'.
+
+  -g, --gage_id : type=str default='01123000'
+                        Gage ID.
+
+  -gdomain, --global_domain : type=str default='CONUS'
+                        Global domain/region of forcing data.
+
+  -le, --lagged-ensemble : type=str default=None
+                        Provide this multi-part argument to run one member
+                        of a lagged ensemble (see nwm-fcst-mgr function `run_lagged_ensemble`).
+                        Only applicable to the "medium_range" forcing configuration.
+                        Not applicable to the cold-start realization.
+                        
+                        To run an ensemble, call this script multiple times
+                        with varying values for this argument, e.g. "mem1", "mem2", etc.
+                        
+                        This argument has 3 parts:
+                            1. member_name : str (required when -le provided)
+                                Name of the ensemble member. Choose from: 
+                            'no_da', 'mem1', 'mem2'
+                            'mem3', 'mem4', 'mem5'
+                            'mem6'
+                            2. open_loop_state : str (optional)
+                                Path to an existing open-loop state file.
+                                To omit, provide an empty string for this part.
+                            3. closed_loop_state : str (optional)
+                                Path to an existing closed-loop state file.
+                                To omit, provide an empty string for this part.
+                        
+                        To run a lagged ensemble member without the optional parts,
+                        provide them as empty strings e.g. `-le 'mem2' '' ''`.
+
+  -nwmout, --nwm_output_vars_true : bool-switch(store-true) default=False
+                        If provided, NWMOutputConfig.nwm_output_variables will be set to True
+
+  -n, --nprocs : type=int default=1
+                        Number of processors
+
+  -ofunc, --objective_function : type=Objective default=<Objective.kge: 'kge'>
+                        Objective function of previously-ran calibration realization
+                        for basis of forecast. Affects directory path.
+
+  -optalgo, --optimization_algorithm : type=Algorithm default=<Algorithm.dds: 'dds'>
+                        Optimization algorithm of previously-ran calibration realization
+                        for basis of forecast. Affects directory path.
+
+  -ts, --timestamp_run_name : bool-switch(store-true) default=False
+                        If provided, add a timestamp suffix to the run name.

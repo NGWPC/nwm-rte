@@ -1,0 +1,47 @@
+# Python-specific files and directories
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.Python
+**/venv/
+**/env/
+**/.env
+**/site-packages/
+
+# Editor/IDE specific files
+**/.vscode/
+**/.idea/
+**/*.sublime-project
+**/*.sublime-workspace
+
+# Version control specific files
+### .git should not be dockerignored, since add_git_info.py uses that.
+# **/.git/
+**/.gitignore
+
+# Build/distribution artifacts
+**/dist/
+**/build/
+**/*.egg-info/
+
+# Test-related files
+**/.pytest_cache/
+**/htmlcov/
+**/.coverage
+
+# Documentation files
+### These should not be dockerignored, since cal mgr looks for its own README.md during pip install.
+# **/docs/
+# **/*.md
+
+# Database files
+**/*.sqlite3
+**/*.db
+
+# Docker-related files (often not needed in the build context)
+**/Dockerfile
+**/docker-compose.yml
+
+# Region manager input data
+nwm-region-mgr/data/

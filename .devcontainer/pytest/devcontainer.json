@@ -1,0 +1,35 @@
+{
+    "name": "ngen_rte_pytest",
+    // "runArgs": [
+    //     "--pull",
+    //     "never"
+    // ],
+    // Use OS env var TARGET_IMAGE_NAME if it is set, otherwise default to "ngen_rte_ghcr".
+    // GHA workflow leverages OS env var TARGET_IMAGE_NAME.
+    // "image": "ngen_rte_ghcr",
+    "image": "${localEnv:TARGET_IMAGE_NAME:ngen_rte_ghcr}",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-azuretools.vscode-docker"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/ngen-app/ngen-python/bin/python"
+            }
+        }
+    },
+    "workspaceFolder": "/workspace",
+    "workspaceMount": "source=${localWorkspaceFolder}/bin_mounted,target=/workspace,type=bind",
+    "mounts": [
+        // For test code
+        "source=${localWorkspaceFolder}/bin_mounted,target=/ngen-app/bin/bin_mounted,type=bind",
+        // For test data committed to nwm-rte repository, mount it to a certain root
+        "source=${localWorkspaceFolder}/bin_mounted/ngen_rte/tests/test_data/s3,target=/s3,type=bind",
+        // For test data committed to ngen-forcing repository
+        "source=${localWorkspaceFolder}/../ngen-forcing,target=/ngwpc/ngen-forcing,type=bind",
+        // For seeing output data on the host disk
+        "source=${localWorkspaceFolder}/../run_ngen,target=/ngwpc/run_ngen,type=bind"
+    ],
+    "remoteUser": "root"
+}

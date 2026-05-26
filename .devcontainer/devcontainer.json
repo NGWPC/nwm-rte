@@ -1,0 +1,58 @@
+{
+    "name": "ngen_rte",
+    //// Choose one existing image tag to use for the devcontainer. "ngen_rte_ghcr" is a common value so it is the default.
+    "image": "ngen_rte_ghcr",
+    // "image": "ngen_rte_build_from_local",
+    // "image": "ngen_rte_build_from_remote",
+    //
+    //// FORCING_LOGLEVEL is a vestige of an earlier version of ngen-forcing which used this OS var to
+    //// control its log level. In later versions of ngen-forcing, the universal EWTS package is used,
+    //// and log level is controlled by `./bin_mounted/ngen_logging.json`.
+    // "containerEnv": {
+    //     "FORCING_LOGLEVEL": "DEBUG"
+    // },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.debugpy",
+                "ms-python.mpi4py",
+                "ms-vscode.cpptools",
+                "ms-azuretools.vscode-docker"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/ngen-app/ngen-python/bin/python"
+            }
+        }
+    },
+    "mounts": [
+        //////
+        ////// Various input and output data, configs, and scripts.
+        // Data
+        "source=${localWorkspaceFolder}/../run_ngen,target=/ngwpc/run_ngen,type=bind",
+        // Data
+        "source=${localWorkspaceFolder}/../run_ngen/data,target=/ngen-app/data,type=bind",
+        // Data
+        "source=${localWorkspaceFolder}/../s3,target=/s3,type=bind",
+        // For saving certain forcing cache files to host disk and preserving them between runs. e.g. "/tmp/aorc_ce4b1034_2013.nc".
+        "source=${localWorkspaceFolder}/.devcontainer/tmp,target=/tmp,type=bind",
+        // Scripts from nwm-rte repository
+        "source=${localWorkspaceFolder}/bin_mounted,target=/ngen-app/bin/bin_mounted,type=bind",
+        //////
+        ////// (Optional) for local code of component packages, allowing convenient debugger interaction ("editable" pip installs, VS Code editor breakpoints, etc)
+        // ngen
+        "source=${localWorkspaceFolder}/../ngen,target=/workspaces/nwm-rte/src/ngen,type=bind",
+        // Forcing
+        "source=${localWorkspaceFolder}/../ngen-forcing,target=/workspaces/nwm-rte/src/ngen-forcing,type=bind",
+        // Forecast Manager
+        "source=${localWorkspaceFolder}/../nwm-fcst-mgr,target=/workspaces/nwm-rte/src/nwm-fcst-mgr,type=bind",
+        // Model Setup Workflow Manager
+        "source=${localWorkspaceFolder}/../nwm-msw-mgr,target=/workspaces/nwm-rte/src/nwm-msw-mgr,type=bind",
+        // Calibration Manager
+        "source=${localWorkspaceFolder}/../nwm-cal-mgr,target=/workspaces/nwm-rte/src/nwm-cal-mgr,type=bind",
+    ],
+    "remoteUser": "root",
+    // Script can contain pip (re)install calls from local src mount locations with -e flag
+    // (they must be mounted above for this to work)
+    "postStartCommand": "./.devcontainer/devcontainer.json.poststart.sh"
+}

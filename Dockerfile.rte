@@ -1,0 +1,121 @@
+
+ARG GH_ORG
+ARG NGEN_BASE_IMAGE=ghcr.io/${GH_ORG,,}/ngen:latest
+FROM $NGEN_BASE_IMAGE AS ngen_rte_base
+ARG GH_ORG
+
+# OCI Metadata Arguments
+ARG TARGET_IMAGE_DESCRIPTION="Docker image for the National Water Model Runtime Environment (NWM RTE)."
+ARG TARGET_IMAGE_SOURCE="unknown"
+ARG TARGET_IMAGE_VENDOR="unknown"
+ARG TARGET_IMAGE_VERSION="unknown"
+ARG TARGET_IMAGE_REVISION="unknown"
+ARG TARGET_IMAGE_CREATED="unknown"
+
+# OCI Standard Labels
+LABEL org.opencontainers.image.description=$TARGET_IMAGE_DESCRIPTION \
+    org.opencontainers.image.source=$TARGET_IMAGE_SOURCE \
+    org.opencontainers.image.vendor=$TARGET_IMAGE_VENDOR \
+    org.opencontainers.image.version=$TARGET_IMAGE_VERSION \
+    org.opencontainers.image.revision=$TARGET_IMAGE_REVISION \
+    org.opencontainers.image.created=$TARGET_IMAGE_CREATED
+
+### FORCING_LOGLEVEL is a vestige of an earlier version of ngen-forcing which used this OS var to
+### control its log level. In later versions of ngen-forcing, the universal EWTS package is used,
+### and log level is controlled by `./bin_mounted/ngen_logging.json`.
+# ENV FORCING_LOGLEVEL=DEBUG
+
+### Static args
+ARG PYTHON_ENV="/ngen-app/ngen-python/bin"
+ARG PYTHON_VERSION_STR="python3.11"
+ENV PIP_NO_CACHE_DIR=1
+ENV OMPI_ALLOW_RUN_AS_ROOT=1
+ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+
+COPY nwm-rte/add_git_info.py .
+
+### Create directory for git info JSON files
+RUN mkdir -p /ngen-app/git-info
+
+### Activate the venv
+ENV PATH="${PYTHON_ENV}:${PATH}"
+RUN python -m pip install --upgrade pip
+
+### Install debuggers if specified
+ARG INSTALL_DEBUGGERS
+RUN --mount=type=bind,src=nwm-rte/install_debuggers.sh,dst=/src/${GH_ORG}/nwm-rte/install_debuggers.sh \
+    "/src/${GH_ORG}/nwm-rte/install_debuggers.sh" "${INSTALL_DEBUGGERS}"
+
+
+### Install nwm packages
+
+ARG REPO_TAG_FCST_MGR
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-fcst-mgr,dst=/src/${GH_ORG}/nwm-fcst-mgr \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-fcst-mgr" "${REPO_TAG_FCST_MGR}" ""
+
+ARG REPO_TAG_MSW_MGR
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-msw-mgr,dst=/src/${GH_ORG}/nwm-msw-mgr \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-msw-mgr" "${REPO_TAG_MSW_MGR}" ""
+
+ARG REPO_TAG_CAL_MGR
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-cal-mgr,dst=/src/${GH_ORG}/nwm-cal-mgr \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-cal-mgr" "${REPO_TAG_CAL_MGR}" ""
+
+ARG REPO_TAG_REGION_MGR
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-region-mgr,dst=/src/${GH_ORG}/nwm-region-mgr \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-region-mgr" "${REPO_TAG_REGION_MGR}" "[parreg]"
+
+ARG REPO_TAG_DATA_ASSIM_ENGINE
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-data-assimilation,dst=/src/${GH_ORG}/nwm-data-assimilation \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-data-assimilation" "${REPO_TAG_DATA_ASSIM_ENGINE}" ""
+
+## ngen-forcing package is included with the starting base image,
+## but it can be reinstalled from another branch or from local.
+## See README.md for caveats.
+ARG REPO_TAG_NGEN_FORCING
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=ngen-forcing,dst=/src/${GH_ORG}/ngen-forcing \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "ngen-forcing" "${REPO_TAG_NGEN_FORCING}" ""
+
+
+##################################################
+#### BEGIN SECOND STAGE: Adding a separate Python venv for nwm.eval and nwm.verf
+FROM ngen_rte_base AS ngen_rte_eval_verf
+
+# Call modules like `python_eval_verf -m nwm.verf`
+ARG EVAL_VERF_PYTHON_ALIAS="python_eval_verf"
+ARG EVAL_VERF_VENV="/ngen-app/venvs/eval_verf"
+ARG EVAL_VERF_PYTHON_BIN_DIR="${EVAL_VERF_VENV}/bin"
+ARG EVAL_VERF_PYTHON_BIN_FILE="${EVAL_VERF_PYTHON_BIN_DIR}/python"
+
+# Make the venv
+RUN python -m venv "${EVAL_VERF_VENV}"
+# Add an alias for convenience
+RUN echo "alias ${EVAL_VERF_PYTHON_ALIAS}=\"${EVAL_VERF_PYTHON_BIN_FILE}\"" >> ~/.bashrc
+
+# Save the current PATH and PYTHONPATH
+ENV PATH_SAVED=${PATH}
+ENV PYTHONPATH_SAVED=${PYTHONPATH}
+# Adjust PATH and PYTHONPATH to give this environment precedent
+ENV PATH="${EVAL_VERF_PYTHON_BIN_DIR}:${PATH}"
+ENV PYTHONPATH="${EVAL_VERF_PYTHON_BIN_DIR}/lib/${PYTHON_VERSION_STR}/site-packages"
+
+ARG REPO_TAG_VERF
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-verf,dst=/src/${GH_ORG}/nwm-verf \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "${GH_ORG}" "nwm-verf" "${REPO_TAG_VERF}" ""
+
+ARG REPO_TAG_EVAL
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-eval-mgr,dst=/src/${GH_ORG}/nwm-eval-mgr \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "${GH_ORG}" "nwm-eval-mgr" "${REPO_TAG_EVAL}" ""
+
+##############################
+#### Clean up: reset PATH and PYTHONPATH
+ENV PATH=${PATH_SAVED}
+ENV PYTHONPATH=${PYTHONPATH_SAVED}

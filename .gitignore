@@ -205,3 +205,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Repo specific
+/docker_logs/
+/ngen_logs/
+/tmp/
+/bin_mounted/*_tests_results*.json
+/.devcontainer/tmp/

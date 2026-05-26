@@ -1,0 +1,223 @@
+// The configurations starting with an underscore should be treated as private and not accessed directly.
+// 
+// For many of the debugger configurations, RTE must have been built with INSTALL_DEBUGGERS=YES in config.bashrc.
+// 
+// Compound configuration for mpirun -n 2 was adapted from: https://gist.github.com/xangma/b2bc310e595f7abf61ff1e19f3fd63f5
+// It starts individual debugpy instances to attach to each MPI rank after the C++ debugger (cppdbg) has started them with mpirun.
+//
+// The python code must include this after MpiConfig communicator has initialized.
+//   debugpy.listen(('localhost', 5678 + self.rank))
+//   debugpy.wait_for_client()
+//
+// Breakpoints in the python code can be set in the VS Code margins, and/or coded like: `debugpy.breakpoint()`
+//
+{
+    "version": "0.2.0",
+    "compounds": [
+        {
+            "name": "forcing_mpi_n2",
+            // Private configurations that support the public compound
+            "configurations": [
+                "__forcing_mpi_n2",
+                "__python_attach_rank_0",
+                "__python_attach_rank_1",
+            ],
+            "stopAll": true
+        },
+        {
+            "name": "forcing_mpi_n3",
+            // Private configurations that support the public compound
+            "configurations": [
+                "__forcing_mpi_n3",
+                "__python_attach_rank_0",
+                "__python_attach_rank_1",
+                "__python_attach_rank_2",
+            ],
+            "stopAll": true
+        },
+    ],
+    "configurations": [
+        {
+            "name": "forcing_nompi",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "NextGen_Forcings_Engine_BMI.run_bmi_model",
+            "args": [
+                "2013-07-25 00:00:00",
+                "2013-07-25 23:00:00",
+                "-config_path",
+                "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/forcing_config/aorc_config.yml",
+                "-b_date",
+                "201307250000",
+                "-output_path",
+                "/ngen-app/bin/bin_mounted/bmi_model_forcing_output_nompi.nc",
+            ],
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "python": "${command:python.interpreterPath}"
+        },
+        {
+            "name": "forcing_test_regrid",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "cwd": "${workspaceFolder}/src/ngen-forcing",
+            "env": {
+                // "FORCING_PYTEST_WRITE_TEST_EXPECTED_DATA": "TRUE"
+                "FORCING_PYTEST_WRITE_TEST_EXPECTED_DATA": "FALSE"
+            },
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "python": "${command:python.interpreterPath}",
+            "args": [
+                "tests/esmf_regrid",
+            ]
+        },
+        {
+            "name": "run_forecast.py -n 2",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/bin_mounted",
+            "module": "ngen_rte.run_forecast",
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "python": "${command:python.interpreterPath}",
+            "args": [
+                "-dt",
+                "2025-09-15 00:00:00",
+                "-rname",
+                "fcst_debug_short",
+                "-fconfig",
+                "short_range",
+                "-n",
+                "2",
+                "--hydrofab_file",
+                "/s3/ngwpc-dev/rte-test-data/gages/gauge_01123000.gpkg"
+            ],
+        },
+        //// 
+        //// BEGIN private configurations
+        //// 
+        {
+            "name": "__forcing_mpi_n2",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/lib64/openmpi/bin/mpirun",
+            "cwd": "${workspaceFolder}",
+            "environment": [
+                {
+                    "name": "WAIT_FOR_DEBUGPY",
+                    "value": "TRUE"
+                },
+            ],
+            "linux": {
+                "MIMode": "gdb",
+                "setupCommands": [
+                    {
+                        "description": "Enable pretty-printing for gdb",
+                        "text": "-enable-pretty-printing",
+                        "ignoreFailures": true
+                    }
+                ]
+            },
+            "args": [
+                "-n",
+                "2",
+                "python",
+                "-um",
+                "mpi4py",
+                "-m",
+                "NextGen_Forcings_Engine_BMI.run_bmi_model",
+                "2013-07-25 00:00:00",
+                "2013-07-25 23:00:00",
+                "-config_path",
+                "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/forcing_config/aorc_config.yml",
+                "-b_date",
+                "201307250000",
+                "-output_path",
+                "/ngen-app/bin/bin_mounted/bmi_model_forcing_output_mpi_n2.nc",
+            ],
+        },
+        {
+            "name": "__forcing_mpi_n3",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/lib64/openmpi/bin/mpirun",
+            "cwd": "${workspaceFolder}",
+            "environment": [
+                {
+                    "name": "WAIT_FOR_DEBUGPY",
+                    "value": "TRUE"
+                },
+            ],
+            "linux": {
+                "MIMode": "gdb",
+                "setupCommands": [
+                    {
+                        "description": "Enable pretty-printing for gdb",
+                        "text": "-enable-pretty-printing",
+                        "ignoreFailures": true
+                    }
+                ]
+            },
+            "args": [
+                "--oversubscribe",
+                "-n",
+                "3",
+                "python",
+                "-um",
+                "mpi4py",
+                "-m",
+                "NextGen_Forcings_Engine_BMI.run_bmi_model",
+                "2013-07-25 00:00:00",
+                "2013-07-25 23:00:00",
+                "-config_path",
+                "/ngwpc/run_ngen/kge_dds/test_bmi/01123000/Input/forcing_config/aorc_config.yml",
+                "-b_date",
+                "201307250000",
+                "-output_path",
+                "/ngen-app/bin/bin_mounted/bmi_model_forcing_output_mpi_n3.nc",
+            ],
+        },
+        //// 
+        //// BEGIN python attachers
+        //// 
+        {
+            "name": "__python_attach_rank_0",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5678
+            },
+            "preLaunchTask": "sleep",
+            "justMyCode": false
+        },
+        {
+            "name": "__python_attach_rank_1",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5679
+            },
+            "preLaunchTask": "sleep",
+            "justMyCode": false
+        },
+        {
+            "name": "__python_attach_rank_2",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5680
+            },
+            "preLaunchTask": "sleep",
+            "justMyCode": false
+        },
+        //// 
+        //// END python attachers
+        //// END private configurations
+        //// 
+    ]
+}

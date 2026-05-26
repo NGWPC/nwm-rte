@@ -1,0 +1,19 @@
+{
+    "logging_enabled": true,
+    "modules": {
+        "ngen": "info",
+        "sft": "info",
+        "smp": "info",
+        "lasam": "info",
+        "noah-owp-modular": "info",
+        "t-route": "info",
+        "snow-17": "info",
+        "forcing": "info",
+        "lstm": "info",
+        "ueb": "info",
+        "sac-sma": "info",
+        "cfe-x": "info",
+        "cfe-s": "info",
+        "topmodel": "info"
+    }
+}
