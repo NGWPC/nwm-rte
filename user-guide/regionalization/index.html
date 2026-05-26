@@ -680,6 +680,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regionalization Workflows
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -696,6 +714,36 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc">
+      
+        <li class="md-nav__item">
+  <a href="#caveats-for-regionalization-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caveats for Regionalization Workflows
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -1036,6 +1084,11 @@
 <p>Regionalization workflows are ran via <a href="../../reference/shell/#run_region.sh"><code>run_region.sh</code></a> and associated Python script that is called: <a href="../../reference/python/#regionalization-workflows"><code>run_regionalization.py</code></a></p>
 <p>For Slurm execution, see: <a href="../../reference/shell/#sbatch_run_region.sh"><code>sbatch_run_region.sh</code></a></p>
 <p>For more information, see the documentation of the <code>nwm-region-mgr</code> repository.</p>
+<h2 id="caveats-for-regionalization-workflows">Caveats for Regionalization Workflows<a class="headerlink" href="#caveats-for-regionalization-workflows" title="Permanent link">#</a></h2>
+<p>At runtime, host disk mounts occur within <a href="../../reference/shell/#run_region.sh"><code>run_region.sh</code></a>.
+These include various data directory mounts for inputs, static forcing configuration files, intermediary outputs, and output realization files.</p>
+<p>Regardless of build instruction, the host disk (local state) of the <code>ngen-forcing</code> files at the cloned repository path
+<code>.../ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/</code> is used for forcing configuration files.</p>
 
 
 

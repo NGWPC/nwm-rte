@@ -1150,15 +1150,15 @@
 <p>Sourcing from remote allows the user to specify any Git "reference" or "ref" name, i.e. a specific branch, tag, or commit hash from GitHub.</p>
 <h2 id="run-configuration">Run Configuration<a class="headerlink" href="#run-configuration" title="Permanent link">#</a></h2>
 <p>Most run settings are made via <a href="../../reference/python/#cli-help-menus">CLI arguments of the executable Python modules</a> within <code>bin_mounted/</code>.</p>
-<p>Some run settings are configured in <a href="../../reference/python/#python-constants"><code>bin_mounted/consts.py</code></a>, <a href="../../ngen_logging.json"><code>bin_mounted/ngen_logging.json</code></a>, and <a href="../../reference/shell/#config.bashrc"><code>config.bashrc</code></a>.</p>
+<p>Some run settings are configured in <a href="../../reference/python/#python-constants"><code>bin_mounted/ngen_rte/consts.py</code></a>, <a href="../../ngen_logging.json"><code>bin_mounted/ngen_rte/run_config/ngen_logging.json</code></a>, <a href="../../reference/shell/#config.bashrc"><code>config.bashrc</code></a>, and in some conditions <a href="../../ngen_forcing_vers.json"><code>bin_mounted/ngen_rte/run_config/ngen_forcing_vers.json</code></a></p>
 <h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h2>
 <h3 id="ghcr-images">GHCR Images<a class="headerlink" href="#ghcr-images" title="Permanent link">#</a></h3>
 <p>If using a dynamic GHCR image tag such as <code>"latest"</code>, if you have already pulled that tag previously and you wish to update to the current version of that tag, you may need to run <code>docker pull</code></p>
 <h3 id="local-files-for-runtime-mounts">Local Files for Runtime Mounts<a class="headerlink" href="#local-files-for-runtime-mounts" title="Permanent link">#</a></h3>
-<p>At runtime, host disk mounts occur within <a href="../../reference/shell/#run.sh"><code>run.sh</code></a>.  These include various data directory mounts for inputs, static forcing configuration files, module parameters, intermediary outputs, and output realization files.</p>
-<p>Regardless of build instruction, the local state of files from the following repositories is used:</p>
-<p><code>ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/</code></p>
-<p><code>nwm-msw-mgr/src/mswm/module_parameter_files/</code></p>
+<p>At runtime, host disk mounts occur within <a href="../../reference/shell/#run.sh"><code>run.sh</code></a>.</p>
+<p>These include various data directory mounts for input data, intermediary output data, and output realizations.</p>
+<p>For <a href="../regionalization/">regionalization</a> workflows, the local state of the <code>ngen-forcing</code> repository clone is used to mount the forcing configuration files. See the <a href="../regionalization/">regionalization</a> notes for details.</p>
+<p>Note that for non-regionalization workflows, e.g. standard forecast and calibration runs, the forcing configuration files are sourced from the <code>site-packages</code> directory of the installed <code>ngen-forcing</code> Python package. See <a href="../../reference/python/#ngen_rte.consts.FORCING_TEMPLATE_DIR">consts.FORCING_TEMPLATE_DIR</a> for details.</p>
 <h2 id="dev-container-and-debugger-configuration">Dev Container and Debugger Configuration<a class="headerlink" href="#dev-container-and-debugger-configuration" title="Permanent link">#</a></h2>
 <p><a href="../devcon-debug/">Dev Container and Debugger</a></p>
 

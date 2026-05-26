@@ -1245,6 +1245,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label=" consts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ngen_rte.consts.FORCING_TEMPLATE_DIR" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;FORCING_TEMPLATE_DIR
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2807,10 +2824,7 @@ tests_manager is modified in-place, so some test results may be available if thi
 <span class="normal"><a href="#__codelineno-0-316">316</a></span>
 <span class="normal"><a href="#__codelineno-0-317">317</a></span>
 <span class="normal"><a href="#__codelineno-0-318">318</a></span>
-<span class="normal"><a href="#__codelineno-0-319">319</a></span>
-<span class="normal"><a href="#__codelineno-0-320">320</a></span>
-<span class="normal"><a href="#__codelineno-0-321">321</a></span>
-<span class="normal"><a href="#__codelineno-0-322">322</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-191"><a id="__codelineno-0-191" name="__codelineno-0-191"></a><span class="k">def</span><span class="w"> </span><span class="nf">cli_arg_parser</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">:</span>
+<span class="normal"><a href="#__codelineno-0-319">319</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-191"><a id="__codelineno-0-191" name="__codelineno-0-191"></a><span class="k">def</span><span class="w"> </span><span class="nf">cli_arg_parser</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">:</span>
 </span><span id="__span-0-192"><a id="__codelineno-0-192" name="__codelineno-0-192"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Build and return the CLI argument parser&quot;&quot;&quot;</span>
 </span><span id="__span-0-193"><a id="__codelineno-0-193" name="__codelineno-0-193"></a>    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
 </span><span id="__span-0-194"><a id="__codelineno-0-194" name="__codelineno-0-194"></a>        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Script for building and running a series of test</span>
@@ -2938,10 +2952,7 @@ tests_manager is modified in-place, so some test results may be available if thi
 </span><span id="__span-0-316"><a id="__codelineno-0-316" name="__codelineno-0-316"></a>    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 </span><span id="__span-0-317"><a id="__codelineno-0-317" name="__codelineno-0-317"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="vm">__file__</span><span class="si">}</span><span class="s2">: args: </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">args</span><span class="p">),</span><span class="w"> </span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span><span id="__span-0-318"><a id="__codelineno-0-318" name="__codelineno-0-318"></a>
-</span><span id="__span-0-319"><a id="__codelineno-0-319" name="__codelineno-0-319"></a>    <span class="n">cfg</span> <span class="o">=</span> <span class="n">RTETestConfig</span><span class="p">(</span><span class="o">**</span><span class="nb">vars</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
-</span><span id="__span-0-320"><a id="__codelineno-0-320" name="__codelineno-0-320"></a>    <span class="n">main</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-</span><span id="__span-0-321"><a id="__codelineno-0-321" name="__codelineno-0-321"></a>
-</span><span id="__span-0-322"><a id="__codelineno-0-322" name="__codelineno-0-322"></a>    <span class="k">return</span> <span class="n">parser</span>
+</span><span id="__span-0-319"><a id="__codelineno-0-319" name="__codelineno-0-319"></a>    <span class="k">return</span> <span class="n">parser</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -2955,7 +2966,7 @@ tests_manager is modified in-place, so some test results may be available if thi
     </div>
 
 </div><h2 id="python-constants">Python Constants<a class="headerlink" href="#python-constants" title="Permanent link">#</a></h2>
-<p>Currently <code>bin_mounted/consts.py</code> contains variables which rarely need editing, except for the <code>MODELS</code> formulation list. Soon, the <code>MODELS</code> variable will be parameterized as CLI argument(s).</p>
+<p>Currently <code>bin_mounted/consts.py</code> contains variables which rarely need editing.</p>
 
 
 <div class="doc doc-object doc-module">
@@ -2988,6 +2999,30 @@ tests_manager is modified in-place, so some test results may be available if thi
 
 
 
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="ngen_rte.consts.FORCING_TEMPLATE_DIR" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">FORCING_TEMPLATE_DIR</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+<a href="#ngen_rte.consts.FORCING_TEMPLATE_DIR" class="headerlink" title="Permanent link">#</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">FORCING_TEMPLATE_DIR</span> <span class="o">=</span> <span class="s2">&quot;/ngen-app/ngen-python/lib/python3.11/site-packages/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/&quot;</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Directory of forcing configuration template yaml files.</p>
+
+    </div>
+
+</div>
 
 
 
