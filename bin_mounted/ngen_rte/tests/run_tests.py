@@ -316,9 +316,6 @@ if it exists, and skip indexes that already have a record in it.""",
     args = parser.parse_args()
     print(f"{__file__}: args: {json.dumps(vars(args), indent=2)}")
 
-    cfg = RTETestConfig(**vars(args))
-    main(cfg)
-
     return parser
 
 

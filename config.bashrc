@@ -133,36 +133,16 @@ REPOS_COMMON_ROOT__HOST=${THIS_SCRIPTS_GRANDPARENT_DIR}
 RUN_NGEN_ROOT__HOST=${RUN_NGEN_ROOT__HOST:-"${REPOS_COMMON_ROOT__HOST}/run_ngen"}
 ## \env MNT__RUN_NGEN__HOST Alias for `RUN_NGEN_ROOT__HOST`. Host path mounted by the container.
 MNT__RUN_NGEN__HOST="${RUN_NGEN_ROOT__HOST}"
-## \env MNT__RUN_NGEN__CONTAINER_1 1st of 2 paths within the container to which the host disk path described by `MNT__RUN_NGEN__HOST` is mounted.
-MNT__RUN_NGEN__CONTAINER_1="/ngwpc/run_ngen"
-## \env MNT__RUN_NGEN__CONTAINER_2 2nd of 2 paths within the container to which the host disk path described by `MNT__RUN_NGEN__HOST` is mounted.
-MNT__RUN_NGEN__CONTAINER_2="${MNT__RUN_NGEN__HOST}"
-
-##### Mounts for parameter files
-## \env MNT__MODULE_PARAM_FILES_DIR__HOST Host path to input module parameter files from `nwm-msw-mgr` repository. Mounted by the container.
-MNT__MODULE_PARAM_FILES_DIR__HOST="${REPOS_COMMON_ROOT__HOST}/nwm-msw-mgr/src/mswm/module_parameter_files"
-## \env MNT__MODULE_PARAM_FILES_DIR__CONTAINER_1 1st of 2 paths within the container to which the host disk path described by `MNT__MODULE_PARAM_FILES_DIR__HOST` is mounted.
-MNT__MODULE_PARAM_FILES_DIR__CONTAINER_1="/ngen-app/nwm-msw-mgr/src/mswm/module_parameter_files"
-## \env MNT__MODULE_PARAM_FILES_DIR__CONTAINER_2 2nd of 2 paths within the container to which the host disk path described by `MNT__MODULE_PARAM_FILES_DIR__HOST` is mounted.
-MNT__MODULE_PARAM_FILES_DIR__CONTAINER_2="${REPOS_COMMON_ROOT__HOST}/nwm-msw-mgr/src/mswm/module_parameter_files"
-
-##### Mounts for forcing configuration
-## \env MNT__NGEN_FORCING__HOST Host disk path to `ngen-forcing` repo, for mounting configuration template files from `ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/`.
-MNT__NGEN_FORCING__HOST="${REPOS_COMMON_ROOT__HOST}/ngen-forcing"
-## \env MNT__NGEN_FORCING__CONTAINER_1 1st of 2 paths within the container to which the host disk path described by `MNT__NGEN_FORCING__HOST` is mounted.
-MNT__NGEN_FORCING__CONTAINER_1="/ngwpc/ngen-forcing"
-## \env MNT__NGEN_FORCING__CONTAINER_2 2nd of 2 paths within the container to which the host disk path described by `MNT__NGEN_FORCING__HOST` is mounted.
-MNT__NGEN_FORCING__CONTAINER_2="${MNT__NGEN_FORCING__HOST}"
+## \env MNT__RUN_NGEN__CONTAINER path within the container to which the host disk path described by `MNT__RUN_NGEN__HOST` is mounted.
+MNT__RUN_NGEN__CONTAINER="/ngwpc/run_ngen"
 
 ##### Mounts for S3 data
 ## \env S3_ROOT__HOST Root of input data downloaded from s3.
 S3_ROOT__HOST=${S3_ROOT__HOST:-"${REPOS_COMMON_ROOT__HOST}/s3"}
 ## \env MNT__S3_DATA__HOST Alias for `S3_ROOT__HOST`. Host path mounted by the container.
 MNT__S3_DATA__HOST="${S3_ROOT__HOST}"
-## \env MNT__S3_DATA__CONTAINER_1 1st of 2 paths within the container to which the host disk path described by `MNT__S3_DATA__HOST` is mounted.
-MNT__S3_DATA__CONTAINER_1="/s3"
-## \env MNT__S3_DATA__CONTAINER_1 2nd of 2 paths within the container to which the host disk path described by `MNT__S3_DATA__HOST` is mounted.
-MNT__S3_DATA__CONTAINER_2="${MNT__S3_DATA__HOST}"
+## \env MNT__S3_DATA__CONTAINER path within the container to which the host disk path described by `MNT__S3_DATA__HOST` is mounted.
+MNT__S3_DATA__CONTAINER="/s3"
 
 ##### Mounts for regionalization data
 ## \env MNT__NWM_REGION_MGR__INPUT_DATA Host path to input data from `nwm-region-mgr` repository for regionalization workflows. Mounted by the container.

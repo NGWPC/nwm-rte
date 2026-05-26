@@ -19,9 +19,7 @@ FORCING_PROVIDER = "bmi"
 
 ### .config section [Forcing]
 DEFAULT_FORECAST_RUN_NAME = "fcst_run1"
-
-# For BMI forcing
-FORCING_TEMPLATE_DIR = "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
+FORCING_TEMPLATE_DIR = "/ngen-app/ngen-python/lib/python3.11/site-packages/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
 FORCING_ROOT_DIR = "/ngen-app/data"
 DIR_FORCING_RAW_INPUT = os.path.join(FORCING_ROOT_DIR, "raw_input")
 DT_START_FORECAST = datetime(year=2025, month=9, day=15, hour=0, minute=0, second=0)
@@ -63,9 +61,10 @@ CALIB_EVAL_DELAYMENT_DEFAULT = timedelta(hours=0)  # Gets added
 VALID_SIM_ADVANCEMENT_DEFAULT = timedelta(hours=0)  # Gets subtracted
 VALID_EVAL_CURTAILMENT_DEFAULT = timedelta(hours=0)  # Gets subtracted
 
-
 ### .config section [DataFile]
-MODULE_PARAMETER_FILES_DIR = "/ngen-app/nwm-msw-mgr/src/mswm/module_parameter_files"
+MODULE_PARAMETER_FILES_DIR = (
+    "/ngen-app/ngen-python/lib/python3.11/site-packages/mswm/module_parameter_files"
+)
 NGEN_DIR = "/ngen-app/ngen"
 NWM_RETRO_STREAMFLOW_DIR = "/s3/ngwpc-dev/ngen-static-files/nwm_retrospective"
 
