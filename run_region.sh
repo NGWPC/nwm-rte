@@ -202,7 +202,8 @@ require_dir() {
 require_dir "${REPOS_COMMON_ROOT__HOST}/run_ngen/data"
 
 # ensure ngen-forcing config template folder exists on host
-forcing_config_dir="${REPOS_COMMON_ROOT__HOST}/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates"
+# forcing_config_dir="${REPOS_COMMON_ROOT__HOST}/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates"
+forcing_config_dir="/ngen-app/ngen-python/lib/python3.11/site-packages/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates"
 require_dir "${forcing_config_dir}"
 
 # Create run-time temporary directory with timestamp to avoid conflicts between simultaneous runs
