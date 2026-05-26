@@ -33,6 +33,8 @@ These include various data directory mounts for input data, intermediary output 
 
 For [regionalization](regionalization.md) workflows, the local state of the `ngen-forcing` repository clone is used to mount the forcing configuration files. See the [regionalization](regionalization.md) notes for details.
 
+Note that for non-regionalization workflows, e.g. standard forecast and calibration runs, the forcing configuration files are sourced from the `site-packages` directory of the installed `ngen-forcing` Python package. See [consts.FORCING_TEMPLATE_DIR](../reference/python.md#ngen_rte.consts.FORCING_TEMPLATE_DIR) for details.
+
 ## Dev Container and Debugger Configuration
 
 [Dev Container and Debugger](devcon-debug.md)

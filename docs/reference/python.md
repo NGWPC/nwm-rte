@@ -60,12 +60,12 @@ Called by [`run_tests.sh`](../reference/shell.md#run_tests.sh)
 
 ## Python Constants
 
-Currently `bin_mounted/consts.py` contains variables which rarely need editing, except for the `MODELS` formulation list. Soon, the `MODELS` variable will be parameterized as CLI argument(s).
+Currently `bin_mounted/consts.py` contains variables which rarely need editing.
 
 ::: ngen_rte.consts
     options:
       members:
-        - MODELS
+        - FORCING_TEMPLATE_DIR
 
 
 ## Configuration Classes
