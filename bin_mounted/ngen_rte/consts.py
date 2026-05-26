@@ -20,6 +20,7 @@ FORCING_PROVIDER = "bmi"
 ### .config section [Forcing]
 DEFAULT_FORECAST_RUN_NAME = "fcst_run1"
 FORCING_TEMPLATE_DIR = "/ngen-app/ngen-python/lib/python3.11/site-packages/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
+"""Directory of forcing configuration template yaml files."""
 FORCING_ROOT_DIR = "/ngen-app/data"
 DIR_FORCING_RAW_INPUT = os.path.join(FORCING_ROOT_DIR, "raw_input")
 DT_START_FORECAST = datetime(year=2025, month=9, day=15, hour=0, minute=0, second=0)
