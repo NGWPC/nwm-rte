@@ -17,7 +17,7 @@ Sourcing from remote allows the user to specify any Git "reference" or "ref" nam
 
 Most run settings are made via [CLI arguments of the executable Python modules](../reference/python.md#cli-help-menus) within `bin_mounted/`.
 
-Some run settings are configured in [`bin_mounted/consts.py`](../reference/python.md#python-constants), [`bin_mounted/ngen_logging.json`](../ngen_logging.json), and [`config.bashrc`](../reference/shell.md#config.bashrc).
+Some run settings are configured in [`bin_mounted/ngen_rte/consts.py`](../reference/python.md#python-constants), [`bin_mounted/ngen_rte/run_config/ngen_logging.json`](../ngen_logging.json), [`config.bashrc`](../reference/shell.md#config.bashrc), and in some conditions [`bin_mounted/ngen_rte/run_config/ngen_forcing_vers.json`](../ngen_forcing_vers.json)
 
 ## Caveats
 
@@ -27,14 +27,13 @@ If using a dynamic GHCR image tag such as `"latest"`, if you have already pulled
 
 ### Local Files for Runtime Mounts
 
-At runtime, host disk mounts occur within [`run.sh`](../reference/shell.md#run.sh).  These include various data directory mounts for inputs, static forcing configuration files, module parameters, intermediary outputs, and output realization files.
+At runtime, host disk mounts occur within [`run.sh`](../reference/shell.md#run.sh).
 
-Regardless of build instruction, the local state of files from the following repositories is used:
+These include various data directory mounts for input data, intermediary output data, and output realizations.
 
-`ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/`
+For [regionalization](regionalization.md) workflows, the local state of the `ngen-forcing` repository clone is used to mount the forcing configuration files. See the [regionalization](regionalization.md) notes for details.
 
-`nwm-msw-mgr/src/mswm/module_parameter_files/`
-
+Note that for non-regionalization workflows, e.g. standard forecast and calibration runs, the forcing configuration files are sourced from the `site-packages` directory of the installed `ngen-forcing` Python package. See [consts.FORCING_TEMPLATE_DIR](../reference/python.md#ngen_rte.consts.FORCING_TEMPLATE_DIR) for details.
 
 ## Dev Container and Debugger Configuration
 
