@@ -35,16 +35,6 @@ def run_realization(rb: RealizationBuilder, cfg: RTEForecastConfig) -> None:
     elif rb.use_warm_start:
         raise NotImplementedError("use_warm_start not yet implemented in nwm-rte")
     else:
-        # ngen_logs = NgenLogsParser(cfg=cfg, rb=rb)
-        # print(f"Calling: {run_fcst}")
-        # run_fcst(
-        #     valid_yaml=cfg.valid_best_yaml,
-        #     real_path=str(rb.realization_file),
-        #     partition_file=rb.part_file,
-        # )
-        # print(f"Finished calling: {run_fcst}")
-        # ngen_logs.log_all_payloads()
-
         ngen_runner = NgenRunnerAsync(
             cfg=cfg, rb=rb, postprocess=True, suppress_output=False
         )
