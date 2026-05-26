@@ -2,7 +2,7 @@
 
 ## Files Sourced from Local NWM Repositories
 
-See notes on [run configuration caveats](configuration.md#caveats). The local state of some NWM repositories is mounted at runtime, for static configuration files and and module parameters.
+See notes on [run configuration caveats](configuration.md#caveats). The local state of some NWM repositories is mounted at runtime, for static configuration files and and module parameters. In particular, see [regionalization caveats](regionalization.md#caveats-for-regionalization-workflows)
 
 ## GHCR Images
 

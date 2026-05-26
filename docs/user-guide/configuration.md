@@ -27,7 +27,11 @@ If using a dynamic GHCR image tag such as `"latest"`, if you have already pulled
 
 ### Local Files for Runtime Mounts
 
-At runtime, host disk mounts occur within [`run.sh`](../reference/shell.md#run.sh).  These include various data directory mounts for input data, intermediary output data, and output realizations.
+At runtime, host disk mounts occur within [`run.sh`](../reference/shell.md#run.sh).
+
+These include various data directory mounts for input data, intermediary output data, and output realizations.
+
+For [regionalization](regionalization.md) workflows, the local state of the `ngen-forcing` repository clone is used to mount the forcing configuration files. See the [regionalization](regionalization.md) notes for details.
 
 ## Dev Container and Debugger Configuration
 
