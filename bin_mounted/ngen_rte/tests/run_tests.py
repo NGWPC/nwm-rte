@@ -87,7 +87,7 @@ def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
                 )
 
             tm.add_forecast_test(t)
-            tm.evaluate_test_results(raise_if_any_failed=False)
+            tm.evaluate_test_results(raise_if_any_failed=False, header_prefix="INTERIM")
 
 
 def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> None:
@@ -141,7 +141,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
                 )
 
             tm.add_forecast_test(t)
-            tm.evaluate_test_results(raise_if_any_failed=False)
+            tm.evaluate_test_results(raise_if_any_failed=False, header_prefix="INTERIM")
 
 
 def run_noop_mode() -> None:
@@ -180,7 +180,7 @@ def main(cfg: RTETestConfig):
     if not cfg.skip_forecast:
         forecasts__build_and_run(cfg, tm, cs=False)
 
-    tm.evaluate_test_results()
+    tm.evaluate_test_results(header_prefix="FINAL")
 
     _rte_transmit_job_complete()
 

@@ -202,12 +202,14 @@ class ForecastTest(BaseModel):
     fcst_exe_excep_type: str = Field(init=False, default=None)
     fcst_exe_excep_msg: str = Field(init=False, default=None)
     fcst_exe_excep_tb: list[str] = Field(init=False, default=[])  # Traceback lines
-    # Config kwargs
     rb_kwargs: dict
+    """RealizationBuilder kwargs"""
 
     log2testlines: dict[str, TestLines] = Field(init=False, default_factory=dict)
-    # Stderr lines of the subprocess call to calibration executable.
+    """stderr lines of the subprocess call to calibration executable."""
     calib_proc_stderr: list[str] = Field(init=False, default=[])
+    calib_log: _LogParserGeneric | None = Field(init=False, default=None)
+    """Parser for calibration log file"""
 
     def make_realization_builder__build_realization(self, build_method: str) -> None:
         """Instantiate the RealizationBuilder class and build the realization.
@@ -423,9 +425,11 @@ class TestsManager(BaseModel):
         concat_results = self.prev_results + new_results
         return concat_results
 
-    def evaluate_test_results(self, raise_if_any_failed: bool = True) -> None:
+    def evaluate_test_results(
+        self, raise_if_any_failed: bool = True, header_prefix=""
+    ) -> None:
         """Inspect the test results json file, and if any failed, raise an error."""
-        msg = f"\n\n###### FORECAST TEST RESULTS ######\nWriting to: {c.TEST_RESULTS_FILE}\n{self.fcst_stat_sums.model_dump_json(indent=2)}"
+        msg = f"\n###### {header_prefix} FORECAST TEST RESULTS ######\nWriting to: {c.TEST_RESULTS_FILE}\n{self.fcst_stat_sums.model_dump_json(indent=2)}"
         LOG.info(msg)
         with open(c.TEST_RESULTS_FILE, "w") as f:
             f.write(json.dumps(self.concatenated_results_dicts, indent=2))
