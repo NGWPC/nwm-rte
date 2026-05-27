@@ -265,7 +265,7 @@ class RTEBaseConfig(BaseModel):
     @property
     def mswm_NWMOutputConfig(self) -> NWMOutputConfig:
         """MSWM NWMOutputConfig instance"""
-        oc = NWMOutputConfig(output_nwm_vars=self.nwm_output_vars)
+        oc = NWMOutputConfig(nwm_output_variables=self.nwm_output_vars)
         return oc
 
     @property
