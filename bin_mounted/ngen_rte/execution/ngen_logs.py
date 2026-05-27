@@ -170,7 +170,7 @@ class _LogParserNgen(_LogParserBase):
 
     def ngen_log_basename(self, mpi_rank: int):
         """Basename of the ngen log file for the provided MPI rank."""
-        if self.rb.run_type == "default":
+        if self.rb.run_type in ("default", "checkpoint"):
             bn_prefix = self.rb.basin
         elif self.rb.run_type == "calibration":
             # NOTE determine where the 'calib' prefix is derived from and parameterize it instead of hardcoding it here.

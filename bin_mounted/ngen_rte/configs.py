@@ -147,7 +147,7 @@ class RTEBaseConfig(BaseModelStrict):
         if isinstance(self, RTETestConfig):
             label = f"{label}_test"
 
-        if rb.run_type == "default":
+        if rb.run_type in ("default", "checkpoint"):
             fallback_log_dir = str(rb.work_dir)
         elif rb.run_type in ("forecast", "cold_start"):
             fallback_log_dir = str(rb.input_dir)
