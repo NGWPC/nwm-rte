@@ -81,7 +81,7 @@ def run_restart(src_path: str, dst_path: str, checkpoint_state_path: str) -> str
     cfg.configure_ngen_log(rb)
 
     print(f"\nStarting restart run from: {dst_path}")
-    ngen_runner = NgenRunnerAsync(cfg=cfg, rb=rb, postprocess=False)
+    ngen_runner = NgenRunnerAsync(rb=rb, postprocess=False)
     ngen_runner.start()
     ngen_runner.stream_status_until_complete()
     ngen_runner.close()
