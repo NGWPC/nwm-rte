@@ -5,7 +5,6 @@ import itertools
 import json
 import os
 import subprocess
-import time
 import traceback
 from datetime import datetime, timezone
 from enum import StrEnum
@@ -15,9 +14,8 @@ from mswm.build_inputs import RealizationBuilder
 from mswm.utils.input_configuration import ForcingConfig, InputConfig
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
-from nwm_fcst_mgr.forecast import ConfigCache, ForecastExecutionManager, RunStatus
-from pydantic import BaseModel, ConfigDict, Field, validate_call
-from pydantic.json import pydantic_encoder
+from nwm_fcst_mgr.forecast import ForecastExecutionManager
+from pydantic import BaseModel, ConfigDict, Field, RootModel, validate_call
 
 from ngen_rte import consts as c
 from ngen_rte import run_calibration
@@ -27,6 +25,8 @@ from ngen_rte.configs import (
     RTETestConfig,
     make_parallel_config,
 )
+from ngen_rte.execution.ngen_async import NgenRunnerAsync
+from ngen_rte.execution.ngen_logs import TestLines, _LogParserGeneric
 from ngen_rte.utils import build_realization
 
 print = functools.partial(print, flush=True)
@@ -163,35 +163,6 @@ class TestStat(StrEnum):
     SKIP = "SKIP"
 
 
-class LogParser(BaseModel):
-    """Helper class that reads various ngen log files and reports certain messages from them"""
-
-    path: str
-    # Don't include the entire file content when dumping this model
-    content: str = Field(exclude=True, init=False, default=None)
-    first_lines: list[str] = Field(init=False, default=None)
-    last_lines: list[str] = Field(init=False, default=None)
-    severe_lines: list[str] = Field(init=False, default=None)
-    critical_lines: list[str] = Field(init=False, default=None)
-    fatal_lines: list[str] = Field(init=False, default=None)
-
-    def read_and_parse(self) -> None:
-        severe = "SEVERE"
-        critical = "CRITICAL"
-        fatal = "FATAL"
-
-        print(f"Reading: {self.path}")
-        with open(self.path, "r") as f:
-            self.content = f.read()
-
-        lines = self.content.splitlines()
-        self.first_lines = lines[:10]
-        self.last_lines = lines[-10:]
-        self.severe_lines = [l for l in lines if severe in l]
-        self.critical_lines = [l for l in lines if critical in l]
-        self.fatal_lines = [l for l in lines if fatal in l]
-
-
 class ForecastTest(BaseModel):
     """
     For managed execution of a set of realizations, with error trapping.
@@ -232,18 +203,8 @@ class ForecastTest(BaseModel):
     fcst_exe_excep_tb: list[str] = Field(init=False, default=[])  # Traceback lines
     # Config kwargs
     rb_kwargs: dict
-    # Log created by ngen itself. Must be provided for forecast mode.  TODO glean this from rb.
-    #   e.g. for forecast: ".../Output/Forecast_Run/fcst_run1/logs/ngen.log"
-    #   TODO need to implement for calibration.
-    ### TODO update ngen_log to work with new EWTS per-rank logs, and new RTE log paths
-    # ngen_log: LogParser = Field(init=False, default=None)
-    # Log containing stdout+stderr stream of the subprocess call to ngen (ngen's terminal output).
-    #   e.g. for forecast (from ForecastExecutionManager): ".../Output/Forecast_Run/fcst_run1/ngen_stdout_stderr.log"
-    #   e.g. for calibration (from calibration executable): ".../Output/Calibration_Run/ngen_0pif3ish_worker/ngen_stdout_stderr.log"
-    #   TODO need to implement for calibration. Read calib_log content to determine this path, since it shows the (randomized) name of the worker.
-    exe_log: LogParser = Field(init=False, default=None)
-    # Log created by calibration executable (can specify as CLI arg during call to calibration executable)
-    calib_log: LogParser = Field(init=False, default=None)
+
+    log2testlines: dict[str, TestLines] = Field(init=False, default_factory=dict)
     # Stderr lines of the subprocess call to calibration executable.
     calib_proc_stderr: list[str] = Field(init=False, default=[])
 
@@ -289,11 +250,11 @@ class ForecastTest(BaseModel):
         calib_log_path_overwrite = os.path.join(
             self.rb.work_dir, "logs", f"calibration_{current_time}.log"
         )
-        self.calib_log = LogParser(path=calib_log_path_overwrite)
+        self.calib_log = _LogParserGeneric(log_file_path=calib_log_path_overwrite)
 
-        print(f"Running calibration, will log to: {repr(self.calib_log.path)}")
+        print(f"Running calibration, will log to: {repr(self.calib_log.log_file_path)}")
         cmd = run_calibration.get_calibration_cmd(
-            self.rb, worker_name, self.calib_log.path
+            self.rb, worker_name, self.calib_log.log_file_path
         )
         print(f"Running command args: {cmd}")
         try:
@@ -324,47 +285,27 @@ class ForecastTest(BaseModel):
             self.fcst_exe_stat = TestStat.PASS
             stderr_str = proc.stderr.decode()
         self.calib_proc_stderr = stderr_str.splitlines()
-        if os.path.exists(self.calib_log.path):
-            self.calib_log.read_and_parse()
+        if os.path.exists(self.calib_log.log_file_path):
+            self.calib_log.read_and_parse_all_lines_for_issues()
+        # TODO set status based on log lines parsed?
 
-    def execute_forecast(
-        self,
-        quit_forecast_after_forcing_running: bool,
-        quit_forecast_after_duration: float | None,  # seconds
-    ) -> None:
+    def execute_forecast(self, quit_forecast_after_duration: float | None) -> None:
         """Run the forecast, optionally quitting after forcing has begun,
-        optionally quitting after a certain duration in seconds"""
+        optionally quitting after quit_forecast_after_duration in seconds"""
         if self.rb_stat != TestStat.PASS:
             raise RuntimeError(
                 f"Cannot run forecast when realization did not build (self.rb_stat: {self.rb_stat})"
             )
 
-        if quit_forecast_after_forcing_running:
-            assert quit_forecast_after_duration is None
-            async_waiter = functools.partial(self.wait_for_forcing_is_running)
-
-        elif quit_forecast_after_duration is not None:
-            assert not quit_forecast_after_forcing_running
-            async_waiter = functools.partial(
-                self.wait_for_duration, wait_duration_sec=quit_forecast_after_duration
-            )
-
-        else:
-            async_waiter = None
-
+        ngen_runner = NgenRunnerAsync(
+            rb=self.rb,
+            postprocess=True,
+            suppress_output=False,
+            timeout_secs=quit_forecast_after_duration,
+        )
         try:
-            config_cache = ConfigCache(self.rb.valid_yaml)
-            with ForecastExecutionManager(
-                real_path=str(self.rb.realization_file),
-                config_cache=config_cache,
-            ) as self.fcst_exe_mgr:
-                self.fcst_exe_mgr.preprocess()
-                if async_waiter:
-                    # When wait=false, user polling is required
-                    self.fcst_exe_mgr.execute(wait=False, log_file_open_mode="w")
-                    async_waiter()
-                else:
-                    self.fcst_exe_mgr.execute(wait=True, log_file_open_mode="w")
+            ngen_runner.start()
+            ngen_runner.stream_status_until_complete()
         except KeyboardInterrupt as e:
             print("Caught KeyboardInterrupt in main thread. Reraising.")
             raise e
@@ -384,89 +325,30 @@ class ForecastTest(BaseModel):
         else:
             fcst_exe_excep = None
             self.fcst_exe_excep_tb = []
+        finally:
+            ngen_runner.close()
 
         self.fcst_exe_excep = fcst_exe_excep
 
-        self.exe_log = LogParser(path=self.fcst_exe_mgr.log_handle.name)
-        self.read_logs()
+        for lp in ngen_runner.log_parsers:
+            lp.read_and_parse_all_lines_for_issues()
+            self.log2testlines.update(lp.log2testlines)
 
         if self.fcst_exe_excep is None:
             self.fcst_exe_excep_type = None
             self.fcst_exe_excep_msg = None
-            if not self.exe_log.fatal_lines:  # and (not self.ngen_log.fatal_lines):  ### TODO update ngen_log to work with new EWTS per-rank logs, and new RTE log paths
-                self.fcst_exe_stat = TestStat.PASS
-            else:
+            if any(
+                self.log2testlines[log_file].fatal_lines
+                for log_file in self.log2testlines
+            ):
+                # TODO also consider if SEVER and CRITICAL warrant a FAIL.
                 self.fcst_exe_stat = TestStat.FAIL
+            else:
+                self.fcst_exe_stat = TestStat.PASS
         else:
             self.fcst_exe_excep_type = str(type(self.fcst_exe_excep))
             self.fcst_exe_excep_msg = str(self.fcst_exe_excep)
             self.fcst_exe_stat = TestStat.FAIL
-
-    def read_logs(self) -> None:
-        """Read and parse the log files"""
-        self.exe_log.read_and_parse()
-        # self.ngen_log.read_and_parse()  ### TODO update ngen_log to work with new EWTS per-rank logs, and new RTE log paths
-
-    def wait_for_duration(self, wait_duration_sec: float):
-        """Asynchronous loop while ngen in running. Stop ngen after wait_duration_sec seconds."""
-        start = time.perf_counter()
-        poll_freq_seconds = 2
-        print(
-            f"Polling ngen process every {poll_freq_seconds} seconds up to {wait_duration_sec} sec total duration..."
-        )
-        while True:
-            self.fcst_exe_mgr.poll_ngen_flush_log()
-            duration_sec = time.perf_counter() - start
-            if duration_sec > wait_duration_sec:
-                print(f"After {duration_sec:.1f} seconds, quitting ngen intentionally")
-                break
-            if self.fcst_exe_mgr._status == RunStatus.EXECUTION_SUCCESS:
-                print(f"After {duration_sec:.1f} seconds, ngen finished running")
-                break
-            time.sleep(poll_freq_seconds)
-
-    def wait_for_forcing_is_running(self):
-        """Loop until log file indicates that the forcing engine is running."""
-        start = time.perf_counter()
-        poll_freq_seconds = 10
-        print(f"Polling ngen process every {poll_freq_seconds} seconds...")
-        while True:
-            duration_sec = time.perf_counter() - start
-            self.fcst_exe_mgr.poll_ngen_flush_log()
-            if duration_sec > 10 and self.infer_from_log__forcing_is_running():
-                print(
-                    f"After {duration_sec:.1f} seconds, ngen log indicates forcing is running successfully"
-                )
-                break
-            if self.fcst_exe_mgr._status == RunStatus.EXECUTION_SUCCESS:
-                print(f"After {duration_sec:.1f} seconds, ngen finished running")
-                break
-            print(f"ngen has been running for {duration_sec:.1f} seconds...")
-            # self.fcst_exe_mgr.schedule_ngen_stoppage()
-            time.sleep(poll_freq_seconds)
-
-    def infer_from_log__forcing_is_running(self) -> bool:
-        """Read the log file and look for sentinel messages.
-        If they exist, assume the forcing is running successfully and return True."""
-        raise NotImplementedError(
-            "TODO update ngen_log to work with new EWTS per-rank logs, and new RTE log paths"
-        )
-        if os.path.exists(self.ngen_log.path):
-            self.ngen_log.read_and_parse()
-        else:
-            print(f"Does not exist yet: {self.ngen_log.path}")
-            return False
-        # TODO improve this and confirm that it works for types other than short_range
-        if (
-            self.ngen_log.content.lower().count("processing forecast cycle") > 1
-            and self.ngen_log.content.lower().count(
-                "writing output forcing file for timestamp"
-            )
-            > 0
-        ):
-            return True
-        else:
-            return False
 
 
 class TestResultsSums(BaseModel):
@@ -534,15 +416,13 @@ class TestsManager(BaseModel):
 
     @property
     def concatenated_results_dicts(self) -> list[dict]:
-        new_results = json.loads(
-            json.dumps(self.forecast_tests, default=pydantic_encoder)
-        )
+        new_results = json.loads(RootModel(self.forecast_tests).model_dump_json())
         concat_results = self.prev_results + new_results
         return concat_results
 
     def evaluate_test_results(self, raise_if_any_failed: bool = True) -> None:
         """Inspect the test results json file, and if any failed, raise an error."""
-        msg = f"\n\n###### FORECAST TEST RESULTS ######\nWriting to: {c.TEST_RESULTS_FILE}\n{json.dumps(self.fcst_stat_sums, indent=2, default=pydantic_encoder)}"
+        msg = f"\n\n###### FORECAST TEST RESULTS ######\nWriting to: {c.TEST_RESULTS_FILE}\n{self.fcst_stat_sums.model_dump_json(indent=2)}"
         print(msg)
         with open(c.TEST_RESULTS_FILE, "w") as f:
             f.write(json.dumps(self.concatenated_results_dicts, indent=2))

@@ -650,8 +650,6 @@ class RTETestConfig(RTEBaseConfig):
     ----------
     skip_forecast: bool
         Causes forecast to be skipped (only do calibration)
-    quit_forecast_after_forcing_running: bool
-        Causes forecasts to be stopped midway once log files indicate that the model is well underway
     quit_forecast_after_duration: float | None = Field(ge=0)
         Causes forecasts to be stopped midway after a set duration (seconds of processing time)
     do_calibration: bool
@@ -685,7 +683,6 @@ class RTETestConfig(RTEBaseConfig):
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
     skip_forecast: bool
-    quit_forecast_after_forcing_running: bool
     quit_forecast_after_duration: float | None = Field(ge=0)
     do_calibration: bool
     quit_calibration_after_duration: float | None = Field(ge=0)
@@ -705,13 +702,6 @@ class RTETestConfig(RTEBaseConfig):
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
-
-        if self.quit_forecast_after_forcing_running:
-            self.errors.append(
-                RuntimeError(
-                    "quit_forecast_after_forcing_running is currently not allowed, pending updates."
-                )
-            )
 
         errors_extend = parse_fcst_run_name(self._fcst_run_name_formatted)
         self.errors.extend(errors_extend)

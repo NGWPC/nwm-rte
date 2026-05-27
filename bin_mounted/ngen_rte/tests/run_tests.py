@@ -94,15 +94,6 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
     """
     for obj_func, optim_algo, test_paths in cfg.get_calib_permutations():
         test_configs = get_test_configs__forecast(cfg, use_cold_start=cs)
-        for tc in test_configs:
-            if (
-                cfg.quit_forecast_after_forcing_running
-                and tc.Forcing.forcing_configuration != "short_range"
-            ):
-                raise NotImplementedError(
-                    f"quit_forecast_after_forcing_running not yet tested for forcing_configuration = {repr(tc.Forcing.forcing_configuration)}"
-                )
-
         for i, config_overrides in enumerate(test_configs):
             fc = config_overrides.Forcing.forcing_configuration
             msg_prefix = f"i={i} (ilimit={len(test_configs) - 1}) forecast {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
@@ -142,8 +133,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
                 cfg.configure_ngen_log(t.rb)
                 print(f"### {msg_prefix}: executing realization via ngen")
                 t.execute_forecast(
-                    quit_forecast_after_forcing_running=cfg.quit_forecast_after_forcing_running,
-                    quit_forecast_after_duration=cfg.quit_forecast_after_duration,
+                    quit_forecast_after_duration=cfg.quit_forecast_after_duration
                 )
 
             tm.add_forecast_test(t)
@@ -209,15 +199,6 @@ using various forcing configurations and model formulations.""",
         action="store_true",
         help="""Provide to skip forecast (for testing calibrations only).
 Incompatible with --do_all_forcing_configs and --do_coldstart""",
-    )
-    parser.add_argument(
-        "--quit_forecast_after_forcing_running",
-        action="store_true",
-        help="""THIS IS CURRENTLY NOT SUPPORTED, pending updates.
-Instead of waiting for each forecast to finish,
-quit after the ngen log file indicates that forcing
-is running successfully.
-THIS IS CURRENTLY NOT SUPPORTED.""",
     )
     parser.add_argument(
         "-quitfcdur",
