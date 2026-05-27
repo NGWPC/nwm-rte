@@ -139,6 +139,9 @@ class _LogParserBase(BaseModel):
                 critical_lines=[ln for ln in all_lines if critical in ln],
                 fatal_lines=[ln for ln in all_lines if fatal in ln],
             )
+            LOG.info(
+                f"{log_file_path} has {len(all_lines)} total lines including {len(test_lines.severe_lines)} severe, {len(test_lines.critical_lines)} critical, {len(test_lines.fatal_lines)} fatal"
+            )
             self.log2testlines[log_file_path] = test_lines
 
 
