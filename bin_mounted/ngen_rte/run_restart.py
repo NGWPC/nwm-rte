@@ -41,23 +41,22 @@ def infer_rb(dst_path: str, src_path: str) -> RealizationBuilder:
     part_files = list(input_dir.rglob("*partition*.json"))
     part_file = str(part_files[0]) if part_files else None
 
+    if part_file:
+        with open(part_file) as f:
+            partitions = json.load(f)
+        nprocs = len(partitions.get("partitions", []))
+    else:
+        nprocs = 1
+
     rb = RealizationBuilder.__new__(RealizationBuilder)
     rb.realization_file = realization_file
     rb.part_file = part_file
     rb.work_dir = str(dst)
     rb.valid_yaml = None
-    rb.run_type = "default"
+    rb.run_type = "checkpoint"
     rb.basin = infer_gage_id(src_path)
+    rb.input_configs = {"Parallel": {"nprocs": nprocs}}
     return rb
-
-
-def infer_nprocs(rb: RealizationBuilder) -> int:
-    """Infer nprocs from the partition file, defaulting to 1 if not present"""
-    if rb.part_file is None:
-        return 1
-    with open(rb.part_file) as f:
-        partitions = json.load(f)
-    return len(partitions.get("partitions", []))
 
 
 def run_restart(src_path: str, dst_path: str, checkpoint_state_path: str) -> str:
@@ -76,7 +75,7 @@ def run_restart(src_path: str, dst_path: str, checkpoint_state_path: str) -> str
     rb = infer_rb(dst_path, src_path)
 
     cfg = RTEAsyncConfig(
-        nprocs=infer_nprocs(rb),
+        nprocs=rb.input_configs["Parallel"]["nprocs"],
     )
     cfg.configure_ngen_log(rb)
 
