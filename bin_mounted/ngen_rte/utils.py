@@ -64,6 +64,8 @@ def transmit(
 
     TODO Currently this simply calls LOG.info() with the relevant information.
     Actual transmission logic should be implemented (send to file or service).
+
+    TODO also report a concern if the payload is not None and it has an error status.
     """
     log_file_bn = Path(log_file).name if log_file else None
     exc_info = ExcInfo(exc) if exc is not None else None

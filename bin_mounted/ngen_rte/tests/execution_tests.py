@@ -172,10 +172,6 @@ class ForecastTest(BaseModel):
 
     Required attributes:
         rb_kwargs: dict
-
-    # TODO also catch exceptions that happen during ForecastExecutionManager.preprocess
-    # TODO is `ngen_log` different for standard_ana than for short_range?
-    # TODO glean `ngen_log` from self.rb
     """
 
     ##########
