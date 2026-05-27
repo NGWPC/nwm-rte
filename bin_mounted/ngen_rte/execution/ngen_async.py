@@ -14,12 +14,6 @@ from pathlib import Path
 
 from ewts import LogParts
 from mswm.build_inputs import RealizationBuilder
-from ngen_rte.configs import (
-    RTEBaseConfig,
-    RTECalibConfig,
-    RTEDefaultConfig,
-    RTEForecastConfig,
-)
 from ngen_rte.execution.ngen_logs import (
     _LogParserBase,
     _LogParserGeneric,
@@ -53,32 +47,33 @@ FINAL_WAIT = 2
 class NgenRunnerAsync(BaseModel):
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
-    cfg: RTEBaseConfig
     rb: RealizationBuilder
     parse_only_rank: int | None = PARSE_ONLY_RANK
     postprocess: bool = False
     """If True, call ForecastExecutionManager.postprocess() after ngen finishes, before the final log reads."""
     suppress_output: bool = False
     """Passed to ForecastExecutionManager.postprocess()"""
+    timeout_secs: float | None = None
 
     fem: ForecastExecutionManager | None = Field(default=None, init=False)
-    parsers: list[_LogParserBase] = Field(default_factory=list, init=False)
+    log_parsers: list[_LogParserBase] = Field(default_factory=list, init=False)
     """The ngen parser is assumed to be the first in the list"""
 
     def model_post_init(self, __context) -> None:
         self._register_initial_log_parser()
+        self._deadline = (
+            time.perf_counter() + self.timeout_secs
+            if self.timeout_secs is not None
+            else float("inf")
+        )
 
     def _register_initial_log_parser(self):
-        """Register log parsers that are always included.
+        """Register log log_parsers that are always included.
         The ngen log parser has specific behavior (e.g. for multiple MPI ranks)
         and is assumed to be first in the list"""
         # ngen MPI ranks
         self._register_log_parser(
-            _LogParserNgen(
-                cfg=self.cfg,
-                rb=self.rb,
-                parse_only_rank=self.parse_only_rank,
-            )
+            _LogParserNgen(rb=self.rb, parse_only_rank=self.parse_only_rank)
         )
         # mswm
         self._register_log_parser(
@@ -95,8 +90,8 @@ class NgenRunnerAsync(BaseModel):
             self.fem = None
 
     def _register_log_parser(self, parser: _LogParserBase) -> None:
-        """Append to the list of log parsers to read from."""
-        self.parsers.append(parser)
+        """Append to the list of log log_parsers to read from."""
+        self.log_parsers.append(parser)
 
     def start(self) -> None:
         """Start the ngen forecast run asynchronously."""
@@ -105,7 +100,7 @@ class NgenRunnerAsync(BaseModel):
 
         print("Starting ngen run...")
         config_cache = self._make_config_cache()
-        if isinstance(self.cfg, (RTEForecastConfig, RTEDefaultConfig)):
+        if self.rb.run_type in ("forecast", "default"):
             self.fem = ForecastExecutionManager(
                 real_path=str(self.rb.realization_file),
                 config_cache=config_cache,
@@ -123,10 +118,12 @@ class NgenRunnerAsync(BaseModel):
             )
             self.fem.preprocess()
             self.fem.execute(wait=False, log_file_open_mode="w")
-        elif isinstance(self.cfg, RTECalibConfig):
-            raise NotImplementedError(f"Unsupported config type: {type(self.cfg)}")
+        elif self.rb.run_type == "calibration":
+            raise NotImplementedError(
+                f"Unsupported realization type: {self.rb.run_type}"
+            )
         else:
-            raise ValueError(f"Unsupported config type: {type(self.cfg)}")
+            raise ValueError(f"Unsupported realization type: {self.rb.run_type}")
 
     def stream_status_until_complete(self) -> None:
         """Stream status updates from the running forecast until completion."""
@@ -140,19 +137,19 @@ class NgenRunnerAsync(BaseModel):
         except NgenCalledProcessError as e:
             raise RuntimeError(f"Error during forecast run: {e}") from e
         except NgenIntentionallyStoppedError as e:
-            raise RuntimeError(f"ngen intentionally stopped: {e}") from e
+            raise e
         except Exception as e:
-            raise RuntimeError(f"Error during ngen run: {e}") from e
+            raise RuntimeError(f"Unexpected exception during ngen run: {e}") from e
         finally:
             if self.fem is not None:
                 self.fem.close()
                 self.fem = None
         errors: list[Exception] = []
-        for mpi_rank in range(self.cfg.nprocs):
+        for mpi_rank in range(self.rb.input_configs["Parallel"]["nprocs"]):
             # NOTE: this assumes that the first parser in the list is for the ngen MPI ranks.
             if (
-                mpi_rank not in self.parsers[0].log_lines_hash_cache
-                or len(self.parsers[0].log_lines_hash_cache[mpi_rank]) == 0
+                mpi_rank not in self.log_parsers[0].log_lines_hash_cache
+                or len(self.log_parsers[0].log_lines_hash_cache[mpi_rank]) == 0
             ):
                 errors.append(
                     RuntimeError(
@@ -163,17 +160,19 @@ class NgenRunnerAsync(BaseModel):
             raise RuntimeError(errors)
 
     def _make_config_cache(self) -> ConfigCache | None:
-        """Make and return a ConfigCache based on the type of cfg."""
-        if isinstance(self.cfg, RTEForecastConfig):
+        """Make and return a ConfigCache based on the type of realization."""
+        if self.rb.run_type == "forecast":
             config_cache = ConfigCache(valid_yaml=self.rb.valid_yaml, no_valid=False)
-        elif isinstance(self.cfg, RTEDefaultConfig):
+        elif self.rb.run_type == "default":
             config_cache = ConfigCache(
                 run_dir=os.path.dirname(self.rb.realization_file), no_valid=True
             )
-        elif isinstance(self.cfg, RTECalibConfig):
-            raise NotImplementedError(f"Unsupported config type: {type(self.cfg)}")
+        elif self.rb.run_type == "calibration":
+            raise NotImplementedError(
+                f"Unsupported realization type: {self.rb.run_type}"
+            )
         else:
-            raise ValueError(f"Unsupported config type: {type(self.cfg)}")
+            raise ValueError(f"Unsupported realization type: {self.rb.run_type}")
         return config_cache
 
     def _iter_new_log_parts(
@@ -195,7 +194,7 @@ class NgenRunnerAsync(BaseModel):
         print(
             f"Execution mgr: {self.fem._status} at {datetime.now(timezone.utc).isoformat()}"
         )
-        for parser in self.parsers:
+        for parser in self.log_parsers:
             for mpi_rank, new_log_parts, log_file in parser._new_log_parts():
                 yield mpi_rank, new_log_parts, log_file
 
@@ -212,7 +211,9 @@ class NgenRunnerAsync(BaseModel):
                 first = False
                 self.fem.poll_ngen_flush_log()
                 yield from self._iter_new_log_parts()
+                if time.perf_counter() >= self._deadline:
+                    self.fem.schedule_ngen_stoppage()
         except Exception as e:
-            raise RuntimeError(f"Error while monitoring ngen run: {e}") from e
+            raise e
         finally:
             yield from self._iter_new_log_parts(final=True)

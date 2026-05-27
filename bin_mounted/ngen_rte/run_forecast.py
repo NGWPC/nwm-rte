@@ -22,21 +22,21 @@ from ngen_rte.utils import build_realization
 print = functools.partial(print, flush=True)
 
 
-def run_realization(rb: RealizationBuilder, cfg: RTEForecastConfig) -> None:
+def run_realization(rb: RealizationBuilder) -> None:
     """Run the realization, which can be a coldstart, forecast, or lagged ensemble."""
-    # partition_file = getattr(rb, "part_file", None)
-
     print(
         f"Running realization with Forcing configuration: {rb.input_configs['Forcing']}"
     )
-
     if rb.use_hindcast:
         raise NotImplementedError("use_hindcast not yet implemented in nwm-rte")
     elif rb.use_warm_start:
         raise NotImplementedError("use_warm_start not yet implemented in nwm-rte")
     else:
         ngen_runner = NgenRunnerAsync(
-            cfg=cfg, rb=rb, postprocess=True, suppress_output=False
+            rb=rb,
+            postprocess=True,
+            suppress_output=False,
+            # timeout_secs=10,
         )
         ngen_runner.start()
         ngen_runner.stream_status_until_complete()
@@ -59,7 +59,7 @@ def main(cfg: RTEForecastConfig):
             "build_fcst_realization",
         )
         cfg.configure_ngen_log(rb_cs)
-        run_realization(rb_cs, cfg)
+        run_realization(rb_cs)
 
     if cfg.cycle_datetime:
         rb_fcst = build_realization(
@@ -67,7 +67,7 @@ def main(cfg: RTEForecastConfig):
             "build_fcst_realization",
         )
         cfg.configure_ngen_log(rb_fcst)
-        run_realization(rb_fcst, cfg)
+        run_realization(rb_fcst)
 
 
 def cli_arg_parser() -> argparse.ArgumentParser:

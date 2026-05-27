@@ -22,17 +22,13 @@ from ngen_rte.utils import build_realization
 print = functools.partial(print, flush=True)
 
 
-def run_default(rb: RealizationBuilder, cfg: RTEDefaultConfig) -> None:
+def run_default(rb: RealizationBuilder) -> None:
     """Run the provided default realization.
     Realization should already be built (rb.build_default_realization() already called).
     """
-    print(
-        f"Running default realization with configuration: {cfg.mswm_RealizationBuilder_kwargs}"
-    )
+    print("Running default realization")
     # For default realization, currently postprocess needs suppress_output=True
-    ngen_runner = NgenRunnerAsync(
-        cfg=cfg, rb=rb, postprocess=True, suppress_output=True
-    )
+    ngen_runner = NgenRunnerAsync(rb=rb, postprocess=True, suppress_output=True)
     ngen_runner.start()
     ngen_runner.stream_status_until_complete()
     ngen_runner.close()  # Can also let __del__ handle this.
@@ -52,7 +48,7 @@ def main(cfg: RTEDefaultConfig):
         cfg.mswm_RealizationBuilder_kwargs, build_method="build_default_realization"
     )
     cfg.configure_ngen_log(rb)
-    run_default(rb, cfg)
+    run_default(rb)
 
 
 def cli_arg_parser() -> argparse.ArgumentParser:

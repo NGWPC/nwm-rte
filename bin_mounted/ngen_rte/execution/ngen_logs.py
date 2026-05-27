@@ -9,19 +9,22 @@ from pathlib import Path
 import ngen_rte.consts as c
 from ewts import LogParts, parts_of_log_line
 from mswm.build_inputs import RealizationBuilder
-from ngen_rte.configs import (
-    RTEBaseConfig,
-    RTECalibConfig,
-    RTEDefaultConfig,
-    RTEForecastConfig,
-    RTETestConfig,
-)
 from pydantic import BaseModel, ConfigDict, Field
 
 print = functools.partial(print, flush=True)
 
 
 THROTTLE_SECONDS = 3
+
+
+class TestLines(BaseModel):
+    """For usage by execution_tests.py"""
+
+    first_lines: list[str]
+    last_lines: list[str]
+    severe_lines: list[str]
+    critical_lines: list[str]
+    fatal_lines: list[str]
 
 
 class _LogParserBase(BaseModel):
@@ -38,6 +41,9 @@ class _LogParserBase(BaseModel):
     """Used to track signatures (raw hashes) of log lines already found.
     Dictionary keyed on MPI rank, with each value being a set of hashes of log lines found for that rank.
     If the MPI rank concept does not apply, use None as the key."""
+
+    log2testlines: dict[Path | str, TestLines] = Field(default_factory=dict, init=False)
+    """Used by execution_tests.py"""
 
     def model_post_init(self, __context) -> None:
         self.__throttle_last_time = None
@@ -59,7 +65,7 @@ class _LogParserBase(BaseModel):
         """Yields (mpi_rank, log_file_path) tuples for each log file path to read from.
         Behavior is dynamic based on the child instance type of self."""
         if isinstance(self, _LogParserNgen):
-            for mpi_rank in range(self.cfg.nprocs):
+            for mpi_rank in range(self.rb.input_configs["Parallel"]["nprocs"]):
                 if (
                     self.parse_only_rank is not None
                     and mpi_rank != self.parse_only_rank
@@ -109,13 +115,35 @@ class _LogParserBase(BaseModel):
                     result.append((mpi_rank, parts, log_file_path))
         return result
 
+    def read_and_parse_all_lines_for_issues(self) -> None:
+        """Code migrated from earlier execution_tests.py script. For roughly detecting reportable log levels
+        when running execution tests in series, and tracking the first and last lines of each log file.
+        TODO also inspect payloads if they exist."""
+        severe = "SEVERE"
+        critical = "CRITICAL"
+        fatal = "FATAL"
+
+        self.log2testlines: dict[Path | str, TestLines] = {}
+
+        for mpi_rank, log_file_path in self._iter_log_paths():
+            print(f"Reading in full to build TestLines: {log_file_path}")
+            with open(log_file_path, "r") as f:
+                all_lines = f.read().splitlines()
+            test_lines = TestLines(
+                first_lines=all_lines[:10],
+                last_lines=all_lines[-10:],
+                severe_lines=[ln for ln in all_lines if severe in ln],
+                critical_lines=[ln for ln in all_lines if critical in ln],
+                fatal_lines=[ln for ln in all_lines if fatal in ln],
+            )
+            self.log2testlines[log_file_path] = test_lines
+
 
 class _LogParserNgen(_LogParserBase):
     """Parser for ngen log files with MPI awareness."""
 
     model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
-    cfg: RTEBaseConfig
     rb: RealizationBuilder
     parse_only_rank: int | None
     """Only used by child class _LogParserNgen, where one component may have multiple logs (one for each MPI rank)."""
@@ -123,7 +151,9 @@ class _LogParserNgen(_LogParserBase):
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call _LogParserBase's post init
         if self.parse_only_rank is not None:
-            if not (0 <= self.parse_only_rank < self.cfg.nprocs):
+            if not (
+                0 <= self.parse_only_rank < self.rb.input_configs["Parallel"]["nprocs"]
+            ):
                 raise ValueError(
                     f"parse_only_rank must be between 0 and nprocs-1, but got: {self.parse_only_rank}"
                 )
@@ -141,17 +171,17 @@ class _LogParserNgen(_LogParserBase):
 
     def ngen_log_basename(self, mpi_rank: int):
         """Basename of the ngen log file for the provided MPI rank."""
-        if isinstance(self.cfg, RTEDefaultConfig):
+        if self.rb.run_type == "default":
             bn_prefix = self.rb.basin
-        elif isinstance(self.cfg, RTECalibConfig):
+        elif self.rb.run_type == "calibration":
             # NOTE determine where the 'calib' prefix is derived from and parameterize it instead of hardcoding it here.
             bn_prefix = "calib"
-        elif isinstance(self.cfg, RTEForecastConfig):
+        elif self.rb.run_type == "forecast":
             bn_prefix = self.rb.fcst_run_name
-        elif isinstance(self.cfg, RTETestConfig):
-            raise NotImplementedError(f"Unsupported config type: {type(self.cfg)}")
         else:
-            raise NotImplementedError(f"Unsupported config type: {type(self.cfg)}")
+            raise NotImplementedError(
+                f"Unsupported realization type: {self.rb.run_type}"
+            )
 
         bn = f"{bn_prefix}_ngen_mpi_process_{mpi_rank}.log"
         return bn
