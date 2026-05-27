@@ -15,6 +15,10 @@ from mswm.build_inputs import RealizationBuilder
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
 from ngen_rte import consts as c
+from ngen_rte.execution.ngen_logs import dict_factory
+from ngen_rte.logger import MODULE_KEY, initialize_logger
+
+LOG = initialize_logger()
 
 TRANSMISSION_CONCERN_LOG_LEVELS = (
     "WARNING",
@@ -52,23 +56,24 @@ class ExcInfo:
 
 
 def transmit(
-    mpi_rank: int | None = None,
     log_parts: LogParts = None,
     log_file: Path | str | None = None,
     exc: Exception | None = None,
 ) -> None:
     """Transmit information about the run.
 
-    TODO Currently this simply calls print() with the relevant information.
+    TODO Currently this simply calls LOG.info() with the relevant information.
     Actual transmission logic should be implemented (send to file or service).
     """
     log_file_bn = Path(log_file).name if log_file else None
     exc_info = ExcInfo(exc) if exc is not None else None
     if log_parts and log_parts.level in TRANSMISSION_CONCERN_LOG_LEVELS:
-        print(f"Concern: {log_file_bn}: rank {mpi_rank}: {log_parts}")
+        LOG.warning(
+            f"Concern: {asdict(log_parts, dict_factory=dict_factory)}. FromLogFile: {log_file_bn}"
+        )
     if log_parts.payload:
-        print(
-            f"Transmitting payload from log {log_file_bn}: rank {mpi_rank}: {asdict(log_parts.payload)}. Exception: {asdict(exc_info) if exc_info else None}"
+        LOG.info(
+            f"Payload: {asdict(log_parts.payload, dict_factory=dict_factory)}. Exception: {asdict(exc_info) if exc_info else None}. FromLogFile: {log_file_bn}"
         )
 
 
@@ -85,12 +90,12 @@ def build_realization(rb_kwargs: dict, build_method: str) -> RealizationBuilder:
     """Build a realization using the provided RealizationBuilder kwargs
     and name of build method. Catch errors and send transmissions."""
     modnm = ModuleKey.MSW_MGR.value
-    print(f"Building realization: {rb_kwargs}")
+    LOG.info(f"Building realization: {rb_kwargs}")
 
     e_wrapped = None
 
     transmit(
-        log_parts=LogParts_payload_only(
+        LogParts_payload_only(
             Pld(Status.INITTING, msg="Initializing RealizationBuilder", modnm=modnm)
         )
     )
@@ -102,12 +107,12 @@ def build_realization(rb_kwargs: dict, build_method: str) -> RealizationBuilder:
         e_wrapped.__cause__ = e
     else:
         transmit(
-            log_parts=LogParts_payload_only(
+            LogParts_payload_only(
                 Pld(Status.INITTED, msg="Initialized RealizationBuilder", modnm=modnm)
             )
         )
         transmit(
-            log_parts=LogParts_payload_only(
+            LogParts_payload_only(
                 Pld(Status.STARTING, msg=f"Calling: {build_method}", modnm=modnm)
             )
         )
@@ -119,32 +124,50 @@ def build_realization(rb_kwargs: dict, build_method: str) -> RealizationBuilder:
             e_wrapped.__cause__ = e
         else:
             transmit(
-                log_parts=LogParts_payload_only(
+                LogParts_payload_only(
                     Pld(Status.COMPLETE, msg=f"Finished: {build_method}", modnm=modnm)
                 )
             )
 
     if e_wrapped is not None:
         transmit(
-            log_parts=LogParts_payload_only(Pld(Status.ERROR, msg=msg, modnm=modnm)),
+            LogParts_payload_only(Pld(Status.ERROR, msg=msg, modnm=modnm)),
             exc=e_wrapped,
         )
         raise e_wrapped
 
-    print(f"Wrote: {rb.realization_file}")
+    LOG.info(f"Wrote: {rb.realization_file}")
     return rb
+
+
+def _rte_transmit_job_start():
+    """General transmission for job starting"""
+    transmit(
+        LogParts_payload_only(
+            Pld(Status.STARTING, msg="Starting job", modnm=MODULE_KEY.value)
+        )
+    )
+
+
+def _rte_transmit_job_complete():
+    """General transmission for job completion"""
+    transmit(
+        LogParts_payload_only(
+            Pld(Status.COMPLETE, msg="Job complete", modnm=MODULE_KEY.value)
+        )
+    )
 
 
 def make_symlink(link_path: str, target_path: str) -> None:
     """Create a symlink"""
-    print(
+    LOG.info(
         f"Creating symlink, writing {repr(link_path)} to point to {repr(target_path)}"
     )
     if not os.path.exists(target_path):
         raise FileNotFoundError(target_path)
     os.makedirs(os.path.dirname(link_path), exist_ok=True)
     if os.path.exists(link_path):
-        print(f"Deleting existing symlink before recreating it: {link_path}")
+        LOG.info(f"Deleting existing symlink before recreating it: {link_path}")
         os.remove(link_path)
     os.symlink(target_path, link_path)
 
@@ -277,7 +300,7 @@ def find_obs_dir(global_domain: str, gage_id: str) -> str:
     If multiple are found, then this function needs to be reworked to handle more complex
     situations, such as multiple vintages of this data existing on disk."""
     grandparent = f"{c.DEFAULT_MAIN_DIR}/data/streamflow_observations/{global_domain}"
-    print(f"Searching directory for observed flow files: {grandparent}")
+    LOG.info(f"Searching directory for observed flow files: {grandparent}")
     candidate_csvs = []
     for root, dirs, files in os.walk(grandparent):
         dirs.sort()

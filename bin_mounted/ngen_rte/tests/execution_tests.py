@@ -27,9 +27,10 @@ from ngen_rte.configs import (
 )
 from ngen_rte.execution.ngen_async import NgenRunnerAsync
 from ngen_rte.execution.ngen_logs import TestLines, _LogParserGeneric
+from ngen_rte.logger import initialize_logger
 from ngen_rte.utils import build_realization
 
-print = functools.partial(print, flush=True)
+LOG = initialize_logger()
 
 
 def get_test_configs__calibration(
@@ -125,7 +126,7 @@ def build_model_formulations_for_test(
     if model_formulations_file is None:
         model_formulations.append(ModelFormulation(*c.DEFAULT_MODEL_FORMULATION_ARGS))
     else:
-        print(f"Reading: {model_formulations_file}")
+        LOG.info(f"Reading: {model_formulations_file}")
         if not model_formulations_file.endswith(".tsv"):
             raise ValueError(
                 f"Expected model_formulations_file to end with .tsv (indicating tab-separated values) but received: {model_formulations_file}"
@@ -215,7 +216,7 @@ class ForecastTest(BaseModel):
         try:
             self.rb = build_realization(self.rb_kwargs, build_method=build_method)
         except Exception as e:
-            print(
+            LOG.info(
                 f"Caught unexpected exception in main thread while instantiating RealizationBuilder or calling method {repr(build_method)}: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising."
             )
             self.rb_excep = e
@@ -252,11 +253,13 @@ class ForecastTest(BaseModel):
         )
         self.calib_log = _LogParserGeneric(log_file_path=calib_log_path_overwrite)
 
-        print(f"Running calibration, will log to: {repr(self.calib_log.log_file_path)}")
+        LOG.info(
+            f"Running calibration, will log to: {repr(self.calib_log.log_file_path)}"
+        )
         cmd = run_calibration.get_calibration_cmd(
             self.rb, worker_name, self.calib_log.log_file_path
         )
-        print(f"Running command args: {cmd}")
+        LOG.info(f"Running command args: {cmd}")
         try:
             proc = subprocess.run(
                 cmd,
@@ -273,7 +276,7 @@ class ForecastTest(BaseModel):
             else:
                 stderr_str = ""
         except subprocess.CalledProcessError as e:
-            print(f"Calibration failed with exception {type(e)}: {repr(e)}.")
+            LOG.info(f"Calibration failed with exception {type(e)}: {repr(e)}.")
             self.fcst_exe_stat = TestStat.FAIL
             self.fcst_exe_excep = e
             self.fcst_exe_excep_tb = traceback.format_exc().splitlines()
@@ -307,17 +310,17 @@ class ForecastTest(BaseModel):
             ngen_runner.start()
             ngen_runner.stream_status_until_complete()
         except KeyboardInterrupt as e:
-            print("Caught KeyboardInterrupt in main thread. Reraising.")
+            LOG.info("Caught KeyboardInterrupt in main thread. Reraising.")
             raise e
         except NgenIntentionallyStoppedError as e:
             # Raised when stop flag is manually set, or when context manager ends before ngen finishes.
             # The latter is happening intentionally here under certain types of tests.
-            print(
+            LOG.info(
                 f"Caught NgenIntentionallyStoppedError in main thread. Not reraising: {e}"
             )
             fcst_exe_excep = None
         except Exception as e:
-            print(
+            LOG.info(
                 f"Caught unexpected exception in main thread while executing forecast: {type(e)}: {repr(e)}. Storing exception info in test object to signify failure. Not reraising.\nTraceback was: {traceback.format_exc()}"
             )
             fcst_exe_excep = e
@@ -385,14 +388,14 @@ class TestsManager(BaseModel):
         prev_results = []
         if os.path.exists(c.TEST_RESULTS_FILE):
             if self.restart:
-                print(f"restart={self.restart}, reading: {c.TEST_RESULTS_FILE}")
+                LOG.info(f"restart={self.restart}, reading: {c.TEST_RESULTS_FILE}")
                 with open(c.TEST_RESULTS_FILE) as f:
                     content = f.read()
                 rows = json.loads(content) if content else []
                 for row in rows:
                     prev_results.append(row)
             else:
-                print(f"restart={self.restart}, deleting: {c.TEST_RESULTS_FILE}")
+                LOG.info(f"restart={self.restart}, deleting: {c.TEST_RESULTS_FILE}")
                 os.remove(c.TEST_RESULTS_FILE)
         self.prev_results = prev_results
 
@@ -423,7 +426,7 @@ class TestsManager(BaseModel):
     def evaluate_test_results(self, raise_if_any_failed: bool = True) -> None:
         """Inspect the test results json file, and if any failed, raise an error."""
         msg = f"\n\n###### FORECAST TEST RESULTS ######\nWriting to: {c.TEST_RESULTS_FILE}\n{self.fcst_stat_sums.model_dump_json(indent=2)}"
-        print(msg)
+        LOG.info(msg)
         with open(c.TEST_RESULTS_FILE, "w") as f:
             f.write(json.dumps(self.concatenated_results_dicts, indent=2))
         if raise_if_any_failed and self.fcst_stat_sums.any_failed:

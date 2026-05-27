@@ -17,13 +17,19 @@ from mswm.build_inputs import RealizationBuilder
 
 from ngen_rte import consts as c
 from ngen_rte.configs import RTECalibConfig
+from ngen_rte.logger import initialize_logger
 
 # from ngen_rte.execution.ngen_logs import NgenLogsParser
 from ngen_rte.run_config import cli_args
 from ngen_rte.tests import utils_testing_setup
-from ngen_rte.utils import build_realization, get_calibration_log_file_overwrite_path
+from ngen_rte.utils import (
+    _rte_transmit_job_complete,
+    _rte_transmit_job_start,
+    build_realization,
+    get_calibration_log_file_overwrite_path,
+)
 
-print = functools.partial(print, flush=True)
+LOG = initialize_logger()
 
 
 def get_calibration_cmd(
@@ -51,11 +57,11 @@ def run_calibration(cfg, rb: RealizationBuilder) -> None:
     start = time.perf_counter()
 
     # ngen_parser = NgenLogsParser(cfg=cfg, rb=rb)
-    print(
+    LOG.info(
         f"\n\nStarting calibration with configuration: {cfg.model_dump_json(indent=2)}\n\nvia command args: {cmd} with cwd={cwd}.{msg_suffix}"
     )
     proc = subprocess.run(cmd, check=False, cwd=cwd)
-    print(
+    LOG.info(
         f"\nFinished calibration with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nReturn code {proc.returncode}.\nCommand was: {cmd}, with cwd={cwd}.{msg_suffix}"
     )
     # ngen_parser.log_all_payloads()
@@ -64,6 +70,8 @@ def run_calibration(cfg, rb: RealizationBuilder) -> None:
 
 
 def main(cfg: RTECalibConfig):
+    _rte_transmit_job_start()
+
     if cfg.forcing_configuration not in c.CALIB_FORCING_TYPES:
         raise ValueError(
             f"cfg.default_realization = {cfg.default_realization} (calibration), but cfg.forcing_configuration {cfg.forcing_configuration} not in c.CALIB_FORCING_TYPES {c.CALIB_FORCING_TYPES}"
@@ -77,6 +85,8 @@ def main(cfg: RTECalibConfig):
         cfg.mswm_RealizationBuilder_kwargs, build_method="build_calib_realization"
     )
     run_calibration(cfg, rb)
+
+    _rte_transmit_job_complete()
 
 
 def cli_arg_parser() -> argparse.ArgumentParser:

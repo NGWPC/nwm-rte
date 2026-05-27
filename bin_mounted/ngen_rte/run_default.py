@@ -9,24 +9,28 @@ See `run_default.sh` for example calls.
 """
 
 import argparse
-import functools
 
 from mswm.build_inputs import RealizationBuilder
 
 from ngen_rte.configs import RTEDefaultConfig
 from ngen_rte.execution.ngen_async import NgenRunnerAsync
+from ngen_rte.logger import initialize_logger
 from ngen_rte.run_config import cli_args
 from ngen_rte.tests import utils_testing_setup
-from ngen_rte.utils import build_realization
+from ngen_rte.utils import (
+    _rte_transmit_job_complete,
+    _rte_transmit_job_start,
+    build_realization,
+)
 
-print = functools.partial(print, flush=True)
+LOG = initialize_logger()
 
 
 def run_default(rb: RealizationBuilder) -> None:
     """Run the provided default realization.
     Realization should already be built (rb.build_default_realization() already called).
     """
-    print("Running default realization")
+    LOG.info("Running default realization")
     # For default realization, currently postprocess needs suppress_output=True
     ngen_runner = NgenRunnerAsync(rb=rb, postprocess=True, suppress_output=True)
     ngen_runner.start()
@@ -35,6 +39,8 @@ def run_default(rb: RealizationBuilder) -> None:
 
 
 def main(cfg: RTEDefaultConfig):
+    _rte_transmit_job_start()
+
     # util_asserts.assert_paths__core(forecast_vars.gage_id)
     # util_asserts.assert_paths__raw_config()
     # util_asserts.assert_paths_common_input()
@@ -49,6 +55,8 @@ def main(cfg: RTEDefaultConfig):
     )
     cfg.configure_ngen_log(rb)
     run_default(rb)
+
+    _rte_transmit_job_complete()
 
 
 def cli_arg_parser() -> argparse.ArgumentParser:

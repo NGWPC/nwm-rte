@@ -1,17 +1,20 @@
 """Live polling of ngen log files"""
 
-import functools
 import os
 import time
 import traceback
+from datetime import datetime
+from enum import Enum
 from pathlib import Path
 
 import ngen_rte.consts as c
 from ewts import LogParts, parts_of_log_line
 from mswm.build_inputs import RealizationBuilder
+from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
+from ngen_rte.logger import initialize_logger
 from pydantic import BaseModel, ConfigDict, Field
 
-print = functools.partial(print, flush=True)
+LOG = initialize_logger()
 
 
 THROTTLE_SECONDS = 3
@@ -97,9 +100,9 @@ class _LogParserBase(BaseModel):
         for mpi_rank, log_file_path in self._iter_log_paths():
             # TODO move everyting below into another method and try/except on FileNotFoundError
             if not os.path.exists(log_file_path):
-                print(f"Warning: ngen log file does not exist: {log_file_path}")
+                LOG.debug(f"log file does not yet exist: {log_file_path}")
                 continue
-            print(f"Reading: {log_file_path}")
+            LOG.debug(f"Reading: {log_file_path}")
             with open(log_file_path) as f:
                 for line in f:
                     if not self._line_is_new(mpi_rank, line):
@@ -108,7 +111,7 @@ class _LogParserBase(BaseModel):
                     try:
                         parts = parts_of_log_line(line, tolerant=self.tolerant)
                     except Exception as e:
-                        print(
+                        LOG.error(
                             f"Error parsing line into parts: {line}. Error: {e}. Traceback: {traceback.format_exc()}"
                         )
                         continue
@@ -126,7 +129,7 @@ class _LogParserBase(BaseModel):
         self.log2testlines: dict[Path | str, TestLines] = {}
 
         for mpi_rank, log_file_path in self._iter_log_paths():
-            print(f"Reading in full to build TestLines: {log_file_path}")
+            LOG.info(f"Reading in full to build TestLines: {log_file_path}")
             with open(log_file_path, "r") as f:
                 all_lines = f.read().splitlines()
             test_lines = TestLines(
@@ -200,3 +203,23 @@ class _LogParserGeneric(_LogParserBase):
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call _LogParserBase's post init
+
+
+def dict_factory(fields) -> dict:
+    """For dataclass ensuring a certain order of Payload keys, and reporting str versions of enums,
+    when serializing to log messages, for human readability."""
+    first_key = "modnm"
+    ordered = []
+    rest = []
+    for k, v in fields:
+        # Convert enum values to string
+        if isinstance(v, Enum):
+            v = str(v)
+        # Convert datetime values to string
+        if isinstance(v, datetime):
+            v = v.strftime(DDF)
+        if k == first_key:
+            ordered.append((k, v))
+        else:
+            rest.append((k, v))
+    return dict(ordered + rest)

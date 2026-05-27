@@ -19,6 +19,7 @@ from ngen_rte.execution.ngen_logs import (
     _LogParserGeneric,
     _LogParserNgen,
 )
+from ngen_rte.logger import initialize_logger
 from ngen_rte.utils import transmit
 from nwm_fcst_mgr.exceptions import (
     NgenCalledProcessError,
@@ -26,6 +27,8 @@ from nwm_fcst_mgr.exceptions import (
 )
 from nwm_fcst_mgr.forecast import ConfigCache, ForecastExecutionManager, RunStatus
 from pydantic import BaseModel, ConfigDict, Field
+
+LOG = initialize_logger()
 
 PARSE_ONLY_RANK = None
 """Set this to an integer to restrict the log parser / payload transmitter to only that MPI rank.
@@ -98,7 +101,7 @@ class NgenRunnerAsync(BaseModel):
         if self.fem is not None:
             raise RuntimeError("Execution mgr has already been set")
 
-        print("Starting ngen run...")
+        LOG.info("Starting ngen run...")
         config_cache = self._make_config_cache()
         if self.rb.run_type in ("forecast", "default"):
             self.fem = ForecastExecutionManager(
@@ -133,7 +136,7 @@ class NgenRunnerAsync(BaseModel):
                 new_log_parts,
                 log_file,
             ) in self._iter_new_log_parts_until_complete():
-                transmit(mpi_rank, new_log_parts, log_file)
+                transmit(new_log_parts, log_file)
         except NgenCalledProcessError as e:
             raise RuntimeError(f"Error during forecast run: {e}") from e
         except NgenIntentionallyStoppedError as e:
@@ -183,17 +186,15 @@ class NgenRunnerAsync(BaseModel):
         if final:
             if self.postprocess:
                 if self.fem._status != RunStatus.EXECUTION_SUCCESS:
-                    print(
+                    LOG.info(
                         f"Would have called execution mgr postprocess(), but cannot since status = {self.fem._status}"
                     )
                 else:
-                    print("Calling execution mgr postprocess()")
+                    LOG.info("Calling execution mgr postprocess()")
                     self.fem.postprocess(suppress_output=self.suppress_output)
-            print(f"Waiting {FINAL_WAIT} seconds before final read of logs...")
+            LOG.info(f"Waiting {FINAL_WAIT} seconds before final read of logs...")
             time.sleep(FINAL_WAIT)
-        print(
-            f"Execution mgr: {self.fem._status} at {datetime.now(timezone.utc).isoformat()}"
-        )
+        LOG.info(f"ForecastExecutionManager: {self.fem._status}")
         for parser in self.log_parsers:
             for mpi_rank, new_log_parts, log_file in parser._new_log_parts():
                 yield mpi_rank, new_log_parts, log_file

@@ -62,8 +62,8 @@ function docker_run {
         -v "${MNT__RUN_NGEN__HOST}/data/raw_input:/ngen-app/data/raw_input" \
         \
         -v "${MNT__S3_DATA__HOST}:${MNT__S3_DATA__CONTAINER}" \
-        -v "$(pwd)/docker_logs/run:/ngencerf/data/run-logs" \
-        -v "$(pwd)/ngen_logs:/ngen-app/rte_ngen_logs" \
+        -v "$(pwd)/logs/docker/run:/ngencerf/data/run-logs" \
+        -v "$(pwd)/logs:/ngen-app/logs_rte" \
         -v "$(pwd)/.devcontainer/tmp:/tmp" \
         -e NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE} \
         \

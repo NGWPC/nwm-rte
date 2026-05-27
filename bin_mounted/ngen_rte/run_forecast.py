@@ -9,22 +9,27 @@ See `run_fcst.sh` for example calls.
 """
 
 import argparse
-import functools
+import os
 
 from mswm.build_inputs import RealizationBuilder
 
 from ngen_rte.configs import RTEForecastConfig
 from ngen_rte.execution.ngen_async import NgenRunnerAsync
+from ngen_rte.logger import initialize_logger
 from ngen_rte.run_config import cli_args
 from ngen_rte.tests import utils_testing_setup
-from ngen_rte.utils import build_realization
+from ngen_rte.utils import (
+    _rte_transmit_job_complete,
+    _rte_transmit_job_start,
+    build_realization,
+)
 
-print = functools.partial(print, flush=True)
+LOG = initialize_logger()
 
 
 def run_realization(rb: RealizationBuilder) -> None:
     """Run the realization, which can be a coldstart, forecast, or lagged ensemble."""
-    print(
+    LOG.info(
         f"Running realization with Forcing configuration: {rb.input_configs['Forcing']}"
     )
     if rb.use_hindcast:
@@ -44,6 +49,8 @@ def run_realization(rb: RealizationBuilder) -> None:
 
 
 def main(cfg: RTEForecastConfig):
+    _rte_transmit_job_start()
+
     # util_asserts.assert_paths__core(forecast_vars.gage_id)
     # util_asserts.assert_paths__raw_config()
     # util_asserts.assert_paths_common_input()
@@ -68,6 +75,8 @@ def main(cfg: RTEForecastConfig):
         )
         cfg.configure_ngen_log(rb_fcst)
         run_realization(rb_fcst)
+
+    _rte_transmit_job_complete()
 
 
 def cli_arg_parser() -> argparse.ArgumentParser:

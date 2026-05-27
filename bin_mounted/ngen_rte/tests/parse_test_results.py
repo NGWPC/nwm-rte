@@ -10,9 +10,10 @@ import numpy as np
 import pandas as pd
 
 from ngen_rte import consts as c
+from ngen_rte.logger import initialize_logger
 from ngen_rte.tests.execution_tests import TestStat
 
-print = functools.partial(print, flush=True)
+LOG = initialize_logger()
 
 
 @dataclass
@@ -55,18 +56,18 @@ def is_match(pr: dict, row: pd.Series) -> bool:
 def main(model_formulations_file: str | None = None) -> None:
     """See module docstring for general behavior. See CLI help for CLI behavior."""
 
-    print(f"Reading: {c.TEST_RESULTS_FILE}")
+    LOG.info(f"Reading: {c.TEST_RESULTS_FILE}")
     with open(c.TEST_RESULTS_FILE) as f:
         raw_results = json.load(f)
 
     parsed_results: list[ParsedResult] = [parse_raw_result(rr) for rr in raw_results]
-    print(f"Parsed {len(parsed_results)} results")
+    LOG.info(f"Parsed {len(parsed_results)} results")
 
     if model_formulations_file is None:
         return
 
     extension = ".tsv"
-    print(f"Reading: {model_formulations_file}")
+    LOG.info(f"Reading: {model_formulations_file}")
     assert model_formulations_file.endswith(extension)
     df_mff = pd.read_csv(model_formulations_file, sep="\t")
 
@@ -102,7 +103,7 @@ def main(model_formulations_file: str | None = None) -> None:
 
         df_mff.at[i, "parse_errors"] = ", ".join(parse_errors)
 
-    print(f"Writing: {tgt_file}")
+    LOG.info(f"Writing: {tgt_file}")
     df_mff.to_csv(tgt_file, sep="\t", index=False)
 
 

@@ -25,6 +25,7 @@ from ngen_rte import consts as c
 # from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 # TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
 from ngen_rte.consts import LAGGED_ENSEMBLE_MEMBER_LAGS
+from ngen_rte.logger import initialize_logger
 from ngen_rte.other_classes import (
     CalibTimeWindows,
     ForcingProviderPaths,
@@ -36,6 +37,8 @@ from ngen_rte.utils import (
     make_wcoss_path_symlinks,
     parse_fcst_run_name,
 )
+
+LOG = initialize_logger()
 
 
 class RTEBaseConfig(BaseModel):
@@ -150,7 +153,7 @@ class RTEBaseConfig(BaseModel):
             raise RuntimeError(f"Unexpected run_type: {rb.run_type}")
 
         # Confirm that it's valid json content
-        print(f"Reading: {c.SRC_LOG_CONFIG_JSON}")
+        LOG.debug(f"Reading: {c.SRC_LOG_CONFIG_JSON}")
         with open(c.SRC_LOG_CONFIG_JSON) as f:
             try:
                 _ = json.load(f)
@@ -162,7 +165,7 @@ class RTEBaseConfig(BaseModel):
         # Decide the dir
         setting_val = os.environ.get(c.RTE_NGEN_LOG_BEHAVIOR_KEY, "").lower().strip()
         if setting_val in ("yes", "true"):
-            log_dir = os.path.join("/ngen-app/rte_ngen_logs", f"{now_str}_{label}")
+            log_dir = os.path.join(c.CONTAINER_LOGS_DIR, "ngen", f"{now_str}_{label}")
         elif setting_val in ("no", "false", ""):
             log_dir = fallback_log_dir
         else:
@@ -171,11 +174,11 @@ class RTEBaseConfig(BaseModel):
             )
 
         # Make the dir, copy the log json config into it, and set the OS env var for ngen to be able to find it.
-        print(f"Making directory: {log_dir}")
+        LOG.debug(f"Making directory: {log_dir}")
         os.makedirs(log_dir, exist_ok=True)
-        print(f"Copying: {c.SRC_LOG_CONFIG_JSON} -> {log_dir}/")
+        LOG.info(f"Copying: {c.SRC_LOG_CONFIG_JSON} -> {log_dir}/")
         shutil.copy2(c.SRC_LOG_CONFIG_JSON, log_dir)
-        print(f"Setting OS env var {c.NGEN_LOG_DIR_KEY} to {log_dir}")
+        LOG.info(f"Setting OS env var {c.NGEN_LOG_DIR_KEY} to {log_dir}")
         os.environ[c.NGEN_LOG_DIR_KEY] = log_dir
 
     def _parse_lagged_ensemble_args(self):
