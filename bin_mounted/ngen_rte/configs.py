@@ -18,7 +18,7 @@ from mswm.utils.input_configuration import (
     ParallelConfig,
 )
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field
 
 from ngen_rte import consts as c
 
@@ -27,6 +27,7 @@ from ngen_rte import consts as c
 from ngen_rte.consts import LAGGED_ENSEMBLE_MEMBER_LAGS
 from ngen_rte.logger import initialize_logger
 from ngen_rte.other_classes import (
+    BaseModelStrict,
     CalibTimeWindows,
     ForcingProviderPaths,
     ModelFormulation,
@@ -41,7 +42,7 @@ from ngen_rte.utils import (
 LOG = initialize_logger()
 
 
-class RTEBaseConfig(BaseModel):
+class RTEBaseConfig(BaseModelStrict):
     """Base RTE configuration class to be inherited by child classes.
     Triggers certain setup actions, such as creation of WCOSS-path symlinks.
     Classes that inherit from this should call super().model_post_init(__context) inside their own
@@ -525,8 +526,6 @@ class RTEDefaultConfig(RTEBaseConfig):
         See CLI help menu for [`run_default.py`](python_cli_help__run_default.py.txt) for details.
     """
 
-    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
-
     cycle_datetime: datetime
     duration: timedelta | None
     forcing_configuration: str
@@ -565,8 +564,6 @@ class RTECalibConfig(RTEBaseConfig):
     worker_name: str | None
         Name of the ngen worker (used to build a directory name)
     """
-
-    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
     objective_function: c.CalObjective
     optimization_algorithm: c.CalOptimizationAlgo
@@ -616,8 +613,6 @@ class RTEForecastConfig(RTEBaseConfig):
     lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
         See CLI help menu for [`run_forecast.py`](python_cli_help__run_forecast.py.txt) for details.
     """
-
-    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
     # These calibration parameters affect directory path
     objective_function: c.CalObjective
@@ -682,8 +677,6 @@ class RTETestConfig(RTEBaseConfig):
     restart: bool
         Causes the test to be restarted by reading the existing c.TEST_RESULTS_FILE and skipping configurations which had completed earlier. Can be used when long-running tests are interrupted. Use with caution.
     """
-
-    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
     skip_forecast: bool
     quit_forecast_after_duration: float | None = Field(ge=0)

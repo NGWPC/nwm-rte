@@ -1,6 +1,5 @@
 """Test logic for iteating over various forecast and calibration realiztion types, trapping errors and writing results to a json file"""
 
-import functools
 import itertools
 import json
 import os
@@ -15,7 +14,7 @@ from mswm.utils.input_configuration import ForcingConfig, InputConfig
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 from nwm_fcst_mgr.exceptions import NgenIntentionallyStoppedError
 from nwm_fcst_mgr.forecast import ForecastExecutionManager
-from pydantic import BaseModel, ConfigDict, Field, RootModel, validate_call
+from pydantic import Field, RootModel, validate_call
 
 from ngen_rte import consts as c
 from ngen_rte import run_calibration
@@ -28,6 +27,7 @@ from ngen_rte.configs import (
 from ngen_rte.execution.ngen_async import NgenRunnerAsync
 from ngen_rte.execution.ngen_logs import TestLines, _LogParserGeneric
 from ngen_rte.logger import initialize_logger
+from ngen_rte.other_classes import BaseModelStrict
 from ngen_rte.utils import build_realization
 
 LOG = initialize_logger()
@@ -164,7 +164,7 @@ class TestStat(StrEnum):
     SKIP = "SKIP"
 
 
-class ForecastTest(BaseModel):
+class ForecastTest(BaseModelStrict):
     """
     For managed execution of a set of realizations, with error trapping.
     Covers forecasts and calibrations.
@@ -174,11 +174,6 @@ class ForecastTest(BaseModel):
         rb_kwargs: dict
     """
 
-    ##########
-    ### Pydantic configuration
-    model_config = ConfigDict(arbitrary_types_allowed=True, strict=True)
-
-    ##########
     ### Excluded attributes
     rb: RealizationBuilder = Field(exclude=True, init=False, default=None)
     fcst_exe_mgr: ForecastExecutionManager = Field(
@@ -187,7 +182,6 @@ class ForecastTest(BaseModel):
     fcst_exe_excep: Exception | None = Field(exclude=True, init=False, default=None)
     rb_excep: Exception | None = Field(exclude=True, init=False, default=None)
 
-    ##########
     ### Included attributes
     # Test results and exceptions
     rb_stat: TestStat = Field(init=False, default=TestStat.NOSTATUS)
@@ -352,7 +346,7 @@ class ForecastTest(BaseModel):
             self.fcst_exe_stat = TestStat.FAIL
 
 
-class TestResultsSums(BaseModel):
+class TestResultsSums(BaseModelStrict):
     """Helper class for running a managed set of test realizations."""
 
     rb_statcount: dict[str, int]  # Status counts for RealizationBuilder events
@@ -370,7 +364,7 @@ class TestResultsSums(BaseModel):
         )
 
 
-class TestsManager(BaseModel):
+class TestsManager(BaseModelStrict):
     """Helper class for running a managed set of test realizations."""
 
     restart: bool

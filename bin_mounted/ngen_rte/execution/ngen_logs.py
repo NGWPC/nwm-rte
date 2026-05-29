@@ -12,7 +12,8 @@ from ewts import LogParts, parts_of_log_line
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 from ngen_rte.logger import initialize_logger
-from pydantic import BaseModel, ConfigDict, Field
+from ngen_rte.other_classes import BaseModelStrict
+from pydantic import Field
 
 LOG = initialize_logger()
 
@@ -20,7 +21,7 @@ LOG = initialize_logger()
 THROTTLE_SECONDS = 3
 
 
-class TestLines(BaseModel):
+class TestLines(BaseModelStrict):
     """For usage by execution_tests.py"""
 
     first_lines: list[str]
@@ -30,10 +31,8 @@ class TestLines(BaseModel):
     fatal_lines: list[str]
 
 
-class _LogParserBase(BaseModel):
+class _LogParserBase(BaseModelStrict):
     """Parser for log files."""
-
-    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
     tolerant: bool = False
     """Passed on to ``ewts.parts_of_log_line()`` to control whether parsing errors are tolerated or raise exceptions."""
@@ -148,8 +147,6 @@ class _LogParserBase(BaseModel):
 class _LogParserNgen(_LogParserBase):
     """Parser for ngen log files with MPI awareness."""
 
-    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
-
     rb: RealizationBuilder
     parse_only_rank: int | None
     """Only used by child class _LogParserNgen, where one component may have multiple logs (one for each MPI rank)."""
@@ -199,8 +196,6 @@ class _LogParserNgen(_LogParserBase):
 
 class _LogParserGeneric(_LogParserBase):
     """Parser for generic log files without MPI context, e.g. from nwm-fcst-mgr."""
-
-    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
     log_file_path: Path | str
 

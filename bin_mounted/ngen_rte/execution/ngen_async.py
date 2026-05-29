@@ -9,7 +9,6 @@ Reads logs for:
 import os
 import time
 from collections.abc import Generator
-from datetime import datetime, timezone
 from pathlib import Path
 
 from ewts import LogParts
@@ -20,13 +19,14 @@ from ngen_rte.execution.ngen_logs import (
     _LogParserNgen,
 )
 from ngen_rte.logger import initialize_logger
+from ngen_rte.other_classes import BaseModelStrict
 from ngen_rte.utils import transmit
 from nwm_fcst_mgr.exceptions import (
     NgenCalledProcessError,
     NgenIntentionallyStoppedError,
 )
 from nwm_fcst_mgr.forecast import ConfigCache, ForecastExecutionManager, RunStatus
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field
 
 LOG = initialize_logger()
 
@@ -47,9 +47,7 @@ FINAL_WAIT = 2
 """After status indicates that the ngen run has stopped, wait this many seconds before reading the logs one last time."""
 
 
-class NgenRunnerAsync(BaseModel):
-    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
-
+class NgenRunnerAsync(BaseModelStrict):
     rb: RealizationBuilder
     parse_only_rank: int | None = PARSE_ONLY_RANK
     postprocess: bool = False

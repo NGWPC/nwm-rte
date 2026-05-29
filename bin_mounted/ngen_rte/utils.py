@@ -242,23 +242,6 @@ def get_calibration_log_file_overwrite_path(rb: RealizationBuilder) -> str:
     return calib_log_path_overwrite
 
 
-def booleanize(booly: str | bool) -> bool:
-    """Convert the provided value to a boolean, parsing semantically no/0/false and yes/1/true. Case-insensitive."""
-    if isinstance(booly, bool):
-        return booly
-    elif isinstance(booly, str):
-        if booly.lower().strip() in ("no", "0", "false"):
-            return False
-        elif booly.lower().strip() in ("yes", "1", "true"):
-            return True
-        else:
-            raise ValueError(
-                f"Unexpected booly value: {repr(booly)}. Expected no/0/false or yes/1/true (case insensitive)."
-            )
-    else:
-        raise TypeError(f"Unexpected booly type: {type(booly)}")
-
-
 def parse_fcst_run_name(fcst_run_name: str) -> list[Exception]:
     """Validate the provided forecast run name, and return a list of errors."""
     errors: list[Exception] = []
