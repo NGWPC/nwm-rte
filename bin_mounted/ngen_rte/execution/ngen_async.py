@@ -181,6 +181,7 @@ class NgenRunnerAsync(BaseModelStrict):
     ) -> Generator[tuple[int, LogParts, Path | str], None, None]:
         """Generator that yields (mpi_rank, log_parts, log_file) tuples for each new message.
         If this is the final call, wait FINAL_WAIT seconds before reading logs, and optionally call postprocess() before that."""
+        LOG.info(f"ForecastExecutionManager: {self.fem._status}")
         if final:
             if self.postprocess:
                 if self.fem._status != RunStatus.EXECUTION_SUCCESS:
@@ -192,7 +193,6 @@ class NgenRunnerAsync(BaseModelStrict):
                     self.fem.postprocess(suppress_output=self.suppress_output)
             LOG.info(f"Waiting {FINAL_WAIT} seconds before final read of logs...")
             time.sleep(FINAL_WAIT)
-        LOG.info(f"ForecastExecutionManager: {self.fem._status}")
         for parser in self.log_parsers:
             for mpi_rank, new_log_parts, log_file in parser._new_log_parts():
                 yield mpi_rank, new_log_parts, log_file
