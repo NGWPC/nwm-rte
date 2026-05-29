@@ -24,9 +24,11 @@ from ngen_rte.run_config import cli_args
 from ngen_rte.tests import utils_testing_setup
 from ngen_rte.utils import (
     _rte_transmit_job_complete,
+    _rte_transmit_job_failed,
     _rte_transmit_job_start,
     build_realization,
     get_calibration_log_file_overwrite_path,
+    transmit,
 )
 
 LOG = initialize_logger()
@@ -69,9 +71,7 @@ def run_calibration(cfg, rb: RealizationBuilder) -> None:
     proc.check_returncode()
 
 
-def main(cfg: RTECalibConfig):
-    _rte_transmit_job_start()
-
+def _main(cfg: RTECalibConfig):
     if cfg.forcing_configuration not in c.CALIB_FORCING_TYPES:
         raise ValueError(
             f"cfg.default_realization = {cfg.default_realization} (calibration), but cfg.forcing_configuration {cfg.forcing_configuration} not in c.CALIB_FORCING_TYPES {c.CALIB_FORCING_TYPES}"
@@ -86,7 +86,17 @@ def main(cfg: RTECalibConfig):
     )
     run_calibration(cfg, rb)
 
-    _rte_transmit_job_complete()
+
+def main(cfg: RTECalibConfig):
+    _rte_transmit_job_start()
+    try:
+        _main(cfg)
+    except Exception as e:
+        transmit(exc=e)
+        _rte_transmit_job_failed()
+        raise e
+    else:
+        _rte_transmit_job_complete()
 
 
 def cli_arg_parser() -> argparse.ArgumentParser:

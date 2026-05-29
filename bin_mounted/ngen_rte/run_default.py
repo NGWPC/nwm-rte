@@ -19,8 +19,10 @@ from ngen_rte.run_config import cli_args
 from ngen_rte.tests import utils_testing_setup
 from ngen_rte.utils import (
     _rte_transmit_job_complete,
+    _rte_transmit_job_failed,
     _rte_transmit_job_start,
     build_realization,
+    transmit,
 )
 
 LOG = initialize_logger()
@@ -38,9 +40,7 @@ def run_default(rb: RealizationBuilder) -> None:
     ngen_runner.close()  # Can also let __del__ handle this.
 
 
-def main(cfg: RTEDefaultConfig):
-    _rte_transmit_job_start()
-
+def _main(cfg: RTEDefaultConfig):
     # util_asserts.assert_paths__core(forecast_vars.gage_id)
     # util_asserts.assert_paths__raw_config()
     # util_asserts.assert_paths_common_input()
@@ -56,7 +56,17 @@ def main(cfg: RTEDefaultConfig):
     cfg.configure_ngen_log(rb)
     run_default(rb)
 
-    _rte_transmit_job_complete()
+
+def main(cfg: RTEDefaultConfig):
+    _rte_transmit_job_start()
+    try:
+        _main(cfg)
+    except Exception as e:
+        transmit(exc=e)
+        _rte_transmit_job_failed()
+        raise e
+    else:
+        _rte_transmit_job_complete()
 
 
 def cli_arg_parser() -> argparse.ArgumentParser:

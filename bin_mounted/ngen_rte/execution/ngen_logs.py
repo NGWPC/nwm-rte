@@ -121,10 +121,6 @@ class _LogParserBase(BaseModelStrict):
         """Code migrated from earlier execution_tests.py script. For roughly detecting reportable log levels
         when running execution tests in series, and tracking the first and last lines of each log file.
         TODO also inspect payloads if they exist."""
-        severe = "SEVERE"
-        critical = "CRITICAL"
-        fatal = "FATAL"
-
         self.log2testlines: dict[Path | str, TestLines] = {}
 
         for mpi_rank, log_file_path in self._iter_log_paths():
@@ -134,9 +130,9 @@ class _LogParserBase(BaseModelStrict):
             test_lines = TestLines(
                 first_lines=all_lines[:10],
                 last_lines=all_lines[-10:],
-                severe_lines=[ln for ln in all_lines if severe in ln],
-                critical_lines=[ln for ln in all_lines if critical in ln],
-                fatal_lines=[ln for ln in all_lines if fatal in ln],
+                severe_lines=[ln for ln in all_lines if "SEVERE" in ln],
+                critical_lines=[ln for ln in all_lines if "CRITICAL" in ln],
+                fatal_lines=[ln for ln in all_lines if "FATAL" in ln],
             )
             LOG.info(
                 f"{log_file_path} has {len(all_lines)} total lines including {len(test_lines.severe_lines)} severe, {len(test_lines.critical_lines)} critical, {len(test_lines.fatal_lines)} fatal"

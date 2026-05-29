@@ -20,6 +20,7 @@ from ngen_rte.logger import MODULE_KEY, initialize_logger
 
 LOG = initialize_logger()
 
+
 TRANSMISSION_CONCERN_LOG_LEVELS = (
     "WARNING",
     "ERROR",
@@ -62,21 +63,55 @@ def transmit(
 ) -> None:
     """Transmit information about the run.
 
+    For concerns:
+        If the payload itself has an error status, consider that FATAL.
+
+        If exc is not None, consider that FATAL.
+
+        Otherwise, mirror the severity of the log message rather than the payload,
+        e.g. send a CRITICAL message through LOG.critical().
+
+
     TODO Currently this simply calls LOG.info() with the relevant information.
     Actual transmission logic should be implemented (send to file or service).
-
-    TODO also report a concern if the payload is not None and it has an error status.
     """
     log_file_bn = Path(log_file).name if log_file else None
     exc_info = ExcInfo(exc) if exc is not None else None
-    if log_parts and log_parts.level in TRANSMISSION_CONCERN_LOG_LEVELS:
-        LOG.warning(
-            f"Concern: {asdict(log_parts, dict_factory=dict_factory)}. FromLogFile: {log_file_bn}"
-        )
-    if log_parts.payload:
-        LOG.info(
-            f"Payload: {asdict(log_parts.payload, dict_factory=dict_factory)}. Exception: {asdict(exc_info) if exc_info else None}. FromLogFile: {log_file_bn}"
-        )
+
+    tx_dict = {
+        "concern": False,
+        "log_parts": None,
+        "payload": None,
+        "log_file": None,
+        "exc_info": None,
+    }
+
+    # Default to transmitting as INFO, override with other level depending on circumstances.
+    transmitter = getattr(LOG, "info")
+
+    if log_parts:
+        tx_dict["log_parts"] = asdict(log_parts, dict_factory=dict_factory)
+
+        if log_parts.level in TRANSMISSION_CONCERN_LOG_LEVELS:
+            # Mimic the level of the original log message
+            tx_dict["concern"] = True
+            transmitter = getattr(LOG, log_parts.level.lower())
+
+        if log_parts.payload:
+            tx_dict["payload"] = asdict(log_parts.payload, dict_factory=dict_factory)
+            if log_parts.payload.status == Status.ERROR:
+                tx_dict["concern"] = True
+                transmitter = LOG.fatal
+
+    if exc_info:
+        tx_dict["concern"] = True
+        tx_dict["exc_info"] = asdict(exc_info)
+        transmitter = LOG.fatal
+
+    if log_file:
+        tx_dict["log_file"] = log_file_bn
+
+    transmitter(f"tx: {tx_dict}")
 
 
 def LogParts_payload_only(payload: Pld) -> LogParts:
@@ -156,6 +191,15 @@ def _rte_transmit_job_complete():
     transmit(
         LogParts_payload_only(
             Pld(Status.COMPLETE, msg="Job complete", modnm=MODULE_KEY.value)
+        )
+    )
+
+
+def _rte_transmit_job_failed():
+    """General transmission for job completion"""
+    transmit(
+        LogParts_payload_only(
+            Pld(Status.ERROR, msg="Job failed", modnm=MODULE_KEY.value)
         )
     )
 
