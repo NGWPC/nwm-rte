@@ -117,14 +117,7 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
                 f"\n\n##########\n### {msg_prefix}: setting up test with rb_kwargs = {rb_kwargs}"
             )
 
-            # run_type = "Cold_Start_Run" if cs else "Forecast_Run"
-            t = ForecastTest(
-                rb_kwargs=rb_kwargs,
-                ### TODO update this to work with new EWTS per-rank logs, and new RTE log paths
-                # ngen_log=LogParser(
-                #     path=f"{test_paths.dir_output}/{run_type}/{cfg._fcst_run_name_formatted}/logs/ngen.log"
-                # ),
-            )
+            t = ForecastTest(rb_kwargs=rb_kwargs)
 
             # Build the realization, trapping exceptions into class attrs
             LOG.info(f"### {msg_prefix}: building realization")

@@ -70,10 +70,6 @@ def transmit(
 
         Otherwise, mirror the severity of the log message rather than the payload,
         e.g. send a CRITICAL message through LOG.critical().
-
-
-    TODO Currently this simply calls LOG.info() with the relevant information.
-    Actual transmission logic should be implemented (send to file or service).
     """
     log_file_bn = Path(log_file).name if log_file else None
     exc_info = ExcInfo(exc) if exc is not None else None
