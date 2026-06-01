@@ -88,7 +88,6 @@ class NgenRunnerAsync(BaseModelStrict):
         """Called by destructor. Call the ForecastExecutionManager's close() method and destroy it."""
         if self.fem is not None:
             self.fem.close()
-            self.fem = None
 
     def _register_log_parser(self, parser: _LogParserBase) -> None:
         """Append to the list of log log_parsers to read from."""
@@ -144,7 +143,6 @@ class NgenRunnerAsync(BaseModelStrict):
         finally:
             if self.fem is not None:
                 self.fem.close()
-                self.fem = None
         errors: list[Exception] = []
         for mpi_rank in range(self.rb.input_configs["Parallel"]["nprocs"]):
             # NOTE: this assumes that the first parser in the list is for the ngen MPI ranks.

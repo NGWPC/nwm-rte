@@ -28,7 +28,7 @@ from ngen_rte.utils import (
 LOG = initialize_logger()
 
 
-def run_default(rb: RealizationBuilder) -> None:
+def run_default(rb: RealizationBuilder) -> NgenRunnerAsync:
     """Run the provided default realization.
     Realization should already be built (rb.build_default_realization() already called).
     """
@@ -38,6 +38,7 @@ def run_default(rb: RealizationBuilder) -> None:
     ngen_runner.start()
     ngen_runner.stream_status_until_complete()
     ngen_runner.close()  # Can also let __del__ handle this.
+    return ngen_runner
 
 
 def _main(cfg: RTEDefaultConfig):
