@@ -126,6 +126,8 @@ GLOBAL_DOMAINS = [
 
 FORCING_STATIC_DIR_DEFAULT = "/ngen-app/data"
 
+OUTPUT_FORMAT_DEFAULT = ["CSV"]
+
 ### This is where the ngen Dockerfile writes its binary executables
 NGEN_BIN__TARGET = f"{NGEN_DIR}/cmake_build/ngen"
 PARTITION_GENERATOR_BIN__TARGET = f"{NGEN_DIR}/cmake_build/partitionGenerator"

@@ -488,3 +488,14 @@ CAT_GRP_FILE = ArgsKwargs(
     },
     scripts=[Script.REGIONALIZATION]
 )
+
+OUTPUT_FORMAT = ArgsKwargs(
+    args=["-outfmt", "--output_format"],
+    kwargs={
+        "type": str,
+        "nargs": "+",
+        "default": c.OUTPUT_FORMAT_DEFAULT,
+        "help": "Output format(s) for NWM output variables. Accepts 'CSV', 'NetCDF' or both",
+    },
+    scripts=[Script.FORECAST, Script.CALIBRATION, Script.DEFAULT],
+)
