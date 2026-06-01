@@ -650,14 +650,13 @@ class RTEAsyncConfig(RTEBaseConfig):
     """Minimal configuration class for run using NgenRunnerAsync
     Set RTEBaseConfigs variables to defaults, not used by NgenRunnerAsync
     """
+
     delete_scratch_and_mesh_first: bool = False
     delete_forcing_raw_input_first: bool = False
     environment: str = ""
     global_domain: str = ""
     forcing_static_dir: str = ""
     gage_id: str = ""
-
-    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
