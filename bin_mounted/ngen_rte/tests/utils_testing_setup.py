@@ -58,31 +58,19 @@ def delete_scratch_and_esmf_outputs(cfg: RTETestConfig) -> None:
 
 def assert_paths__core(cfg: RTETestConfig) -> None:
     """Assert that various paths exist"""
-    file_paths = [
-        c.NGEN_BIN__LINK,
-        "/ngen-app/ngen/extern/sloth/cmake_build/libslothmodel.so",
-        "/ngen-app/ngen/extern/cfe/cmake_build/libcfebmi.so",
-        "/ngen-app/ngen/extern/LASAM/cmake_build/liblasambmi.so",
-        "/ngen-app/ngen/extern/noah-owp-modular/cmake_build/libsurfacebmi.so",
-        "/ngen-app/ngen/extern/evapotranspiration/evapotranspiration/cmake_build/libpetbmi.so",
-        "/ngen-app/ngen/extern/sac-sma/cmake_build/libsacbmi.so",
-        "/ngen-app/ngen/extern/SoilFreezeThaw/cmake_build/libsftbmi.so",
-        "/ngen-app/ngen/extern/SoilMoistureProfiles/cmake_build/libsmpbmi.so",
-        "/ngen-app/ngen/extern/snow17/cmake_build/libsnow17bmi.so",
-        "/ngen-app/ngen/extern/topmodel/cmake_build/libtopmodelbmi.so",
-        "/ngen-app/ngen/extern/ueb-bmi/cmake_build/src/libbmiuebcxx.so",
+    file_paths = [c.NGEN_BIN__LINK] + [
+        v for v in c.DATAFILE_LIBS.values() if v.endswith("_lib")
     ]
     dir_paths = [
-        "/ngen-app",
-        "/ngen-app/data",
-        "/ngwpc/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates",
-    ]
+        c.FORCING_ROOT_DIR,
+        c.FORCING_TEMPLATE_DIR,
+    ] + [v for v in c.DATAFILE_LIBS.values() if v.endswith("_dir")]
     for fp in file_paths:
         if not os.path.isfile(fp):
             raise FileNotFoundError(fp)
     for dp in dir_paths:
         if not os.path.isdir(dp):
-            raise NotADirectoryError(fp)
+            raise NotADirectoryError(dp)
 
 
 def assert_paths__raw_config(cfg: RTETestConfig) -> None:

@@ -7,6 +7,7 @@ import subprocess
 import traceback
 from datetime import datetime, timezone
 from enum import StrEnum
+from pathlib import Path
 
 import pandas as pd
 from mswm.build_inputs import RealizationBuilder
@@ -195,7 +196,7 @@ class ForecastTest(BaseModelStrict):
     rb_kwargs: dict
     """RealizationBuilder kwargs"""
 
-    log2testlines: dict[str, TestLines] = Field(init=False, default_factory=dict)
+    log2testlines: dict[Path | str, TestLines] = Field(init=False, default_factory=dict)
     """stderr lines of the subprocess call to calibration executable."""
     calib_proc_stderr: list[str] = Field(init=False, default=[])
     calib_log: _LogParserGeneric | None = Field(init=False, default=None)
