@@ -142,7 +142,7 @@ class RTEBaseConfig(BaseModelStrict):
         now_str = datetime.now(timezone.utc).strftime(r"%Y%m%d_%H%M%S_%f")
 
         label = rb.run_type
-        if getattr(rb, 'use_cold_start', False):
+        if getattr(rb, "use_cold_start", False):
             label = f"{label}_cs"
         if isinstance(self, RTETestConfig):
             label = f"{label}_test"
