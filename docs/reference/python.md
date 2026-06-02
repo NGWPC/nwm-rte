@@ -15,9 +15,12 @@ To update these, run: `./docs/update_python_cli_ref.sh`
 
 [`run_forecast.py --help`](python_cli_help__run_forecast.py.txt)
 
+[`run_restart.py --help`](python_cli_help__run_restart.py.txt)
+
 [`run_tests.py --help`](python_cli_help__run_tests.py.txt)
 
 [`run_regionalization.py --help`](python_cli_help__run_regionalization.py.txt)
+
 
 
 ## CLI Executable Modules
@@ -47,6 +50,15 @@ Called by [`run_fcst.sh`](../reference/shell.md#run_fcst.sh)
 [`run_forecast.py --help`](python_cli_help__run_forecast.py.txt)
 
 ::: ngen_rte.run_forecast
+
+
+### run_restart.py
+
+Called by [`run_default.sh`](../reference/shell.md#run_default.sh)
+
+[`run_restart.py --help`](python_cli_help__run_restart.py.txt)
+
+::: ngen_rte.run_restart
 
 
 ### run_tests.py
