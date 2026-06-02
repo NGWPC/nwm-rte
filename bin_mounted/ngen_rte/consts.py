@@ -76,6 +76,36 @@ NWM_RETRO_STREAMFLOW_DIR = f"{DEFAULT_MAIN_DIR}/data/nwm_retrospective"
 DEFAULT_NPROCS = 1
 
 
+### .config section [Coastal]
+DEFAULT_COASTAL_FORECAST_RUN_NAME = "coastal_run1"
+# Guam/Luta not included
+COASTAL_GLOBAL_DOMAINS = [
+    "CONUS",
+    "Alaska",
+    "Hawaii",
+    "Puerto_Rico",
+]
+# Maps global_domain value to the suffix used in GEOGRID_LDASOUT_Spatial_Metadata_<suffix>.nc
+COASTAL_SPATIAL_META_SUFFIX: dict[str, str] = {
+    "CONUS": "CONUS",
+    "Alaska": "AK",
+    "Hawaii": "HI",
+    "Puerto_Rico": "PRVI",
+}
+COASTAL_GEOGRID_DIR = f"{FORCING_ROOT_DIR}/esmf_mesh/NWM/domain"
+# Keys patched into any existing forecast config to produce gridded netCDF output.
+# {root_dir} and {global_domain} placeholders are resolved at runtime.
+COASTAL_CONFIG_OVERRIDES: dict = {
+    "GRID_TYPE": "gridded",
+    "Output": 1,
+    "Geopackage": "",
+    "GeogridIn": "{root_dir}/esmf_mesh/NWM/domain/geo_em_{global_domain}.nc",
+    "SpatialMetaIn": "{root_dir}/esmf_mesh/NWM/domain/GEOGRID_LDASOUT_Spatial_Metadata_{spatial_meta_suffix}.nc",
+    "LONVAR": "XLONG_M",
+    "LATVAR": "XLAT_M",
+}
+
+
 ### Test settings
 TEST_RESULTS_FILE = os.path.join(
     os.path.dirname(__file__), "forecast_tests_results.json"
