@@ -1,5 +1,6 @@
 """Misc utilities and type handlers"""
 
+import json
 import os
 import re
 import traceback
@@ -13,6 +14,7 @@ from ewts import Payload as Pld
 from ewts.modules import ModuleKey
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
+from pydantic import ConfigDict, validate_call
 
 from ngen_rte import consts as c
 from ngen_rte.execution.ngen_logs import dict_factory
@@ -110,6 +112,7 @@ def transmit(
     transmitter(f"tx: {tx_dict}")
 
 
+@validate_call(config=ConfigDict(strict=True))
 def LogParts_payload_only(payload: Pld) -> LogParts:
     """Factory for a LogParts containing only the payload attribute.
     For transmitting structured data that is not associated with a particular log line."""
@@ -156,6 +159,8 @@ def build_realization(rb_kwargs: dict, build_method: str) -> RealizationBuilder:
             e_wrapped = MSWMRealizationBuilderBuildError(msg)
             e_wrapped.__cause__ = e
         else:
+            # Transmit the checkpoint settings explicitly so ecFlow can detect
+            _rte_transmit_checkpoint_settings(rb)
             transmit(
                 LogParts_payload_only(
                     Pld(Status.COMPLETE, msg=f"Finished: {build_method}", modnm=modnm)
@@ -198,6 +203,19 @@ def _rte_transmit_job_failed():
             Pld(Status.ERROR, msg="Job failed", modnm=MODULE_KEY.value)
         )
     )
+
+
+def _rte_transmit_checkpoint_settings(rb: RealizationBuilder) -> None:
+    """Transmit the checkpoint settings from the provided RealizationBuilder instance."""
+    checkpoint_settings = {
+        "checkpoint_interval": getattr(rb, "checkpoint_interval", None),
+        "save_checkpoint_to": getattr(rb, "save_checkpoint_to", None),
+    }
+    dumped = json.dumps(checkpoint_settings, default=str)
+    status = Status.NULL
+    msg = f"checkpoint_settings={dumped}"
+    modnm = ModuleKey.MSW_MGR.value
+    transmit(LogParts_payload_only(Pld(status, msg=msg, modnm=modnm)))
 
 
 def make_symlink(link_path: str, target_path: str) -> None:
