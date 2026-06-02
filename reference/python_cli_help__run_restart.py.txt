@@ -1,0 +1,13 @@
+usage: run_restart.py [-h] --src_path SRC_PATH --dst_path DST_PATH
+
+Restart a default ngen realization from a checkpoint.
+
+options:
+  -h, --help : type=None
+                        show this help message and exit
+
+  --src_path, -src : type=None default=None
+                        Path to the existing run to restart from.
+
+  --dst_path, -dst : type=None default=None
+                        Path to the new restart run destination. Defaults to src_path + '_restart'.
