@@ -59,7 +59,6 @@ docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "20
 
 # Checkpoint restart
 docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr" --checkpoint_interval 3
-docker_run python -um "ngen_rte.run_restart" -src "/ngwpc/run_ngen/default/test_bmi/01123000/" -dst "/ngwpc/run_ngen/default/test_bmi_restart/01123000/" \
-    -csp "/ngwpc/run_ngen/default/test_bmi/01123000/checkpoint/"
+docker_run python -um "ngen_rte.run_restart" -src "/ngwpc/run_ngen/default/test_bmi/01123000/" -dst "/ngwpc/run_ngen/default/test_bmi_restart/01123000/"
 
 exit 0
