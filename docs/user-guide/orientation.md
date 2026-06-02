@@ -36,7 +36,7 @@ In either case, RTE copies [`bin_mounted/ngen_logging.json`](../ngen_logging.jso
 
 For the following executables, see commented-out lines in the script for examples of different ways to leverage the [CLI arguments of the executable Python modules](../reference/python.md#cli-help-menus).
 
-[`run_default.sh`](../reference/shell.md#run_default.sh) Builds and runs a "default" realization via call to [`bin_mounted/run_default.py`](../reference/python.md#run_defaultpy).
+[`run_default.sh`](../reference/shell.md#run_default.sh) Builds and runs a "default" realization via call to [`bin_mounted/run_default.py`](../reference/python.md#run_defaultpy) and a checkpoint restart via call to [`bin_mounted/run_restart.py`](../reference/python.md#run_restartpy).
 
 [`run_calib.sh`](../reference/shell.md#run_calib.sh) Builds and runs a "calibration" realization via call to [`bin_mounted/run_calibration.py`](../reference/python.md#run_calibrationpy).
 
