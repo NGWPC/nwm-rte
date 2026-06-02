@@ -246,18 +246,18 @@ TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:${IMAGE_TAG}"
 echo "Using Docker image: ${TARGET_IMAGE_NAME}"
 
 # pull the latest image if requested
-if $PULL_IMAGE || ! docker image inspect "${TARGET_IMAGE_NAME}" >/dev/null 2>&1; then
+if $PULL_IMAGE || ! sudo docker image inspect "${TARGET_IMAGE_NAME}" >/dev/null 2>&1; then
     echo "Pulling Docker image: ${TARGET_IMAGE_NAME}"
-    docker pull "${TARGET_IMAGE_NAME}"
+    sudo docker pull "${TARGET_IMAGE_NAME}"
 fi
 
 echo "Getting existing PYTHONPATH from the container..."
-CONTAINER_PYTHONPATH_EXISTING="$(docker run --rm --entrypoint sh ${TARGET_IMAGE_NAME} -lc 'printf "%s" "$PYTHONPATH"')"
+CONTAINER_PYTHONPATH_EXISTING="$(sudo docker run --rm --entrypoint sh ${TARGET_IMAGE_NAME} -lc 'printf "%s" "$PYTHONPATH"')"
 echo "Existing PYTHONPATH from the container: ${CONTAINER_PYTHONPATH_EXISTING}"
 CONTAINER_PYTHONPATH_COMBINED="${CONTAINER_PYTHONPATH_EXISTING}:${CONTAINER_PYTHONPATH_ENTRY}"
 
 function docker_run {
-    docker run \
+    sudo docker run \
         --entrypoint python \
         --user "$(id -u):$(id -g)" \
         -e WORK_DIR="${WORK_DIR}" \
