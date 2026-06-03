@@ -17,7 +17,7 @@ options:
   -csdt, --cold_start_datetime : type=datetime_type default=None
                         If provided, a cold-start realization will be ran prior to the forecast,
                         and this value will be the start time for the cold-start.
-                        Format: {DEFAULT_DATETIME_FORMAT}.
+                        Format: '%Y-%m-%d %H:%M:%S'.
 
   -dt, --cycle_datetime : type=datetime_type default=None
                         For a regular forecast, this is the start time.

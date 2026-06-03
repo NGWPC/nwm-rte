@@ -4,11 +4,25 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
+import pydantic.dataclasses
 from pydantic import BaseModel, ConfigDict, Field
-from pydantic.dataclasses import dataclass as pydantic_dataclass
 
 from ngen_rte import consts as c
-from ngen_rte.utils import booleanize
+
+pydantic_dataclass_strict = pydantic.dataclasses.dataclass(
+    config=ConfigDict(strict=True, arbitrary_types_allowed=True, extra="forbid")
+)
+
+
+class BaseModelStrict(BaseModel):
+    """pydantic BaseModel with strict type checking, arbitrary types allowed,
+    and namespace validation (no unexpected / extra fields)."""
+
+    model_config = ConfigDict(
+        strict=True,
+        arbitrary_types_allowed=True,
+        extra="forbid",
+    )
 
 
 @dataclass
@@ -81,7 +95,7 @@ class TestPaths:
         return f"{self.dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"
 
 
-@pydantic_dataclass
+@pydantic_dataclass_strict
 class ModelFormulation:
     """Each formulation is defined by comma-separated string of models, and a rootzone flag.
     i.e. some formulations involve running with or without rootzone enabled."""
@@ -104,7 +118,7 @@ class ModelFormulation:
         self.cfe_aet_rootzone = booleanize(self.cfe_aet_rootzone)
 
 
-class CalibTimeWindows(BaseModel):
+class CalibTimeWindows(BaseModelStrict):
     """Calibration time windows defined by a start time
     and some timedelta offsets."""
 
@@ -163,10 +177,9 @@ class CalibTimeWindows(BaseModel):
         return self.calib_sim_end
 
 
-class ForcingProviderPaths(BaseModel):
+class ForcingProviderPaths(BaseModelStrict):
     """Helper class for managing model paths."""
 
-    model_config = ConfigDict(strict=True)
     global_domain: str
     forcing_static_dir: str
 
@@ -174,3 +187,20 @@ class ForcingProviderPaths(BaseModel):
     def formulation_name(self) -> str:
         """Formulation name, as a part of the model path."""
         return f"test_{c.FORCING_PROVIDER}"
+
+
+def booleanize(booly: str | bool) -> bool:
+    """Convert the provided value to a boolean, parsing semantically no/0/false and yes/1/true. Case-insensitive."""
+    if isinstance(booly, bool):
+        return booly
+    elif isinstance(booly, str):
+        if booly.lower().strip() in ("no", "0", "false"):
+            return False
+        elif booly.lower().strip() in ("yes", "1", "true"):
+            return True
+        else:
+            raise ValueError(
+                f"Unexpected booly value: {repr(booly)}. Expected no/0/false or yes/1/true (case insensitive)."
+            )
+    else:
+        raise TypeError(f"Unexpected booly type: {type(booly)}")

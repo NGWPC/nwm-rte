@@ -1,29 +1,215 @@
 """Misc utilities and type handlers"""
 
-import json
 import os
-import pathlib
 import re
-import shutil
+import traceback
+from dataclasses import asdict, dataclass, field, fields
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import pandas as pd
+from ewts import LogParts, Status
+from ewts import Payload as Pld
+from ewts.modules import ModuleKey
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
 from ngen_rte import consts as c
+from ngen_rte.execution.ngen_logs import dict_factory
+from ngen_rte.logger import MODULE_KEY, initialize_logger
+
+LOG = initialize_logger()
+
+
+TRANSMISSION_CONCERN_LOG_LEVELS = (
+    "WARNING",
+    "ERROR",
+    "CRITICAL",
+    "SEVERE",
+    "FATAL",
+)
+
+
+class MSWMRealizationBuilderInitializeError(Exception):
+    """Raised when MSWM fails to initialize an instance of RealizationBuilder"""
+
+
+class MSWMRealizationBuilderBuildError(Exception):
+    """Raised when MSWM fails to build a realization using an instance of RealizationBuilder"""
+
+
+@dataclass
+class ExcInfo:
+    """Break up an exception instance into its type, message, traceback object,
+    and formatted traceback string (escaped)."""
+
+    e: Exception
+    typ: type = field(init=False)
+    msg: str = field(init=False)
+    tb: str = field(init=False)
+
+    def __post_init__(self):
+        self.typ = type(self.e)
+        self.msg = str(self.e)
+        # Make the traceback string, then escape it.
+        tb = "".join(traceback.format_exception(self.e))
+        self.tb = tb.replace("\n", "\\n").replace("\t", "\\t")
+
+
+def transmit(
+    log_parts: LogParts = None,
+    log_file: Path | str | None = None,
+    exc: Exception | None = None,
+) -> None:
+    """Transmit information about the run.
+
+    For concerns:
+        If the payload itself has an error status, consider that FATAL.
+
+        If exc is not None, consider that FATAL.
+
+        Otherwise, mirror the severity of the log message rather than the payload,
+        e.g. send a CRITICAL message through LOG.critical().
+    """
+    log_file_bn = Path(log_file).name if log_file else None
+    exc_info = ExcInfo(exc) if exc is not None else None
+
+    tx_dict = {
+        "concern": False,
+        "log_parts": None,
+        "payload": None,
+        "log_file": None,
+        "exc_info": None,
+    }
+
+    # Default to transmitting as INFO, override with other level depending on circumstances.
+    transmitter = getattr(LOG, "info")
+
+    if log_parts:
+        tx_dict["log_parts"] = asdict(log_parts, dict_factory=dict_factory)
+
+        if log_parts.level in TRANSMISSION_CONCERN_LOG_LEVELS:
+            # Mimic the level of the original log message
+            tx_dict["concern"] = True
+            transmitter = getattr(LOG, log_parts.level.lower())
+
+        if log_parts.payload:
+            tx_dict["payload"] = asdict(log_parts.payload, dict_factory=dict_factory)
+            if log_parts.payload.status == Status.ERROR:
+                tx_dict["concern"] = True
+                transmitter = LOG.fatal
+
+    if exc_info:
+        tx_dict["concern"] = True
+        tx_dict["exc_info"] = asdict(exc_info)
+        transmitter = LOG.fatal
+
+    if log_file:
+        tx_dict["log_file"] = log_file_bn
+
+    transmitter(f"tx: {tx_dict}")
+
+
+def LogParts_payload_only(payload: Pld) -> LogParts:
+    """Factory for a LogParts containing only the payload attribute.
+    For transmitting structured data that is not associated with a particular log line."""
+    kwargs = {f.name: None for f in fields(LogParts)}
+    kwargs["payload"] = payload
+    kwargs["tolerant"] = True
+    return LogParts(**kwargs)
+
+
+def build_realization(rb_kwargs: dict, build_method: str) -> RealizationBuilder:
+    """Build a realization using the provided RealizationBuilder kwargs
+    and name of build method. Catch errors and send transmissions."""
+    modnm = ModuleKey.MSW_MGR.value
+    LOG.info(f"Building realization: {rb_kwargs}")
+
+    e_wrapped = None
+
+    transmit(
+        LogParts_payload_only(
+            Pld(Status.INITTING, msg="Initializing RealizationBuilder", modnm=modnm)
+        )
+    )
+    try:
+        rb = RealizationBuilder(**rb_kwargs)
+    except Exception as e:
+        msg = f"Failed to initialize RealizationBuilder with kwargs: {rb_kwargs}"
+        e_wrapped = MSWMRealizationBuilderInitializeError(msg)
+        e_wrapped.__cause__ = e
+    else:
+        transmit(
+            LogParts_payload_only(
+                Pld(Status.INITTED, msg="Initialized RealizationBuilder", modnm=modnm)
+            )
+        )
+        transmit(
+            LogParts_payload_only(
+                Pld(Status.STARTING, msg=f"Calling: {build_method}", modnm=modnm)
+            )
+        )
+        try:
+            getattr(rb, build_method)()
+        except Exception as e:
+            msg = f"Failed to build realization with method {repr(build_method)} from kwargs: {rb_kwargs}"
+            e_wrapped = MSWMRealizationBuilderBuildError(msg)
+            e_wrapped.__cause__ = e
+        else:
+            transmit(
+                LogParts_payload_only(
+                    Pld(Status.COMPLETE, msg=f"Finished: {build_method}", modnm=modnm)
+                )
+            )
+
+    if e_wrapped is not None:
+        transmit(
+            LogParts_payload_only(Pld(Status.ERROR, msg=msg, modnm=modnm)),
+            exc=e_wrapped,
+        )
+        raise e_wrapped
+
+    LOG.info(f"Wrote: {rb.realization_file}")
+    return rb
+
+
+def _rte_transmit_job_start():
+    """General transmission for job starting"""
+    transmit(
+        LogParts_payload_only(
+            Pld(Status.STARTING, msg="Starting job", modnm=MODULE_KEY.value)
+        )
+    )
+
+
+def _rte_transmit_job_complete():
+    """General transmission for job completion"""
+    transmit(
+        LogParts_payload_only(
+            Pld(Status.COMPLETE, msg="Job complete", modnm=MODULE_KEY.value)
+        )
+    )
+
+
+def _rte_transmit_job_failed():
+    """General transmission for job completion"""
+    transmit(
+        LogParts_payload_only(
+            Pld(Status.ERROR, msg="Job failed", modnm=MODULE_KEY.value)
+        )
+    )
 
 
 def make_symlink(link_path: str, target_path: str) -> None:
     """Create a symlink"""
-    print(
+    LOG.info(
         f"Creating symlink, writing {repr(link_path)} to point to {repr(target_path)}"
     )
     if not os.path.exists(target_path):
         raise FileNotFoundError(target_path)
     os.makedirs(os.path.dirname(link_path), exist_ok=True)
     if os.path.exists(link_path):
-        print(f"Deleting existing symlink before recreating it: {link_path}")
+        LOG.info(f"Deleting existing symlink before recreating it: {link_path}")
         os.remove(link_path)
     os.symlink(target_path, link_path)
 
@@ -37,50 +223,6 @@ def make_wcoss_path_symlinks() -> None:
 def datetime_type(datetime_str) -> datetime:
     """Helper function for munging CLI string arguments into datetime type."""
     return datetime.strptime(datetime_str, DEFAULT_DATETIME_FORMAT)
-
-
-def configure_ngen_log(fallback_log_dir: str | pathlib.Path, label: str) -> None:
-    """Configure the ngen logging, by
-    setting the associated OS env variable for the directory to hold the logs, and
-    copying the associated json file into that directory.
-    Parameters:
-        fallback_log_dir : str
-            Is ignored when the RTE OS env var key NGEN_LOG_TO_RTE is true.
-            Used to emulate behavior of nwm-cal-mgr and nwm-fcst-mgr (what they would use without RTE)
-        label : str
-            Is ignored when the RTE OS env var key NGEN_LOG_TO_RTE is false.
-            Used to build the timestamped dir name.
-    """
-    fallback_log_dir = str(fallback_log_dir)  # In case it arrived as a pathlib.Path
-    now_str = datetime.now(timezone.utc).strftime(r"%Y%m%d_%H%M%S_%f")
-    # Confirm that it's valid json content
-    print(f"Reading: {c.SRC_LOG_CONFIG_JSON}")
-    with open(c.SRC_LOG_CONFIG_JSON) as f:
-        try:
-            _ = json.load(f)
-        except Exception as e:
-            raise RuntimeError(
-                f"Could not read or parse as json: {c.SRC_LOG_CONFIG_JSON}: {e}"
-            ) from e
-
-    # Decide the dir
-    setting_val = os.environ.get(c.RTE_NGEN_LOG_BEHAVIOR_KEY, "").lower().strip()
-    if setting_val in ("yes", "true"):
-        log_dir = os.path.join("/ngen-app/rte_ngen_logs", f"{now_str}_{label}")
-    elif setting_val in ("no", "false", ""):
-        log_dir = fallback_log_dir
-    else:
-        raise ValueError(
-            f"Invalid value for key {repr(c.RTE_NGEN_LOG_BEHAVIOR_KEY)}: {repr(setting_val)} (expected YES or NO, defaulting to NO if not provided)"
-        )
-
-    # Make the dir, copy the log json config into it, and set the OS env var for ngen to be able to find it.
-    print(f"Making directory: {log_dir}")
-    os.makedirs(log_dir, exist_ok=True)
-    print(f"Copying: {c.SRC_LOG_CONFIG_JSON} -> {log_dir}/")
-    shutil.copy2(c.SRC_LOG_CONFIG_JSON, log_dir)
-    print(f"Setting OS env var {c.NGEN_LOG_DIR_KEY} to {log_dir}")
-    os.environ[c.NGEN_LOG_DIR_KEY] = log_dir
 
 
 def datetime_from_str(datetime_str: str) -> datetime:
@@ -140,23 +282,6 @@ def get_calibration_log_file_overwrite_path(rb: RealizationBuilder) -> str:
     return calib_log_path_overwrite
 
 
-def booleanize(booly: str | bool) -> bool:
-    """Convert the provided value to a boolean, parsing semantically no/0/false and yes/1/true. Case-insensitive."""
-    if isinstance(booly, bool):
-        return booly
-    elif isinstance(booly, str):
-        if booly.lower().strip() in ("no", "0", "false"):
-            return False
-        elif booly.lower().strip() in ("yes", "1", "true"):
-            return True
-        else:
-            raise ValueError(
-                f"Unexpected booly value: {repr(booly)}. Expected no/0/false or yes/1/true (case insensitive)."
-            )
-    else:
-        raise TypeError(f"Unexpected booly type: {type(booly)}")
-
-
 def parse_fcst_run_name(fcst_run_name: str) -> list[Exception]:
     """Validate the provided forecast run name, and return a list of errors."""
     errors: list[Exception] = []
@@ -200,7 +325,7 @@ def find_obs_dir(global_domain: str, gage_id: str) -> str:
     If multiple are found, then this function needs to be reworked to handle more complex
     situations, such as multiple vintages of this data existing on disk."""
     grandparent = f"{c.DEFAULT_MAIN_DIR}/data/streamflow_observations/{global_domain}"
-    print(f"Searching directory for observed flow files: {grandparent}")
+    LOG.info(f"Searching directory for observed flow files: {grandparent}")
     candidate_csvs = []
     for root, dirs, files in os.walk(grandparent):
         dirs.sort()

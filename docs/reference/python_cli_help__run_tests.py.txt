@@ -1,6 +1,5 @@
-usage: run_tests.py [-h] [-nofcst] [--quit_forecast_after_forcing_running]
-                    [-quitfcdur QUIT_FORECAST_AFTER_DURATION] [-calib]
-                    [-quitcaldur QUIT_CALIBRATION_AFTER_DURATION]
+usage: run_tests.py [-h] [-nofcst] [-quitfcdur QUIT_FORECAST_AFTER_DURATION]
+                    [-calib] [-quitcaldur QUIT_CALIBRATION_AFTER_DURATION]
                     [-ofuncs OBJECTIVE_FUNCTIONS [OBJECTIVE_FUNCTIONS ...]]
                     [-allofuncs]
                     [-optalgos OPTIMIZATION_ALGORITHMS [OPTIMIZATION_ALGORITHMS ...]]
@@ -24,13 +23,6 @@ options:
   -nofcst, --skip_forecast : bool-switch(store-true) default=False
                         Provide to skip forecast (for testing calibrations only).
                         Incompatible with --do_all_forcing_configs and --do_coldstart
-
-  --quit_forecast_after_forcing_running : bool-switch(store-true) default=False
-                        THIS IS CURRENTLY NOT SUPPORTED, pending updates.
-                        Instead of waiting for each forecast to finish,
-                        quit after the ngen log file indicates that forcing
-                        is running successfully.
-                        THIS IS CURRENTLY NOT SUPPORTED.
 
   -quitfcdur, --quit_forecast_after_duration : type=float default=None
                         Instead of waiting for each forecast to finish,

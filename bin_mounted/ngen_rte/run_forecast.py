@@ -9,82 +9,48 @@ See `run_fcst.sh` for example calls.
 """
 
 import argparse
-import functools
+import os
 
 from mswm.build_inputs import RealizationBuilder
-from nwm_fcst_mgr.forecast import (
-    run_forecast as run_fcst,
-)
 
 from ngen_rte.configs import RTEForecastConfig
+from ngen_rte.execution.ngen_async import NgenRunnerAsync
+from ngen_rte.logger import initialize_logger
 from ngen_rte.run_config import cli_args
 from ngen_rte.tests import utils_testing_setup
-from ngen_rte.utils import configure_ngen_log
+from ngen_rte.utils import (
+    _rte_transmit_job_complete,
+    _rte_transmit_job_failed,
+    _rte_transmit_job_start,
+    build_realization,
+    transmit,
+)
 
-print = functools.partial(print, flush=True)
-
-
-def build_realization(
-    cfg: RTEForecastConfig,
-    rb_kwargs_final: dict,
-    log_label: str,
-) -> RealizationBuilder:
-    """Build and return a forecast realization, applygin the provided rb_kwargs_final as-is."""
-    print(f"Building realization: {rb_kwargs_final}")
-    rb = RealizationBuilder(**rb_kwargs_final)
-    rb.build_fcst_realization()
-    configure_ngen_log(rb.input_dir, log_label)
-    print(f"Wrote: {rb.realization_file}")
-    if cfg.nprocs > 1 and not rb.part_file:
-        raise ValueError(
-            f"Expected partition file since cfg.nprocs > 1 ({cfg.nprocs}), but it is {repr(rb.part_file)}"
-        )
-    return rb
+LOG = initialize_logger()
 
 
-def build_coldstart_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
-    """Build and return a coldstart forecast realization."""
-    rb_kwargs_final = cfg.mswm_RealizationBuilder_kwargs | {"use_cold_start": True}
-    rb = build_realization(cfg, rb_kwargs_final, "cs")
-    return rb
-
-
-def build_forecast_realization(cfg: RTEForecastConfig) -> RealizationBuilder:
-    """Build and return a non-coldstart forecast realization."""
-    rb_kwargs_final = cfg.mswm_RealizationBuilder_kwargs | {
-        "use_cold_start": False,
-    }
-
-    rb = build_realization(cfg, rb_kwargs_final, "fcst")
-    return rb
-
-
-def run_realization(
-    rb: RealizationBuilder,
-    cfg: RTEForecastConfig,
-) -> None:
+def run_realization(rb: RealizationBuilder) -> None:
     """Run the realization, which can be a coldstart, forecast, or lagged ensemble."""
-    # partition_file = getattr(rb, "part_file", None)
-
-    print(
+    LOG.info(
         f"Running realization with Forcing configuration: {rb.input_configs['Forcing']}"
     )
-
     if rb.use_hindcast:
         raise NotImplementedError("use_hindcast not yet implemented in nwm-rte")
     elif rb.use_warm_start:
         raise NotImplementedError("use_warm_start not yet implemented in nwm-rte")
     else:
-        print(f"Calling: {run_fcst}")
-        run_fcst(
-            valid_yaml=cfg.valid_best_yaml,
-            real_path=str(rb.realization_file),
-            partition_file=rb.part_file,
+        ngen_runner = NgenRunnerAsync(
+            rb=rb,
+            postprocess=True,
+            suppress_output=False,
+            # timeout_secs=10,
         )
-        print(f"Finished calling: {run_fcst}")
+        ngen_runner.start()
+        ngen_runner.stream_status_until_complete()
+        ngen_runner.close()  # Can also let __del__ handle this.
 
 
-def main(cfg: RTEForecastConfig):
+def _main(cfg: RTEForecastConfig):
     # util_asserts.assert_paths__core(forecast_vars.gage_id)
     # util_asserts.assert_paths__raw_config()
     # util_asserts.assert_paths_common_input()
@@ -95,11 +61,32 @@ def main(cfg: RTEForecastConfig):
         utils_testing_setup.delete_forcing_raw_inputs()
 
     if cfg.cold_start_datetime:
-        rb_cs = build_coldstart_realization(cfg)
-        run_realization(rb_cs, cfg)
+        rb_cs = build_realization(
+            cfg.mswm_RealizationBuilder_kwargs | {"use_cold_start": True},
+            "build_fcst_realization",
+        )
+        cfg.configure_ngen_log(rb_cs)
+        run_realization(rb_cs)
+
     if cfg.cycle_datetime:
-        rb_fcst = build_forecast_realization(cfg)
-        run_realization(rb_fcst, cfg)
+        rb_fcst = build_realization(
+            cfg.mswm_RealizationBuilder_kwargs | {"use_cold_start": False},
+            "build_fcst_realization",
+        )
+        cfg.configure_ngen_log(rb_fcst)
+        run_realization(rb_fcst)
+
+
+def main(cfg: RTEForecastConfig):
+    _rte_transmit_job_start()
+    try:
+        _main(cfg)
+    except Exception as e:
+        transmit(exc=e)
+        _rte_transmit_job_failed()
+        raise e
+    else:
+        _rte_transmit_job_complete()
 
 
 def cli_arg_parser() -> argparse.ArgumentParser:

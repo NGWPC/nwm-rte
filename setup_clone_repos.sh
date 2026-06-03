@@ -53,6 +53,8 @@ function clone_if_not_exists {
     fi
     # ( cd "${REPOS_COMMON_ROOT__HOST}/${1}"; git checkout development; git pull --recurse-submodules; git submodule update --init --recursive )
 }
+
+clone_if_not_exists "nwm-ewts"
 clone_if_not_exists "ngen-forcing"
 clone_if_not_exists "ngen"
 clone_if_not_exists "nwm-fcst-mgr"

@@ -7,15 +7,15 @@ from mswm.build_inputs import RealizationBuilder
 
 from ngen_rte import configs, run_default
 from ngen_rte import consts as c
-
-# def test_build_default_realization():
-#     _, _ = _build_default_realization()
+from ngen_rte.utils import build_realization
 
 
 def test_run_default_realization():
-    rb, cfg = _build_default_realization()
-    output_ngen_stdout_stderr_log = run_default.run_default(
-        rb, cfg, clear_output_dir=True
+    logging.info("Starting default realization test")
+    rb = _build_default_realization()
+    ngen_runner = run_default.run_default(rb)
+    output_ngen_stdout_stderr_log = (
+        ngen_runner.fem.ngen_proc_stdout_stderr_log_file_path
     )
 
     logging.info(f"Reading: {output_ngen_stdout_stderr_log}")
@@ -60,7 +60,9 @@ def _build_default_config() -> configs.RTEDefaultConfig:
     return cfg
 
 
-def _build_default_realization() -> tuple[RealizationBuilder, configs.RTEDefaultConfig]:
+def _build_default_realization() -> RealizationBuilder:
     cfg = _build_default_config()
-    rb = run_default.build_default_realization(cfg)
-    return rb, cfg
+    rb = build_realization(
+        cfg.mswm_RealizationBuilder_kwargs, "build_default_realization"
+    )
+    return rb

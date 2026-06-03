@@ -1,8 +1,11 @@
 """Primary configuration classes. Pydantic BaseModels directly associated with CLI executables."""
 
+import json
 import os
+import shutil
 from datetime import datetime, timedelta, timezone
 
+from mswm.build_inputs import RealizationBuilder
 from mswm.utils import settings as mswm_settings
 from mswm.utils.input_configuration import (
     CalibConfig,
@@ -15,14 +18,16 @@ from mswm.utils.input_configuration import (
     ParallelConfig,
 )
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field
 
 from ngen_rte import consts as c
 
 # from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 # TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
 from ngen_rte.consts import LAGGED_ENSEMBLE_MEMBER_LAGS
+from ngen_rte.logger import initialize_logger
 from ngen_rte.other_classes import (
+    BaseModelStrict,
     CalibTimeWindows,
     ForcingProviderPaths,
     ModelFormulation,
@@ -34,8 +39,10 @@ from ngen_rte.utils import (
     parse_fcst_run_name,
 )
 
+LOG = initialize_logger()
 
-class RTEBaseConfig(BaseModel):
+
+class RTEBaseConfig(BaseModelStrict):
     """Base RTE configuration class to be inherited by child classes.
     Triggers certain setup actions, such as creation of WCOSS-path symlinks.
     Classes that inherit from this should call super().model_post_init(__context) inside their own
@@ -116,6 +123,64 @@ class RTEBaseConfig(BaseModel):
         make_wcoss_path_symlinks()
         if self.errors:
             raise RuntimeError(self.errors)
+
+    def configure_ngen_log(self, rb: RealizationBuilder) -> None:
+        """Configure the ngen logging, by setting the associated OS env variable for the directory to hold the logs,
+        and copying the associated json file into that directory.
+
+        ``fallback_log_dir`` is ignored when the RTE OS env var key NGEN_LOG_TO_RTE is true.
+        It is used to emulate behavior of nwm-cal-mgr and nwm-fcst-mgr (what they would use without RTE).
+
+        Parameters
+        ----------
+        rb : RealizationBuilder
+            An already built realization.
+        """
+        now_str = datetime.now(timezone.utc).strftime(r"%Y%m%d_%H%M%S_%f")
+
+        label = rb.run_type
+        if rb.use_cold_start:
+            label = f"{label}_cs"
+        if isinstance(self, RTETestConfig):
+            label = f"{label}_test"
+
+        if rb.run_type == "default":
+            fallback_log_dir = str(rb.work_dir)
+        elif rb.run_type == "forecast":
+            fallback_log_dir = str(rb.input_dir)
+        elif rb.run_type == "calibration":
+            fallback_log_dir = str(rb.work_dir)
+        else:
+            raise RuntimeError(f"Unexpected run_type: {rb.run_type}")
+
+        # Confirm that it's valid json content
+        LOG.debug(f"Reading: {c.SRC_LOG_CONFIG_JSON}")
+        with open(c.SRC_LOG_CONFIG_JSON) as f:
+            try:
+                _ = json.load(f)
+            except Exception as e:
+                raise RuntimeError(
+                    f"Could not read or parse as json: {c.SRC_LOG_CONFIG_JSON}: {e}"
+                ) from e
+
+        # Decide the dir
+        setting_val = os.environ.get(c.RTE_NGEN_LOG_BEHAVIOR_KEY, "").lower().strip()
+        if setting_val in ("yes", "true"):
+            log_dir = os.path.join(c.CONTAINER_LOGS_DIR, "ngen", f"{now_str}_{label}")
+        elif setting_val in ("no", "false", ""):
+            log_dir = fallback_log_dir
+        else:
+            raise ValueError(
+                f"Invalid value for key {repr(c.RTE_NGEN_LOG_BEHAVIOR_KEY)}: {repr(setting_val)} (expected YES or NO, defaulting to NO if not provided)"
+            )
+
+        # Make the dir, copy the log json config into it, and set the OS env var for ngen to be able to find it.
+        LOG.debug(f"Making directory: {log_dir}")
+        os.makedirs(log_dir, exist_ok=True)
+        LOG.info(f"Copying: {c.SRC_LOG_CONFIG_JSON} -> {log_dir}/")
+        shutil.copy2(c.SRC_LOG_CONFIG_JSON, log_dir)
+        LOG.info(f"Setting OS env var {c.NGEN_LOG_DIR_KEY} to {log_dir}")
+        os.environ[c.NGEN_LOG_DIR_KEY] = log_dir
 
     def _parse_lagged_ensemble_args(self):
         """Break up the multipart lagged ensemble arg into distinct args and set them.
@@ -461,8 +526,6 @@ class RTEDefaultConfig(RTEBaseConfig):
         See CLI help menu for [`run_default.py`](python_cli_help__run_default.py.txt) for details.
     """
 
-    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
-
     cycle_datetime: datetime
     duration: timedelta | None
     forcing_configuration: str
@@ -501,8 +564,6 @@ class RTECalibConfig(RTEBaseConfig):
     worker_name: str | None
         Name of the ngen worker (used to build a directory name)
     """
-
-    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
 
     objective_function: c.CalObjective
     optimization_algorithm: c.CalOptimizationAlgo
@@ -553,8 +614,6 @@ class RTEForecastConfig(RTEBaseConfig):
         See CLI help menu for [`run_forecast.py`](python_cli_help__run_forecast.py.txt) for details.
     """
 
-    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
-
     # These calibration parameters affect directory path
     objective_function: c.CalObjective
     optimization_algorithm: c.CalOptimizationAlgo
@@ -589,8 +648,6 @@ class RTETestConfig(RTEBaseConfig):
     ----------
     skip_forecast: bool
         Causes forecast to be skipped (only do calibration)
-    quit_forecast_after_forcing_running: bool
-        Causes forecasts to be stopped midway once log files indicate that the model is well underway
     quit_forecast_after_duration: float | None = Field(ge=0)
         Causes forecasts to be stopped midway after a set duration (seconds of processing time)
     do_calibration: bool
@@ -621,10 +678,7 @@ class RTETestConfig(RTEBaseConfig):
         Causes the test to be restarted by reading the existing c.TEST_RESULTS_FILE and skipping configurations which had completed earlier. Can be used when long-running tests are interrupted. Use with caution.
     """
 
-    model_config = ConfigDict(strict=True, arbitrary_types_allowed=True)
-
     skip_forecast: bool
-    quit_forecast_after_forcing_running: bool
     quit_forecast_after_duration: float | None = Field(ge=0)
     do_calibration: bool
     quit_calibration_after_duration: float | None = Field(ge=0)
@@ -644,13 +698,6 @@ class RTETestConfig(RTEBaseConfig):
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
-
-        if self.quit_forecast_after_forcing_running:
-            self.errors.append(
-                RuntimeError(
-                    "quit_forecast_after_forcing_running is currently not allowed, pending updates."
-                )
-            )
 
         errors_extend = parse_fcst_run_name(self._fcst_run_name_formatted)
         self.errors.extend(errors_extend)

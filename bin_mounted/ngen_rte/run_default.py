@@ -9,90 +9,39 @@ See `run_default.sh` for example calls.
 """
 
 import argparse
-import functools
-import os
-import shutil
-import subprocess
-import time
 
 from mswm.build_inputs import RealizationBuilder
 
-from ngen_rte import consts as c
 from ngen_rte.configs import RTEDefaultConfig
+from ngen_rte.execution.ngen_async import NgenRunnerAsync
+from ngen_rte.logger import initialize_logger
 from ngen_rte.run_config import cli_args
 from ngen_rte.tests import utils_testing_setup
-from ngen_rte.utils import configure_ngen_log
+from ngen_rte.utils import (
+    _rte_transmit_job_complete,
+    _rte_transmit_job_failed,
+    _rte_transmit_job_start,
+    build_realization,
+    transmit,
+)
 
-print = functools.partial(print, flush=True)
-
-
-def build_default_realization(cfg: RTEDefaultConfig) -> RealizationBuilder:
-    """Build and return a non-coldstart forecast realization"""
-    print("Building default realization...")
-    rb = RealizationBuilder(**cfg.mswm_RealizationBuilder_kwargs)
-    rb.build_default_realization()
-    configure_ngen_log(rb.work_dir, "default")
-    return rb
+LOG = initialize_logger()
 
 
-def get_ngen_cmd(cfg: RTEDefaultConfig, rb: RealizationBuilder) -> list[str]:
-    """Build and return the ngen command as a list of strings.
-    rb must have already been built, e.g. rb.build_default_realization() already called."""
-    cmd = [
-        os.path.join(rb.input_dir, "ngen"),
-        rb.cat_file,
-        "all",
-        rb.nexus_file,
-        "all",
-        rb.realization_file,
-    ]
-    if cfg.nprocs > 1:
-        cmd = ["mpirun", "-n", f"{cfg.nprocs}"] + cmd + [rb.part_file]
-    return cmd
-
-
-def run_default(
-    rb: RealizationBuilder,
-    cfg: RTEDefaultConfig,
-    clear_output_dir: bool = False,
-) -> str:
+def run_default(rb: RealizationBuilder) -> NgenRunnerAsync:
     """Run the provided default realization.
     Realization should already be built (rb.build_default_realization() already called).
-
-    If clear_output_dir, the contents of the output dir will be deleted (recursively) before running the realization.
-
-    Returns: The path to the ngen stdout + stderr log file.
     """
-    ngen_log_description = "default"
-    output_dir = os.path.join(
-        rb.work_dir, "Output", "Default_Run", cfg._fcst_run_name_formatted
-    )
-
-    if clear_output_dir and os.path.exists(output_dir):
-        print(f"Deleting output dir: {output_dir}")
-        shutil.rmtree(output_dir)
-
-    cwd = output_dir
-    output_ngen_stdout_stderr_log = os.path.join(
-        output_dir, c.NGEN_STDOUT_STDERR_LOG_FILE_BASENAME
-    )
-    cmd = get_ngen_cmd(cfg, rb)
-
-    print(
-        f"\n\nStarting {ngen_log_description} with configuration: {cfg.model_dump_json(indent=2)}\n\nvia command args: {cmd} with cwd={cwd}."
-    )
-    start = time.perf_counter()
-    os.makedirs(output_dir, exist_ok=True)
-    with open(output_ngen_stdout_stderr_log, "a+") as f:
-        proc = subprocess.run(cmd, check=False, cwd=cwd, stdout=f, stderr=f)
-    print(
-        f"\nFinished {ngen_log_description} with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nReturn code {proc.returncode}.\nCommand was: {cmd}, with cwd={cwd}."
-    )
-    proc.check_returncode()
-    return output_ngen_stdout_stderr_log
+    LOG.info("Running default realization")
+    # For default realization, currently postprocess needs suppress_output=True
+    ngen_runner = NgenRunnerAsync(rb=rb, postprocess=True, suppress_output=True)
+    ngen_runner.start()
+    ngen_runner.stream_status_until_complete()
+    ngen_runner.close()  # Can also let __del__ handle this.
+    return ngen_runner
 
 
-def main(cfg: RTEDefaultConfig):
+def _main(cfg: RTEDefaultConfig):
     # util_asserts.assert_paths__core(forecast_vars.gage_id)
     # util_asserts.assert_paths__raw_config()
     # util_asserts.assert_paths_common_input()
@@ -102,9 +51,23 @@ def main(cfg: RTEDefaultConfig):
     if cfg.delete_forcing_raw_input_first:
         utils_testing_setup.delete_forcing_raw_inputs()
 
-    rb = build_default_realization(cfg)
-    print(f"Running default realization: {rb.input_configs['Forcing']}")
-    run_default(rb, cfg)
+    rb = build_realization(
+        cfg.mswm_RealizationBuilder_kwargs, build_method="build_default_realization"
+    )
+    cfg.configure_ngen_log(rb)
+    run_default(rb)
+
+
+def main(cfg: RTEDefaultConfig):
+    _rte_transmit_job_start()
+    try:
+        _main(cfg)
+    except Exception as e:
+        transmit(exc=e)
+        _rte_transmit_job_failed()
+        raise e
+    else:
+        _rte_transmit_job_complete()
 
 
 def cli_arg_parser() -> argparse.ArgumentParser:

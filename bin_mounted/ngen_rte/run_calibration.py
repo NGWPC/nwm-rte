@@ -17,23 +17,21 @@ from mswm.build_inputs import RealizationBuilder
 
 from ngen_rte import consts as c
 from ngen_rte.configs import RTECalibConfig
+from ngen_rte.logger import initialize_logger
+
+# from ngen_rte.execution.ngen_logs import NgenLogsParser
 from ngen_rte.run_config import cli_args
 from ngen_rte.tests import utils_testing_setup
-from ngen_rte.utils import configure_ngen_log, get_calibration_log_file_overwrite_path
+from ngen_rte.utils import (
+    _rte_transmit_job_complete,
+    _rte_transmit_job_failed,
+    _rte_transmit_job_start,
+    build_realization,
+    get_calibration_log_file_overwrite_path,
+    transmit,
+)
 
-print = functools.partial(print, flush=True)
-
-
-def build_calibration(cfg: RTECalibConfig) -> RealizationBuilder:
-    """Build calibration realization and return a RealizationBuilder instance."""
-    rb = RealizationBuilder(**cfg.mswm_RealizationBuilder_kwargs)
-
-    if cfg.forcing_configuration not in c.CALIB_FORCING_TYPES:
-        raise ValueError(
-            f"cfg.default_realization = {cfg.default_realization} (calibration), but cfg.forcing_configuration {cfg.forcing_configuration} not in c.CALIB_FORCING_TYPES {c.CALIB_FORCING_TYPES}"
-        )
-    rb.build_calib_realization()
-    return rb
+LOG = initialize_logger()
 
 
 def get_calibration_cmd(
@@ -57,25 +55,48 @@ def run_calibration(cfg, rb: RealizationBuilder) -> None:
     cwd = None
     msg_suffix = f" Log path: {log_path}"
 
-    configure_ngen_log(rb.work_dir, "cal")
-    print(
+    cfg.configure_ngen_log(rb)
+    start = time.perf_counter()
+
+    # ngen_parser = NgenLogsParser(cfg=cfg, rb=rb)
+    LOG.info(
         f"\n\nStarting calibration with configuration: {cfg.model_dump_json(indent=2)}\n\nvia command args: {cmd} with cwd={cwd}.{msg_suffix}"
     )
-    start = time.perf_counter()
     proc = subprocess.run(cmd, check=False, cwd=cwd)
-    print(
+    LOG.info(
         f"\nFinished calibration with configuration: {cfg.model_dump_json(indent=2)},\nfinished in {((time.perf_counter() - start) / 60):.1f} minutes.\nReturn code {proc.returncode}.\nCommand was: {cmd}, with cwd={cwd}.{msg_suffix}"
     )
+    # ngen_parser.log_all_payloads()
+
     proc.check_returncode()
 
 
-def main(cfg: RTECalibConfig):
+def _main(cfg: RTECalibConfig):
+    if cfg.forcing_configuration not in c.CALIB_FORCING_TYPES:
+        raise ValueError(
+            f"cfg.default_realization = {cfg.default_realization} (calibration), but cfg.forcing_configuration {cfg.forcing_configuration} not in c.CALIB_FORCING_TYPES {c.CALIB_FORCING_TYPES}"
+        )
     if cfg.delete_scratch_and_mesh_first:
         utils_testing_setup.delete_scratch_and_esmf_outputs(cfg)
     if cfg.delete_forcing_raw_input_first:
         utils_testing_setup.delete_forcing_raw_inputs()
-    rb = build_calibration(cfg)
+
+    rb = build_realization(
+        cfg.mswm_RealizationBuilder_kwargs, build_method="build_calib_realization"
+    )
     run_calibration(cfg, rb)
+
+
+def main(cfg: RTECalibConfig):
+    _rte_transmit_job_start()
+    try:
+        _main(cfg)
+    except Exception as e:
+        transmit(exc=e)
+        _rte_transmit_job_failed()
+        raise e
+    else:
+        _rte_transmit_job_complete()
 
 
 def cli_arg_parser() -> argparse.ArgumentParser:

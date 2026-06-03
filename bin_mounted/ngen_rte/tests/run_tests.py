@@ -15,7 +15,6 @@ See `run_tests.sh` for example calls.
 """
 
 import argparse
-import functools
 import json
 import sys
 
@@ -26,6 +25,7 @@ from pydantic.json import pydantic_encoder
 
 from ngen_rte import consts as c
 from ngen_rte.configs import RTETestConfig
+from ngen_rte.logger import initialize_logger
 from ngen_rte.run_config import cli_args
 from ngen_rte.tests import utils_testing_setup
 from ngen_rte.tests.execution_tests import (
@@ -35,9 +35,12 @@ from ngen_rte.tests.execution_tests import (
     get_test_configs__calibration,
     get_test_configs__forecast,
 )
-from ngen_rte.utils import configure_ngen_log
+from ngen_rte.utils import (
+    _rte_transmit_job_complete,
+    _rte_transmit_job_start,
+)
 
-print = functools.partial(print, flush=True)
+LOG = initialize_logger()
 
 
 def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
@@ -61,30 +64,30 @@ def calibrations__build_and_run(cfg: RTETestConfig, tm: TestsManager) -> None:
             msg_prefix = f"i={i} (ilimit={len(rte_calib_configs) - 1}) worker_name={worker_name} Calibration with forcing={repr(fc)}, models={repr(calib_config.mswm_GeneralConfig.models)}, cfe_aet_rootzone={calib_config.mswm_ModulePropertiesConfig.cfe_aet_rootzone}, obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}, obs_dir={calib_config.mswm_DataFileConfig.obs_dir}, nwmretro_file={calib_config.mswm_DataFileConfig.nwmretro_file}"
 
             if cfg.restart and i + 1 <= len(tm.prev_results):
-                print(f"Skipping since restart={cfg.restart}: {msg_prefix}")
+                LOG.info(f"Skipping since restart={cfg.restart}: {msg_prefix}")
                 continue
 
-            print(
+            LOG.info(
                 f"\n\n##########\n### {msg_prefix}: setting up test with rb_kwargs = \n{json.dumps(rb_kwargs, indent=2, default=pydantic_encoder)}"
             )
             t = ForecastTest(rb_kwargs=rb_kwargs)
 
             # Build the realization, trapping exceptions into class attrs
-            print(f"### {msg_prefix}: building realization")
+            LOG.info(f"### {msg_prefix}: building realization")
             t.make_realization_builder__build_realization(
                 build_method="build_calib_realization"
             )
 
             if t.rb_stat == TestStat.PASS:
-                configure_ngen_log(t.rb.work_dir, "cal_test")
+                cfg.configure_ngen_log(t.rb)
                 # Execute the realization via ngen, trapping exceptions and logs into class attrs
-                print(f"### {msg_prefix}: executing calibration realization")
+                LOG.info(f"### {msg_prefix}: executing calibration realization")
                 t.execute_calibration(
                     cfg.quit_calibration_after_duration, worker_name=worker_name
                 )
 
             tm.add_forecast_test(t)
-            tm.evaluate_test_results(raise_if_any_failed=False)
+            tm.evaluate_test_results(raise_if_any_failed=False, header_prefix="INTERIM")
 
 
 def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> None:
@@ -95,21 +98,12 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
     """
     for obj_func, optim_algo, test_paths in cfg.get_calib_permutations():
         test_configs = get_test_configs__forecast(cfg, use_cold_start=cs)
-        for tc in test_configs:
-            if (
-                cfg.quit_forecast_after_forcing_running
-                and tc.Forcing.forcing_configuration != "short_range"
-            ):
-                raise NotImplementedError(
-                    f"quit_forecast_after_forcing_running not yet tested for forcing_configuration = {repr(tc.Forcing.forcing_configuration)}"
-                )
-
         for i, config_overrides in enumerate(test_configs):
             fc = config_overrides.Forcing.forcing_configuration
             msg_prefix = f"i={i} (ilimit={len(test_configs) - 1}) forecast {repr(fc)} with calib obj_func={repr(obj_func.value)}, optim_algo={repr(optim_algo.value)}"
 
             if cfg.restart and i + 1 <= len(tm.prev_results):
-                print(f"Skipping since restart={cfg.restart}: {msg_prefix}")
+                LOG.info(f"Skipping since restart={cfg.restart}: {msg_prefix}")
                 continue
 
             rb_kwargs = {
@@ -119,47 +113,41 @@ def forecasts__build_and_run(cfg: RTETestConfig, tm: TestsManager, cs: bool) -> 
                 "config_overrides": config_overrides,
                 "use_cold_start": cs,
             }
-            print(
+            LOG.info(
                 f"\n\n##########\n### {msg_prefix}: setting up test with rb_kwargs = {rb_kwargs}"
             )
 
-            # run_type = "Cold_Start_Run" if cs else "Forecast_Run"
-            t = ForecastTest(
-                rb_kwargs=rb_kwargs,
-                ### TODO update this to work with new EWTS per-rank logs, and new RTE log paths
-                # ngen_log=LogParser(
-                #     path=f"{test_paths.dir_output}/{run_type}/{cfg._fcst_run_name_formatted}/logs/ngen.log"
-                # ),
-            )
+            t = ForecastTest(rb_kwargs=rb_kwargs)
 
             # Build the realization, trapping exceptions into class attrs
-            print(f"### {msg_prefix}: building realization")
+            LOG.info(f"### {msg_prefix}: building realization")
             t.make_realization_builder__build_realization(
                 build_method="build_fcst_realization"
             )
 
             if t.rb_stat == TestStat.PASS:
                 # Execute the realization via ngen, trapping exceptions and logs into class attrs
-                configure_ngen_log(t.rb.input_dir, "fcst_test")
-                print(f"### {msg_prefix}: executing realization via ngen")
+                cfg.configure_ngen_log(t.rb)
+                LOG.info(f"### {msg_prefix}: executing realization via ngen")
                 t.execute_forecast(
-                    quit_forecast_after_forcing_running=cfg.quit_forecast_after_forcing_running,
-                    quit_forecast_after_duration=cfg.quit_forecast_after_duration,
+                    quit_forecast_after_duration=cfg.quit_forecast_after_duration
                 )
 
             tm.add_forecast_test(t)
-            tm.evaluate_test_results(raise_if_any_failed=False)
+            tm.evaluate_test_results(raise_if_any_failed=False, header_prefix="INTERIM")
 
 
 def run_noop_mode() -> None:
     """Run noop mode - verify imports and basic setup without executing workflows."""
-    print("\nRunning in noop mode - only checking imports and basic setup.")
-    print("Successfully imported all required libraries.")
-    print("Noop mode complete - exiting")
+    LOG.info("\nRunning in noop mode - only checking imports and basic setup.")
+    LOG.info("Successfully imported all required libraries.")
+    LOG.info("Noop mode complete - exiting")
     sys.exit(0)  # Exit the program directly
 
 
 def main(cfg: RTETestConfig):
+    _rte_transmit_job_start()
+
     if cfg.noop:
         run_noop_mode()
 
@@ -185,7 +173,9 @@ def main(cfg: RTETestConfig):
     if not cfg.skip_forecast:
         forecasts__build_and_run(cfg, tm, cs=False)
 
-    tm.evaluate_test_results()
+    tm.evaluate_test_results(header_prefix="FINAL")
+
+    _rte_transmit_job_complete()
 
 
 def cli_arg_parser() -> argparse.ArgumentParser:
@@ -210,15 +200,6 @@ using various forcing configurations and model formulations.""",
         action="store_true",
         help="""Provide to skip forecast (for testing calibrations only).
 Incompatible with --do_all_forcing_configs and --do_coldstart""",
-    )
-    parser.add_argument(
-        "--quit_forecast_after_forcing_running",
-        action="store_true",
-        help="""THIS IS CURRENTLY NOT SUPPORTED, pending updates.
-Instead of waiting for each forecast to finish,
-quit after the ngen log file indicates that forcing
-is running successfully.
-THIS IS CURRENTLY NOT SUPPORTED.""",
     )
     parser.add_argument(
         "-quitfcdur",
@@ -314,7 +295,7 @@ if it exists, and skip indexes that already have a record in it.""",
     )
     cli_args.add_args_for_script(parser, cli_args.Script.TESTS)
     args = parser.parse_args()
-    print(f"{__file__}: args: {json.dumps(vars(args), indent=2)}")
+    LOG.info(f"{__file__}: args: {json.dumps(vars(args), indent=2)}")
 
     return parser
 
