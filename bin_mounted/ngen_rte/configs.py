@@ -79,8 +79,8 @@ class RTEBaseConfig(BaseModelStrict):
         Boolean causing the final forecast run name to contain a timestamp suffix.
     nwm_output_vars: bool = Field(default=False)
         Boolean causing NWM output variables to be included in the output. Passed to MSWM NWMOutputConfig. Does not apply to calibration workflow.
-    output_format: list[str]
-        Output format(s) for output variables. Accepts 'CSV', 'NetCDF', or both. Defaulted to ["CSV"].
+    output_format: list[str] | None = Field(default=None)
+        Output format(s) for output variables. Accepts 'CSV', 'NetCDF', or both. Defaults to ["CSV"] in MSWM.
     hydrofab_file: str | None = Field(default=None)
         Optional hydrofabric file path. If provided, bypasses MSWM Icefabric server API call.
     fcst_run_name: str | None = Field(default=None)
@@ -111,7 +111,7 @@ class RTEBaseConfig(BaseModelStrict):
     model_formulation_cli_rootzone: str | None = Field(default=None)
     add_timestamp_to_run_name: bool = Field(default=False)
     nwm_output_vars: bool = Field(default=False)
-    output_format: list[str]
+    output_format: list[str] | None = Field(default=None)
     hydrofab_file: str | None = Field(default=None)
     fcst_run_name: str | None = Field(default=None)
     cycle_datetime: datetime | None = Field(default=None)
