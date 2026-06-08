@@ -12,6 +12,8 @@ from calib.strategy import (
     Objective as CalObjective,
 )
 
+from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
+
 CONTAINER_LOGS_DIR = "/ngen-app/logs_rte"
 
 RUN_NAME_TIMESTAMP_SUFFIX_FORMAT = r"%Y%m%d-%H%M%S-%f"
@@ -182,15 +184,3 @@ if FORCING_PRODUCT_VERSIONS_PATH is not None:
         FORCING_PRODUCT_VERSIONS_DICT = json.load(f)
 else:
     FORCING_PRODUCT_VERSIONS_DICT = None
-
-
-# TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
-LAGGED_ENSEMBLE_MEMBER_LAGS: dict[str, int] = {
-    "no_da": 0,
-    "mem1": 0,
-    "mem2": 6,
-    "mem3": 12,
-    "mem4": 18,
-    "mem5": 24,
-    "mem6": 30,
-}

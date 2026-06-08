@@ -21,10 +21,6 @@ from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 from pydantic import Field
 
 from ngen_rte import consts as c
-
-# from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
-# TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
-from ngen_rte.consts import LAGGED_ENSEMBLE_MEMBER_LAGS
 from ngen_rte.logger import initialize_logger
 from ngen_rte.other_classes import (
     BaseModelStrict,
@@ -202,14 +198,14 @@ class RTEBaseConfig(BaseModelStrict):
             member_name, open_ls, closed_ls = self.lagged_ensemble_args
 
             self.lagged_ens_mem = member_name if member_name.strip() else None
-            self.forcing_lag = LAGGED_ENSEMBLE_MEMBER_LAGS[self.lagged_ens_mem]
+            self.forcing_lag = c.LAGGED_ENSEMBLE_MEMBER_LAGS[self.lagged_ens_mem]
             self.le__open_loop_state = open_ls if open_ls.strip() else None
             self.le__closed_loop_state = closed_ls if closed_ls.strip() else None
 
-            if self.lagged_ens_mem not in LAGGED_ENSEMBLE_MEMBER_LAGS:
+            if self.lagged_ens_mem not in c.LAGGED_ENSEMBLE_MEMBER_LAGS:
                 self.errors.append(
                     KeyError(
-                        f"Invalid lagged ensemble member {repr(self.lagged_ens_mem)} (choose from: {list(LAGGED_ENSEMBLE_MEMBER_LAGS)})"
+                        f"Invalid lagged ensemble member {repr(self.lagged_ens_mem)} (choose from: {list(c.LAGGED_ENSEMBLE_MEMBER_LAGS)})"
                     )
                 )
 
