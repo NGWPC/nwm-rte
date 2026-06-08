@@ -152,7 +152,7 @@ class RTEBaseConfig(BaseModelStrict):
 
         if rb.run_type == "default":
             fallback_log_dir = str(rb.work_dir)
-        elif rb.run_type == "forecast":
+        elif rb.run_type in ("forecast", "cold_start"):
             fallback_log_dir = str(rb.input_dir)
         elif rb.run_type == "calibration":
             fallback_log_dir = str(rb.work_dir)

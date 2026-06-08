@@ -36,7 +36,8 @@ set -x
 
 # docker_run python -um "ngen_rte.run_forecast" --help
 
-docker_run python -um "ngen_rte.run_forecast" -csdt "2025-09-12 00:00:00" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_cs_short" -fconfig short_range
+# docker_run python -um "ngen_rte.run_forecast" -csdt "2025-09-12 00:00:00" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_cs_short" -fconfig short_range --save_state
+docker_run python -um "ngen_rte.run_forecast" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_short" -fconfig short_range --load_state_from /ngwpc/run_ngen/kge_dds/test_bmi/01123000/Output/Model_State_Run/Cold_Start_Run/fcst_run1_cs_short/state_save/
 
 # docker_run python -um "ngen_rte.run_forecast" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_short" -fconfig short_range
 # docker_run python -um "ngen_rte.run_forecast" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_short_n2" -fconfig short_range -n 2

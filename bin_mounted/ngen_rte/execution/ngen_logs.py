@@ -175,7 +175,7 @@ class _LogParserNgen(_LogParserBase):
         elif self.rb.run_type == "calibration":
             # NOTE determine where the 'calib' prefix is derived from and parameterize it instead of hardcoding it here.
             bn_prefix = "calib"
-        elif self.rb.run_type == "forecast":
+        elif self.rb.run_type in ("forecast", "cold_start"):
             bn_prefix = self.rb.fcst_run_name
         else:
             raise NotImplementedError(
