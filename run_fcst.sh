@@ -36,9 +36,9 @@ set -x
 
 # docker_run python -um "ngen_rte.run_forecast" --help
 
-# docker_run python -um "ngen_rte.run_forecast" -csdt "2025-09-12 00:00:00" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_cs_short" -fconfig short_range
+docker_run python -um "ngen_rte.run_forecast" -csdt "2025-09-12 00:00:00" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_cs_short" -fconfig short_range
 
-docker_run python -um "ngen_rte.run_forecast" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_short" -fconfig short_range
+# docker_run python -um "ngen_rte.run_forecast" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_short" -fconfig short_range
 # docker_run python -um "ngen_rte.run_forecast" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_short_n2" -fconfig short_range -n 2
 # docker_run python -um "ngen_rte.run_forecast" -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_short_n2_nwm_output" -fconfig short_range -n 2 -nwmout
 

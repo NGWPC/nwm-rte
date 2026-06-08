@@ -416,3 +416,22 @@ HYDROFAB_FILE = ArgsKwargs(
     },
     scripts=[Script.CALIBRATION, Script.DEFAULT, Script.TESTS],
 )
+
+LOAD_STATE_FROM = ArgsKwargs(
+    args=["-lsf", "--load_state_from"],
+    kwargs={
+        "type": str,
+        "default": None,
+        "help": "Path to existing state file to load at start of run.",
+    },
+    scripts=[Script.DEFAULT, Script.FORECAST],
+)
+
+LOAD_STATE_FROM = ArgsKwargs(
+    args=["-ss", "--save_state"],
+    kwargs={
+        "action": "store_true",
+        "help": "If provided, save the model state at the end of the run.",
+    },
+    scripts=[Script.DEFAULT, Script.FORECAST],
+)
