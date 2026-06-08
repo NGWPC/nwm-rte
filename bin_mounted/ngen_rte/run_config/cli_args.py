@@ -427,7 +427,7 @@ LOAD_STATE_FROM = ArgsKwargs(
     scripts=[Script.DEFAULT, Script.FORECAST],
 )
 
-LOAD_STATE_FROM = ArgsKwargs(
+SAVE_STATE = ArgsKwargs(
     args=["-ss", "--save_state"],
     kwargs={
         "action": "store_true",
