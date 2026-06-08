@@ -53,7 +53,7 @@ NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE:-"NO"}
 ## \env REPO_TAG_FCST_MGR Source for `nwm-fcst-mgr`.
 REPO_TAG_FCST_MGR=${REPO_TAG_FCST_MGR:-"development"}
 ## \env REPO_TAG_MSW_MGR Source for `nwm-mswm-mgr`.
-REPO_TAG_MSW_MGR=${REPO_TAG_MSW_MGR:-"development"}
+REPO_TAG_MSW_MGR=${REPO_TAG_MSW_MGR:-"LOCAL"}
 ## \env REPO_TAG_CAL_MGR Source for `nwm-cal-mgr`.
 REPO_TAG_CAL_MGR=${REPO_TAG_CAL_MGR:-"development"}
 ## \env REPO_TAG_REGION_MGR Source for `nwm-region-mgr`.
