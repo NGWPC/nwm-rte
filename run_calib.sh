@@ -26,7 +26,8 @@ set -x
 
 # docker_run python -um "ngen_rte.run_calibration" --help
 
-docker_run python -um "ngen_rte.run_calibration" -n 2 -fconfig "aorc"
+# docker_run python -um "ngen_rte.run_calibration" -n 2 -fconfig "aorc" --gage_id "06607200"
+docker_run python -um "ngen_rte.run_calibration" -fconfig "aorc" -mf "noah-owp-modular,smp,sft,cfe-s,t-route" 
 #docker_run python -um "ngen_rte.run_calibration" -n 2 -fconfig "aorc" -mf "snow-17,noah-owp-modular,smp,lasam,t-route" -rz "true"
 # docker_run python -um "ngen_rte.run_calibration" -n 2 -fconfig "aorc" -mf "snow-17,noah-owp-modular,smp,lasam,t-route" -rz "true" --gage_id "12175500"
 # docker_run python -um "ngen_rte.run_calibration" -n 2 -fconfig "nwm"
