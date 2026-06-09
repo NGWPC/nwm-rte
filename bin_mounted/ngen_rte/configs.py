@@ -63,6 +63,8 @@ class RTEBaseConfig(BaseModelStrict):
         Directory for static forcing data.
     gage_id: str
         Gage ID.
+    vpu: str
+        VPU identifier.  When provided, overrides gage_id as basin and sets subset_type to 'vpu'.
     model_formulation_cli_csv: str | None = Field(default=None)
         Comma-separated string of model names comprising the formulation.
     model_formulation_cli_rootzone: str | None = Field(default=None)
@@ -92,7 +94,8 @@ class RTEBaseConfig(BaseModelStrict):
     nprocs: int = Field(ge=1)
     global_domain: str
     forcing_static_dir: str
-    gage_id: str
+    gage_id: str | None = Field(default=None)
+    vpu: str | None = Field(default=None)
     model_formulation_cli_csv: str | None = Field(default=None)
     model_formulation_cli_rootzone: str | None = Field(default=None)
     add_timestamp_to_run_name: bool = Field(default=False)
@@ -322,6 +325,7 @@ class RTEBaseConfig(BaseModelStrict):
             output_swe=True,
             output_sm=True,
             domain=self.global_domain.lower(),
+            subset_type="vpu" if getattr(self, "vpu", None) else "gage",
         )
 
     @property
@@ -530,6 +534,8 @@ class RTEDefaultConfig(RTEBaseConfig):
         Forcing configuration, e.g. "aorc" or "short_range"
     fcst_run_name: str
         Name of the forecast realization run. Affects a directory name.
+    vpu: str
+        VPU Identifier. When provided, overrides gage_id as basin and sets subset_type to 'vpu'."
     lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
         See CLI help menu for [`run_default.py`](python_cli_help__run_default.py.txt) for details.
     """
@@ -538,12 +544,17 @@ class RTEDefaultConfig(RTEBaseConfig):
     duration: timedelta | None
     forcing_configuration: str
     fcst_run_name: str
+    vpu: str | None = Field(default=None)
     # For medium-range lagged ensemble
     lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
         super()._parse_lagged_ensemble_args()
+        if self.vpu and self.gage_id != c.DEFAULT_GAGE_ID:
+            self.errors.append("--vpu and --gage_id are mutually exclusive, only one can be passed.")
+        elif self.vpu:
+            self.gage_id = self.vpu
         if self.errors:
             raise RuntimeError(self.errors)
 
