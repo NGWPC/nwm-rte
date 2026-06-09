@@ -443,3 +443,13 @@ SAVE_STATE = ArgsKwargs(
     },
     scripts=[Script.DEFAULT, Script.FORECAST],
 )
+
+VPU = ArgsKwargs(
+    args=["-v", "--vpu"],
+    kwargs={
+        "type": str,
+        "default": None,
+        "help": "VPU identifier. When provided, sets subset_type to 'vpu'. Cannot be used with gage_id.",
+    },
+    scripts=[Script.DEFAULT],
+)
