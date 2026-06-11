@@ -435,3 +435,16 @@ SAVE_STATE = ArgsKwargs(
     },
     scripts=[Script.DEFAULT, Script.FORECAST],
 )
+
+LOOKBACK = ArgsKwargs(
+    args=["-lb", "--lookback"],
+    kwargs={
+        "type": int,
+        "default": None,
+        "help": """If provided, override the forcing template `LookBack` value (in minutes).
+This controls the analysis (AnA) simulation window for AnA forcing configurations,
+e.g. 'standard_ana' or 'extended_ana'. The simulated window length in hours is
+`LookBack/60 - 1`, ending at the cycle datetime (-dt). Ignored if not provided.""",
+    },
+    scripts=[Script.DEFAULT],
+)
