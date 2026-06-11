@@ -11,8 +11,6 @@ from enum import StrEnum
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 from ngen_rte import consts as c
 
-# from mswm.utils.settings import c.LAGGED_ENSEMBLE_MEMBER_LAGS
-# TODO replace with import of mswm.utils.settings.c.LAGGED_ENSEMBLE_MEMBER_LAGS
 from ngen_rte.utils import (
     datetime_from_str,
     datetime_type,
@@ -415,4 +413,14 @@ HYDROFAB_FILE = ArgsKwargs(
         "help": "Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.",
     },
     scripts=[Script.CALIBRATION, Script.DEFAULT, Script.TESTS],
+)
+
+CHECKPOINT_INTERVAL = ArgsKwargs(
+    args=["-c", "--checkpoint_interval"],
+    kwargs={
+        "type": int,
+        "default": None,
+        "help": "Checkpointing interval in integer number of timesteps. If provided, enables checkpointing during the run.",
+    },
+    scripts=[Script.DEFAULT],
 )

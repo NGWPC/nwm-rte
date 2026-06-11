@@ -100,7 +100,7 @@ class NgenRunnerAsync(BaseModelStrict):
 
         LOG.info("Starting ngen run...")
         config_cache = self._make_config_cache()
-        if self.rb.run_type in ("forecast", "default"):
+        if self.rb.run_type in ("forecast", "default", "checkpoint"):
             self.fem = ForecastExecutionManager(
                 real_path=str(self.rb.realization_file),
                 config_cache=config_cache,
@@ -162,7 +162,7 @@ class NgenRunnerAsync(BaseModelStrict):
         """Make and return a ConfigCache based on the type of realization."""
         if self.rb.run_type == "forecast":
             config_cache = ConfigCache(valid_yaml=self.rb.valid_yaml, no_valid=False)
-        elif self.rb.run_type == "default":
+        elif self.rb.run_type in ("default", "checkpoint"):
             config_cache = ConfigCache(
                 run_dir=os.path.dirname(self.rb.realization_file), no_valid=True
             )

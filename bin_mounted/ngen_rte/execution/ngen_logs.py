@@ -97,24 +97,29 @@ class _LogParserBase(BaseModelStrict):
         self.__throttle()
         result: list[tuple[int, LogParts, Path | str]] = []
         for mpi_rank, log_file_path in self._iter_log_paths():
-            # TODO move everyting below into another method and try/except on FileNotFoundError
             if not os.path.exists(log_file_path):
                 LOG.debug(f"log file does not yet exist: {log_file_path}")
                 continue
             LOG.debug(f"Reading: {log_file_path}")
-            with open(log_file_path) as f:
-                for line in f:
-                    if not self._line_is_new(mpi_rank, line):
-                        continue
-                    line = line.rstrip()
-                    try:
-                        parts = parts_of_log_line(line, tolerant=self.tolerant)
-                    except Exception as e:
-                        LOG.error(
-                            f"Error parsing line into parts: {line}. Error: {e}. Traceback: {traceback.format_exc()}"
-                        )
-                        continue
-                    result.append((mpi_rank, parts, log_file_path))
+            try:
+                with open(log_file_path, errors="replace") as f:
+                    for line in f:
+                        if not self._line_is_new(mpi_rank, line):
+                            continue
+                        line = line.rstrip()
+                        try:
+                            parts = parts_of_log_line(line, tolerant=self.tolerant)
+                        except Exception as e:
+                            LOG.error(
+                                f"Error parsing line into parts: {line}. Error: {e}. Traceback: {traceback.format_exc()}"
+                            )
+                            continue
+                        result.append((mpi_rank, parts, log_file_path))
+            except Exception as e:
+                msg_base = f"Error reading log file: {log_file_path}: {e}"
+                msg_w_tb = f"{msg_base}. Traceback: {traceback.format_exc()}"
+                LOG.error(msg_w_tb)
+                raise RuntimeError(msg_base) from e
         return result
 
     def read_and_parse_all_lines_for_issues(self) -> None:
@@ -170,7 +175,7 @@ class _LogParserNgen(_LogParserBase):
 
     def ngen_log_basename(self, mpi_rank: int):
         """Basename of the ngen log file for the provided MPI rank."""
-        if self.rb.run_type == "default":
+        if self.rb.run_type in ("default", "checkpoint"):
             bn_prefix = self.rb.basin
         elif self.rb.run_type == "calibration":
             # NOTE determine where the 'calib' prefix is derived from and parameterize it instead of hardcoding it here.

@@ -21,10 +21,6 @@ from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 from pydantic import Field
 
 from ngen_rte import consts as c
-
-# from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
-# TODO replace with import of mswm.utils.settings.LAGGED_ENSEMBLE_MEMBER_LAGS
-from ngen_rte.consts import LAGGED_ENSEMBLE_MEMBER_LAGS
 from ngen_rte.logger import initialize_logger
 from ngen_rte.other_classes import (
     BaseModelStrict,
@@ -81,6 +77,8 @@ class RTEBaseConfig(BaseModelStrict):
         Forecast run name.
     cycle_datetime: datetime | None = Field(default=None)
         Cycle datetime for forecast
+    checkpoint_interval: int = Field(default=None)
+        Integer number of timesteps for interval of checkpoint output
     """
 
     # Set during init
@@ -98,6 +96,7 @@ class RTEBaseConfig(BaseModelStrict):
     hydrofab_file: str | None = Field(default=None)
     fcst_run_name: str | None = Field(default=None)
     cycle_datetime: datetime | None = Field(default=None)
+    checkpoint_interval: int | None = Field(default=None)
 
     # Set after init (not provided as args)
     time_at_init: datetime | None = Field(init=False, default=None)
@@ -139,12 +138,12 @@ class RTEBaseConfig(BaseModelStrict):
         now_str = datetime.now(timezone.utc).strftime(r"%Y%m%d_%H%M%S_%f")
 
         label = rb.run_type
-        if rb.use_cold_start:
+        if getattr(rb, "use_cold_start", False):
             label = f"{label}_cs"
         if isinstance(self, RTETestConfig):
             label = f"{label}_test"
 
-        if rb.run_type == "default":
+        if rb.run_type in ("default", "checkpoint"):
             fallback_log_dir = str(rb.work_dir)
         elif rb.run_type == "forecast":
             fallback_log_dir = str(rb.input_dir)
@@ -199,14 +198,14 @@ class RTEBaseConfig(BaseModelStrict):
             member_name, open_ls, closed_ls = self.lagged_ensemble_args
 
             self.lagged_ens_mem = member_name if member_name.strip() else None
-            self.forcing_lag = LAGGED_ENSEMBLE_MEMBER_LAGS[self.lagged_ens_mem]
+            self.forcing_lag = c.LAGGED_ENSEMBLE_MEMBER_LAGS[self.lagged_ens_mem]
             self.le__open_loop_state = open_ls if open_ls.strip() else None
             self.le__closed_loop_state = closed_ls if closed_ls.strip() else None
 
-            if self.lagged_ens_mem not in LAGGED_ENSEMBLE_MEMBER_LAGS:
+            if self.lagged_ens_mem not in c.LAGGED_ENSEMBLE_MEMBER_LAGS:
                 self.errors.append(
                     KeyError(
-                        f"Invalid lagged ensemble member {repr(self.lagged_ens_mem)} (choose from: {list(LAGGED_ENSEMBLE_MEMBER_LAGS)})"
+                        f"Invalid lagged ensemble member {repr(self.lagged_ens_mem)} (choose from: {list(c.LAGGED_ENSEMBLE_MEMBER_LAGS)})"
                     )
                 )
 
@@ -469,6 +468,7 @@ class RTEBaseConfig(BaseModelStrict):
             "use_lagged_ens": self.use_lagged_ensemble,
             "lagged_ens_mem": self.lagged_ens_mem,
             "forcing_lag": self.forcing_lag,
+            "checkpoint_interval": self.checkpoint_interval,
         }
         if self.errors:
             raise RuntimeError(self.errors)
@@ -639,6 +639,24 @@ class RTEForecastConfig(RTEBaseConfig):
                     "Must provide cold_start_datetime or cycle_datetime (or both), but neither were provided."
                 )
             )
+
+
+class RTEAsyncConfig(RTEBaseConfig):
+    """Minimal configuration class for run using NgenRunnerAsync
+    Set RTEBaseConfigs variables to defaults, not used by NgenRunnerAsync
+    """
+
+    delete_scratch_and_mesh_first: bool = False
+    delete_forcing_raw_input_first: bool = False
+    environment: str = ""
+    global_domain: str = ""
+    forcing_static_dir: str = ""
+    gage_id: str = ""
+
+    def model_post_init(self, __context) -> None:
+        super().model_post_init(__context)  # Call RTEBaseConfig's post init
+        if self.errors:
+            raise RuntimeError(self.errors)
 
 
 class RTETestConfig(RTEBaseConfig):
