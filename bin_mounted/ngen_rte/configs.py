@@ -85,6 +85,9 @@ class RTEBaseConfig(BaseModelStrict):
         Path to existing state file to load at start of run
     save_state: bool = Field(default=False)
         Boolean to activate state save at end of run
+    lookback: int | None = Field(default=None)
+        Optional override of the forcing template `LookBack` (minutes), controlling
+        the AnA simulation window. None means use the template value.
     """
 
     # Set during init
@@ -104,6 +107,7 @@ class RTEBaseConfig(BaseModelStrict):
     cycle_datetime: datetime | None = Field(default=None)
     load_state_from: str | None = Field(default=None)
     save_state: bool = Field(default=False)
+    lookback: int | None = Field(default=None)
 
     # Set after init (not provided as args)
     time_at_init: datetime | None = Field(init=False, default=None)
@@ -410,6 +414,7 @@ class RTEBaseConfig(BaseModelStrict):
             forcing_static_dir=self.forcing_static_dir,
             scratch_dir_override=c.SCRATCH_DIR_OVERRIDE,
             forcing_product_versions=c.FORCING_PRODUCT_VERSIONS_DICT,
+            lookback=self.lookback,
         )
         return fc
 
