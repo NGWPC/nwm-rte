@@ -424,3 +424,22 @@ CHECKPOINT_INTERVAL = ArgsKwargs(
     },
     scripts=[Script.DEFAULT],
 )
+
+LOAD_STATE_FROM = ArgsKwargs(
+    args=["-lsf", "--load_state_from"],
+    kwargs={
+        "type": str,
+        "default": None,
+        "help": "Path to existing state file to load at start of run.",
+    },
+    scripts=[Script.DEFAULT, Script.FORECAST],
+)
+
+SAVE_STATE = ArgsKwargs(
+    args=["-ss", "--save_state"],
+    kwargs={
+        "action": "store_true",
+        "help": "If provided, save the model state at the end of the run.",
+    },
+    scripts=[Script.DEFAULT, Script.FORECAST],
+)

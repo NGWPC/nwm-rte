@@ -68,7 +68,7 @@ def _main(cfg: RTEForecastConfig):
         cfg.configure_ngen_log(rb_cs)
         run_realization(rb_cs)
 
-    if cfg.cycle_datetime:
+    elif cfg.cycle_datetime:
         rb_fcst = build_realization(
             cfg.mswm_RealizationBuilder_kwargs | {"use_cold_start": False},
             "build_fcst_realization",
