@@ -98,10 +98,8 @@ class RTEBaseConfig(BaseModelStrict):
     nprocs: int = Field(ge=1)
     global_domain: str
     forcing_static_dir: str
-    basin: str | None = Field(default=None)
     gage_id: str | None = Field(default=None)
     vpu: str | None = Field(default=None)
-    subset_type: str | None = Field(default=None)
     model_formulation_cli_csv: str | None = Field(default=None)
     model_formulation_cli_rootzone: str | None = Field(default=None)
     add_timestamp_to_run_name: bool = Field(default=False)
@@ -118,6 +116,10 @@ class RTEBaseConfig(BaseModelStrict):
     """Time at class instantiation."""
     errors: list | None = Field(init=False, default=None)
     """List of exceptions encountered during init."""
+    subset_type: str | None = Field(init=False, default=None)
+    """Subset_type set depending on vpu and gage_id args"""
+    basin: str | None = Field(init=False, default=None)
+    """Basin id set depending on vpu and gage_id args"""
 
     # For lagged ensemble.  Used by run_forecast.py and run_default.py.  See CLI args for those scripts and see _parse_lagged_ensemble_args() for details.
     use_lagged_ensemble: bool | None = Field(init=False, default=False)
@@ -572,6 +574,7 @@ class RTEDefaultConfig(RTEBaseConfig):
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
+        super()._parse_lagged_ensemble_args()
         if self.errors:
             raise RuntimeError(self.errors)
 
