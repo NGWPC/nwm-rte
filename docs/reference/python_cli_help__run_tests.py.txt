@@ -98,8 +98,8 @@ options:
   -fstatic, --forcing_static_dir : type=str default='/ngen-app/data'
                         Directory for static forcing files, used when forcing_provider is 'bmi'.
 
-  -g, --gage_id : type=str default='01123000'
-                        Gage ID.
+  -g, --gage_id : type=str default=None
+                        Gage ID. CLI defaults to None, but ``RTEBaseConfig.model_post_init`` effectively defaults it to 01123000 when -v / --vpu is not provided.
 
   -gdomain, --global_domain : type=str default='CONUS'
                         Global domain/region of forcing data.

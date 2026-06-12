@@ -10,7 +10,6 @@ from enum import StrEnum
 
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 from ngen_rte import consts as c
-
 from ngen_rte.utils import (
     datetime_from_str,
     datetime_type,
@@ -141,7 +140,7 @@ GAGE_ID = ArgsKwargs(
     kwargs={
         "type": str,
         "default": None,
-        "help": "Gage ID.",
+        "help": f"Gage ID. CLI defaults to None, but ``RTEBaseConfig.model_post_init`` effectively defaults it to {c.DEFAULT_GAGE_ID} when -v / --vpu is not provided.",
     },
     scripts=[Script.ALL],
 )
