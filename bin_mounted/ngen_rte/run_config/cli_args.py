@@ -138,7 +138,7 @@ GAGE_ID = ArgsKwargs(
     args=["-g", "--gage_id"],
     kwargs={
         "type": str,
-        "default": c.DEFAULT_GAGE_ID,
+        "default": None,
         "help": "Gage ID.",
     },
     scripts=[Script.ALL],
