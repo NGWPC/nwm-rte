@@ -101,7 +101,7 @@ class RTEBaseConfig(BaseModelStrict):
     basin: str | None = Field(default=None)
     gage_id: str | None = Field(default=None)
     vpu: str | None = Field(default=None)
-    subset_type: str | None = Field(defaul=None)
+    subset_type: str | None = Field(default=None)
     model_formulation_cli_csv: str | None = Field(default=None)
     model_formulation_cli_rootzone: str | None = Field(default=None)
     add_timestamp_to_run_name: bool = Field(default=False)
@@ -138,7 +138,7 @@ class RTEBaseConfig(BaseModelStrict):
 
         if self.vpu and self.gage_id:
             self.errors.append(
-                ValueError("--vpue and --gage_id are mutually exclusive, only one can be passed.")
+                ValueError("--vpu and --gage_id are mutually exclusive, only one can be passed.")
             )
 
         if self.hydrofab_file and not (self.vpu or self.gage_id):
