@@ -134,6 +134,8 @@ GLOBAL_DOMAIN = ArgsKwargs(
     scripts=[Script.ALL],
 )
 
+# Note: This is defaulted to c.DEFAULT_GAGE_ID in configs.py,
+# after checking that the user does not supply both --gage_id and --vpu_id
 GAGE_ID = ArgsKwargs(
     args=["-g", "--gage_id"],
     kwargs={
