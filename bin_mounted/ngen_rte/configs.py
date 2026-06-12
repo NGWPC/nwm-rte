@@ -61,10 +61,12 @@ class RTEBaseConfig(BaseModelStrict):
         Global domain, e.g. "CONUS" or "Hawaii". Must agree with the ID of the basin / gage / VPU being simulated.
     forcing_static_dir: str
         Directory for static forcing data.
+    basin: str
+        Basin identifier. Can be either Gage ID or VPU identifier.
     gage_id: str
         Gage ID.
     vpu: str
-        VPU identifier.  When provided, overrides gage_id as basin and sets subset_type to 'vpu'.
+        VPU identifier.  When provided, sets subset_type to 'vpu'.
     model_formulation_cli_csv: str | None = Field(default=None)
         Comma-separated string of model names comprising the formulation.
     model_formulation_cli_rootzone: str | None = Field(default=None)
@@ -94,6 +96,7 @@ class RTEBaseConfig(BaseModelStrict):
     nprocs: int = Field(ge=1)
     global_domain: str
     forcing_static_dir: str
+    basin: str | None = Field(default=None)
     gage_id: str | None = Field(default=None)
     vpu: str | None = Field(default=None)
     model_formulation_cli_csv: str | None = Field(default=None)
@@ -129,6 +132,8 @@ class RTEBaseConfig(BaseModelStrict):
         self.time_at_init = datetime.now(tz=timezone.utc)
         self.errors = []
         make_wcoss_path_symlinks()
+        # Set basin from vpu if provided else gage_id
+        self.basin = self.vpu if self.vpu else self.gage_id
         if self.errors:
             raise RuntimeError(self.errors)
 
@@ -313,7 +318,7 @@ class RTEBaseConfig(BaseModelStrict):
         """MSWM GeneralConfig instance"""
         start_period, end_period = self.start_period__end_period
         return GeneralConfig(
-            basin=self.gage_id,
+            basin=self.basin,
             environment=self.environment,
             run_type=self.run_type,
             models=self.model_formulation.models_csv,
