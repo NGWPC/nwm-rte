@@ -61,8 +61,14 @@ class RTEBaseConfig(BaseModelStrict):
         Global domain, e.g. "CONUS" or "Hawaii". Must agree with the ID of the basin / gage / VPU being simulated.
     forcing_static_dir: str
         Directory for static forcing data.
+    basin: str
+        Basin identifier. Can be either Gage ID or VPU identifier.
     gage_id: str
-        Gage ID.
+        Gage ID. When provided, sets subset_type to 'gage'.
+    vpu: str
+        VPU identifier.  When provided, sets subset_type to 'vpu'.
+    subset_type: str
+        Type of basin identifier. Accepts 'gage' or 'vpu'.
     model_formulation_cli_csv: str | None = Field(default=None)
         Comma-separated string of model names comprising the formulation.
     model_formulation_cli_rootzone: str | None = Field(default=None)
@@ -92,7 +98,8 @@ class RTEBaseConfig(BaseModelStrict):
     nprocs: int = Field(ge=1)
     global_domain: str
     forcing_static_dir: str
-    gage_id: str
+    gage_id: str | None = Field(default=None)
+    vpu: str | None = Field(default=None)
     model_formulation_cli_csv: str | None = Field(default=None)
     model_formulation_cli_rootzone: str | None = Field(default=None)
     add_timestamp_to_run_name: bool = Field(default=False)
@@ -109,6 +116,10 @@ class RTEBaseConfig(BaseModelStrict):
     """Time at class instantiation."""
     errors: list | None = Field(init=False, default=None)
     """List of exceptions encountered during init."""
+    subset_type: str | None = Field(init=False, default=None)
+    """Subset_type set depending on vpu and gage_id args"""
+    basin: str | None = Field(init=False, default=None)
+    """Basin id set depending on vpu and gage_id args"""
 
     # For lagged ensemble.  Used by run_forecast.py and run_default.py.  See CLI args for those scripts and see _parse_lagged_ensemble_args() for details.
     use_lagged_ensemble: bool | None = Field(init=False, default=False)
@@ -126,6 +137,24 @@ class RTEBaseConfig(BaseModelStrict):
         self.time_at_init = datetime.now(tz=timezone.utc)
         self.errors = []
         make_wcoss_path_symlinks()
+
+        if self.vpu and self.gage_id:
+            self.errors.append(
+                ValueError("--vpu and --gage_id are mutually exclusive, only one can be passed.")
+            )
+
+        if self.hydrofab_file and not (self.vpu or self.gage_id):
+            self.errors.append(
+                ValueError("--hydrofab_file requires --gage_id or --vpu to be explicitly provded.")
+            )
+
+        if not self.gage_id:
+            self.gage_id = c.DEFAULT_GAGE_ID
+
+        # Set basin from vpu if provided else gage_id
+        self.basin = self.vpu if self.vpu else self.gage_id
+        self.subset_type = "vpu" if self.vpu else "gage"
+
         if self.errors:
             raise RuntimeError(self.errors)
 
@@ -310,7 +339,7 @@ class RTEBaseConfig(BaseModelStrict):
         """MSWM GeneralConfig instance"""
         start_period, end_period = self.start_period__end_period
         return GeneralConfig(
-            basin=self.gage_id,
+            basin=self.basin,
             environment=self.environment,
             run_type=self.run_type,
             models=self.model_formulation.models_csv,
@@ -322,6 +351,7 @@ class RTEBaseConfig(BaseModelStrict):
             output_swe=True,
             output_sm=True,
             domain=self.global_domain.lower(),
+            subset_type=self.subset_type,
         )
 
     @property

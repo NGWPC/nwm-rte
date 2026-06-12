@@ -52,6 +52,8 @@ def _build_default_config() -> configs.RTEDefaultConfig:
             "test_default_aorc",
             "--nprocs",
             "2",
+            "--gage_id",
+            "01123000",
             "--hydrofab_file",
             c.TEST_HYDROFAB_FILE,
         ]

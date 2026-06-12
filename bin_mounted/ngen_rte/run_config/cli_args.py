@@ -10,7 +10,6 @@ from enum import StrEnum
 
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 from ngen_rte import consts as c
-
 from ngen_rte.utils import (
     datetime_from_str,
     datetime_type,
@@ -134,12 +133,14 @@ GLOBAL_DOMAIN = ArgsKwargs(
     scripts=[Script.ALL],
 )
 
+# Note: This is defaulted to c.DEFAULT_GAGE_ID in configs.py,
+# after checking that the user does not supply both --gage_id and --vpu_id
 GAGE_ID = ArgsKwargs(
     args=["-g", "--gage_id"],
     kwargs={
         "type": str,
-        "default": c.DEFAULT_GAGE_ID,
-        "help": "Gage ID.",
+        "default": None,
+        "help": f"Gage ID. CLI defaults to None, but ``RTEBaseConfig.model_post_init`` effectively defaults it to {c.DEFAULT_GAGE_ID} when -v / --vpu is not provided.",
     },
     scripts=[Script.ALL],
 )
@@ -442,4 +443,14 @@ SAVE_STATE = ArgsKwargs(
         "help": "If provided, save the model state at the end of the run.",
     },
     scripts=[Script.DEFAULT, Script.FORECAST],
+)
+
+VPU = ArgsKwargs(
+    args=["-v", "--vpu"],
+    kwargs={
+        "type": str,
+        "default": None,
+        "help": "VPU identifier. When provided, sets subset_type to 'vpu'. Cannot be used with gage_id.",
+    },
+    scripts=[Script.DEFAULT],
 )
