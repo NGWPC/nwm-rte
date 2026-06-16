@@ -100,6 +100,7 @@ class RTEBaseConfig(BaseModelStrict):
     hydrofab_file: str | None = Field(default=None)
     fcst_run_name: str | None = Field(default=None)
     cycle_datetime: datetime | None = Field(default=None)
+    lookback: int | None = Field(default=None)
     checkpoint_interval: int | None = Field(default=None)
     load_state_from: str | None = Field(default=None)
     save_state: bool = Field(default=False)
