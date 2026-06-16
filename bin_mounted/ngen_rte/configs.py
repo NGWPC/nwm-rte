@@ -89,6 +89,9 @@ class RTEBaseConfig(BaseModelStrict):
         Path to existing state file to load at start of run
     save_state: bool = Field(default=False)
         Boolean to activate state save at end of run
+    lookback: int | None = Field(default=None)
+        Optional override of the forcing template `LookBack` (minutes), controlling
+        the AnA simulation window. None means use the template value.
     """
 
     # Set during init
