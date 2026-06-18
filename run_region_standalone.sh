@@ -31,33 +31,33 @@ TEST_FORM_ASSIGN="/ngwpc/run_ngen/regionalization/01123000/formulation_assignmen
 TEST_CAT_GRP="/ngwpc/run_ngen/regionalization/01123000/catchment_groups.csv"
 
 # Short Range
-docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr"
 
 # Short Range with NWM Output Variables
-docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr_nwm_output" -nwmout -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr_nwm_output" -nwmout
 # Analysis & Assimilation
-docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -fconfig "standard_ana" -dt "2026-03-30 06:00:00" -rname "region_ana" -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}" -fconfig "standard_ana" -dt "2026-03-30 06:00:00" -rname "region_ana"
 # Medium Range
-docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -fconfig "medium_range_blend" -dt "2026-03-30 06:00:00" -rname "region_mr" -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}" -fconfig "medium_range_blend" -dt "2026-03-30 06:00:00" -rname "region_mr"
 
 # Medium Range Lagged Ensemble
-# docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "region_mr_le" -le "no_da" "" "" -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"
-# docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "region_mr_le" -le "mem1" "" "" -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"
-# docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "region_mr_le" -le "mem2" "" "" -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"
-# docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "region_mr_le" -le "mem3" "" "" -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"
-# docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "region_mr_le" -le "mem4" "" "" -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"
-# docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "region_mr_le" -le "mem5" "" "" -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"
-# docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "region_mr_le" -le "mem6" "" "" -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"
+# docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}" -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "region_mr_le" -le "no_da" "" ""
+# docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}" -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "region_mr_le" -le "mem1" "" ""
+# docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}" -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "region_mr_le" -le "mem2" "" ""
+# docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}" -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "region_mr_le" -le "mem3" "" ""
+# docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}" -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "region_mr_le" -le "mem4" "" ""
+# docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}" -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "region_mr_le" -le "mem5" "" ""
+# docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}" -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "region_mr_le" -le "mem6" "" ""
 
 # Historical / Retrospective Forcing
-docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "region_aorc" -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}" -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "region_aorc"
 
 # State saving and loading
-docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -fconfig "standard_ana" -dt "2026-03-30 06:00:00" -rname "region_ana" --save_state -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"
-docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" --load_state_from /ngwpc/run_ngen/regionalization/test_bmi/01123000/state_save/ -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}" -fconfig "standard_ana" -dt "2026-03-30 06:00:00" -rname "region_ana" --save_state -faf
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" --load_state_from /ngwpc/run_ngen/regionalization/test_bmi/01123000/state_save/
 
 # Checkpoint restart
-docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" --checkpoint_interval 3 -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"
-docker_run python -um "ngen_rte.run_restart" -src "/ngwpc/run_ngen/regionalization/test_bmi/01123000/" -dst "/ngwpc/run_ngen/regionalization/test_bmi_restart/01123000/" -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" --checkpoint_interval 3
+docker_run python -um "ngen_rte.run_restart" -src "/ngwpc/run_ngen/regionalization/test_bmi/01123000/" -dst "/ngwpc/run_ngen/regionalization/test_bmi_restart/01123000/"
 
 exit 0
