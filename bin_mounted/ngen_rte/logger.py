@@ -26,7 +26,6 @@ def initialize_logger() -> ewts.EwtsLogger:
             log_file_name=log_file_name,
             running_in_ngen=False,
             enabled=True,
-            bind_now=True,
         )
         if LOG is None:
             raise TypeError("LOG is unexpectedly None after ewts setup_logger call.")
