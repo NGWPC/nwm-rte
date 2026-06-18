@@ -62,6 +62,8 @@ TEST_RUN_CONFIG__CALIBRATION__SOURCE="${DATA__RTE_TEST__S3_SOURCE}/configs/input
 TEST_RUN_CONFIG__FORECAST__SOURCE="${DATA__RTE_TEST__S3_SOURCE}/configs/input_forecast_nhf.config"
 TEST_RUN_HYDROFABRIC_NHF_GAGE__SOURCE="${DATA__RTE_TEST__S3_SOURCE}/gages/gauge_${TEST_GAGE}.gpkg"
 
+TEST_RUN_REGIONALIZATION__SOURCE="${DATA__RTE_TEST__S3_SOURCE}/regionalization"
+TEST_RUN_REGIONALIZATION__HOST="${RUN_NGEN_ROOT__HOST}/regionalization"
 
 # Download test gage data using setup_data_one_gage.sh
 ./setup_data_one_gage.sh "${TEST_GAGE}" "${TEST_DOMAIN}" "${EDFS_API_ENVIRONMENT}"
@@ -85,6 +87,9 @@ s3_copy "${TEST_RUN_CONFIG__FORECAST__SOURCE}" "${WORKFLOW_INPUT_CONFIG_ROOT}/"
 
 # Download gpkg for hydrofabric NHF test gage
 s3_copy "${TEST_RUN_HYDROFABRIC_NHF_GAGE__SOURCE}" "${S3_ROOT__HOST}/ngwpc-dev/rte-test-data/gages/"
+
+# Download test regionalization data
+s3_sync "${TEST_RUN_REGIONALIZATION__SOURCE}" "${TEST_RUN_REGIONALIZATION__HOST}"
 
 
 set -x
