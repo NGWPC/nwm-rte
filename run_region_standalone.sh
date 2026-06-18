@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -euo pipefail
+source config.bashrc
 source run.sh
 set -x
 
@@ -26,8 +27,8 @@ set -x
 
 # sudo rm -rf ~/ngwpc/run_ngen/regionalization/test_bmi/01123000
 
-TEST_FORM_ASSIGN="/s3/ngwpc-dev/rte-test-data/regionalization/01123000/formulation_assignment.csv"
-TEST_CAT_GRP="/s3/ngwpc-dev/rte-test-data/regionalization/01123000/catchment_groups.csv"
+TEST_FORM_ASSIGN="/ngwpc/run_ngen/regionalization/01123000/formulation_assignment.csv"
+TEST_CAT_GRP="/ngwpc/run_ngen/regionalization/01123000/catchment_groups.csv"
 
 # Short Range
 docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" -faf "${TEST_FORM_ASSIGN}" -cgf "${TEST_CAT_GRP}"

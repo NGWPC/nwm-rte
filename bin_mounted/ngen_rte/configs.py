@@ -188,7 +188,7 @@ class RTEBaseConfig(BaseModelStrict):
         if isinstance(self, RTETestConfig):
             label = f"{label}_test"
 
-        if rb.run_type in ("default", "checkpoint"):
+        if rb.run_type in ("default", "checkpoint", "regionalization"):
             fallback_log_dir = str(rb.work_dir)
         elif rb.run_type in ("forecast", "cold_start"):
             fallback_log_dir = str(rb.input_dir)
@@ -338,9 +338,11 @@ class RTEBaseConfig(BaseModelStrict):
             rt = "default"
         elif isinstance(self, RTEForecastConfig):
             rt = "default"
+        elif isinstance(self, RTERegionConfig):
+            rt = "regionalization"
         else:
             raise ValueError(
-                f"Unexpected config class {type(self)}. Expected one of RTEForecastConfig, RTECalibConfig, or RTEDefaultConfig."
+                f"Unexpected config class {type(self)}. Expected one of RTEForecastConfig, RTECalibConfig, RTERegionConfig, or RTEDefaultConfig."
             )
         return rt
 
@@ -429,7 +431,7 @@ class RTEBaseConfig(BaseModelStrict):
             cdt = self.calib_windows.calib_sim_start.strftime(
                 mswm_settings.DEFAULT_DATETIME_FORMAT
             )
-        elif isinstance(self, (RTEForecastConfig, RTEDefaultConfig)):
+        elif isinstance(self, (RTEForecastConfig, RTEDefaultConfig, RTERegionConfig)):
             cdt = (
                 self.cycle_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT)
                 if self.cycle_datetime
@@ -437,7 +439,7 @@ class RTEBaseConfig(BaseModelStrict):
             )
         else:
             raise ValueError(
-                f"Unexpected config class {type(self)}. Expected one of RTEForecastConfig, RTECalibConfig, or RTEDefaultConfig."
+                f"Unexpected config class {type(self)}. Expected one of RTEForecastConfig, RTECalibConfig, RTERegionConfig, or RTEDefaultConfig."
             )
         cold_start_datetime = (
             self.cold_start_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT)
