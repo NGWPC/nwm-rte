@@ -23,6 +23,7 @@ class Script(StrEnum):
     """Enum used to classify which script(s) each CLI arg should be added to, to keep the args lists DRY."""
 
     DEFAULT = "run_default"
+    REGIONALIZATION = "run_regionalization_standalone"
     CALIBRATION = "run_calibration"
     FORECAST = "run_forecast"
     TESTS = "run_tests"
@@ -168,7 +169,7 @@ Choices and defaults vary per realization type:
   Default Realization:
     Default: {repr(c.CALIB_FORCING_TYPES[0])}. Choices: {split_iter_to_chunked_str(c.ALL_FORCING_TYPES)}""",
     },
-    scripts=[Script.FORECAST, Script.CALIBRATION, Script.DEFAULT],
+    scripts=[Script.FORECAST, Script.CALIBRATION, Script.DEFAULT, Script.REGIONALIZATION],
 )
 
 FCST_RUN_NAME = ArgsKwargs(
@@ -178,7 +179,7 @@ FCST_RUN_NAME = ArgsKwargs(
         "default": c.DEFAULT_FORECAST_RUN_NAME,
         "help": "Forecast run name.",
     },
-    scripts=[Script.FORECAST, Script.DEFAULT, Script.TESTS],
+    scripts=[Script.FORECAST, Script.DEFAULT, Script.REGIONALIZATION, Script.TESTS],
 )
 
 TIMESTAMP_RUN_NAME_SUFFIX = ArgsKwargs(
@@ -188,7 +189,7 @@ TIMESTAMP_RUN_NAME_SUFFIX = ArgsKwargs(
         "action": "store_true",
         "help": "If provided, add a timestamp suffix to the run name.",
     },
-    scripts=[Script.FORECAST, Script.DEFAULT],
+    scripts=[Script.FORECAST, Script.DEFAULT, Script.REGIONALIZATION],
 )
 
 CYCLE_DATETIME = ArgsKwargs(
@@ -200,7 +201,7 @@ CYCLE_DATETIME = ArgsKwargs(
 When cold-start is used, this is the *end* of the cold-start cycle.
 Format: {repr(DEFAULT_DATETIME_FORMAT.replace("%", "%%"))}.""",
     },
-    scripts=[Script.FORECAST, Script.DEFAULT],
+    scripts=[Script.FORECAST, Script.DEFAULT, Script.REGIONALIZATION],
 )
 
 COLD_START_DATETIME = ArgsKwargs(
@@ -221,7 +222,7 @@ NWM_OUTPUT_VARIABLES = ArgsKwargs(
         "action": "store_true",
         "help": "If provided, NWMOutputConfig.nwm_output_variables will be set to True",
     },
-    scripts=[Script.FORECAST, Script.DEFAULT],
+    scripts=[Script.FORECAST, Script.DEFAULT, Script.REGIONALIZATION],
 )
 
 LAGGED_ENSEMBLE = ArgsKwargs(
@@ -252,7 +253,7 @@ This argument has 3 parts:
 To run a lagged ensemble member without the optional parts,
 provide them as empty strings e.g. `-le 'mem2' '' ''`.""",
     },
-    scripts=[Script.FORECAST, Script.DEFAULT],
+    scripts=[Script.FORECAST, Script.DEFAULT, Script.REGIONALIZATION],
 )
 
 OBJECTIVE_FUNCTION = ArgsKwargs(
@@ -293,9 +294,9 @@ CALIB_DURATION = ArgsKwargs(
     kwargs={
         "type": timedelta_from_effective_days,
         "default": c.CALIB_SIM_DURATION_DEFAULT,
-        "help": """Duration of calibration or default realization. Units: days (integer). Ignored by default realization when a realtime forcing configuration is chosen.""",
+        "help": """Duration of calibration/default/regionalization realization. Units: days (integer). Ignored by default/regionalization realization when a realtime forcing configuration is chosen.""",
     },
-    scripts=[Script.CALIBRATION, Script.DEFAULT],
+    scripts=[Script.CALIBRATION, Script.DEFAULT, Script.REGIONALIZATION],
 )
 
 MODELS_RZ = ArgsKwargs(
@@ -413,7 +414,7 @@ HYDROFAB_FILE = ArgsKwargs(
         "default": None,
         "help": "Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.",
     },
-    scripts=[Script.CALIBRATION, Script.DEFAULT, Script.TESTS],
+    scripts=[Script.CALIBRATION, Script.DEFAULT, Script.REGIONALIZATION, Script.TESTS],
 )
 
 CHECKPOINT_INTERVAL = ArgsKwargs(
@@ -423,7 +424,7 @@ CHECKPOINT_INTERVAL = ArgsKwargs(
         "default": None,
         "help": "Checkpointing interval in integer number of timesteps. If provided, enables checkpointing during the run.",
     },
-    scripts=[Script.DEFAULT],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION],
 )
 
 LOAD_STATE_FROM = ArgsKwargs(
@@ -433,7 +434,7 @@ LOAD_STATE_FROM = ArgsKwargs(
         "default": None,
         "help": "Path to existing state file to load at start of run.",
     },
-    scripts=[Script.DEFAULT, Script.FORECAST],
+    scripts=[Script.DEFAULT, Script.FORECAST, Script.REGIONALIZATION],
 )
 
 SAVE_STATE = ArgsKwargs(
@@ -442,7 +443,7 @@ SAVE_STATE = ArgsKwargs(
         "action": "store_true",
         "help": "If provided, save the model state at the end of the run.",
     },
-    scripts=[Script.DEFAULT, Script.FORECAST],
+    scripts=[Script.DEFAULT, Script.FORECAST, Script.REGIONALIZATION],
 )
 
 VPU = ArgsKwargs(
@@ -452,7 +453,7 @@ VPU = ArgsKwargs(
         "default": None,
         "help": "VPU identifier. When provided, sets subset_type to 'vpu'. Cannot be used with gage_id.",
     },
-    scripts=[Script.DEFAULT],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION],
 )
 
 LOOKBACK = ArgsKwargs(
@@ -465,5 +466,25 @@ This controls the analysis (AnA) simulation window for AnA forcing configuration
 e.g. 'standard_ana' or 'extended_ana'. The simulated window length in hours is
 `LookBack/60 - 1`, ending at the cycle datetime (-dt). Ignored if not provided.""",
     },
-    scripts=[Script.DEFAULT],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION],
+)
+
+FORM_ASSIGN_FILE = ArgsKwargs(
+    args=["-faf", "--form_assign_file"],
+    kwargs={
+        "type": str,
+        "required": True,
+        "help": "Path to file containing formulation assignments for catchments.",
+    },
+    scripts=[Script.REGIONALIZATION]
+)
+
+CAT_GRP_FILE = ArgsKwargs(
+    args=["-cgf", "--cat_grp_file"],
+    kwargs={
+        "type": str,
+        "required": True,
+        "help": "Path to file containing catchment groupings.",
+    },
+    scripts=[Script.REGIONALIZATION]
 )

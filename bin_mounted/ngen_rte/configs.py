@@ -9,6 +9,7 @@ from mswm.build_inputs import RealizationBuilder
 from mswm.utils import settings as mswm_settings
 from mswm.utils.input_configuration import (
     CalibConfig,
+    RegionConfig,
     DataFileConfig,
     ForcingConfig,
     GeneralConfig,
@@ -378,9 +379,15 @@ class RTEBaseConfig(BaseModelStrict):
         return oc
 
     @property
-    def mswm_RegionalizationConfig(self) -> None:
+    def mswm_RegionalizationConfig(self) -> RegionConfig | None:
         """MSWM RegionalizationConfig instance"""
-        return None
+        if not isinstance(self, RTERegionConfig):
+            return None
+        rc = RegionConfig(
+            form_assign_file=self.form_assign_file,
+            cat_grp_file=self.cat_grp_file,
+        )
+        return rc
 
     @property
     def mswm_CalibConfig(self) -> CalibConfig | None:
@@ -580,6 +587,44 @@ class RTEDefaultConfig(RTEBaseConfig):
     fcst_run_name: str
     # For medium-range lagged ensemble
     lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
+
+    def model_post_init(self, __context) -> None:
+        super().model_post_init(__context)  # Call RTEBaseConfig's post init
+        super()._parse_lagged_ensemble_args()
+        if self.errors:
+            raise RuntimeError(self.errors)
+        
+
+class RTERegionConfig(RTEBaseConfig):
+    """Configuration class for building and running one regionalization realization
+    (realtime forcing configuration or historical / retrospective forcing configuration).
+
+    Attributes
+    ----------
+    cycle_datetime: datetime
+        Start time of the realization
+    duration: timedelta | None
+        Duration of the simulation (only used for historical / retrospective forcing configurations)
+    forcing_configuration: str
+        Forcing configuration, e.g. "aorc" or "short_range"
+    fcst_run_name: str
+        Name of the forecast realization run. Affects a directory name.
+    lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
+        See CLI help menu for [`run_default.py`](python_cli_help__run_default.py.txt) for details.
+    form_assign_file: str
+        File containing formulation assignments for catchments
+    cat_grp_file: str
+        File containing catchment groupings for regionalization
+    """
+
+    cycle_datetime: datetime
+    duration: timedelta | None
+    forcing_configuration: str
+    fcst_run_name: str
+    # For medium-range lagged ensemble
+    lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
+    form_assign_file = str
+    cat_grp_file = str
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
