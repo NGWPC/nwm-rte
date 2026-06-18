@@ -169,7 +169,6 @@ sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target
     --build-arg REPO_TAG_DATA_ASSIM_ENGINE="${REPO_TAG_DATA_ASSIM_ENGINE}" \
     --build-arg REPO_TAG_NGEN_FORCING="${REPO_TAG_NGEN_FORCING}" \
     --build-arg REPO_TAG_EWTS="${REPO_TAG_EWTS}" \
-    --build-arg REPO_TAG_VERF="${REPO_TAG_VERF}" \
     --build-arg REPO_TAG_EVAL="${REPO_TAG_EVAL}" \
     ".." \
     |& tee "logs/docker/build/${SAFE_LOG_NAME}-${TIMESTAMP}.log"

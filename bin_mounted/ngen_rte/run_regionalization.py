@@ -68,7 +68,7 @@ def main(config_dir: str, parreg: bool, formreg: bool, ngen: bool, run_eval: boo
 
     if run_eval:
         run_cmd(
-            cmd=f"{EVAL_VERF_PYTHON_BINARY} -um nwm.verf {config_dir}/config_eval.yaml",
+            cmd=f"{EVAL_VERF_PYTHON_BINARY} -um nwm_eval {config_dir}/config_eval.yaml",
             shell=True,
         )
 
