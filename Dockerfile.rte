@@ -95,10 +95,10 @@ RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/
 
 
 ##################################################
-#### BEGIN SECOND STAGE: Adding a separate Python venv for nwm.eval and nwm.verf
+#### BEGIN SECOND STAGE: Adding a separate Python venv for nwm-eval-mgr (i.e., nwm_eval and nwm_metrics)
 FROM ngen_rte_base AS ngen_rte_eval_verf
 
-# Call modules like `python_eval_verf -m nwm.verf`
+# Call modules like `python_eval_verf -m nwm_eval`
 ARG EVAL_VERF_PYTHON_ALIAS="python_eval_verf"
 ARG EVAL_VERF_VENV="/ngen-app/venvs/eval_verf"
 ARG EVAL_VERF_PYTHON_BIN_DIR="${EVAL_VERF_VENV}/bin"

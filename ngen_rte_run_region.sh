@@ -25,7 +25,7 @@ function docker_run {
         -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
         \
         -v "${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr:/ngen-app/nwm-region-mgr" \
-        -v "${REPOS_COMMON_ROOT__HOST}/nwm-verf/data:/ngen-app/nwm-verf/data" \
+        -v "${REPOS_COMMON_ROOT__HOST}/nwm-eval-mgr/data:/ngen-app/nwm-eval-mgr/data" \
         \
         --rm ${TARGET_IMAGE_NAME} "$@"
 }

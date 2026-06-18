@@ -25,5 +25,4 @@ The RTE component Python packages include:
 | `nwm-cal-mgr`                                           | `ngen-python` (default)     |
 | `nwm-region-mgr`                                        | `ngen-python` (default)     |
 | `nwm-data-assimilation`                                 | `ngen-python` (default)     |
-| `nwm-verf`                                              | `eval_verf`                  |
 | `nwm-eval-mgr`                                          | `eval_verf`                  |

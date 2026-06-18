@@ -218,7 +218,7 @@ ensure_dir "$RUNTIME_DIR_TMP/run_ngen/data/esmf_mesh"
 # create docker logs directory
 ensure_dir "$RUNTIME_DIR_TMP/docker_logs/run"
 
-# home dir inside container (required for some packages in nwm-verf and nwm-region-mgr)
+# home dir inside container (required for some packages in nwm-eval-mgr and nwm-region-mgr)
 ensure_dir "$RUNTIME_DIR_TMP/home"
 
 cleanup() {
