@@ -593,7 +593,7 @@ class RTEDefaultConfig(RTEBaseConfig):
         super()._parse_lagged_ensemble_args()
         if self.errors:
             raise RuntimeError(self.errors)
-        
+
 
 class RTERegionConfig(RTEBaseConfig):
     """Configuration class for building and running one regionalization realization
@@ -623,8 +623,8 @@ class RTERegionConfig(RTEBaseConfig):
     fcst_run_name: str
     # For medium-range lagged ensemble
     lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
-    form_assign_file = str
-    cat_grp_file = str
+    form_assign_file: str
+    cat_grp_file: str
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
