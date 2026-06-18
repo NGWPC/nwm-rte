@@ -80,7 +80,7 @@ that "--duration" aka "-dur" (in days) was added to this script
 to support the historical / retrospective forcing use case, e.g. AORC or NWM.""",
         formatter_class=cli_args.HelpFormatter,
     )
-    cli_args.add_args_for_script(parser, cli_args.Script.DEFAULT)
+    cli_args.add_args_for_script(parser, cli_args.Script.REGIONALIZATION)
     return parser
 
 
