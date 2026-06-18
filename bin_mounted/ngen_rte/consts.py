@@ -12,8 +12,6 @@ from calib.strategy import (
     Objective as CalObjective,
 )
 
-from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
-
 CONTAINER_LOGS_DIR = "/ngen-app/logs_rte"
 
 RUN_NAME_TIMESTAMP_SUFFIX_FORMAT = r"%Y%m%d-%H%M%S-%f"

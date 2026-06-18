@@ -8,7 +8,7 @@ import sys
 from dataclasses import dataclass
 from enum import StrEnum
 
-from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
+from mswm.utils.settings import DEFAULT_DATETIME_FORMAT, LAGGED_ENSEMBLE_MEMBER_LAGS
 from ngen_rte import consts as c
 from ngen_rte.utils import (
     datetime_from_str,
@@ -241,7 +241,7 @@ with varying values for this argument, e.g. "mem1", "mem2", etc.
 
 This argument has 3 parts:
     1. member_name : str (required when -le provided)
-        Name of the ensemble member. Choose from: {split_iter_to_chunked_str(list(c.LAGGED_ENSEMBLE_MEMBER_LAGS))}
+        Name of the ensemble member. Choose from: {split_iter_to_chunked_str(list(LAGGED_ENSEMBLE_MEMBER_LAGS))}
     2. open_loop_state : str (optional)
         Path to an existing open-loop state file.
         To omit, provide an empty string for this part.
