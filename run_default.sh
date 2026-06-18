@@ -56,7 +56,7 @@ docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "standard_ana" -dt "2
 docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr" --load_state_from /ngwpc/run_ngen/default/test_bmi/01123000/state_save/
 
 # TEST_HYDROFAB_FILE="/s3/ngwpc-dev/rte-test-data/gages/gauge_01123000.gpkg"
-# docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc" --hydrofab_file "${TEST_HYDROFAB_FILE}"
+# docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc" --gage_id 01123000 --hydrofab_file "${TEST_HYDROFAB_FILE}"
 
 # Checkpoint restart
 docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr" --checkpoint_interval 3
