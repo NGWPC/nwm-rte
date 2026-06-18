@@ -18,6 +18,7 @@ from mswm.utils.input_configuration import (
     ParallelConfig,
 )
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
+from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 from pydantic import Field
 
 from ngen_rte import consts as c
@@ -144,12 +145,16 @@ class RTEBaseConfig(BaseModelStrict):
 
         if self.vpu and self.gage_id:
             self.errors.append(
-                ValueError("--vpu and --gage_id are mutually exclusive, only one can be passed.")
+                ValueError(
+                    "--vpu and --gage_id are mutually exclusive, only one can be passed."
+                )
             )
 
         if self.hydrofab_file and not (self.vpu or self.gage_id):
             self.errors.append(
-                ValueError("--hydrofab_file requires --gage_id or --vpu to be explicitly provded.")
+                ValueError(
+                    "--hydrofab_file requires --gage_id or --vpu to be explicitly provded."
+                )
             )
 
         if not self.gage_id:
@@ -237,14 +242,14 @@ class RTEBaseConfig(BaseModelStrict):
             member_name, open_ls, closed_ls = self.lagged_ensemble_args
 
             self.lagged_ens_mem = member_name if member_name.strip() else None
-            self.forcing_lag = c.LAGGED_ENSEMBLE_MEMBER_LAGS[self.lagged_ens_mem]
+            self.forcing_lag = LAGGED_ENSEMBLE_MEMBER_LAGS[self.lagged_ens_mem]
             self.le__open_loop_state = open_ls if open_ls.strip() else None
             self.le__closed_loop_state = closed_ls if closed_ls.strip() else None
 
-            if self.lagged_ens_mem not in c.LAGGED_ENSEMBLE_MEMBER_LAGS:
+            if self.lagged_ens_mem not in LAGGED_ENSEMBLE_MEMBER_LAGS:
                 self.errors.append(
                     KeyError(
-                        f"Invalid lagged ensemble member {repr(self.lagged_ens_mem)} (choose from: {list(c.LAGGED_ENSEMBLE_MEMBER_LAGS)})"
+                        f"Invalid lagged ensemble member {repr(self.lagged_ens_mem)} (choose from: {list(LAGGED_ENSEMBLE_MEMBER_LAGS)})"
                     )
                 )
 

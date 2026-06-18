@@ -69,8 +69,10 @@ def get_test_configs__calibration(
                 f"{mf.models_csv}",
                 "--root-zone",
                 f"{mf.cfe_aet_rootzone}",
+                "--gage_id",
+                f"{cfg.gage_id}",
                 "--hydrofab_file",
-                "/s3/ngwpc-dev/rte-test-data/gages/gauge_01123000.gpkg",
+                f"{cfg.hydrofab_file}",
             ]
         )
         calib_config = RTECalibConfig(**vars(args))
