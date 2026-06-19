@@ -4,8 +4,9 @@ usage: run_forecast.py [-h] [-csdt COLD_START_DATETIME] -dt CYCLE_DATETIME
                        [-fstatic FORCING_STATIC_DIR] [-g GAGE_ID]
                        [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
                        [-le LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS]
-                       [-nwmout] [-n NPROCS] [-ofunc OBJECTIVE_FUNCTION]
-                       [-optalgo OPTIMIZATION_ALGORITHM] [-ts]
+                       [-lsf LOAD_STATE_FROM] [-nwmout] [-n NPROCS]
+                       [-ofunc OBJECTIVE_FUNCTION]
+                       [-optalgo OPTIMIZATION_ALGORITHM] [-ss] [-ts]
 
 Script for building and running a forecast realization,
 optionally with a coldstart.
@@ -65,8 +66,8 @@ options:
   -fstatic, --forcing_static_dir : type=str default='/ngen-app/data'
                         Directory for static forcing files, used when forcing_provider is 'bmi'.
 
-  -g, --gage_id : type=str default='01123000'
-                        Gage ID.
+  -g, --gage_id : type=str default=None
+                        Gage ID. CLI defaults to None, but ``RTEBaseConfig.model_post_init`` effectively defaults it to 01123000 when -v / --vpu is not provided.
 
   -gdomain, --global_domain : type=str default='CONUS'
                         Global domain/region of forcing data.
@@ -96,6 +97,9 @@ options:
                         To run a lagged ensemble member without the optional parts,
                         provide them as empty strings e.g. `-le 'mem2' '' ''`.
 
+  -lsf, --load_state_from : type=str default=None
+                        Path to existing state file to load at start of run.
+
   -nwmout, --nwm_output_vars_true : bool-switch(store-true) default=False
                         If provided, NWMOutputConfig.nwm_output_variables will be set to True
 
@@ -109,6 +113,9 @@ options:
   -optalgo, --optimization_algorithm : type=Algorithm default=<Algorithm.dds: 'dds'>
                         Optimization algorithm of previously-ran calibration realization
                         for basis of forecast. Affects directory path.
+
+  -ss, --save_state : bool-switch(store-true) default=False
+                        If provided, save the model state at the end of the run.
 
   -ts, --timestamp_run_name : bool-switch(store-true) default=False
                         If provided, add a timestamp suffix to the run name.

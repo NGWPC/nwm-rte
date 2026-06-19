@@ -1,13 +1,14 @@
-usage: run_default.py [-h] [-dur DURATION] -dt CYCLE_DATETIME [-delraw]
-                      [-delscratch] [-e {test,oe}] [-rname FCST_RUN_NAME]
-                      [-fconfig FORCING_CONFIGURATION]
+usage: run_default.py [-h] [-dur DURATION] [-c CHECKPOINT_INTERVAL] -dt
+                      CYCLE_DATETIME [-delraw] [-delscratch] [-e {test,oe}]
+                      [-rname FCST_RUN_NAME] [-fconfig FORCING_CONFIGURATION]
                       [-fstatic FORCING_STATIC_DIR] [-g GAGE_ID]
                       [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
                       [--hydrofab_file HYDROFAB_FILE]
                       [-le LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS]
+                      [-lsf LOAD_STATE_FROM] [-lb LOOKBACK]
                       [-mf MODEL_FORMULATION_CLI_CSV]
                       [-rz MODEL_FORMULATION_CLI_ROOTZONE] [-nwmout]
-                      [-n NPROCS] [-ts]
+                      [-n NPROCS] [-ss] [-ts] [-v VPU]
 
 Script for building and running default realizations
 using realtime forcing configurations or historical / retrospective forcing.
@@ -21,6 +22,9 @@ options:
 
   -dur, --duration : type=timedelta_from_effective_days default=datetime.timedelta(days=1, seconds=82800)
                         Duration of calibration or default realization. Units: days (integer). Ignored by default realization when a realtime forcing configuration is chosen.
+
+  -c, --checkpoint_interval : type=int default=None
+                        Checkpointing interval in integer number of timesteps. If provided, enables checkpointing during the run.
 
   -dt, --cycle_datetime : type=datetime_type default=None
                         For a regular forecast, this is the start time.
@@ -68,8 +72,8 @@ options:
   -fstatic, --forcing_static_dir : type=str default='/ngen-app/data'
                         Directory for static forcing files, used when forcing_provider is 'bmi'.
 
-  -g, --gage_id : type=str default='01123000'
-                        Gage ID.
+  -g, --gage_id : type=str default=None
+                        Gage ID. CLI defaults to None, but ``RTEBaseConfig.model_post_init`` effectively defaults it to 01123000 when -v / --vpu is not provided.
 
   -gdomain, --global_domain : type=str default='CONUS'
                         Global domain/region of forcing data.
@@ -102,6 +106,15 @@ options:
                         To run a lagged ensemble member without the optional parts,
                         provide them as empty strings e.g. `-le 'mem2' '' ''`.
 
+  -lsf, --load_state_from : type=str default=None
+                        Path to existing state file to load at start of run.
+
+  -lb, --lookback : type=int default=None
+                        If provided, override the forcing template `LookBack` value (in minutes).
+                        This controls the analysis (AnA) simulation window for AnA forcing configurations,
+                        e.g. 'standard_ana' or 'extended_ana'. The simulated window length in hours is
+                        `LookBack/60 - 1`, ending at the cycle datetime (-dt). Ignored if not provided.
+
   -mf, --model-formulation : type=str default='noah-owp-modular,cfe-s'
                         Provide this argument to specify a non-default model formulation.
                         The value should be a comma-separated string of models that make up the formulation.
@@ -118,5 +131,11 @@ options:
   -n, --nprocs : type=int default=1
                         Number of processors
 
+  -ss, --save_state : bool-switch(store-true) default=False
+                        If provided, save the model state at the end of the run.
+
   -ts, --timestamp_run_name : bool-switch(store-true) default=False
                         If provided, add a timestamp suffix to the run name.
+
+  -v, --vpu : type=str default=None
+                        VPU identifier. When provided, sets subset_type to 'vpu'. Cannot be used with gage_id.
