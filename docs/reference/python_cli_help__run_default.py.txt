@@ -5,7 +5,8 @@ usage: run_default.py [-h] [-dur DURATION] [-c CHECKPOINT_INTERVAL] -dt
                       [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
                       [--hydrofab_file HYDROFAB_FILE]
                       [-le LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS]
-                      [-lsf LOAD_STATE_FROM] [-mf MODEL_FORMULATION_CLI_CSV]
+                      [-lsf LOAD_STATE_FROM] [-lb LOOKBACK]
+                      [-mf MODEL_FORMULATION_CLI_CSV]
                       [-rz MODEL_FORMULATION_CLI_ROOTZONE] [-nwmout]
                       [-n NPROCS] [-ss] [-ts] [-v VPU]
 
@@ -107,6 +108,12 @@ options:
 
   -lsf, --load_state_from : type=str default=None
                         Path to existing state file to load at start of run.
+
+  -lb, --lookback : type=int default=None
+                        If provided, override the forcing template `LookBack` value (in minutes).
+                        This controls the analysis (AnA) simulation window for AnA forcing configurations,
+                        e.g. 'standard_ana' or 'extended_ana'. The simulated window length in hours is
+                        `LookBack/60 - 1`, ending at the cycle datetime (-dt). Ignored if not provided.
 
   -mf, --model-formulation : type=str default='noah-owp-modular,cfe-s'
                         Provide this argument to specify a non-default model formulation.
