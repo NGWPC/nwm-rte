@@ -101,7 +101,6 @@ jobs:
       repo_tag_data_assim_engine: ${{ steps.vars.outputs.repo_tag_data_assim_engine }}
       # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
       repo_tag_ngen_forcing: ${{ steps.vars.outputs.repo_tag_ngen_forcing }}
-      repo_tag_verf: ${{ steps.vars.outputs.repo_tag_verf }}
       repo_tag_eval: ${{ steps.vars.outputs.repo_tag_eval }}
     steps:
       - name: Compute image vars
