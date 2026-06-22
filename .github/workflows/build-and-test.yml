@@ -61,10 +61,6 @@ on:
         description: "REPO_TAG_NGEN_FORCING"
         required: false
         type: string
-      REPO_TAG_VERF:
-        description: "REPO_TAG_VERF"
-        required: false
-        type: string
       REPO_TAG_EVAL:
         description: "REPO_TAG_EVAL"
         required: false
@@ -153,7 +149,6 @@ jobs:
           REPO_TAG_DATA_ASSIM_ENGINE="${{ inputs.REPO_TAG_DATA_ASSIM_ENGINE || 'development' }}"
           # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
           REPO_TAG_NGEN_FORCING="${{ inputs.REPO_TAG_NGEN_FORCING || 'development' }}"
-          REPO_TAG_VERF="${{ inputs.REPO_TAG_VERF || 'development' }}"
           REPO_TAG_EVAL="${{ inputs.REPO_TAG_EVAL || 'development' }}"
 
           # INSTALL_DEBUGGERS is a boolean input, convert to "YES"/"NO" string for use in build args
@@ -202,7 +197,6 @@ jobs:
           echo "repo_tag_data_assim_engine=${REPO_TAG_DATA_ASSIM_ENGINE}" >> "$GITHUB_OUTPUT"
           # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
           echo "repo_tag_ngen_forcing=${REPO_TAG_NGEN_FORCING}" >> "$GITHUB_OUTPUT"
-          echo "repo_tag_verf=${REPO_TAG_VERF}" >> "$GITHUB_OUTPUT"
           echo "repo_tag_eval=${REPO_TAG_EVAL}" >> "$GITHUB_OUTPUT"
 
   build-and-test:
@@ -256,7 +250,6 @@ jobs:
           REPO_TAG_DATA_ASSIM_ENGINE: ${{ needs.setup.outputs.repo_tag_data_assim_engine }}
           # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
           REPO_TAG_NGEN_FORCING: ${{ needs.setup.outputs.repo_tag_ngen_forcing }}
-          REPO_TAG_VERF: ${{ needs.setup.outputs.repo_tag_verf }}
           REPO_TAG_EVAL: ${{ needs.setup.outputs.repo_tag_eval }}
         run: |
           # Create a temporary parent directory structure for the build context

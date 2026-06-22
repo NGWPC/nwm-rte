@@ -91,7 +91,7 @@ RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/
 ARG REPO_TAG_EWTS
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
     --mount=type=bind,src=nwm-ewts,dst=/src/${GH_ORG}/nwm-ewts \
-    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-ewts" "ewts" "${REPO_TAG_EWTS}" ""
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-ewts" "ewts" "${REPO_TAG_EWTS}" "" "ewts"
 
 
 ##################################################

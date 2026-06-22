@@ -14,7 +14,7 @@ set -euo pipefail
 ## Treats ngen-forcing reinstall as special since it necessarily is already installed in the base image,
 ## so if it is specified here, it receives a `--force-reinstall` flag.
 ## 
-## Has 6 positional arguments and 0 named arguments.
+## Has 7 positional arguments and 0 named arguments.
 ## 
 ## \option python_exe
 ## The python executable to use for installation
@@ -33,7 +33,10 @@ set -euo pipefail
 ## 
 ## \option extras
 ## Optional extras to include in the pip install directive, e.g. `pip install package_name[extras]`
-## 
+##
+## \option repo_subdirectory
+## Optional subdirectory within the repo to install from, e.g. for `pip install package_name @ git+https://github.com/org/repo@tag#subdirectory=subdir`
+##
 ## \usage ./install_package.sh python nwm-region-mgr development "[parreg]"
 ## 
 
@@ -60,8 +63,6 @@ if [ "$repo_name" = "ngen-forcing" ]; then
 elif [ "$repo_name" = "nwm-ewts" ]; then
     # force-reinstall nwm-ewts since it is already installed in the base image.
     flags+=("--force-reinstall")
-    # As of 5/15/26 nwm-ewts needs to be installed from a subdirectory of its repo.
-    subdirectory=("#subdirectory=runtime/python/ewts")
 fi
 
 
