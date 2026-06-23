@@ -35,6 +35,7 @@ TEST_CAT_GRP_VPU="/ngwpc/run_ngen/regionalization//vpu_03S/catchment_groups.csv"
 
 # Short Range
 docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr"
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" --output_format CSV NetCDF
 
 # Short Range VPU
 docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_VPU}" -cgf "${TEST_CAT_GRP_VPU}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" -v "03S"
