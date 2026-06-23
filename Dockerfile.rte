@@ -50,6 +50,13 @@ RUN --mount=type=bind,src=nwm-rte/install_debuggers.sh,dst=/src/${GH_ORG}/nwm-rt
 
 ### Install nwm packages
 
+# The NWM ecf_task_mgr currently resides in the `nwm-automation-scripts` repo. It is an implementation of the ecFlow Python client.
+ARG REPO_TAG_ECF_TASK_MGR
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=secret,id=github_token \
+    --mount=type=bind,src=nwm-automation-scripts,dst=/src/${GH_ORG}/nwm-automation-scripts \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-automation-scripts" "ecf_task_mgr" "${REPO_TAG_ECF_TASK_MGR}" "" "nwm.v4.0.0/ecf/ecf_task_mgr"
+
 ARG REPO_TAG_FCST_MGR
 # The optional github_token secret (passed by ngen_rte_build.sh when GITHUB_TOKEN is set)
 # lets add_git_info.py make authenticated GitHub API calls, avoiding the unauthenticated

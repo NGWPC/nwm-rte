@@ -8,7 +8,9 @@ from dataclasses import asdict, dataclass, field, fields
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import ecflow
 import pandas as pd
+from ecf_task_mgr import EcflowInterface, SubtaskCallbackContext, SubtaskInfoVarEntry
 from ewts import LogParts, Status
 from ewts import Payload as Pld
 from ewts.modules import ModuleKey
@@ -62,8 +64,18 @@ def transmit(
     log_parts: LogParts = None,
     log_file: Path | str | None = None,
     exc: Exception | None = None,
+    ecf_iface: EcflowInterface | None = None,
+    ecf_ctx: SubtaskCallbackContext | None = None,
 ) -> None:
     """Transmit information about the run.
+
+    Args:
+        log_parts: The structured log message to transmit.
+        log_file: Path to the log file (basename will be extracted).
+        exc: An exception instance, if an error occurred.
+        The following must be provided together:
+            ecf_iface: Optional EcflowInterface for sending status to ecFlow server.
+            ecf_ctx: Optional SubtaskCallbackContext for ecFlow server reporting
 
     For concerns:
         If the payload itself has an error status, consider that FATAL.
@@ -72,7 +84,18 @@ def transmit(
 
         Otherwise, mirror the severity of the log message rather than the payload,
         e.g. send a CRITICAL message through LOG.critical().
+
+    If ecf_iface and ecf_ctx are provided:
+        Status payloads will be reported to the ecFlow server.
+        Concern-level messages will be reported to the ecFlow server.
     """
+    if (ecf_iface is not None and ecf_ctx is None) or (
+        ecf_iface is None and ecf_ctx is not None
+    ):
+        raise ValueError(
+            "Both ecf_iface and ecf_ctx must be provided together, or neither."
+        )
+
     log_file_bn = Path(log_file).name if log_file else None
     exc_info = ExcInfo(exc) if exc is not None else None
 
@@ -101,10 +124,26 @@ def transmit(
                 tx_dict["concern"] = True
                 transmitter = LOG.fatal
 
+            # Report status payloads to ecFlow server if interface provided
+            if ecf_ctx:
+                entry = SubtaskInfoVarEntry(
+                    status=ecflow.State.active,
+                    data=asdict(log_parts.payload, dict_factory=dict_factory),
+                )
+                ecf_iface.subtask_var_info_append(ecf_ctx, entry)
+
     if exc_info:
         tx_dict["concern"] = True
         tx_dict["exc_info"] = asdict(exc_info)
         transmitter = LOG.fatal
+
+        # Report exception/concern to ecFlow server if interface provided
+        if ecf_ctx:
+            entry = SubtaskInfoVarEntry(
+                status=ecflow.State.aborted,
+                data=asdict(exc_info),
+            )
+            ecf_iface.subtask_var_info_append(ecf_ctx, entry)
 
     if log_file:
         tx_dict["log_file"] = log_file_bn
@@ -178,31 +217,87 @@ def build_realization(rb_kwargs: dict, build_method: str) -> RealizationBuilder:
     return rb
 
 
-def _rte_transmit_job_start():
+def _rte_transmit_job_start(ecf_iface=None, ecf_ctx=None):
     """General transmission for job starting"""
     transmit(
         LogParts_payload_only(
             Pld(Status.STARTING, msg="Starting job", modnm=MODULE_KEY.value)
         )
     )
+    if ecf_iface:
+        ecf_iface.subtask_var_info_append(
+            ecf_ctx,
+            entry=SubtaskInfoVarEntry(
+                status=ecflow.State.active,
+                data={"msg": "RTE job starting"},
+            ),
+        )
+        ecf_iface.subtask_var_status_set(ecf_ctx, ecflow.State.active)
 
 
-def _rte_transmit_job_complete():
+def _rte_transmit_job_complete(
+    ecf_iface=None,
+    ecf_ctx=None,
+    rb: RealizationBuilder = None,
+    log_paths_meta: dict | None = None,
+    exc: None = None,
+):
     """General transmission for job completion"""
     transmit(
         LogParts_payload_only(
             Pld(Status.COMPLETE, msg="Job complete", modnm=MODULE_KEY.value)
         )
     )
+    if ecf_iface:
+        ecf_iface.subtask_var_info_append(
+            ecf_ctx,
+            entry=SubtaskInfoVarEntry(
+                status=ecflow.State.complete,
+                data={"msg": "RTE job complete"}
+                | get_saved_state_info(rb)
+                | log_paths_meta,
+            ),
+        )
+        ecf_iface.subtask_var_status_set(ecf_ctx, ecflow.State.complete)
+    if exc is not None:
+        raise RuntimeError(f"Unexpected non-None exc provided: {exc}")
 
 
-def _rte_transmit_job_failed():
-    """General transmission for job completion"""
+def _rte_transmit_job_failed(
+    ecf_iface=None,
+    ecf_ctx=None,
+    rb: RealizationBuilder | None = None,
+    log_paths_meta: dict | None = None,
+    exc: Exception | None = None,
+):
+    """General transmission for job failure.
+    Information is always sent to the RTE log.
+    If the ecFlow objects are provided, then information is sent to the ecFlow server:
+        If ``rb`` is provided, then information about the saved checkpoints / saved states is sent to the ecFlow server.
+        If ``exc`` is provided, then the "reason" (ecFlow term) of the abort is built as the exception message and the formatted traceback.
+            Else, the "reason" is a generic string indicating that the reason was not set.
+    """
     transmit(
         LogParts_payload_only(
             Pld(Status.ERROR, msg="Job failed", modnm=MODULE_KEY.value)
         )
     )
+    if ecf_iface:
+        if exc:
+            reason = f"{exc}: {''.join(traceback.TracebackException.from_exception(exc).format())}"
+        else:
+            reason = "reason-not-set"
+        ecf_iface.subtask_var_info_append(
+            ecf_ctx,
+            entry=SubtaskInfoVarEntry(
+                status=ecflow.State.aborted,
+                reason=reason,
+                data={"msg": "RTE job failed"}
+                | get_saved_state_info(rb)
+                | log_paths_meta,
+            ),
+        )
+        ecf_iface.subtask_var_status_set(ecf_ctx, ecflow.State.aborted)
 
 
 def _rte_transmit_checkpoint_settings(rb: RealizationBuilder) -> None:
@@ -358,3 +453,51 @@ def find_obs_dir(global_domain: str, gage_id: str) -> str:
         )
     obs_dir = os.path.dirname(candidate_csvs[0])
     return obs_dir
+
+
+def os_walk__get_stats(path: str) -> tuple[int, int, str]:
+    """Walk the provided directory recursively and calculate/determine:
+    Total file count.
+    Total size of files in bytes.
+    Relative path of newest file."""
+    file_count = 0
+    size_bytes = 0
+    newest_relpath = None
+    newest_mtime = 0
+    for root, dirs, files in os.walk(path):
+        file_count += len(files)
+        size_bytes += sum(os.path.getsize(os.path.join(root, f)) for f in files)
+        for fn in files:
+            fp = os.path.join(root, fn)
+            mtime = os.path.getmtime(fp)
+            if mtime > newest_mtime:
+                newest_mtime = mtime
+                newest_relpath = os.path.relpath(fp, start=path)
+    return file_count, size_bytes, newest_relpath
+
+
+def get_saved_state_info(rb: RealizationBuilder | None) -> dict:
+    """Get paths for ``save_checkpoint_to`` and ``save_state_to`` from the provided RealizationBuilder instance,
+    and list those directories to get metadata about them. Save the information into a dict and return the dict.
+    The intended use for this is for building a SubtaskInfoVarEntry instance to transmit to ecFlow server.
+
+    Pathlib forms are converted to string before being returned, to support serialization.
+    """
+    parent_d = {"states": {}}
+
+    d = parent_d["states"]
+    for key in ("save_checkpoint_to", "save_state_to"):
+        d[key] = None
+        d[f"{key}_stats"] = None
+        path = getattr(rb, key, None)
+        if path:
+            path = str(path)
+            file_count, size_bytes, newest_relpath = os_walk__get_stats(path)
+            d[key] = path
+            d[f"{key}_stats"] = {
+                "file_count": file_count,
+                "size_bytes": size_bytes,
+                "newest_relpath": newest_relpath,
+            }
+
+    return parent_d
