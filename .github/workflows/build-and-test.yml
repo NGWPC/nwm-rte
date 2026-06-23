@@ -67,6 +67,10 @@ on:
         description: "REPO_TAG_EVAL"
         required: false
         type: string
+      REPO_TAG_ECF_TASK_MGR:
+        description: "REPO_TAG_ECF_TASK_MGR"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -104,6 +108,7 @@ jobs:
       # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
       repo_tag_ngen_forcing: ${{ steps.vars.outputs.repo_tag_ngen_forcing }}
       repo_tag_eval: ${{ steps.vars.outputs.repo_tag_eval }}
+      repo_tag_ecf_task_mgr: ${{ steps.vars.outputs.repo_tag_ecf_task_mgr }}
     steps:
       - name: Compute image vars
         id: vars
@@ -173,6 +178,8 @@ jobs:
           REPO_TAG_NGEN_FORCING="${REPO_TAG_NGEN_FORCING:-$DEFAULT_REF}"
           REPO_TAG_EVAL="${{ inputs.REPO_TAG_EVAL }}"
           REPO_TAG_EVAL="${REPO_TAG_EVAL:-$DEFAULT_REF}"
+          REPO_TAG_ECF_TASK_MGR="${{ inputs.REPO_TAG_ECF_TASK_MGR }}"
+          REPO_TAG_ECF_TASK_MGR="${REPO_TAG_ECF_TASK_MGR:-$DEFAULT_REF}"
 
           # INSTALL_DEBUGGERS is a boolean input, convert to "YES"/"NO" string for use in build args
           if [ "${{ inputs.INSTALL_DEBUGGERS }}" = "true" ]; then
@@ -221,6 +228,7 @@ jobs:
           # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
           echo "repo_tag_ngen_forcing=${REPO_TAG_NGEN_FORCING}" >> "$GITHUB_OUTPUT"
           echo "repo_tag_eval=${REPO_TAG_EVAL}" >> "$GITHUB_OUTPUT"
+          echo "repo_tag_ecf_task_mgr=${REPO_TAG_ECF_TASK_MGR}" >> "$GITHUB_OUTPUT"
 
   build-and-test:
     name: build and test
@@ -274,6 +282,7 @@ jobs:
           # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
           REPO_TAG_NGEN_FORCING: ${{ needs.setup.outputs.repo_tag_ngen_forcing }}
           REPO_TAG_EVAL: ${{ needs.setup.outputs.repo_tag_eval }}
+          REPO_TAG_ECF_TASK_MGR: ${{ needs.setup.outputs.repo_tag_ecf_task_mgr }}
           # Lets the build make authenticated GitHub API calls via a BuildKit secret
           # (see ngen_rte_build.sh), avoiding the unauthenticated per-IP rate limit.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -321,7 +330,7 @@ jobs:
         env:
           TARGET_IMAGE_NAME: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
         run: |
-          ./run_pytest_external.sh
+          ./run_test_pytest.sh
 
   # run container security scan using Trivy
   container-scanning:

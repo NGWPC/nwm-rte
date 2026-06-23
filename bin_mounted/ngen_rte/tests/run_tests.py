@@ -11,7 +11,7 @@ run step is reported and written to a json file at the end.
 
 This includes options for stopping realizations mid-way through their run, rather than waiting for them to complete.
 
-See `run_tests.sh` for example calls.
+See `run_test_formulations.sh` for example calls.
 """
 
 import argparse

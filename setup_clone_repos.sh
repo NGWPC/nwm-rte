@@ -63,6 +63,7 @@ clone_if_not_exists "nwm-cal-mgr"
 clone_if_not_exists "nwm-eval-mgr"
 clone_if_not_exists "nwm-region-mgr"
 clone_if_not_exists "nwm-data-assimilation"
+clone_if_not_exists "nwm-automation-scripts"
 clone_if_not_exists "nwm-rte"
 
 exit 0

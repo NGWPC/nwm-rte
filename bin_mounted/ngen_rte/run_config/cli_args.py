@@ -704,3 +704,23 @@ NETCDF_FOLDER = ArgsKwargs(
         Script.OUTPUT_MOSAIC,
     ],
 )
+
+ECF_TASK = ArgsKwargs(
+    args=["--ecf-task"],
+    kwargs={
+        "type": str,
+        "default": None,
+        "help": "ecFlow task path, e.g. '/nwm/hourly/nwm_analysis_assim/jnwm_conus_analysis_assim'. If provided, subtask info will be reported to the ecFlow server.",
+    },
+    scripts=[Script.DEFAULT],
+)
+
+ECF_SUBTASK = ArgsKwargs(
+    args=["--ecf-subtask"],
+    kwargs={
+        "type": str,
+        "default": None,
+        "help": "ecFlow subtask base identifier. Required when --ecf-task is provided. Example: 'no_subtask_type__20260615_120000_000000__gage__01123000'.",
+    },
+    scripts=[Script.DEFAULT],
+)
