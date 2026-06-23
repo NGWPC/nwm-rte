@@ -25,7 +25,7 @@
 
 See also: [Steps to Run: pytest](../user-guide/get-started.md#pytest)
 
-::: ./run_pytest_external.sh
+::: ./run_test_pytest.sh
     handler: shell
 
 ## Enter the Container Interactively
@@ -47,7 +47,7 @@ See also: [Steps to Run: pytest](../user-guide/get-started.md#pytest)
 ::: run_suite.sh
     handler: shell
 
-::: run_tests.sh
+::: run_test_formulations.sh
     handler: shell
 
 ## Additional Utiltities

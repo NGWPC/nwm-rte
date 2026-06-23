@@ -166,6 +166,7 @@ DATAFILE_LIBS = {
 
 
 SRC_LOG_CONFIG_JSON = "/ngen-app/bin/ngen_rte/run_config/ngen_logging.json"
+ECFLOW_SETTINGS = "/ngen-app/bin/ngen_rte/run_config/ecflow_settings.json"
 # Must match config.bashrc
 RTE_NGEN_LOG_BEHAVIOR_KEY = "NGEN_LOG_TO_RTE"
 # Must match EWTS, nwm-cal-mgr, and nwm-fcst-mgr
@@ -185,3 +186,5 @@ if FORCING_PRODUCT_VERSIONS_PATH is not None:
         FORCING_PRODUCT_VERSIONS_DICT = json.load(f)
 else:
     FORCING_PRODUCT_VERSIONS_DICT = None
+
+UNSET_LOG_PATHS_METADATA = {"logs": []}

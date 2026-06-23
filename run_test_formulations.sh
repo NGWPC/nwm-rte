@@ -31,7 +31,7 @@ source run.sh
 ## \option fcst_run_name
 ## Optional. Default=`"fcst_run"`. Specify to choose the name of the forecast run.
 ## 
-## \usage ./run_tests.sh
+## \usage ./run_test_formulations.sh
 ## 
 
 # Default to fcst_run1, override via CLI arg

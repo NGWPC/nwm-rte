@@ -63,7 +63,7 @@ Called by [`run_default.sh`](../reference/shell.md#run_default.sh)
 
 ### run_tests.py
 
-Called by [`run_tests.sh`](../reference/shell.md#run_tests.sh)
+Called by [`run_test_formulations.sh`](../reference/shell.md#run_test_formulations.sh)
 
 [`run_tests.py --help`](python_cli_help__run_tests.py.txt)
 

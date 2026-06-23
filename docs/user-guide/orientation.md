@@ -44,7 +44,7 @@ For the following executables, see commented-out lines in the script for example
 
 [`run_suite.sh`](../reference/shell.md#run_suite.sh) Builds and runs a series of calibration and forecast realizations in a series of calls to [`bin_mounted/run_calibration.py`](../reference/python.md#run_calibrationpy) and [`bin_mounted/run_forecast.py`](../reference/python.md#run_forecastpy).
 
-[`run_tests.sh`](../reference/shell.md#run_tests.sh) Builds and runs a series of calibration and forecast realizations in one call to [`bin_mounted/run_tests.py`](../reference/python.md#run_testspy). If one of the realizations experiences an error, the process will continue to the next realization without halting. This workflow extracts information from the log files of the various realizations, and writes a json structure to disk with certain log lines and status of each realization's build step and run step. By default this workflow allows the realizations run to completion, but also supports modes that cancel the realization after a certain amount of time.
+[`run_test_formulations.sh`](../reference/shell.md#run_test_formulations.sh) Builds and runs a series of calibration and forecast realizations in one call to [`bin_mounted/run_tests.py`](../reference/python.md#run_testspy). If one of the realizations experiences an error, the process will continue to the next realization without halting. This workflow extracts information from the log files of the various realizations, and writes a json structure to disk with certain log lines and status of each realization's build step and run step. By default this workflow allows the realizations run to completion, but also supports modes that cancel the realization after a certain amount of time.
 
 
 ## See Also
