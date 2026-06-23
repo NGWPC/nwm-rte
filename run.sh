@@ -51,6 +51,7 @@ function docker_run {
     fi
 
     time sudo docker run --entrypoint "${entrypoint}" ${interactive_terminal} \
+        --ulimit nofile=100000:100000 \
         -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
         -w "/ngen-app/bin/bin_mounted/" \
         \
