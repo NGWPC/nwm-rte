@@ -497,5 +497,5 @@ OUTPUT_FORMAT = ArgsKwargs(
         "default": c.OUTPUT_FORMAT_DEFAULT,
         "help": "Output format(s) for NWM output variables. Accepts 'CSV', 'NetCDF' or both",
     },
-    scripts=[Script.FORECAST, Script.CALIBRATION, Script.DEFAULT],
+    scripts=[Script.FORECAST, Script.CALIBRATION, Script.DEFAULT, Script.REGIONALIZATION],
 )
