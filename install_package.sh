@@ -69,7 +69,7 @@ fi
 if [ "$repo_remote_tag" = "LOCAL" ]; then
     echo "Installing '${repo_name}' from local with extras '${extras}'"
     tar --exclude=".venv" -zcf "/tmp/${repo_name}.tgz" -C "/src/${gh_org}" "${repo_name}"
-    (set -x; ${python_exe} -m pip install "${distribution}${extras:+$extras} @ file:///tmp/${repo_name}.tgz${subdirectory}")
+    (set -x; ${python_exe} -m pip install "${flags[@]}" "${distribution}${extras:+$extras} @ file:///tmp/${repo_name}.tgz${subdirectory}")
     rm /tmp/${repo_name}.tgz
     ${python_exe} add_git_info.py --gh_org ${gh_org} --local_repo_path "/src/${gh_org}/${repo_name}" --output_dir "${git_info_output_dir}"
 
