@@ -103,6 +103,7 @@ COASTAL_CONFIG_OVERRIDES: dict = {
     "SpatialMetaIn": "{root_dir}/esmf_mesh/NWM/domain/GEOGRID_LDASOUT_Spatial_Metadata_{spatial_meta_suffix}.nc",
     "LONVAR": "XLONG_M",
     "LATVAR": "XLAT_M",
+    "RegridWeightsDir": "{root_dir}/regrid_weights/",
 }
 
 
