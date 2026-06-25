@@ -31,8 +31,9 @@ set -x
 docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr"
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr" -g "12175500"
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr" -v "03S"
+
 # Short Range with NWM Output Variables
-docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr_nwm_output" -nwmout
+docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr_nwm_output" -nwmout --output_format CSV NetCDF
 # Analysis & Assimilation
 docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "standard_ana" -dt "2026-03-30 06:00:00" -rname "default_ana"
 # Medium Range
@@ -47,9 +48,10 @@ docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "medium_range_blend" 
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "default_mr_le" -le "mem5" "" ""
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "default_mr_le" -le "mem6" "" ""
 
-# Historical / Retrospective Forcing
-docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc"
+# # Historical / Retrospective Forcing
+# docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc"
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc" -mf "snow-17,noah-owp-modular,smp,lasam,t-route" -rz "true"
+# docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc" --output_format CSV NetCDF
 
 # State saving and loading
 docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "standard_ana" -dt "2026-03-30 06:00:00" -rname "default_ana" --save_state

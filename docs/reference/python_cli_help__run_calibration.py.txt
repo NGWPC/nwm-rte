@@ -11,7 +11,7 @@ usage: run_calibration.py [-h] [-dur DURATION]
                           [-mf MODEL_FORMULATION_CLI_CSV]
                           [-rz MODEL_FORMULATION_CLI_ROOTZONE] [-n NPROCS]
                           [-ofunc OBJECTIVE_FUNCTION]
-                          [-optalgo OPTIMIZATION_ALGORITHM]
+                          [-optalgo OPTIMIZATION_ALGORITHM] [-outfmt OUTPUT_FRMAT]
 
 Script for building and running a calibration
 realization using historical / retrospective forcing.
@@ -116,3 +116,7 @@ options:
   -optalgo, --optimization_algorithm : type=Algorithm default=<Algorithm.dds: 'dds'>
                         Optimization algorithm of previously-ran calibration realization
                         for basis of forecast. Affects directory path.
+
+  -outfmt, --output_format : type=str, default=['CSV]
+                        Output format(s) for model output variables. Accepts 'CSV', 'NetCDF', or both.
+                        Provide as space-separated values e.g. -outfmt CSV NetCDF
