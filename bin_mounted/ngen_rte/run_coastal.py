@@ -31,7 +31,7 @@ from NextGen_Forcings_Engine_BMI.run_bmi_model import run_bmi
 print = functools.partial(print, flush=True)
 
 
-def build_config(forcing_configuration: str, global_domain: str) -> tuple[str, dict]:
+def build_config(forcing_configuration: str, global_domain: str, b_date_proc: datetime | None = None) -> tuple[str, dict]:
     """Load an existing forecast config template, patch coastal overrides,
     substitute placeholders, and return the path to a temporary config file
     and the raw config dict."""
@@ -54,7 +54,10 @@ def build_config(forcing_configuration: str, global_domain: str) -> tuple[str, d
         for k, v in c.COASTAL_CONFIG_OVERRIDES.items()
     }
     cfg.update(overrides)
+    print(f"[DEBUG coastal config] RegridWeightsDir = {cfg.get('RegridWeightsDir', '<NOT SET>')}")
     cfg["ScratchDir"] = f"{{root_dir}}/scratch/{forcing_configuration}_coastal/"
+    if b_date_proc is not None:
+        cfg["RefcstBDateProc"] = b_date_proc.strftime("%Y%m%d%H%M")
 
     content = yaml.dump(cfg, default_flow_style=False)
     content = content.replace("{root_dir}", c.FORCING_ROOT_DIR)
@@ -82,17 +85,33 @@ def main(
     start_time: datetime | None = None,
     end_time: datetime | None = None,
 ) -> None:
-    config_path, cfg = build_config(forcing_configuration, global_domain)
+    # Read template once upfront to determine AnAFlag and forecast horizons,
+    # so we can compute b_date_proc before calling build_config().
+    template_path = os.path.join(c.FORCING_TEMPLATE_DIR, f"{forcing_configuration}_config.yml")
+    with open(template_path) as f:
+        raw_cfg = yaml.safe_load(f)
+    ana_flag = raw_cfg.get("AnAFlag", 0)
 
     if start_time is not None and end_time is not None:
-        b_date = start_time.strftime("%Y%m%d%H%M")
+        b_date_proc = start_time
     elif cycle_datetime is not None:
-        forecast_hours = forecast_hours_from_config(cfg)
+        forecast_hours = forecast_hours_from_config(raw_cfg)
         start_time = cycle_datetime + timedelta(hours=1)
         end_time = cycle_datetime + timedelta(hours=forecast_hours)
-        b_date = start_time.strftime("%Y%m%d%H%M")
+        if ana_flag:
+            # config.py calls calculate_lookback_window unconditionally when LookBack != -9999.
+            # That function subtracts (LookBack - OutputFrequency) minutes from b_date_proc, then
+            # re-aligns to ForecastFrequency. To ensure the model sees b_date_proc = cycle_datetime
+            # after that transformation, we pre-add the same offset here.
+            look_back = raw_cfg.get("LookBack", 60)
+            output_freq = raw_cfg.get("OutputFrequency", 60)
+            b_date_proc = cycle_datetime + timedelta(minutes=(look_back - output_freq))
+        else:
+            b_date_proc = cycle_datetime
     else:
         raise ValueError("Must provide either --cycle_datetime or both --start_time and --end_time")
+
+    config_path, cfg = build_config(forcing_configuration, global_domain, b_date_proc=b_date_proc)
 
     geogrid = f"{c.COASTAL_GEOGRID_DIR}/geo_em_{global_domain}.nc"
 
@@ -100,7 +119,9 @@ def main(
         c.FORCING_ROOT_DIR, "scratch", f"{forcing_configuration}_coastal"
     )
     os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, f"{global_domain}_{b_date}.nc")
+    os.makedirs(os.path.join(c.FORCING_ROOT_DIR, "regrid_weights"), exist_ok=True)
+    file_date = cycle_datetime if cycle_datetime is not None else b_date_proc
+    output_path = os.path.join(output_dir, f"{global_domain}_{file_date.strftime('%Y%m%d%H%M')}.nc")
 
     print("Running coastal forcing engine:")
     print(f"  fcst_run_name         : {fcst_run_name}")
@@ -109,7 +130,8 @@ def main(
     print(f"  cycle_datetime        : {cycle_datetime}")
     print(f"  start_time            : {start_time}")
     print(f"  end_time              : {end_time}")
-    print(f"  b_date                : {b_date}")
+    print(f"  ana_flag              : {ana_flag}")
+    print(f"  RefcstBDateProc       : {b_date_proc.strftime('%Y%m%d%H%M')}")
     print(f"  config                : {config_path}")
     print(f"  geogrid               : {geogrid}")
     print(f"  output                : {output_path}")
@@ -118,7 +140,6 @@ def main(
         start_time=start_time.strftime("%Y-%m-%d %H:%M:%S"),
         end_time=end_time.strftime("%Y-%m-%d %H:%M:%S"),
         config_path=config_path,
-        b_date=b_date,
         geogrid=geogrid,
         output_path=output_path,
     )
