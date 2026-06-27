@@ -12,6 +12,7 @@ usage: run_calibration.py [-h] [-dur DURATION]
                           [-rz MODEL_FORMULATION_CLI_ROOTZONE] [-n NPROCS]
                           [-ofunc OBJECTIVE_FUNCTION]
                           [-optalgo OPTIMIZATION_ALGORITHM]
+                          [-outfmt OUTPUT_FORMAT [OUTPUT_FORMAT ...]]
 
 Script for building and running a calibration
 realization using historical / retrospective forcing.
@@ -21,7 +22,7 @@ options:
                         show this help message and exit
 
   -dur, --duration : type=timedelta_from_effective_days default=datetime.timedelta(days=1, seconds=82800)
-                        Duration of calibration or default realization. Units: days (integer). Ignored by default realization when a realtime forcing configuration is chosen.
+                        Duration of calibration/default/regionalization realization. Units: days (integer). Ignored by default/regionalization realization when a realtime forcing configuration is chosen.
 
   -evalcurtail, --valid_eval_curtailment : type=timedelta_from_pandas_str default=datetime.timedelta(0)
                         Used to calculate the end of the validation evaluation.
@@ -116,3 +117,7 @@ options:
   -optalgo, --optimization_algorithm : type=Algorithm default=<Algorithm.dds: 'dds'>
                         Optimization algorithm of previously-ran calibration realization
                         for basis of forecast. Affects directory path.
+
+  -outfmt, --output_format : type=str default=['CSV']
+                        Output format(s) for NWM output variables. Accepts 'CSV', 'NetCDF' or both.
+                        Provide as space-separated values e.g. -outfmt CSV NetCDF.

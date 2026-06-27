@@ -8,7 +8,8 @@ usage: run_default.py [-h] [-dur DURATION] [-c CHECKPOINT_INTERVAL] -dt
                       [-lsf LOAD_STATE_FROM] [-lb LOOKBACK]
                       [-mf MODEL_FORMULATION_CLI_CSV]
                       [-rz MODEL_FORMULATION_CLI_ROOTZONE] [-nwmout]
-                      [-n NPROCS] [-ss] [-ts] [-v VPU]
+                      [-n NPROCS] [-outfmt OUTPUT_FORMAT [OUTPUT_FORMAT ...]]
+                      [-ss] [-ts] [-v VPU]
 
 Script for building and running default realizations
 using realtime forcing configurations or historical / retrospective forcing.
@@ -21,7 +22,7 @@ options:
                         show this help message and exit
 
   -dur, --duration : type=timedelta_from_effective_days default=datetime.timedelta(days=1, seconds=82800)
-                        Duration of calibration or default realization. Units: days (integer). Ignored by default realization when a realtime forcing configuration is chosen.
+                        Duration of calibration/default/regionalization realization. Units: days (integer). Ignored by default/regionalization realization when a realtime forcing configuration is chosen.
 
   -c, --checkpoint_interval : type=int default=None
                         Checkpointing interval in integer number of timesteps. If provided, enables checkpointing during the run.
@@ -130,6 +131,10 @@ options:
 
   -n, --nprocs : type=int default=1
                         Number of processors
+
+  -outfmt, --output_format : type=str default=['CSV']
+                        Output format(s) for NWM output variables. Accepts 'CSV', 'NetCDF' or both.
+                        Provide as space-separated values e.g. -outfmt CSV NetCDF.
 
   -ss, --save_state : bool-switch(store-true) default=False
                         If provided, save the model state at the end of the run.
