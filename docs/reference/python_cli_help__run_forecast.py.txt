@@ -5,7 +5,9 @@ usage: run_forecast.py [-h] [-csdt COLD_START_DATETIME] -dt CYCLE_DATETIME
                        [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
                        [-le LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS]
                        [-lsf LOAD_STATE_FROM] [-nwmout] [-n NPROCS]
-                       [-ofunc OBJECTIVE_FUNCTION] [-optalgo OPTIMIZATION_ALGORITHM] [-ss] [-outfmt OUTPUT_FRMAT] [-ts]
+                       [-ofunc OBJECTIVE_FUNCTION]
+                       [-optalgo OPTIMIZATION_ALGORITHM]
+                       [-outfmt OUTPUT_FORMAT [OUTPUT_FORMAT ...]] [-ss] [-ts]
 
 Script for building and running a forecast realization,
 optionally with a coldstart.
@@ -113,12 +115,12 @@ options:
                         Optimization algorithm of previously-ran calibration realization
                         for basis of forecast. Affects directory path.
 
+  -outfmt, --output_format : type=str default=['CSV']
+                        Output format(s) for NWM output variables. Accepts 'CSV', 'NetCDF' or both.
+                        Provide as space-separated values e.g. -outfmt CSV NetCDF.
+
   -ss, --save_state : bool-switch(store-true) default=False
                         If provided, save the model state at the end of the run.
-
-  -outfmt, --output_format : type=str, default=['CSV]
-                        Output format(s) for model output variables. Accepts 'CSV', 'NetCDF', or both.
-                        Provide as space-separated values e.g. -outfmt CSV NetCDF
 
   -ts, --timestamp_run_name : bool-switch(store-true) default=False
                         If provided, add a timestamp suffix to the run name.

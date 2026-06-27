@@ -169,7 +169,12 @@ Choices and defaults vary per realization type:
   Default Realization:
     Default: {repr(c.CALIB_FORCING_TYPES[0])}. Choices: {split_iter_to_chunked_str(c.ALL_FORCING_TYPES)}""",
     },
-    scripts=[Script.FORECAST, Script.CALIBRATION, Script.DEFAULT, Script.REGIONALIZATION],
+    scripts=[
+        Script.FORECAST,
+        Script.CALIBRATION,
+        Script.DEFAULT,
+        Script.REGIONALIZATION,
+    ],
 )
 
 FCST_RUN_NAME = ArgsKwargs(
@@ -476,7 +481,7 @@ FORM_ASSIGN_FILE = ArgsKwargs(
         "required": True,
         "help": "Path to file containing formulation assignments for catchments.",
     },
-    scripts=[Script.REGIONALIZATION]
+    scripts=[Script.REGIONALIZATION],
 )
 
 CAT_GRP_FILE = ArgsKwargs(
@@ -486,7 +491,7 @@ CAT_GRP_FILE = ArgsKwargs(
         "required": True,
         "help": "Path to file containing catchment groupings.",
     },
-    scripts=[Script.REGIONALIZATION]
+    scripts=[Script.REGIONALIZATION],
 )
 
 OUTPUT_FORMAT = ArgsKwargs(
@@ -495,7 +500,13 @@ OUTPUT_FORMAT = ArgsKwargs(
         "type": str,
         "nargs": "+",
         "default": c.OUTPUT_FORMAT_DEFAULT,
-        "help": "Output format(s) for NWM output variables. Accepts 'CSV', 'NetCDF' or both",
+        "help": """Output format(s) for NWM output variables. Accepts 'CSV', 'NetCDF' or both.
+Provide as space-separated values e.g. -outfmt CSV NetCDF.""",
     },
-    scripts=[Script.FORECAST, Script.CALIBRATION, Script.DEFAULT, Script.REGIONALIZATION],
+    scripts=[
+        Script.FORECAST,
+        Script.CALIBRATION,
+        Script.DEFAULT,
+        Script.REGIONALIZATION,
+    ],
 )
