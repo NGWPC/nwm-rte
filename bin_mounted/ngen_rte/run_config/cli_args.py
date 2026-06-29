@@ -432,6 +432,16 @@ CHECKPOINT_INTERVAL = ArgsKwargs(
     scripts=[Script.DEFAULT, Script.REGIONALIZATION],
 )
 
+CHECKPOINT_INTERVAL = ArgsKwargs(
+    args=["-cd", "--checkpoint_dir"],
+    kwargs={
+        "type": str,
+        "default": None,
+        "help": "Directory to save checkpoint states. Defaults to work_dir>/checkpoint/ in msw-mgr.",
+    },
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION],
+)
+
 LOAD_STATE_FROM = ArgsKwargs(
     args=["-lsf", "--load_state_from"],
     kwargs={
@@ -447,6 +457,16 @@ SAVE_STATE = ArgsKwargs(
     kwargs={
         "action": "store_true",
         "help": "If provided, save the model state at the end of the run.",
+    },
+    scripts=[Script.DEFAULT, Script.FORECAST, Script.REGIONALIZATION],
+)
+
+SAVE_STATE_DIR = ArgsKwargs(
+    args=["-ssd", "--save_state_dir"],
+    kwargs={
+        "type": str,
+        "default": None,
+        "help": "Directory to save model state at end of run. Defaults in <work_dir>/state_save/ in msw-mgr.",
     },
     scripts=[Script.DEFAULT, Script.FORECAST, Script.REGIONALIZATION],
 )
