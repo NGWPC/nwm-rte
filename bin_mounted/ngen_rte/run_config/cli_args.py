@@ -432,7 +432,7 @@ CHECKPOINT_INTERVAL = ArgsKwargs(
     scripts=[Script.DEFAULT, Script.REGIONALIZATION],
 )
 
-CHECKPOINT_INTERVAL = ArgsKwargs(
+CHECKPOINT_DIR = ArgsKwargs(
     args=["-cd", "--checkpoint_dir"],
     kwargs={
         "type": str,

@@ -121,7 +121,7 @@ class RTEBaseConfig(BaseModelStrict):
     cycle_datetime: datetime | None = Field(default=None)
     lookback: int | None = Field(default=None)
     checkpoint_interval: int | None = Field(default=None)
-    checkpoint: str | None = Field(default=None)
+    checkpoint_dir: str | None = Field(default=None)
     load_state_from: str | None = Field(default=None)
     save_state: bool = Field(default=False)
     save_state_dir: str | None = Field(default=None)

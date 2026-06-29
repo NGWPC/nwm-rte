@@ -91,11 +91,12 @@ def run_restart(rb: RealizationBuilder) -> None:
     ngen_runner.close()
 
 
-def _main(src_path: str, dst_path: str) -> None:
+def _main(src_path: str, dst_path: str, checkpoint_dir: str | None = None) -> None:
 
     checkpoint_restart(
         src_path=src_path,
         dst_path=dst_path,
+        checkpoint_dir=checkpoint_dir,
     )
 
     rb = infer_rb(dst_path, src_path)
@@ -107,10 +108,10 @@ def _main(src_path: str, dst_path: str) -> None:
     run_restart(rb)
 
 
-def main(src_path: str, dst_path: str) -> None:
+def main(src_path: str, dst_path: str, checkpoint_dir: str | None = None) -> None:
     _rte_transmit_job_start()
     try:
-        _main(src_path, dst_path)
+        _main(src_path, dst_path, checkpoint_dir=checkpoint_dir)
     except Exception as e:
         transmit(exc=e)
         _rte_transmit_job_failed()
@@ -126,6 +127,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--src_path", "-src", required=True, help="Path to the existing run to restart from.")
     parser.add_argument("--dst_path", "-dst", required=True, help="Path to the new restart run destination. Defaults to src_path + '_restart'.")
+    parser.add_argument("--checkpoint_dir", "--cpd", default=None, help="Path to checkpoint state directory. Defaults to <dst_path>/checkpoint/.")
     return parser
 
 
@@ -135,4 +137,5 @@ if __name__ == "__main__":
     main(
         src_path=args.src_path,
         dst_path=args.dst_path,
+        checkpoint_dir=args.checkpoint_dir,
     )
