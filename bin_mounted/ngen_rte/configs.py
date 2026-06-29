@@ -353,12 +353,18 @@ class RTEBaseConfig(BaseModelStrict):
     def mswm_GeneralConfig(self) -> GeneralConfig:
         """MSWM GeneralConfig instance"""
         start_period, end_period = self.start_period__end_period
+
+        if isinstance(self, (RTEDefaultConfig, RTERegionConfig)) and self.fcst_run_name != c.DEFAULT_FORECAST_RUN_NAME:
+            formulation = self.fcst_run_name
+        else:
+            formulation = self.forcing_provider_paths.formulation_name
+
         return GeneralConfig(
             basin=self.basin,
             environment=self.environment,
             run_type=self.run_type,
             models=self.model_formulation.models_csv,
-            formulation=self.forcing_provider_paths.formulation_name,
+            formulation=formulation,
             main_dir=c.DEFAULT_MAIN_DIR,
             start_period=start_period,
             end_period=end_period,
