@@ -66,19 +66,20 @@ class _LogParserBase(BaseModelStrict):
     def _iter_log_paths(self):
         """Yields (mpi_rank, log_file_path) tuples for each log file path to read from.
         Behavior is dynamic based on the child instance type of self."""
-        if isinstance(self, _LogParserNgen):
-            for mpi_rank in range(self.rb.input_configs["Parallel"]["nprocs"]):
-                if (
-                    self.parse_only_rank is not None
-                    and mpi_rank != self.parse_only_rank
-                ):
-                    continue
-                ngen_log_path = self.ngen_log_path(mpi_rank)
-                yield mpi_rank, ngen_log_path
-        elif isinstance(self, _LogParserGeneric):
-            yield None, self.log_file_path
-        else:
-            raise TypeError(f"Unsupported log parser type: {type(self)}")
+        for payload_bool in (False, True):
+            if isinstance(self, _LogParserNgen):
+                for mpi_rank in range(self.rb.input_configs["Parallel"]["nprocs"]):
+                    if (
+                        self.parse_only_rank is not None
+                        and mpi_rank != self.parse_only_rank
+                    ):
+                        continue
+                    ngen_log_path = self.ngen_log_path(mpi_rank, payload_bool)
+                    yield mpi_rank, ngen_log_path
+            elif isinstance(self, _LogParserGeneric):
+                yield None, self.log_file_path(payload_bool)
+            else:
+                raise TypeError(f"Unsupported log parser type: {type(self)}")
 
     def __throttle(self) -> None:
         """Throttle to avoid reading log files too quickly."""
@@ -173,8 +174,11 @@ class _LogParserNgen(_LogParserBase):
     def ngen_log_dir_basename(self) -> str:
         return os.path.basename(self.ngen_log_dir)
 
-    def ngen_log_basename(self, mpi_rank: int):
-        """Basename of the ngen log file for the provided MPI rank."""
+    def ngen_log_basename(self, mpi_rank: int, payload_bool: bool):
+        """Basename of the ngen log file for the provided MPI rank.
+        If ``payload_bool`` is True, then the path of the corresponding payload file will be returned."""
+        middlefix = "_payload" if payload_bool else ""
+
         if self.rb.run_type in ("default", "checkpoint", "regionalization"):
             bn_prefix = self.rb.basin
         elif self.rb.run_type == "calibration":
@@ -187,21 +191,31 @@ class _LogParserNgen(_LogParserBase):
                 f"Unsupported realization type: {self.rb.run_type}"
             )
 
-        bn = f"{bn_prefix}_ngen_mpi_process_{mpi_rank}.log"
+        bn = f"{bn_prefix}_ngen{middlefix}_mpi_process_{mpi_rank}.log"
         return bn
 
-    def ngen_log_path(self, mpi_rank: int) -> str:
-        """Path of the ngen log file for the provided MPI rank."""
-        return os.path.join(self.ngen_log_dir, self.ngen_log_basename(mpi_rank))
+    def ngen_log_path(self, mpi_rank: int, payload_bool: bool) -> str:
+        """Path of the ngen log file for the provided MPI rank.
+        If ``payload_bool`` is True, then the path of the corresponding payload file will be returned."""
+        return os.path.join(
+            self.ngen_log_dir, self.ngen_log_basename(mpi_rank, payload_bool)
+        )
 
 
 class _LogParserGeneric(_LogParserBase):
     """Parser for generic log files without MPI context, e.g. from nwm-fcst-mgr."""
 
-    log_file_path: Path | str
+    log_file_path_raw: Path | str
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call _LogParserBase's post init
+
+    def log_file_path(self, payload_bool: bool) -> Path | str:
+        """Path of the log file.
+        If ``payload_bool`` is True, then the path of the corresponding payload file will be returned."""
+        middlefix = "_payload" if payload_bool else ""
+        base, ext = os.path.splitext(self.log_file_path_raw)
+        return f"{base}{middlefix}{ext}"
 
 
 def dict_factory(fields) -> dict:

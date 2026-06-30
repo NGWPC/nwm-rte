@@ -246,13 +246,13 @@ class ForecastTest(BaseModelStrict):
         calib_log_path_overwrite = os.path.join(
             self.rb.work_dir, "logs", f"calibration_{current_time}.log"
         )
-        self.calib_log = _LogParserGeneric(log_file_path=calib_log_path_overwrite)
+        self.calib_log = _LogParserGeneric(log_file_path_raw=calib_log_path_overwrite)
 
         LOG.info(
-            f"Running calibration, will log to: {repr(self.calib_log.log_file_path)}"
+            f"Running calibration, will log to: {repr(self.calib_log.log_file_path(False))}"
         )
         cmd = run_calibration.get_calibration_cmd(
-            self.rb, worker_name, self.calib_log.log_file_path
+            self.rb, worker_name, self.calib_log.log_file_path(False)
         )
         LOG.info(f"Running command args: {cmd}")
         try:
@@ -283,7 +283,7 @@ class ForecastTest(BaseModelStrict):
             self.fcst_exe_stat = TestStat.PASS
             stderr_str = proc.stderr.decode()
         self.calib_proc_stderr = stderr_str.splitlines()
-        if os.path.exists(self.calib_log.log_file_path):
+        if os.path.exists(self.calib_log.log_file_path(False)):
             self.calib_log.read_and_parse_all_lines_for_issues()
         # TODO set status based on log lines parsed?
 
