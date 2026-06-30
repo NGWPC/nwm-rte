@@ -1,4 +1,5 @@
 usage: run_restart.py [-h] --src_path SRC_PATH --dst_path DST_PATH
+                      [--checkpoint_dir CHECKPOINT_DIR]
 
 Restart a default ngen realization from a checkpoint.
 
@@ -11,3 +12,6 @@ options:
 
   --dst_path, -dst : type=None default=None
                         Path to the new restart run destination. Defaults to src_path + '_restart'.
+
+  --checkpoint_dir, --cpd : type=None default=None
+                        Path to checkpoint state directory. Defaults to <dst_path>/checkpoint/.
