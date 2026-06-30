@@ -7,7 +7,8 @@ usage: run_forecast.py [-h] [-csdt COLD_START_DATETIME] -dt CYCLE_DATETIME
                        [-lsf LOAD_STATE_FROM] [-nwmout] [-n NPROCS]
                        [-ofunc OBJECTIVE_FUNCTION]
                        [-optalgo OPTIMIZATION_ALGORITHM]
-                       [-outfmt OUTPUT_FORMAT [OUTPUT_FORMAT ...]] [-ss] [-ts]
+                       [-outfmt OUTPUT_FORMAT [OUTPUT_FORMAT ...]] [-ss]
+                       [-ssd SAVE_STATE_DIR] [-ts]
 
 Script for building and running a forecast realization,
 optionally with a coldstart.
@@ -121,6 +122,9 @@ options:
 
   -ss, --save_state : bool-switch(store-true) default=False
                         If provided, save the model state at the end of the run.
+
+  -ssd, --save_state_dir : type=str default=None
+                        Directory to save model state at end of run. Defaults in <work_dir>/state_save/ in msw-mgr.
 
   -ts, --timestamp_run_name : bool-switch(store-true) default=False
                         If provided, add a timestamp suffix to the run name.
