@@ -90,12 +90,12 @@ class RTEBaseConfig(BaseModelStrict):
     checkpoint_interval: int = Field(default=None)
         Integer number of timesteps for interval of checkpoint output
     checkpoint_dir: str | None = Field(default=None)
-        Optional directory to save checkpoint states. Defaults to work_dir>/checkpoint/ in msw-mgr.
+        Optional directory to save checkpoint states. Defaults to <work_dir>/checkpoint/ in msw-mgr.
     load_state_from: str | None = Field(default=None)
         Path to existing state file to load at start of run
     save_state: bool = Field(default=False)
         Boolean to activate state save at end of run
-    save_state_directory: str | None = Field(default=None)
+    save_state_dir: str | None = Field(default=None)
         Optional directory to save model state at end of run. Defaults in <work_dir>/state_save/ in msw-mgr.
     lookback: int | None = Field(default=None)
         Optional override of the forcing template `LookBack` (minutes), controlling
