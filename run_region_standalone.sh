@@ -61,12 +61,12 @@ docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TES
 # Historical / Retrospective Forcing
 docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "region_aorc"
 
-# State saving and loading
-docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "standard_ana" -dt "2026-03-30 06:00:00" -rname "region_ana" --save_state -faf
-docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" --load_state_from /ngwpc/run_ngen/regionalization/test_bmi/01123000/state_save/
+State saving and loading
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "standard_ana" -dt "2026-03-30 06:00:00" -rname "region_ana" --save_state --save_state_dir "/ngwpc/run_ngen/regionalization/region_ana/01123000/state_save_dir/"
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" --load_state_from "/ngwpc/run_ngen/regionalization/regiona_ana/01123000/state_save/"
 
-# Checkpoint restart
-docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" --checkpoint_interval 3
-docker_run python -um "ngen_rte.run_restart" -src "/ngwpc/run_ngen/regionalization/test_bmi/01123000/" -dst "/ngwpc/run_ngen/regionalization/test_bmi_restart/01123000/"
+Checkpoint restart
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" --checkpoint_interval 3 --checkpoint_dir "/ngwpc/run_ngen/regionalization/region_sr/01123000/checkpoint_dir/"
+docker_run python -um "ngen_rte.run_restart" -src "/ngwpc/run_ngen/regionalization/region_sr/01123000/" -dst "/ngwpc/run_ngen/regionalization/region_sr_restart/01123000/" --checkpoint_dir "/ngwpc/run_ngen/regionalization/region_sr/01123000/checkpoint_dir/"
 
 exit 0

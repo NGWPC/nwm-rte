@@ -89,10 +89,14 @@ class RTEBaseConfig(BaseModelStrict):
         Cycle datetime for forecast
     checkpoint_interval: int = Field(default=None)
         Integer number of timesteps for interval of checkpoint output
+    checkpoint_dir: str | None = Field(default=None)
+        Optional directory to save checkpoint states. Defaults to <work_dir>/checkpoint/ in msw-mgr.
     load_state_from: str | None = Field(default=None)
         Path to existing state file to load at start of run
     save_state: bool = Field(default=False)
         Boolean to activate state save at end of run
+    save_state_dir: str | None = Field(default=None)
+        Optional directory to save model state at end of run. Defaults in <work_dir>/state_save/ in msw-mgr.
     lookback: int | None = Field(default=None)
         Optional override of the forcing template `LookBack` (minutes), controlling
         the AnA simulation window. None means use the template value.
@@ -117,8 +121,10 @@ class RTEBaseConfig(BaseModelStrict):
     cycle_datetime: datetime | None = Field(default=None)
     lookback: int | None = Field(default=None)
     checkpoint_interval: int | None = Field(default=None)
+    checkpoint_dir: str | None = Field(default=None)
     load_state_from: str | None = Field(default=None)
     save_state: bool = Field(default=False)
+    save_state_dir: str | None = Field(default=None)
 
     # Set after init (not provided as args)
     time_at_init: datetime | None = Field(init=False, default=None)
@@ -536,8 +542,10 @@ class RTEBaseConfig(BaseModelStrict):
             "lagged_ens_mem": self.lagged_ens_mem,
             "forcing_lag": self.forcing_lag,
             "checkpoint_interval": self.checkpoint_interval,
+            "checkpoint_dir": self.checkpoint_dir,
             "load_state_from": self.load_state_from,
             "save_state": self.save_state,
+            "save_state_dir": self.save_state_dir,
         }
         if self.errors:
             raise RuntimeError(self.errors)
