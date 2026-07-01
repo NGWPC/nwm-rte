@@ -78,7 +78,7 @@ class NgenRunnerAsync(BaseModelStrict):
         )
         # mswm
         self._register_log_parser(
-            _LogParserGeneric(log_file_path=self.rb.log_file_path)
+            _LogParserGeneric(log_file_path_raw=self.rb.log_file_path)
         )
 
     def __del__(self):
@@ -100,7 +100,13 @@ class NgenRunnerAsync(BaseModelStrict):
 
         LOG.info("Starting ngen run...")
         config_cache = self._make_config_cache()
-        if self.rb.run_type in ("forecast", "default", "cold_start", "checkpoint", "regionalization"):
+        if self.rb.run_type in (
+            "forecast",
+            "default",
+            "cold_start",
+            "checkpoint",
+            "regionalization",
+        ):
             self.fem = ForecastExecutionManager(
                 real_path=str(self.rb.realization_file),
                 config_cache=config_cache,
@@ -108,11 +114,11 @@ class NgenRunnerAsync(BaseModelStrict):
             )
             # Watch log files for the nwm_fcst_mgr package and the ngen subprocess stdout+stderr.
             self._register_log_parser(
-                _LogParserGeneric(log_file_path=self.fem.fcst_mgr_log_file_path)
+                _LogParserGeneric(log_file_path_raw=self.fem.fcst_mgr_log_file_path)
             )
             self._register_log_parser(
                 _LogParserGeneric(
-                    log_file_path=self.fem.ngen_proc_stdout_stderr_log_file_path,
+                    log_file_path_raw=self.fem.ngen_proc_stdout_stderr_log_file_path,
                     tolerant=True,
                 )
             )
