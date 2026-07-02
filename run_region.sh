@@ -83,9 +83,9 @@ WORK_DIR="$(realpath .)"
 USER_NAME="${USER%%@*}"
 
 # Determine REPOS_COMMON_ROOT__HOST (NGWPC repos) based on environment
-if [[ -d "/ngen-dev/$USER_NAME" ]]; then
+if [[ -d "/ngen-dev/$USER_NAME" || -d "/ngen-dev/${USER_NAME,,}" ]]; then
     REPOS_COMMON_ROOT__HOST="/ngencerf-app"
-elif [[ -d "/ngen-oe/$USER_NAME" ]]; then
+elif [[ -d "/ngen-oe/$USER_NAME" || -d "/ngen-oe/${USER_NAME,,}" ]]; then
     REPOS_COMMON_ROOT__HOST="/ngencerf-app"
 else
     # Resolve USER_DIR (case-insensitive)
