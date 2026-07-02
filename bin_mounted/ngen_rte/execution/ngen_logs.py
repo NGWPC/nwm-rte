@@ -180,7 +180,7 @@ class _LogParserNgen(_LogParserBase):
         middlefix = "_payload" if payload_bool else ""
 
         if self.rb.run_type in ("default", "checkpoint", "regionalization"):
-            bn_prefix = self.rb.basin
+            bn_prefix = os.path.basename(self.ngen_log_dir)
         elif self.rb.run_type == "calibration":
             # NOTE determine where the 'calib' prefix is derived from and parameterize it instead of hardcoding it here.
             bn_prefix = "calib"
