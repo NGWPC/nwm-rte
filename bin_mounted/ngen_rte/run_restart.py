@@ -85,7 +85,7 @@ def run_restart(rb: RealizationBuilder) -> None:
     """
 
     LOG.info("Running restart realization")
-    ngen_runner = NgenRunnerAsync(rb=rb, postprocess=False)
+    ngen_runner = NgenRunnerAsync(rb=rb, postprocess=True, suppress_output=True)
     ngen_runner.start()
     ngen_runner.stream_status_until_complete()
     ngen_runner.close()
