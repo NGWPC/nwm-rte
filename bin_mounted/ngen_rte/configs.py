@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import shutil
 from datetime import datetime, timedelta, timezone
 
@@ -9,7 +10,6 @@ from mswm.build_inputs import RealizationBuilder
 from mswm.utils import settings as mswm_settings
 from mswm.utils.input_configuration import (
     CalibConfig,
-    RegionConfig,
     DataFileConfig,
     ForcingConfig,
     GeneralConfig,
@@ -17,6 +17,7 @@ from mswm.utils.input_configuration import (
     ModulePropertiesConfig,
     NWMOutputConfig,
     ParallelConfig,
+    RegionConfig,
 )
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
@@ -148,6 +149,18 @@ class RTEBaseConfig(BaseModelStrict):
     le__closed_loop_state: str | None = Field(init=False, default=None)
     """File path for lagged ensemble closed loop state."""
 
+    # For hindcast.  Used by run_forecast.py.
+    hindcast_args: list[str] | None = Field(default=None, min_length=3, max_length=3)
+    """List of hindcast args from CLI. For details, see CLI help and ``_parse_hindcast_args()``."""
+    use_hindcast: bool | None = Field(init=False, default=False)
+    """Boolean indicating that hindcast is to be used. Passed to MSWM."""
+    hc_cycle_interval: int | None = Field(init=False, default=None)
+    """Hindcast cycle interval."""
+    hc_num_iterations: int | None = Field(init=False, default=None)
+    """Hindcast number of iterations."""
+    hc_cold_start_state: str | None = Field(init=False, default=None)
+    """Hindcast path to existing saved state from a previous coldstart run. Optional for hindcast workflow."""
+
     def model_post_init(self, __context) -> None:
         self.time_at_init = datetime.now(tz=timezone.utc)
         self.errors = []
@@ -173,6 +186,8 @@ class RTEBaseConfig(BaseModelStrict):
         # Set basin from vpu if provided else gage_id
         self.basin = self.vpu if self.vpu else self.gage_id
         self.subset_type = "vpu" if self.vpu else "gage"
+
+        self._parse_hindcast_args()
 
         if self.errors:
             raise RuntimeError(self.errors)
@@ -270,6 +285,46 @@ class RTEBaseConfig(BaseModelStrict):
                 )
             )
 
+    def _parse_hindcast_args(self):
+        """Break up the multipart hindcast arg into distinct args and set them.
+        Called by child classes which define the necessary attributes."""
+        if self.hindcast_args:
+            self.use_hindcast = True
+
+            # Raw unpacking of the str args, before casting types of some of them.
+            _cycle_interval, _num_iterations, _cold_start_state = self.hindcast_args
+            if not re.fullmatch(r"[0-9]+", _cycle_interval):
+                self.errors.append(
+                    ValueError(
+                        f"Hindcast _cycle_interval must be str representation of an integer, but got: {repr(_cycle_interval)}"
+                    )
+                )
+            if not re.fullmatch(r"[0-9]+", _num_iterations):
+                self.errors.append(
+                    ValueError(
+                        f"Hindcast _num_iterations must be str representation of an integer, but got: {repr(_num_iterations)}"
+                    )
+                )
+            self.hc_cycle_interval = int(_cycle_interval)
+            self.hc_num_iterations = int(_num_iterations)
+            self.hc_cold_start_state = (
+                _cold_start_state if _cold_start_state.strip() else None
+            )
+
+            if hasattr(self, "cold_start_datetime") and self.cold_start_datetime:
+                self.errors.append(
+                    ValueError(
+                        "--hindcast_args and --cold_start_datetime were both provided, which is not allowed."
+                    )
+                )
+
+        if self.hc_cold_start_state:
+            self.errors.append(
+                NotImplementedError(
+                    "Hindcast arg for coldstart state are not yet implemented in nwm-rte (should be provided as empty string for now)"
+                )
+            )
+
     @property
     def _fcst_run_name_formatted(self) -> str:
         """Adaptive forecast run name that optionally can have a timestamped suffix appended to the end."""
@@ -360,7 +415,10 @@ class RTEBaseConfig(BaseModelStrict):
         """MSWM GeneralConfig instance"""
         start_period, end_period = self.start_period__end_period
 
-        if isinstance(self, (RTEDefaultConfig, RTERegionConfig)) and self.fcst_run_name != c.DEFAULT_FORECAST_RUN_NAME:
+        if (
+            isinstance(self, (RTEDefaultConfig, RTERegionConfig))
+            and self.fcst_run_name != c.DEFAULT_FORECAST_RUN_NAME
+        ):
             formulation = self.fcst_run_name
         else:
             formulation = self.forcing_provider_paths.formulation_name
@@ -538,6 +596,7 @@ class RTEBaseConfig(BaseModelStrict):
             "valid_yaml": self.valid_best_yaml,
             "fcst_run_name": self._fcst_run_name_formatted,
             "config_overrides": self.mswm_InputConfig,
+            "use_hindcast": self.use_hindcast,
             "use_lagged_ens": self.use_lagged_ensemble,
             "lagged_ens_mem": self.lagged_ens_mem,
             "forcing_lag": self.forcing_lag,
@@ -549,6 +608,10 @@ class RTEBaseConfig(BaseModelStrict):
         }
         if self.errors:
             raise RuntimeError(self.errors)
+        if self.use_hindcast:
+            raise NotImplementedError(
+                f"RTE hindcast implementation is a WIP. hc_cycle_interval={self.hc_cycle_interval}, hc_num_iterations={self.hc_num_iterations}, hc_cold_start_state={self.hc_cold_start_state}"
+            )
         return kwargs
 
     @property
@@ -632,7 +695,7 @@ class RTERegionConfig(RTEBaseConfig):
     fcst_run_name: str
         Name of the forecast realization run. Affects a directory name.
     lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
-        See CLI help menu for [`run_default.py`](python_cli_help__run_default.py.txt) for details.
+        See CLI help menu for [`run_regionalization_standalone.py`](python_cli_help__run_regionalization_standalone.py.txt) for details.
     form_assign_file: str
         File containing formulation assignments for catchments
     cat_grp_file: str
