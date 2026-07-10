@@ -52,7 +52,6 @@ def run_realization(rb: RealizationBuilder) -> None:
 
 def _main(cfg: RTEForecastConfig):
     # util_asserts.assert_paths__core(forecast_vars.gage_id)
-    # util_asserts.assert_paths__raw_config()
     # util_asserts.assert_paths_common_input()
 
     if cfg.delete_scratch_and_mesh_first:

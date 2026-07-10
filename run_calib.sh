@@ -32,9 +32,7 @@ docker_run python -um "ngen_rte.run_calibration" -n 2 -fconfig "aorc"
 # docker_run python -um "ngen_rte.run_calibration" -n 2 -fconfig "aorc" -mf "snow-17,noah-owp-modular,smp,lasam,t-route" -rz "true" --gage_id "12175500"
 # docker_run python -um "ngen_rte.run_calibration" -n 2 -fconfig "nwm"
 
-
-# TEST_HYDROFAB_FILE="/s3/ngwpc-dev/rte-test-data/gages/gauge_01123000.gpkg"
-# docker_run python -um "ngen_rte.run_calibration" -n 2 -fconfig "aorc" --gage_id 01123000 --hydrofab_file "${TEST_HYDROFAB_FILE}"
+# docker_run python -um "ngen_rte.run_calibration" -n 2 -fconfig "aorc" --gage_id ${TEST_GAGE} --hydrofab_file "${TEST_HYDROFAB_FILE}"
 
 # docker_run python -um "ngen_rte.run_calibration" -n 2 -fconfig "aorc" -gdomain "Hawaii" --gage_id "16010000"
 # docker_run python -um "ngen_rte.run_calibration" -n 2 -fconfig "nwm" -gdomain "Hawaii" --gage_id "16010000"

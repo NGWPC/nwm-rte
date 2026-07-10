@@ -152,7 +152,6 @@ def main(cfg: RTETestConfig):
         run_noop_mode()
 
     utils_testing_setup.assert_paths__core(cfg)
-    # utils_testing_setup.assert_paths__raw_config(cfg)
     ### NOTE this deletes the test output dir.
     ### If wanting to skip Calibration but still do CS and/or Forecast,
     ### then remove this line so that the test calibration results remain available.

@@ -52,17 +52,15 @@ function docker_run {
 
     time sudo docker run --entrypoint "${entrypoint}" ${interactive_terminal} \
         --ulimit nofile=100000:100000 \
-        -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
-        -w "/ngen-app/bin/bin_mounted/" \
+        -v "$(pwd)/bin_mounted/ngen_rte:/ngen-app/bin/ngen_rte/" \
+        -w "/ngen-app/bin" \
         \
         -v "${MNT__RUN_NGEN__HOST}:${MNT__RUN_NGEN__CONTAINER}" \
         \
         -v "${MNT__RUN_NGEN__HOST}/data/esmf_mesh/:/ngen-app/data/esmf_mesh/" \
         -v "${MNT__RUN_NGEN__HOST}/data/scratch:/ngen-app/data/scratch" \
-        -v "${MNT__RUN_NGEN__HOST}/configs:/ngen-app/data/configs" \
         -v "${MNT__RUN_NGEN__HOST}/data/raw_input:/ngen-app/data/raw_input" \
         \
-        -v "${MNT__S3_DATA__HOST}:${MNT__S3_DATA__CONTAINER}" \
         -v "$(pwd)/logs/docker/run:/ngencerf/data/run-logs" \
         -v "$(pwd)/logs:/ngen-app/logs_rte" \
         -v "$(pwd)/.devcontainer/tmp:/tmp" \

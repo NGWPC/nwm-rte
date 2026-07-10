@@ -69,7 +69,7 @@ MODULE_PARAMETER_FILES_DIR = (
     "/ngen-app/ngen-python/lib/python3.11/site-packages/mswm/module_parameter_files"
 )
 NGEN_DIR = "/ngen-app/ngen"
-NWM_RETRO_STREAMFLOW_DIR = "/s3/ngwpc-dev/ngen-static-files/nwm_retrospective"
+NWM_RETRO_STREAMFLOW_DIR = f"{DEFAULT_MAIN_DIR}/data/nwm_retrospective"
 
 
 ### .config section [Parallel]
@@ -82,7 +82,9 @@ TEST_RESULTS_FILE = os.path.join(
 )
 
 ### Test Hydrofabric GPKG
-TEST_HYDROFAB_FILE = f"/s3/ngwpc-dev/rte-test-data/gages/gauge_{DEFAULT_GAGE_ID}.gpkg"
+TEST_HYDROFAB_FILE = (
+    f"/ngen-app/bin/ngen_rte/tests/test_data/gauge_{DEFAULT_GAGE_ID}.gpkg"
+)
 
 ### See this for full list of forcing configuration types: mswm.utils.input_configuration.mswm_valid_configs
 FORECAST_FORCING_TYPES__TESTS = [
@@ -164,7 +166,7 @@ DATAFILE_LIBS = {
 }
 
 
-SRC_LOG_CONFIG_JSON = "/ngen-app/bin/bin_mounted/ngen_rte/run_config/ngen_logging.json"
+SRC_LOG_CONFIG_JSON = "/ngen-app/bin/ngen_rte/run_config/ngen_logging.json"
 # Must match config.bashrc
 RTE_NGEN_LOG_BEHAVIOR_KEY = "NGEN_LOG_TO_RTE"
 # Must match EWTS, nwm-cal-mgr, and nwm-fcst-mgr
@@ -176,7 +178,7 @@ SCRATCH_DIR_OVERRIDE: str | None = None
 FORCING_PRODUCT_VERSIONS_PATH: str | None = None
 # SCRATCH_DIR_OVERRIDE: str | None = "/foo/bar/scratch"
 # FORCING_PRODUCT_VERSIONS_PATH: str | None = (
-#     "/ngen-app/bin/bin_mounted/ngen_rte/run_config/ngen_forcing_vers.json"
+#     "/ngen-app/bin/ngen_rte/run_config/ngen_forcing_vers.json"
 # )
 ### Parsing the json file if provided
 if FORCING_PRODUCT_VERSIONS_PATH is not None:

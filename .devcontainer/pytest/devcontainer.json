@@ -23,9 +23,7 @@
     "workspaceMount": "source=${localWorkspaceFolder}/bin_mounted,target=/workspace,type=bind",
     "mounts": [
         // For test code
-        "source=${localWorkspaceFolder}/bin_mounted,target=/ngen-app/bin/bin_mounted,type=bind",
-        // For test data committed to nwm-rte repository, mount it to a certain root
-        "source=${localWorkspaceFolder}/bin_mounted/ngen_rte/tests/test_data/s3,target=/s3,type=bind",
+        "source=${localWorkspaceFolder}/bin_mounted/ngen_rte,target=/ngen-app/bin/ngen_rte,type=bind",
         // For test data committed to ngen-forcing repository
         "source=${localWorkspaceFolder}/../ngen-forcing,target=/ngwpc/ngen-forcing,type=bind",
         // For seeing output data on the host disk

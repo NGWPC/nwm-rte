@@ -18,8 +18,7 @@ source config.bashrc
 IMAGE=${TARGET_IMAGE_NAME:-"ngen_rte_ghcr"}
 
 sudo docker run --entrypoint "/ngen-app/ngen-python/bin/python" \
-    -w "/ngen-app/bin/bin_mounted/" \
-    -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted" \
-    -v "$(pwd)/bin_mounted/ngen_rte/tests/test_data/s3/:${MNT__S3_DATA__CONTAINER}" \
-    -v "$(pwd)/../run_ngen/:${MNT__RUN_NGEN__CONTAINER}" \
+    -v "$(pwd)/bin_mounted/ngen_rte/:/ngen-app/bin/ngen_rte/" \
+    -w "/ngen-app/bin/ngen_rte" \
+    -v "${MNT__RUN_NGEN__HOST}/:${MNT__RUN_NGEN__CONTAINER}/" \
     --rm ${IMAGE} -m pytest

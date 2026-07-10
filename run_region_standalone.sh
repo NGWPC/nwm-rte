@@ -25,13 +25,13 @@ set -x
 ## \usage ./run_region_standalone.sh
 ## 
 
-# sudo rm -rf ~/ngwpc/run_ngen/regionalization/test_bmi/01123000
+# sudo rm -rf ~/ngwpc/run_ngen/regionalization/test_bmi/${TEST_GAGE}
 
-TEST_FORM_ASSIGN_GAGE="/ngwpc/run_ngen/regionalization/01123000/formulation_assignment.csv"
-TEST_CAT_GRP_GAGE="/ngwpc/run_ngen/regionalization/01123000/catchment_groups.csv"
+TEST_FORM_ASSIGN_GAGE="${INSTALLED_REGIONALIZATION_RESULTS}/${TEST_GAGE}/formulation_assignment.csv"
+TEST_CAT_GRP_GAGE="${INSTALLED_REGIONALIZATION_RESULTS}/${TEST_GAGE}/catchment_groups.csv"
 
-TEST_FORM_ASSIGN_VPU="/ngwpc/run_ngen/regionalization/vpu_03S/formulation_assignment.csv"
-TEST_CAT_GRP_VPU="/ngwpc/run_ngen/regionalization/vpu_03S/catchment_groups.csv"
+TEST_FORM_ASSIGN_VPU="${INSTALLED_REGIONALIZATION_RESULTS}/${TEST_VPU}/formulation_assignment.csv"
+TEST_CAT_GRP_VPU="${INSTALLED_REGIONALIZATION_RESULTS}/${TEST_VPU}/catchment_groups.csv"
 
 # Short Range
 docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr"
@@ -62,11 +62,11 @@ docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TES
 docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "region_aorc"
 
 # State saving and loading
-docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "standard_ana" -dt "2026-03-30 06:00:00" -rname "region_ana" --save_state --save_state_dir "/ngwpc/run_ngen/regionalization/region_ana/01123000/state_save_dir/"
-docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" --load_state_from "/ngwpc/run_ngen/regionalization/regiona_ana/01123000/state_save/"
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "standard_ana" -dt "2026-03-30 06:00:00" -rname "region_ana" --save_state --save_state_dir "/ngwpc/run_ngen/regionalization/region_ana/${TEST_GAGE}/state_save_dir/"
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" --load_state_from "/ngwpc/run_ngen/regionalization/regiona_ana/${TEST_GAGE}/state_save/"
 
 # Checkpoint restart
-docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" --checkpoint_interval 3 --checkpoint_dir "/ngwpc/run_ngen/regionalization/region_sr/01123000/checkpoint_dir/"
-docker_run python -um "ngen_rte.run_restart" -src "/ngwpc/run_ngen/regionalization/region_sr/01123000/" -dst "/ngwpc/run_ngen/regionalization/region_sr_restart/01123000/" --checkpoint_dir "/ngwpc/run_ngen/regionalization/region_sr/01123000/checkpoint_dir/"
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" --checkpoint_interval 3 --checkpoint_dir "/ngwpc/run_ngen/regionalization/region_sr/${TEST_GAGE}/checkpoint_dir/"
+docker_run python -um "ngen_rte.run_restart" -src "/ngwpc/run_ngen/regionalization/region_sr/${TEST_GAGE}/" -dst "/ngwpc/run_ngen/regionalization/region_sr_restart/${TEST_GAGE}/" --checkpoint_dir "/ngwpc/run_ngen/regionalization/region_sr/${TEST_GAGE}/checkpoint_dir/"
 
 exit 0
