@@ -59,6 +59,11 @@ RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/
     --mount=type=bind,src=nwm-msw-mgr,dst=/src/${GH_ORG}/nwm-msw-mgr \
     "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-msw-mgr" "mswm" "${REPO_TAG_MSW_MGR}" ""
 
+ARG REPO_TAG_EVAL
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=bind,src=nwm-eval-mgr,dst=/src/${GH_ORG}/nwm-eval-mgr \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-eval-mgr" "nwm_metrics" "${REPO_TAG_EVAL}" "" "nwm_metrics"
+
 ARG REPO_TAG_CAL_MGR
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
     --mount=type=bind,src=nwm-cal-mgr,dst=/src/${GH_ORG}/nwm-cal-mgr \
@@ -86,14 +91,14 @@ RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/
 ARG REPO_TAG_EWTS
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
     --mount=type=bind,src=nwm-ewts,dst=/src/${GH_ORG}/nwm-ewts \
-    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-ewts" "ewts" "${REPO_TAG_EWTS}" ""
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-ewts" "ewts" "${REPO_TAG_EWTS}" "" "runtime/python/ewts"
 
 
 ##################################################
-#### BEGIN SECOND STAGE: Adding a separate Python venv for nwm.eval and nwm.verf
+#### BEGIN SECOND STAGE: Adding a separate Python venv for nwm-eval-mgr (i.e., nwm_eval and nwm_metrics)
 FROM ngen_rte_base AS ngen_rte_eval_verf
 
-# Call modules like `python_eval_verf -m nwm.verf`
+# Call modules like `python_eval_verf -m nwm_eval`
 ARG EVAL_VERF_PYTHON_ALIAS="python_eval_verf"
 ARG EVAL_VERF_VENV="/ngen-app/venvs/eval_verf"
 ARG EVAL_VERF_PYTHON_BIN_DIR="${EVAL_VERF_VENV}/bin"
@@ -111,15 +116,16 @@ ENV PYTHONPATH_SAVED=${PYTHONPATH}
 ENV PATH="${EVAL_VERF_PYTHON_BIN_DIR}:${PATH}"
 ENV PYTHONPATH="${EVAL_VERF_PYTHON_BIN_DIR}/lib/${PYTHON_VERSION_STR}/site-packages"
 
-ARG REPO_TAG_VERF
+ARG REPO_TAG_EVAL
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
-    --mount=type=bind,src=nwm-verf,dst=/src/${GH_ORG}/nwm-verf \
-    "/src/${GH_ORG}/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "${GH_ORG}" "nwm-verf" "nwm-verf" "${REPO_TAG_VERF}" ""
+    --mount=type=bind,src=nwm-eval-mgr,dst=/src/${GH_ORG}/nwm-eval-mgr \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "${GH_ORG}" "nwm-eval-mgr" "nwm_metrics" "${REPO_TAG_EVAL}" "" "nwm_metrics"
 
 ARG REPO_TAG_EVAL
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
     --mount=type=bind,src=nwm-eval-mgr,dst=/src/${GH_ORG}/nwm-eval-mgr \
-    "/src/${GH_ORG}/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "${GH_ORG}" "nwm-eval-mgr" "nwm-eval" "${REPO_TAG_EVAL}" ""
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "${GH_ORG}" "nwm-eval-mgr" "nwm_eval" "${REPO_TAG_EVAL}" "" "nwm_eval"
+
 
 ##############################
 #### Clean up: reset PATH and PYTHONPATH

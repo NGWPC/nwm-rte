@@ -218,7 +218,7 @@ ensure_dir "$RUNTIME_DIR_TMP/run_ngen/data/esmf_mesh"
 # create docker logs directory
 ensure_dir "$RUNTIME_DIR_TMP/docker_logs/run"
 
-# home dir inside container (required for some packages in nwm-verf and nwm-region-mgr)
+# home dir inside container (required for some packages in nwm-eval-mgr and nwm-region-mgr)
 ensure_dir "$RUNTIME_DIR_TMP/home"
 
 cleanup() {
@@ -241,7 +241,7 @@ CONTAINER_PYTHONPATH_ENTRY="${REPOS_COMMON_ROOT__HOST}/nwm-rte/bin_mounted"
 
 # docker image to use
 TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:${IMAGE_TAG}"
-#TARGET_IMAGE_NAME=ngen_rte:ghcr # Using local image for testing
+#TARGET_IMAGE_NAME=ngen_rte_ghcr:latest # Using local image for testing
 
 echo "Using Docker image: ${TARGET_IMAGE_NAME}"
 
