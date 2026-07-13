@@ -40,8 +40,7 @@ mkdir_p "${RUN_NGEN_ROOT__HOST}"
 # Download regionalization data
 # Check if --regionalization or -r flag (argument) is passed
 if [[ "$@" =~ (--regionalization|-r) ]]; then
-    s3_sync "${SOURCE_BUCKET_DEV}/regionalization/data/inputs" "${MNT__NWM_REGION_MGR__INPUT_DATA}"
-    s3_sync "${SOURCE_BUCKET_DEV}/regionalization/data/inputs/ngen/module_parameter_files" "${MNT__NWM_REGION_MGR__INPUT_DATA}/module_parameter_files"
+    s3_sync "${SOURCE_BUCKET_DEV}/${SOURCE_PREFIX_ROOT}/regionalization/data/inputs" "${MNT__NWM_REGION_MGR__INPUT_DATA}"
 fi
 
 # Download test gage data using setup_data_one_gage.sh
