@@ -136,25 +136,28 @@ MNT__RUN_NGEN__HOST="${RUN_NGEN_ROOT__HOST}"
 ## \env MNT__RUN_NGEN__CONTAINER path within the container to which the host disk path described by `MNT__RUN_NGEN__HOST` is mounted.
 MNT__RUN_NGEN__CONTAINER="/ngwpc/run_ngen"
 
-##### Mounts for S3 data
-## \env S3_ROOT__HOST Root of input data downloaded from s3.
-S3_ROOT__HOST=${S3_ROOT__HOST:-"${REPOS_COMMON_ROOT__HOST}/s3"}
-## \env MNT__S3_DATA__HOST Alias for `S3_ROOT__HOST`. Host path mounted by the container.
-MNT__S3_DATA__HOST="${S3_ROOT__HOST}"
-## \env MNT__S3_DATA__CONTAINER path within the container to which the host disk path described by `MNT__S3_DATA__HOST` is mounted.
-MNT__S3_DATA__CONTAINER="/s3"
-
 ##### Mounts for regionalization data
 ## \env MNT__NWM_REGION_MGR__INPUT_DATA Host path to input data from `nwm-region-mgr` repository for regionalization workflows. Mounted by the container.
 MNT__NWM_REGION_MGR__INPUT_DATA="${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr/data/inputs"
 
+##### Installed regionalization results
+## \env INSTALLED_REGIONALIZATION_RESULTS Results of regionalization, baked into the MSWM Python package, which can be used for testing the regionalized form of ngen forecasts.
+INSTALLED_REGIONALIZATION_RESULTS=/ngen-app/ngen-python/lib/python3.11/site-packages/mswm/example_inputs/regionalization
 
 ### Remote data sources for setup_data.sh and setup_data_one_gage.sh
 ## \env SOURCE_BUCKET_DEV Name of cloud bucket (no s3:// prefix in the string), used by setup_data.sh and setup_data_one_gage.sh
 SOURCE_BUCKET_DEV="ngwpc-dev"
+## \env SOURCE_PREFIX_ROOT Prefix root for data sourced from SOURCE_BUCKET_DEV, used by setup_data.sh and setup_data_one_gage.sh
+SOURCE_PREFIX_ROOT="nwm-tools-data"
 ## \env EDFS_API_VERSION For EDFS API URL for nwm-rte setup scripts. Used to construct URL path component. Not used during actual runtime.
 EDFS_API_VERSION=v1
 
+### Test gage and associated domain.
+### NOTE if updating these, may also need to update bin_mounted/ngen_rte/consts.py
+TEST_GAGE="01123000"
+TEST_VPU="vpu_03S"
+TEST_DOMAIN="CONUS"
+TEST_HYDROFAB_FILE="/ngen-app/bin/ngen_rte/tests/test_data/gauge_${TEST_GAGE}.gpkg"
 
 ### Logging functions
 BASENAME="$(basename "$(readlink -f "$0")")"

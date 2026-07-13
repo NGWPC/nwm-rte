@@ -116,7 +116,7 @@
                 "-g",
                 "01123000",
                 "--hydrofab_file",
-                "/s3/ngwpc-dev/rte-test-data/gages/gauge_01123000.gpkg"
+                "/ngen-app/bin/ngen_rte/tests/test_data/gauge_01123000.gpkg"
             ],
         },
         {
@@ -148,7 +148,7 @@
                 "-g",
                 "01123000",
                 "--hydrofab_file",
-                "/s3/ngwpc-dev/rte-test-data/gages/gauge_01123000.gpkg"
+                "/ngen-app/bin/ngen_rte/tests/test_data/gauge_01123000.gpkg"
             ],
         },
         {
@@ -174,7 +174,7 @@
                 "-g",
                 "01123000",
                 "--hydrofab_file",
-                "/s3/ngwpc-dev/rte-test-data/gages/gauge_01123000.gpkg"
+                "/ngen-app/bin/ngen_rte/tests/test_data/gauge_01123000.gpkg"
             ],
         },
         //// 

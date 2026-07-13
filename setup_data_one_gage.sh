@@ -37,11 +37,9 @@ SRC_URL_STREAMFLOW_OBS="http://edfs.${EDFS_API_ENVIRONMENT}.nextgenwaterpredicti
 
 TGT_DIR_OBS_FLOW="${RUN_NGEN_ROOT__HOST}/data/streamflow_observations/${DOMAIN}/edfs_api_${EDFS_API_VERSION}"
 TGT_FILE_OBS_FLOW="${TGT_DIR_OBS_FLOW}/${GAGE_ID}_hourly_discharge.csv"
-SRC_FILE_NWM_RETRO="${SOURCE_BUCKET_DEV}/ngen-static-files/nwm_retrospective/${GAGE_ID}.csv"
-TGT_DIR_NWM_RETRO="${S3_ROOT__HOST}/$(dirname "$SRC_FILE_NWM_RETRO")"
+SRC_FILE_NWM_RETRO="${SOURCE_BUCKET_DEV}/${SOURCE_PREFIX_ROOT}/nwm_retrospective/${GAGE_ID}.csv"
 
-
-s3_copy "${SRC_FILE_NWM_RETRO}" "${TGT_DIR_NWM_RETRO}/"
+s3_copy "${SRC_FILE_NWM_RETRO}" "${RUN_NGEN_ROOT__HOST}/data/nwm_retrospective/"
 
 mkdir_p "${TGT_DIR_OBS_FLOW}"
 info "Downloading: ${SRC_URL_STREAMFLOW_OBS} -> ${TGT_FILE_OBS_FLOW}"

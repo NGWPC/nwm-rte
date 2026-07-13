@@ -43,7 +43,6 @@ def run_region(rb: RealizationBuilder) -> NgenRunnerAsync:
 
 def _main(cfg: RTERegionConfig):
     # util_asserts.assert_paths__core(forecast_vars.gage_id)
-    # util_asserts.assert_paths__raw_config()
     # util_asserts.assert_paths_common_input()
 
     if cfg.delete_scratch_and_mesh_first:

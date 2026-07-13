@@ -32,12 +32,12 @@
         "source=${localWorkspaceFolder}/../run_ngen,target=/ngwpc/run_ngen,type=bind",
         // Data
         "source=${localWorkspaceFolder}/../run_ngen/data,target=/ngen-app/data,type=bind",
-        // Data
-        "source=${localWorkspaceFolder}/../s3,target=/s3,type=bind",
         // For saving certain forcing cache files to host disk and preserving them between runs. e.g. "/tmp/aorc_ce4b1034_2013.nc".
         "source=${localWorkspaceFolder}/.devcontainer/tmp,target=/tmp,type=bind",
         // Scripts from nwm-rte repository
-        "source=${localWorkspaceFolder}/bin_mounted,target=/ngen-app/bin/bin_mounted,type=bind",
+        "source=${localWorkspaceFolder}/bin_mounted/ngen_rte,target=/ngen-app/bin/ngen_rte,type=bind",
+        // Logs to nwm-rte repository
+        "source=${localWorkspaceFolder}/logs,target=/ngen-app/logs_rte,type=bind",
         //////
         ////// (Optional) for local code of component packages, allowing convenient debugger interaction ("editable" pip installs, VS Code editor breakpoints, etc)
         // ewts

@@ -79,17 +79,6 @@ class TestPaths:
         return f"{self.dir_base}/logs/ngen.log"
 
     @property
-    def calib_config_file(self) -> str:
-        """Path to example input calibration config file"""
-        return f"{self.dir_base}/configs/input_calibration_{c.FORCING_PROVIDER}.config"
-        # return f"{self.dir_base}/configs/input_calibration_{c.FORCING_PROVIDER}_short.config"
-
-    @property
-    def fcst_config_file(self) -> str:
-        """Path to example input forecast config file"""
-        return f"{self.dir_base}/configs/input_forecast.config"
-
-    @property
     def valid_yaml(self) -> str:
         """Path to validation yaml config file"""
         return f"{self.dir_output}/Validation_Run/{self.gage_id}_config_valid_best.yaml"

@@ -53,7 +53,7 @@ def _build_default_config() -> configs.RTEDefaultConfig:
             "--nprocs",
             "2",
             "--gage_id",
-            "01123000",
+            c.DEFAULT_GAGE_ID,
             "--hydrofab_file",
             c.TEST_HYDROFAB_FILE,
         ]

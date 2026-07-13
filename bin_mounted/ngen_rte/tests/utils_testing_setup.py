@@ -71,14 +71,3 @@ def assert_paths__core(cfg: RTETestConfig) -> None:
     for dp in dir_paths:
         if not os.path.isdir(dp):
             raise NotADirectoryError(dp)
-
-
-def assert_paths__raw_config(cfg: RTETestConfig) -> None:
-    """Assert that various paths exist"""
-    for _, _, test_paths in cfg.get_calib_permutations():
-        for fp in [
-            test_paths.calib_config_file,
-            test_paths.fcst_config_file,
-        ]:
-            if not os.path.isfile(fp):
-                raise FileNotFoundError(fp)
