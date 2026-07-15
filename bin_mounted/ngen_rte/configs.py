@@ -16,6 +16,7 @@ from mswm.utils.input_configuration import (
     InputConfig,
     ModulePropertiesConfig,
     NWMOutputConfig,
+    DataAssimilationConfig,
     ParallelConfig,
 )
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
@@ -83,6 +84,8 @@ class RTEBaseConfig(BaseModelStrict):
         Output format(s) for output variables. Accepts 'CSV', 'NetCDF', or both. Defaults to ["CSV"] in MSWM.
     hydrofab_file: str | None = Field(default=None)
         Optional hydrofabric file path. If provided, bypasses MSWM Icefabric server API call.
+    reservoir_rfc_dir: str | None = Field(default=None)
+        Optional path to reservoir RFC forecast time-series directory. If provided, reservoir_da is set to True and passed to DataAssimilationConfig
     fcst_run_name: str | None = Field(default=None)
         Forecast run name.
     cycle_datetime: datetime | None = Field(default=None)
@@ -117,6 +120,7 @@ class RTEBaseConfig(BaseModelStrict):
     nwm_output_vars: bool = Field(default=False)
     output_format: list[str] | None = Field(default=None)
     hydrofab_file: str | None = Field(default=None)
+    reservoir_rfc_dir: str | None = Field(default=None)
     fcst_run_name: str | None = Field(default=None)
     cycle_datetime: datetime | None = Field(default=None)
     lookback: int | None = Field(default=None)
@@ -500,6 +504,15 @@ class RTEBaseConfig(BaseModelStrict):
             )
         )
         return dfc
+    
+    @property
+    def mswm_DataAssimilationConfig(self) -> DataAssimilationConfig:
+        """MSWM DataAssimilationConfig instance"""
+        dac = DataAssimilationConfig(
+            reservoir_da=bool(self.reservoir_rfc_dir),
+            reservoir_rfc_dir=self.reservoir_rfc_dir,
+        )
+        return dac
 
     @property
     def mswm_ParallelConfig(self) -> ParallelConfig:
@@ -517,6 +530,7 @@ class RTEBaseConfig(BaseModelStrict):
         calibration = self.mswm_CalibConfig
         forcing = self.mswm_ForcingConfig
         data_file = self.mswm_DataFileConfig
+        data_assimilation = self.mswm_DataAssimilationConfig
         parallel = self.mswm_ParallelConfig
         ic = InputConfig(
             General=general,
@@ -526,6 +540,7 @@ class RTEBaseConfig(BaseModelStrict):
             Calibration=calibration,
             Forcing=forcing,
             DataFile=data_file,
+            DataAssimilation=data_assimilation,
             Parallel=parallel,
         )
         return ic
