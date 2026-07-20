@@ -49,8 +49,8 @@ docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TES
 # Medium Range
 docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "medium_range_blend" -dt "2026-03-30 06:00:00" -rname "region_mr"
 
-# Reservoir RFC DA
-docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" -rfc /ngwpc/run_ngen/data/reservoir_rfc_da/
+# Reservoir RFC DA  (RFC reservoir test data only valid at "2026-07-13 12:00:00", default gage 01123000 does not have a reservoir)
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_VPU}" -cgf "${TEST_CAT_GRP_VPU}" -fconfig "short_range" -dt "2026-07-13 12:00:00" -rname "region_sr" -rfc /ngwpc/run_ngen/data/reservoir_rfc_da/ -v "03S"
 
 # Medium Range Lagged Ensemble
 # docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "medium_range" -dt "2026-03-30 06:00:00" -rname "region_mr_le" -le "no_da" "" ""
