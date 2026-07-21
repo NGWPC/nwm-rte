@@ -187,15 +187,9 @@ class _LogParserNgen(_LogParserBase):
         elif self.rb.run_type in ("forecast", "cold_start"):
             bn_prefix = self.rb.fcst_run_name
         elif self.rb.run_type == "hindcast":
-            # For hindcast cycle, the ends up being hindcast_0 even when the hind_cycle is 3.
-            # TODO need to evaluate to see if this could/should be changed.
-            # bn_prefix = f"hindcast_{self.rb.hind_cycle}"
-            bn_prefix = "hindcast_0"
+            bn_prefix = f"hindcast_{self.rb.hind_cycle}"
         elif self.rb.run_type == "warm_start":
-            # For warmstart as part of hindcast cycle, the ends up being hindcast_0 even when the hind_cycle is 3.
-            # TODO need to evaluate to see if this could/should be changed.
-            # bn_prefix = f"warm_start_{self.rb.hind_cycle}"
-            bn_prefix = "hindcast_0"
+            bn_prefix = f"warm_start_{self.rb.hind_cycle}"
         else:
             raise NotImplementedError(
                 f"Unsupported realization type: {self.rb.run_type}"
