@@ -212,11 +212,16 @@ class RTEBaseConfig(BaseModelStrict):
         if isinstance(self, RTETestConfig):
             label = f"{label}_test"
 
-        if rb.run_type in ("default", "checkpoint", "regionalization"):
-            fallback_log_dir = str(rb.work_dir)
-        elif rb.run_type in ("forecast", "cold_start", "hindcast", "warm_start"):
-            fallback_log_dir = str(rb.work_dir)
-        elif rb.run_type == "calibration":
+        if rb.run_type in (
+            "default",
+            "checkpoint",
+            "regionalization",
+            "forecast",
+            "cold_start",
+            "hindcast",
+            "warm_start",
+            "calibration",
+        ):
             fallback_log_dir = str(rb.work_dir)
         else:
             raise RuntimeError(f"Unexpected run_type: {rb.run_type}")
