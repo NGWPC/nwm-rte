@@ -61,7 +61,7 @@ docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "20
 docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc" --gage_id ${TEST_GAGE} --hydrofab_file "${TEST_HYDROFAB_FILE}"
 
 # Checkpoint restart
-docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr" --checkpoint_interval 3 --checkpoint_dir "/ngwpc/run_ngen/default/default_sr/${TEST_GAGE}/checkpoint_directory/"
+docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr" --checkpoint_interval 3 --checkpoint_dir "/ngwpc/run_ngen/default/default_sr/${TEST_GAGE}/checkpoint_directory/" -nwmout --output_format NetCDF
 docker_run python -um "ngen_rte.run_restart" -src "/ngwpc/run_ngen/default/default_sr/${TEST_GAGE}/" -dst "/ngwpc/run_ngen/default/default_sr_restart/${TEST_GAGE}/" --checkpoint_dir "/ngwpc/run_ngen/default/default_sr/${TEST_GAGE}/checkpoint_directory/"
 
 exit 0
