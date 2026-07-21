@@ -34,6 +34,10 @@ def run_realization(rb: RealizationBuilder) -> None:
     LOG.info(
         f"Running realization with Forcing configuration: {rb.input_configs['Forcing']}"
     )
+    if rb.run_type in ("hindcast", "warm_start"):
+        do_override_log_file_prefix = True
+    else:
+        do_override_log_file_prefix = False
     if False:
         raise NotImplementedError(
             "This is a placeholder exception for unallowed execution paths"
@@ -44,6 +48,7 @@ def run_realization(rb: RealizationBuilder) -> None:
             postprocess=True,
             suppress_output=False,
             # timeout_secs=10,
+            do_override_log_file_prefix=do_override_log_file_prefix,
         )
         ngen_runner.start()
         ngen_runner.stream_status_until_complete()

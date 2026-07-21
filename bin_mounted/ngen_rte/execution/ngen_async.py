@@ -55,6 +55,9 @@ class NgenRunnerAsync(BaseModelStrict):
     suppress_output: bool = False
     """Passed to ForecastExecutionManager.postprocess()"""
     timeout_secs: float | None = None
+    """Timeout limit on ngen execution"""
+    do_override_log_file_prefix : bool = False
+    """Passed to ForecastExecutionManager.preprocess()"""
 
     fem: ForecastExecutionManager | None = Field(default=None, init=False)
     log_parsers: list[_LogParserBase] = Field(default_factory=list, init=False)
@@ -124,7 +127,7 @@ class NgenRunnerAsync(BaseModelStrict):
                     tolerant=True,
                 )
             )
-            self.fem.preprocess()
+            self.fem.preprocess(self.do_override_log_file_prefix)
             self.fem.execute(wait=False, log_file_open_mode="w")
         elif self.rb.run_type == "calibration":
             raise NotImplementedError(
