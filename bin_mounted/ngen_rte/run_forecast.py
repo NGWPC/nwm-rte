@@ -9,9 +9,9 @@ See `run_fcst.sh` for example calls.
 """
 
 import argparse
-import os
 
 from mswm.build_inputs import RealizationBuilder
+from nwm_fcst_mgr.forecast import run_hindcast
 
 from ngen_rte.configs import RTEForecastConfig
 from ngen_rte.execution.ngen_async import NgenRunnerAsync
@@ -34,10 +34,10 @@ def run_realization(rb: RealizationBuilder) -> None:
     LOG.info(
         f"Running realization with Forcing configuration: {rb.input_configs['Forcing']}"
     )
-    if rb.use_hindcast:
-        raise NotImplementedError("use_hindcast not yet implemented in nwm-rte")
-    elif rb.use_warm_start:
-        raise NotImplementedError("use_warm_start not yet implemented in nwm-rte")
+    if False:
+        raise NotImplementedError(
+            "This is a placeholder exception for unallowed execution paths"
+        )
     else:
         ngen_runner = NgenRunnerAsync(
             rb=rb,
@@ -68,12 +68,37 @@ def _main(cfg: RTEForecastConfig):
         run_realization(rb_cs)
 
     elif cfg.cycle_datetime:
-        rb_fcst = build_realization(
-            cfg.mswm_RealizationBuilder_kwargs | {"use_cold_start": False},
-            "build_fcst_realization",
+        if cfg.use_hindcast:
+            if cfg.hc_cold_start_state:
+                raise NotImplementedError(
+                    "Hindcast from cold_start_state has not yet been implemented in nwm-rte"
+                )
+            rb_generator = run_hindcast(
+                config=cfg.mswm_InputConfig,
+                valid_yaml=cfg.valid_best_yaml,
+                fcst_run_name=cfg._fcst_run_name_formatted,
+                cycle_interval=cfg.hc_cycle_interval,
+                num_iterations=cfg.hc_num_iterations,
+                cold_start_state=cfg.hc_cold_start_state,
+                # This causes run_hindcast to be a generator of (yield) RealizationBuilder instances instead of running each realization itself.
+                yield_realizations=True,
+            )
+            for i, rb in enumerate(rb_generator):
+                LOG.info(f"About to run ngen for iteration {i} of hindcast workflow")
+                cfg.configure_ngen_log(rb)
+                run_realization(rb)
+        else:
+            rb_fcst = build_realization(
+                cfg.mswm_RealizationBuilder_kwargs | {"use_cold_start": False},
+                "build_fcst_realization",
+            )
+            cfg.configure_ngen_log(rb_fcst)
+            run_realization(rb_fcst)
+
+    else:
+        raise ValueError(
+            "Neither --cold_start_datetime nor --cycle_datetime were provided."
         )
-        cfg.configure_ngen_log(rb_fcst)
-        run_realization(rb_fcst)
 
 
 def main(cfg: RTEForecastConfig):

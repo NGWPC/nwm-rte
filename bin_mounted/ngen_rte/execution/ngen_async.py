@@ -106,6 +106,8 @@ class NgenRunnerAsync(BaseModelStrict):
             "cold_start",
             "checkpoint",
             "regionalization",
+            "hindcast",
+            "warm_start",
         ):
             self.fem = ForecastExecutionManager(
                 real_path=str(self.rb.realization_file),
@@ -165,8 +167,10 @@ class NgenRunnerAsync(BaseModelStrict):
             raise RuntimeError(errors)
 
     def _make_config_cache(self) -> ConfigCache | None:
-        """Make and return a ConfigCache based on the type of realization."""
-        if self.rb.run_type in ("forecast", "cold_start"):
+        """Make and return a ConfigCache based on the type of realization.
+        For ConfigCache for hindcast and warmstart, mimic pattern from nwm-fcst-mgr's forecast."""
+
+        if self.rb.run_type in ("forecast", "cold_start", "hindcast", "warm_start"):
             config_cache = ConfigCache(valid_yaml=self.rb.valid_yaml, no_valid=False)
         elif self.rb.run_type in ("default", "checkpoint", "regionalization"):
             config_cache = ConfigCache(

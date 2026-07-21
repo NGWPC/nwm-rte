@@ -214,7 +214,7 @@ class RTEBaseConfig(BaseModelStrict):
 
         if rb.run_type in ("default", "checkpoint", "regionalization"):
             fallback_log_dir = str(rb.work_dir)
-        elif rb.run_type in ("forecast", "cold_start"):
+        elif rb.run_type in ("forecast", "cold_start", "hindcast", "warm_start"):
             fallback_log_dir = str(rb.input_dir)
         elif rb.run_type == "calibration":
             fallback_log_dir = str(rb.work_dir)
@@ -608,10 +608,6 @@ class RTEBaseConfig(BaseModelStrict):
         }
         if self.errors:
             raise RuntimeError(self.errors)
-        if self.use_hindcast:
-            raise NotImplementedError(
-                f"RTE hindcast implementation is a WIP. hc_cycle_interval={self.hc_cycle_interval}, hc_num_iterations={self.hc_num_iterations}, hc_cold_start_state={self.hc_cold_start_state}"
-            )
         return kwargs
 
     @property
