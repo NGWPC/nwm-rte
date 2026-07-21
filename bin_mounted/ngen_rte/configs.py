@@ -298,20 +298,22 @@ class RTEBaseConfig(BaseModelStrict):
 
             # Raw unpacking of the str args, before casting types of some of them.
             _cycle_interval, _num_iterations, _cold_start_state = self.hindcast_args
-            if not re.fullmatch(r"[0-9]+", _cycle_interval):
+            if re.fullmatch(r"[0-9]+", _cycle_interval):
+                self.hc_cycle_interval = int(_cycle_interval)
+            else:
                 self.errors.append(
                     ValueError(
                         f"Hindcast _cycle_interval must be str representation of an integer, but got: {repr(_cycle_interval)}"
                     )
                 )
-            if not re.fullmatch(r"[0-9]+", _num_iterations):
+            if re.fullmatch(r"[0-9]+", _num_iterations):
+                self.hc_num_iterations = int(_num_iterations)
+            else:
                 self.errors.append(
                     ValueError(
                         f"Hindcast _num_iterations must be str representation of an integer, but got: {repr(_num_iterations)}"
                     )
                 )
-            self.hc_cycle_interval = int(_cycle_interval)
-            self.hc_num_iterations = int(_num_iterations)
             self.hc_cold_start_state = (
                 _cold_start_state if _cold_start_state.strip() else None
             )
