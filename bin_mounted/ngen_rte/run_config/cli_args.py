@@ -279,7 +279,7 @@ This argument has 3 parts:
         Cycle interval (in hours) between hindcast runs.
     2. num_iterations : int (required when -hc provided)
         Number of hindcast cycles to perform.
-    3. cold_start_state : str (optional).
+    3. cold_start_state : str (optional). *Not yet implemented*.
         Path to directory containing state files to load at start of first hindcast.
         If provided, will be used for first hindcast cycle (hind_cycle=0).
         Subsequent cycles will use warm start states.
