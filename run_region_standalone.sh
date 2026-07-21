@@ -66,7 +66,7 @@ docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TES
 docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" --load_state_from "/ngwpc/run_ngen/regionalization/regiona_ana/${TEST_GAGE}/state_save/"
 
 # Checkpoint restart
-docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" --checkpoint_interval 3 --checkpoint_dir "/ngwpc/run_ngen/regionalization/region_sr/${TEST_GAGE}/checkpoint_dir/"
+docker_run python -um "ngen_rte.run_regionalization_standalone" -n 2 -faf "${TEST_FORM_ASSIGN_GAGE}" -cgf "${TEST_CAT_GRP_GAGE}" -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "region_sr" --checkpoint_interval 3 --checkpoint_dir "/ngwpc/run_ngen/regionalization/region_sr/${TEST_GAGE}/checkpoint_dir/" -nwmout --output_format NetCDF
 docker_run python -um "ngen_rte.run_restart" -src "/ngwpc/run_ngen/regionalization/region_sr/${TEST_GAGE}/" -dst "/ngwpc/run_ngen/regionalization/region_sr_restart/${TEST_GAGE}/" --checkpoint_dir "/ngwpc/run_ngen/regionalization/region_sr/${TEST_GAGE}/checkpoint_dir/"
 
 exit 0
