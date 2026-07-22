@@ -186,6 +186,10 @@ class _LogParserNgen(_LogParserBase):
             bn_prefix = "calib"
         elif self.rb.run_type in ("forecast", "cold_start"):
             bn_prefix = self.rb.fcst_run_name
+        elif self.rb.run_type == "hindcast":
+            bn_prefix = f"hindcast_{self.rb.hind_cycle}"
+        elif self.rb.run_type == "warm_start":
+            bn_prefix = f"warm_start_{self.rb.hind_cycle}"
         else:
             raise NotImplementedError(
                 f"Unsupported realization type: {self.rb.run_type}"

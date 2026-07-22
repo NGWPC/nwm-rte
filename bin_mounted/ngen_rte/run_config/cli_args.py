@@ -261,6 +261,31 @@ provide them as empty strings e.g. `-le 'mem2' '' ''`.""",
     scripts=[Script.FORECAST, Script.DEFAULT, Script.REGIONALIZATION],
 )
 
+
+HINDCAST = ArgsKwargs(
+    args=["-hc", "--hindcast"],
+    kwargs={
+        "dest": "hindcast_args",
+        "type": str,
+        "nargs": 2,
+        "required": False,
+        "help": """Provide this multi-part argument to run a hindcast sequence.
+
+Available only for forecasts that are based on an existing calibration/validation (at a gage),
+e.g. not available for a "default" realization or a forecast based on a regionalization.
+
+This argument has 2 parts:
+    1. cycle_interval : int (required when -hc provided)
+        Cycle interval (in hours) between hindcast runs.
+    2. num_iterations : int (required when -hc provided)
+        Number of hindcast cycles to perform.
+
+For additional information, see nwm-fcst-mgr's forecast.py and README.md.""",
+    },
+    scripts=[Script.FORECAST],
+)
+
+
 OBJECTIVE_FUNCTION = ArgsKwargs(
     args=["-ofunc", "--objective_function"],
     kwargs={

@@ -38,6 +38,8 @@ docker_run python -um "ngen_rte.run_forecast" -fconfig "short_range" -dt "2025-0
 # docker_run python -um "ngen_rte.run_forecast" -fconfig "short_range" -dt "2025-07-10 04:00:00" -rname "fcst_run1_short_range_n2" -n 2
 docker_run python -um "ngen_rte.run_forecast" -fconfig "standard_ana" -dt "2025-07-10 10:00:00" -rname "fcst_run1_standard_ana"
 docker_run python -um "ngen_rte.run_forecast" -fconfig "medium_range_blend" -dt "2025-07-10 00:00:00" -rname "fcst_run1_medium_range_blend"
+# Hindcast short_range
+docker_run python -um "ngen_rte.run_forecast" -n 2 -fconfig "short_range" -dt "2025-07-10 04:00:00" -rname "fcst_run1_short_range_hindcast" -hc 3 10
 
 # PR sample calibration during Hurricane Maria
 # sudo rm -rf ~/ngwpc/run_ngen/kge_dds/test_bmi/50027000
