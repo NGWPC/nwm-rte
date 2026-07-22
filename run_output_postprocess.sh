@@ -24,12 +24,12 @@ set -x
 ## \usage ./run_output_postprocess.sh
 ## 
 
-NGEN_NETCDF_OUTPUT_FILE="/ngwpc/run_ngen/default/default_sr/03S/Output/catchment_output.nc"
-NGEN_GPKG_FILE="/ngwpc/run_ngen/default/default_sr/03S/Input/vpu_03S.gpkg"
-OUTPUT_FOLDER="/ngwpc/run_ngen/output_postprocess/"
-TROUTE_OUTPUT_FILE="/ngwpc/run_ngen/default/default_sr/03S/Output/troute_output.nc"
-TROUTE_LAKEOUT_FILE="/ngwpc/run_ngen/default/default_sr/03S/Output/troute_lakeout.nc"
+NGEN_NETCDF_OUTPUT_FILE="/ngwpc/run_ngen/default/default_ana/03S/Output/catchment_output.nc"
+NGEN_GPKG_FILE="/ngwpc/run_ngen/default/default_ana/03S/Input/vpu_03S.gpkg"
+OUTPUT_FOLDER="/ngwpc/run_ngen/default/output_postprocess/"
+TROUTE_OUTPUT_FILE="/ngwpc/run_ngen/default/default_ana/03S/Output/troute_output_202603300400.nc"
+TROUTE_LAKEOUT_FILE="/ngwpc/run_ngen/default/default_ana/03S/Output/troute_output_202603300400.nc"
 
-docker_run python -um "ngen_rte.run_output_postprocess" -ncout "${NGEN_NETCDF_OUTPUT_FILE}" -gpkg "${NGEN_GPKG_FILE}" -of "${NETCDF_OUTPUT_FOLDER}" -tout "${TROUTE_OUTPUT_FILE}" -tlout "${TROUTE_LAKEOUTFILE}"
+docker_run python -um "ngen_rte.run_output_postprocess" -ncout "${NGEN_NETCDF_OUTPUT_FILE}" -gpkg "${NGEN_GPKG_FILE}" -of "${OUTPUT_FOLDER}" -tout "${TROUTE_OUTPUT_FILE}" -tlout "${TROUTE_LAKEOUT_FILE}"
 
 exit 0
