@@ -74,17 +74,13 @@ def _main(cfg: RTEForecastConfig):
 
     elif cfg.cycle_datetime:
         if cfg.use_hindcast:
-            if cfg.hc_cold_start_state:
-                raise NotImplementedError(
-                    "Hindcast from cold_start_state has not yet been implemented in nwm-rte"
-                )
             rb_generator = run_hindcast(
                 config=cfg.mswm_InputConfig,
                 valid_yaml=cfg.valid_best_yaml,
                 fcst_run_name=cfg._fcst_run_name_formatted,
                 cycle_interval=cfg.hc_cycle_interval,
                 num_iterations=cfg.hc_num_iterations,
-                cold_start_state=cfg.hc_cold_start_state,
+                cold_start_state=cfg.load_state_from,
                 # This causes run_hindcast to be a generator of (yield) RealizationBuilder instances instead of running each realization itself.
                 yield_realizations=True,
             )

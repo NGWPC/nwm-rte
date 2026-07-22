@@ -150,7 +150,7 @@ class RTEBaseConfig(BaseModelStrict):
     """File path for lagged ensemble closed loop state."""
 
     # For hindcast.  Used by run_forecast.py.
-    hindcast_args: list[str] | None = Field(default=None, min_length=3, max_length=3)
+    hindcast_args: list[str] | None = Field(default=None, min_length=2, max_length=2)
     """List of hindcast args from CLI. For details, see CLI help and ``_parse_hindcast_args()``."""
     use_hindcast: bool | None = Field(init=False, default=False)
     """Boolean indicating that hindcast is to be used. Passed to MSWM."""
@@ -158,8 +158,6 @@ class RTEBaseConfig(BaseModelStrict):
     """Hindcast cycle interval."""
     hc_num_iterations: int | None = Field(init=False, default=None)
     """Hindcast number of iterations."""
-    hc_cold_start_state: str | None = Field(init=False, default=None)
-    """Hindcast path to existing saved state from a previous coldstart run. Optional for hindcast workflow."""
 
     def model_post_init(self, __context) -> None:
         self.time_at_init = datetime.now(tz=timezone.utc)
@@ -297,7 +295,7 @@ class RTEBaseConfig(BaseModelStrict):
             self.use_hindcast = True
 
             # Raw unpacking of the str args, before casting types of some of them.
-            _cycle_interval, _num_iterations, _cold_start_state = self.hindcast_args
+            _cycle_interval, _num_iterations = self.hindcast_args
             if re.fullmatch(r"[0-9]+", _cycle_interval):
                 self.hc_cycle_interval = int(_cycle_interval)
             else:
@@ -314,9 +312,6 @@ class RTEBaseConfig(BaseModelStrict):
                         f"Hindcast _num_iterations must be str representation of an integer, but got: {repr(_num_iterations)}"
                     )
                 )
-            self.hc_cold_start_state = (
-                _cold_start_state if _cold_start_state.strip() else None
-            )
 
             if hasattr(self, "cold_start_datetime") and self.cold_start_datetime:
                 self.errors.append(
@@ -324,13 +319,6 @@ class RTEBaseConfig(BaseModelStrict):
                         "--hindcast_args and --cold_start_datetime were both provided, which is not allowed."
                     )
                 )
-
-        if self.hc_cold_start_state:
-            self.errors.append(
-                NotImplementedError(
-                    "Hindcast arg for coldstart state are not yet implemented in nwm-rte (should be provided as empty string for now)"
-                )
-            )
 
     @property
     def _fcst_run_name_formatted(self) -> str:
