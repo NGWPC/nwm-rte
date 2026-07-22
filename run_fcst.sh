@@ -64,4 +64,7 @@ docker_run python -um "ngen_rte.run_forecast" -dt "2025-09-15 00:00:00" -rname "
 # docker_run python -um "ngen_rte.run_forecast" -n 2 -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr_le" -fconfig medium_range -le "mem5" "" ""
 # docker_run python -um "ngen_rte.run_forecast" -n 2 -dt "2025-09-15 00:00:00" -rname "${fcst_run_name}_mr_le" -fconfig medium_range -le "mem6" "" ""
 
+# Reservoir RFC DA  (RFC reservoir test data only valid at "2026-07-13 12:00:00", default 01123000 gage does not have a reservoir)
+# docker_run python -um "ngen_rte.run_forecast" -dt "2025-07-13 12:00:00" -rname "${fcst_run_name}_short" -fconfig short_range -rfc /ngwpc/run_ngen/data/rfc/reservoirs/timeseries/
+
 exit 0

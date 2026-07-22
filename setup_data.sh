@@ -52,5 +52,8 @@ s3_sync "${SOURCE_BUCKET_DEV}/${SOURCE_PREFIX_ROOT}/calib_params_tab_delimited" 
 # Download ESMF mesh files for NWM forcing (CONUS and oCONUS)
 s3_sync "${SOURCE_BUCKET_DEV}/${SOURCE_PREFIX_ROOT}/esmf/esmf_mesh" "${RUN_NGEN_ROOT__HOST}/data/esmf_mesh"
 
+# Download RFC reservoir gage timeseries data
+s3_sync "${SOURCE_BUCKET_DEV}/${SOURCE_PREFIX_ROOT}/rfc/reservoirs/timeseries" "${RUN_NGEN_ROOT__HOST}/data/rfc/reservoirs/timeseries"
+
 set -x
 exit 0

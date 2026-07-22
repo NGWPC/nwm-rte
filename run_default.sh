@@ -53,6 +53,10 @@ docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "medium_range_blend" 
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc" -mf "snow-17,noah-owp-modular,smp,lasam,t-route" -rz "true"
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "aorc" -dt "2013-07-25 00:00:00" -dur 2 -rname "default_aorc" --output_format CSV NetCDF
 
+# Reservoir RFC Data Assimilation (RFC reservoir test data only valid at "2026-07-13 12:00:00")
+# docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-07-13 12:00:00" -rname "default_sr" -g "01205500" -rfc /ngwpc/run_ngen/data/rfc/reservoirs/timeseries/
+# docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-07-13 12:00:00" -rname "default_sr_no_da" -g "01205500"
+
 # State saving and loading
 docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "standard_ana" -dt "2026-03-30 06:00:00" -rname "default_ana" --save_state --save_state_dir /ngwpc/run_ngen/default/default_ana/${TEST_GAGE}/state_save_directory/
 docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "standard_ana" -dt "2026-03-30 06:00:00" -rname "default_ana" --save_state

@@ -555,3 +555,18 @@ Provide as space-separated values e.g. -outfmt CSV NetCDF.""",
         Script.REGIONALIZATION,
     ],
 )
+
+RESERVOIR_RFC_DIR = ArgsKwargs(
+    args=["-rfc", "--reservoir_rfc_dir"],
+    kwargs={
+        "type": str,
+        "default": None,
+        "help": "Path to reservoir RFC forecast time-series directory. If provided,"
+        "reservoir data assimilation is enabled and reservoir_da is set to True.",
+    },
+    scripts=[
+        Script.FORECAST,
+        Script.DEFAULT,
+        Script.REGIONALIZATION,
+    ],
+)
