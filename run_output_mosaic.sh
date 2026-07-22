@@ -28,6 +28,6 @@ REFERENCE_GRID="/ngwpc/run_ngen/output_postprocess/nwm_output/analysis_assim/nwm
 NETCDF_FOLDER="/ngwpc/run_ngen/output_postprocess/"
 OUTPUT_FOLDER="/ngwpc/run_ngen/output_postprocess/"
 
-docker_run python -um "ngen_rte.run_output_postprocess" -ncout "${NGEN_NETCDF_OUTPUT_FILE}" -gpkg "${NGEN_GPKG_FILE}" -ncf "${NETCDF_OUTPUT_FOLDER}" -tout "${TROUTE_OUTPUT_FILE}" -tlout "${TROUTE_LAKEOUTFILE}"
+docker_run python -um "ngen_rte.run_output_mosaic" -ref "${REFERENCE_GRID}" -ncf "${NETCDF_FOLDER}" -of "${OUTPUT_FOLDER}"
 
 exit 0

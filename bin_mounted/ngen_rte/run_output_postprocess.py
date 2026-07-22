@@ -5,7 +5,7 @@ Calls data-assimilation's overall_netcdf_workflow to convert ngen catchment outp
 
 import argparse
 
-from data_assimilation_engine.netcdf_production_sample import overall_netcdf_workflow
+from netcdf_production_sample import overall_netcdf_workflow
 
 from ngen_rte.logger import initialize_logger
 from ngen_rte.run_config import cli_args

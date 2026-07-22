@@ -5,7 +5,7 @@ Calls data-assimilation's combine_basin_grids to merge per-timestep NetCDF gridd
 
 import argparse
 
-from data_assimilation_engine.netcdf_production_sample import combine_basin_grids
+from netcdf_production_sample import combine_basin_grids
 
 from ngen_rte.logger import initialize_logger
 from ngen_rte.run_config import cli_args
