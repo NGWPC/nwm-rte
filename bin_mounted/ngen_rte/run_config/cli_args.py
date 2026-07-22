@@ -27,6 +27,8 @@ class Script(StrEnum):
     CALIBRATION = "run_calibration"
     FORECAST = "run_forecast"
     TESTS = "run_tests"
+    OUTPUT_POSTPROCESS = "run_output_postprocess"
+    OUTPUT_MOSAIC = "run_output_mosaic"
     ALL = "all"
 
 
@@ -568,5 +570,89 @@ RESERVOIR_RFC_DIR = ArgsKwargs(
         Script.FORECAST,
         Script.DEFAULT,
         Script.REGIONALIZATION,
+    ],
+)
+
+NGEN_NETCDF_OUTPUT_FILE = ArgsKwargs(
+    args=["-ncout", "--ngen_netcdf_output_file"],
+    kwargs={
+        "type": str,
+        "required": True,
+        "help": """Path to the ngen catchment output NetCDF file.""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS,
+    ],
+)
+
+NGEN_GPKG_FILE = ArgsKwargs(
+    args=["-gpkg", "--ngen_gpkg_file"],
+    kwargs={
+        "type": str,
+        "required": True,
+        "help": """Path to the ngen hydrofabric geopackage file for output postprocessing.""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS,
+    ],
+)
+
+OUTPUT_FOLDER = ArgsKwargs(
+    args=["-of", "--output_folder"],
+    kwargs={
+        "type": str,
+        "required": True,
+        "help": """Path to the output folder where postprocessing outputs will be written.""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS, Script.OUTPUT_MOSAIC,
+    ],
+)
+
+TROUTE_OUTPUT_FILE = ArgsKwargs(
+    args=["-tout", "--troute_output_file"],
+    kwargs={
+        "type": str,
+        "default": "",
+        "help": """Path to the T-Route output file.""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS,
+    ],
+)
+
+TROUTE_LAKEOUT_FILE = ArgsKwargs(
+    args=["-tlout", "--troute_lakeout_file"],
+    kwargs={
+        "type": str,
+        "default": "",
+        "help": """Path to the T-Route lakeout file.""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS,
+    ],
+)
+
+REFERENCE_GRID = ArgsKwargs(
+    args=["-ref", "--reference_grid"],
+    kwargs={
+        "type": str,
+        "required": True,
+        "help": """Path to the reference grid NetCDF file used as a template for the combined output grid""",
+    },
+    scripts=[
+        Script.OUTPUT_MOSAIC,
+    ],
+)
+
+NETCDF_FOLDER = ArgsKwargs(
+    args=["-ncf", "--netcdf_folder"],
+    kwargs={
+        "type": str,
+        "required": True,
+        "help": """Path to the folder containing per-timestep NetCDF gridded outputs to combine.""",
+    },
+    scripts=[
+        Script.OUTPUT_MOSAIC,
     ],
 )
