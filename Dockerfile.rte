@@ -3,6 +3,8 @@ ARG GH_ORG
 ARG NGEN_BASE_IMAGE=ghcr.io/${GH_ORG,,}/ngen:latest
 FROM $NGEN_BASE_IMAGE AS ngen_rte_base
 ARG GH_ORG
+# e.g. "3.12"
+ARG PYTHON_VERSION_STR
 
 # OCI Metadata Arguments
 ARG TARGET_IMAGE_DESCRIPTION="Docker image for the National Water Model Runtime Environment (NWM RTE)."
@@ -25,9 +27,8 @@ LABEL org.opencontainers.image.description=$TARGET_IMAGE_DESCRIPTION \
 ### and log level is controlled by `./bin_mounted/ngen_logging.json`.
 # ENV FORCING_LOGLEVEL=DEBUG
 
-### Static args
+### Static args/vars
 ARG PYTHON_ENV="/ngen-app/ngen-python/bin"
-ARG PYTHON_VERSION_STR="python3.11"
 ENV PIP_NO_CACHE_DIR=1
 ENV OMPI_ALLOW_RUN_AS_ROOT=1
 ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
@@ -44,7 +45,7 @@ RUN python -m pip install --upgrade pip
 ### Install debuggers if specified
 ARG INSTALL_DEBUGGERS
 RUN --mount=type=bind,src=nwm-rte/install_debuggers.sh,dst=/src/${GH_ORG}/nwm-rte/install_debuggers.sh \
-    "/src/${GH_ORG}/nwm-rte/install_debuggers.sh" "${INSTALL_DEBUGGERS}"
+    "/src/${GH_ORG}/nwm-rte/install_debuggers.sh" "${INSTALL_DEBUGGERS}" "${PYTHON_VERSION_STR}"
 
 
 ### Install nwm packages
@@ -114,7 +115,7 @@ ENV PATH_SAVED=${PATH}
 ENV PYTHONPATH_SAVED=${PYTHONPATH}
 # Adjust PATH and PYTHONPATH to give this environment precedent
 ENV PATH="${EVAL_VERF_PYTHON_BIN_DIR}:${PATH}"
-ENV PYTHONPATH="${EVAL_VERF_PYTHON_BIN_DIR}/lib/${PYTHON_VERSION_STR}/site-packages"
+ENV PYTHONPATH="${EVAL_VERF_PYTHON_BIN_DIR}/lib/python${PYTHON_VERSION_STR}/site-packages"
 
 ARG REPO_TAG_EVAL
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
