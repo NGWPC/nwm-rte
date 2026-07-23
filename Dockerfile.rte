@@ -99,6 +99,9 @@ RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/
 #### BEGIN SECOND STAGE: Adding a separate Python venv for nwm-eval-mgr (i.e., nwm_eval and nwm_metrics)
 FROM ngen_rte_base AS ngen_rte_eval_verf
 
+# Install Python 3.11 (required as of 2026-07-23 for the pinned version of teehr which pins duckdb to a version not compatible with Python 3.12)
+RUN apt-get update && apt-get install -y --no-install-recommends python3.11 python3.11-venv
+
 # Call modules like `python_eval_verf -m nwm_eval`
 ARG EVAL_VERF_PYTHON_ALIAS="python_eval_verf"
 ARG EVAL_VERF_VENV="/ngen-app/venvs/eval_verf"
@@ -106,7 +109,7 @@ ARG EVAL_VERF_PYTHON_BIN_DIR="${EVAL_VERF_VENV}/bin"
 ARG EVAL_VERF_PYTHON_BIN_FILE="${EVAL_VERF_PYTHON_BIN_DIR}/python"
 
 # Make the venv
-RUN python -m venv "${EVAL_VERF_VENV}"
+RUN python3.11 -m venv "${EVAL_VERF_VENV}"
 # Add an alias for convenience
 RUN echo "alias ${EVAL_VERF_PYTHON_ALIAS}=\"${EVAL_VERF_PYTHON_BIN_FILE}\"" >> ~/.bashrc
 
