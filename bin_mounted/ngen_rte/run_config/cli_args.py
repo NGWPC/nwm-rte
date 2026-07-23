@@ -217,7 +217,7 @@ COLD_START_DATETIME = ArgsKwargs(
 and this value will be the start time for the cold-start.
 Format: {repr(DEFAULT_DATETIME_FORMAT.replace("%", "%%"))}.""",
     },
-    scripts=[Script.FORECAST],
+    scripts=[Script.FORECAST, Script.DEFAULT, Script.REGIONALIZATION],
 )
 
 NWM_OUTPUT_VARIABLES = ArgsKwargs(

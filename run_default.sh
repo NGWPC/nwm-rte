@@ -32,6 +32,9 @@ docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "20
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr" -g "12175500"
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr" -v "03S"
 
+# Cold Start
+docker_run python -um "ngen_rte.run_default" -n 2 -csdt "2025-09-14 00:00:00" -dt "2025-09-15 00:00:00" -rname "default_cs_short" -fconfig short_range --save_state
+
 # Short Range with NWM Output Variables
 docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr_nwm_output" -nwmout --output_format CSV NetCDF
 # Analysis & Assimilation
