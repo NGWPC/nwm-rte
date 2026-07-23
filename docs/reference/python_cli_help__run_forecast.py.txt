@@ -8,8 +8,9 @@ usage: run_forecast.py [-h] [-csdt COLD_START_DATETIME] -dt CYCLE_DATETIME
                        [-lsf LOAD_STATE_FROM] [-nwmout] [-n NPROCS]
                        [-ofunc OBJECTIVE_FUNCTION]
                        [-optalgo OPTIMIZATION_ALGORITHM]
-                       [-outfmt OUTPUT_FORMAT [OUTPUT_FORMAT ...]] [-ss]
-                       [-ssd SAVE_STATE_DIR] [-ts]
+                       [-outfmt OUTPUT_FORMAT [OUTPUT_FORMAT ...]]
+                       [-rfc RESERVOIR_RFC_DIR] [-ss] [-ssd SAVE_STATE_DIR]
+                       [-ts]
 
 Script for building and running a forecast realization,
 optionally with a coldstart.
@@ -134,6 +135,9 @@ options:
   -outfmt, --output_format : type=str default=['CSV']
                         Output format(s) for NWM output variables. Accepts 'CSV', 'NetCDF' or both.
                         Provide as space-separated values e.g. -outfmt CSV NetCDF.
+
+  -rfc, --reservoir_rfc_dir : type=str default=None
+                        Path to reservoir RFC forecast time-series directory. If provided,reservoir data assimilation is enabled and reservoir_da is set to True.
 
   -ss, --save_state : bool-switch(store-true) default=False
                         If provided, save the model state at the end of the run.
