@@ -1506,12 +1506,6 @@ as well as the runtime environment itself (e.g. mount paths).</p>
         </div>
       </li>
       <li>
-        <code>REPO_TAG_VERF</code>:
-        <div class="doc doc-md-description">
-          <p>Source for <code>nwm-verf</code>.</p>
-        </div>
-      </li>
-      <li>
         <code>REPO_TAG_EVAL</code>:
         <div class="doc doc-md-description">
           <p>Source for <code>nwm-eval-mgr</code>.</p>
@@ -1613,32 +1607,20 @@ as well as the runtime environment itself (e.g. mount paths).</p>
         <code>MNT__RUN_NGEN__CONTAINER</code>:
         <div class="doc doc-md-description">
           <p>path within the container to which the host disk path described by <code>MNT__RUN_NGEN__HOST</code> is mounted.</p>
-<h4 id="config.bashrc--mounts-for-s3-data">Mounts for S3 data<a class="headerlink" href="#config.bashrc--mounts-for-s3-data" title="Permanent link">#</a></h4>
-        </div>
-      </li>
-      <li>
-        <code>S3_ROOT__HOST</code>:
-        <div class="doc doc-md-description">
-          <p>Root of input data downloaded from s3.</p>
-        </div>
-      </li>
-      <li>
-        <code>MNT__S3_DATA__HOST</code>:
-        <div class="doc doc-md-description">
-          <p>Alias for <code>S3_ROOT__HOST</code>. Host path mounted by the container.</p>
-        </div>
-      </li>
-      <li>
-        <code>MNT__S3_DATA__CONTAINER</code>:
-        <div class="doc doc-md-description">
-          <p>path within the container to which the host disk path described by <code>MNT__S3_DATA__HOST</code> is mounted.</p>
 <h4 id="config.bashrc--mounts-for-regionalization-data">Mounts for regionalization data<a class="headerlink" href="#config.bashrc--mounts-for-regionalization-data" title="Permanent link">#</a></h4>
         </div>
       </li>
       <li>
         <code>MNT__NWM_REGION_MGR__INPUT_DATA</code>:
         <div class="doc doc-md-description">
-          <p>Host path to input data from <code>nwm-region-mgr</code> repository for regionalization workflows. Mounted by the container.
+          <p>Host path to input data from <code>nwm-region-mgr</code> repository for regionalization workflows. Mounted by the container.</p>
+<h4 id="config.bashrc--installed-regionalization-results">Installed regionalization results<a class="headerlink" href="#config.bashrc--installed-regionalization-results" title="Permanent link">#</a></h4>
+        </div>
+      </li>
+      <li>
+        <code>INSTALLED_REGIONALIZATION_RESULTS</code>:
+        <div class="doc doc-md-description">
+          <p>Results of regionalization, baked into the MSWM Python package, which can be used for testing the regionalized form of ngen forecasts.
  Remote data sources for setup_data.sh and setup_data_one_gage.sh</p>
         </div>
       </li>
@@ -1649,9 +1631,17 @@ as well as the runtime environment itself (e.g. mount paths).</p>
         </div>
       </li>
       <li>
+        <code>SOURCE_PREFIX_ROOT</code>:
+        <div class="doc doc-md-description">
+          <p>Prefix root for data sourced from SOURCE_BUCKET_DEV, used by setup_data.sh and setup_data_one_gage.sh</p>
+        </div>
+      </li>
+      <li>
         <code>EDFS_API_VERSION</code>:
         <div class="doc doc-md-description">
           <p>For EDFS API URL for nwm-rte setup scripts. Used to construct URL path component. Not used during actual runtime.
+ Test gage and associated domain.
+ NOTE if updating these, may also need to update bin_mounted/ngen_rte/consts.py
  Logging functions
  File operation functions</p>
         </div>
@@ -2070,7 +2060,9 @@ which is typically sourced by other scripts and ran externally.</p>
 
   <strong>Usage</strong>
     <pre><code>./run_fcst.sh 
-</code></pre>
+
+Regular warmstart
+Hindcast warmstart</code></pre>
 
   <strong>Description</strong>
       <p>Source <code>./run.sh</code> to call its <code>docker_run</code> command for running "forecast" realizations.  It requires that the ngen runtime environment image has already been built using <code>./ngen_rte_build.sh</code>.</p>
@@ -2255,7 +2247,7 @@ a parameter to work around the non-branching nature of Docker build flow control
 <p>Also call <code>add_git_info.py</code> to dump the package's git info to a json file.</p>
 <p>Treats ngen-forcing reinstall as special since it necessarily is already installed in the base image,
 so if it is specified here, it receives a <code>--force-reinstall</code> flag.</p>
-<p>Has 6 positional arguments and 0 named arguments.</p>
+<p>Has 7 positional arguments and 0 named arguments.</p>
 
 
   <strong>Options</strong>
@@ -2294,6 +2286,12 @@ so if it is specified here, it receives a <code>--force-reinstall</code> flag.</
 <code>extras</code>:
           <div class="doc doc-md-description">
             <p>Optional extras to include in the pip install directive, e.g. <code>pip install package_name[extras]</code></p>
+          </div>
+        </li>
+        <li>
+<code>repo_subdirectory</code>:
+          <div class="doc doc-md-description">
+            <p>Optional subdirectory within the repo to install from, e.g. for <code>pip install package_name @ git+https://github.com/org/repo@tag#subdirectory=subdir</code></p>
           </div>
         </li>
     </ul>

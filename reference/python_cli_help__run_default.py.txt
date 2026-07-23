@@ -1,7 +1,7 @@
 usage: run_default.py [-h] [-dur DURATION] [-cd CHECKPOINT_DIR]
-                      [-c CHECKPOINT_INTERVAL] -dt CYCLE_DATETIME [-delraw]
-                      [-delscratch] [-e {test,oe}] [-rname FCST_RUN_NAME]
-                      [-fconfig FORCING_CONFIGURATION]
+                      [-c CHECKPOINT_INTERVAL] [-csdt COLD_START_DATETIME] -dt
+                      CYCLE_DATETIME [-delraw] [-delscratch] [-e {test,oe}]
+                      [-rname FCST_RUN_NAME] [-fconfig FORCING_CONFIGURATION]
                       [-fstatic FORCING_STATIC_DIR] [-g GAGE_ID]
                       [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
                       [--hydrofab_file HYDROFAB_FILE]
@@ -10,7 +10,8 @@ usage: run_default.py [-h] [-dur DURATION] [-cd CHECKPOINT_DIR]
                       [-mf MODEL_FORMULATION_CLI_CSV]
                       [-rz MODEL_FORMULATION_CLI_ROOTZONE] [-nwmout]
                       [-n NPROCS] [-outfmt OUTPUT_FORMAT [OUTPUT_FORMAT ...]]
-                      [-ss] [-ssd SAVE_STATE_DIR] [-ts] [-v VPU]
+                      [-rfc RESERVOIR_RFC_DIR] [-ss] [-ssd SAVE_STATE_DIR]
+                      [-ts] [-v VPU]
 
 Script for building and running default realizations
 using realtime forcing configurations or historical / retrospective forcing.
@@ -30,6 +31,11 @@ options:
 
   -c, --checkpoint_interval : type=int default=None
                         Checkpointing interval in integer number of timesteps. If provided, enables checkpointing during the run.
+
+  -csdt, --cold_start_datetime : type=datetime_type default=None
+                        If provided, a cold-start realization will be ran prior to the forecast,
+                        and this value will be the start time for the cold-start.
+                        Format: '%Y-%m-%d %H:%M:%S'.
 
   -dt, --cycle_datetime : type=datetime_type default=None
                         For a regular forecast, this is the start time.
@@ -139,6 +145,9 @@ options:
   -outfmt, --output_format : type=str default=['CSV']
                         Output format(s) for NWM output variables. Accepts 'CSV', 'NetCDF' or both.
                         Provide as space-separated values e.g. -outfmt CSV NetCDF.
+
+  -rfc, --reservoir_rfc_dir : type=str default=None
+                        Path to reservoir RFC forecast time-series directory. If provided,reservoir data assimilation is enabled and reservoir_da is set to True.
 
   -ss, --save_state : bool-switch(store-true) default=False
                         If provided, save the model state at the end of the run.

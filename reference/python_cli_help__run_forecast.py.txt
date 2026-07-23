@@ -3,12 +3,14 @@ usage: run_forecast.py [-h] [-csdt COLD_START_DATETIME] -dt CYCLE_DATETIME
                        [-rname FCST_RUN_NAME] [-fconfig FORCING_CONFIGURATION]
                        [-fstatic FORCING_STATIC_DIR] [-g GAGE_ID]
                        [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
+                       [-hc HINDCAST_ARGS HINDCAST_ARGS]
                        [-le LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS]
                        [-lsf LOAD_STATE_FROM] [-nwmout] [-n NPROCS]
                        [-ofunc OBJECTIVE_FUNCTION]
                        [-optalgo OPTIMIZATION_ALGORITHM]
-                       [-outfmt OUTPUT_FORMAT [OUTPUT_FORMAT ...]] [-ss]
-                       [-ssd SAVE_STATE_DIR] [-ts]
+                       [-outfmt OUTPUT_FORMAT [OUTPUT_FORMAT ...]]
+                       [-rfc RESERVOIR_RFC_DIR] [-ss] [-ssd SAVE_STATE_DIR]
+                       [-ts]
 
 Script for building and running a forecast realization,
 optionally with a coldstart.
@@ -74,6 +76,20 @@ options:
   -gdomain, --global_domain : type=str default='CONUS'
                         Global domain/region of forcing data.
 
+  -hc, --hindcast : type=str default=None
+                        Provide this multi-part argument to run a hindcast sequence.
+                        
+                        Available only for forecasts that are based on an existing calibration/validation (at a gage),
+                        e.g. not available for a "default" realization or a forecast based on a regionalization.
+                        
+                        This argument has 2 parts:
+                            1. cycle_interval : int (required when -hc provided)
+                                Cycle interval (in hours) between hindcast runs.
+                            2. num_iterations : int (required when -hc provided)
+                                Number of hindcast cycles to perform.
+                        
+                        For additional information, see nwm-fcst-mgr's forecast.py and README.md.
+
   -le, --lagged-ensemble : type=str default=None
                         Provide this multi-part argument to run one member
                         of a lagged ensemble (see nwm-fcst-mgr function `run_lagged_ensemble`).
@@ -119,6 +135,9 @@ options:
   -outfmt, --output_format : type=str default=['CSV']
                         Output format(s) for NWM output variables. Accepts 'CSV', 'NetCDF' or both.
                         Provide as space-separated values e.g. -outfmt CSV NetCDF.
+
+  -rfc, --reservoir_rfc_dir : type=str default=None
+                        Path to reservoir RFC forecast time-series directory. If provided,reservoir data assimilation is enabled and reservoir_da is set to True.
 
   -ss, --save_state : bool-switch(store-true) default=False
                         If provided, save the model state at the end of the run.
