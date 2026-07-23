@@ -50,8 +50,11 @@ def _main(cfg: RTEDefaultConfig):
     if cfg.delete_forcing_raw_input_first:
         utils_testing_setup.delete_forcing_raw_inputs()
 
+    use_cold_start = bool(cfg.cold_start_datetime)
+
     rb = build_realization(
-        cfg.mswm_RealizationBuilder_kwargs, build_method="build_default_realization"
+        cfg.mswm_RealizationBuilder_kwargs | {"use_cold_start": use_cold_start},
+        build_method="build_default_realization"
     )
     cfg.configure_ngen_log(rb)
     run_default(rb)

@@ -518,7 +518,7 @@ class RTEBaseConfig(BaseModelStrict):
             )
         cold_start_datetime = (
             self.cold_start_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT)
-            if isinstance(self, RTEForecastConfig) and self.cold_start_datetime
+            if isinstance(self, (RTEForecastConfig, RTEDefaultConfig, RTERegionConfig)) and self.cold_start_datetime
             else None
         )
         fc = ForcingConfig(
@@ -670,6 +670,8 @@ class RTEDefaultConfig(RTEBaseConfig):
         Name of the forecast realization run. Affects a directory name.
     lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
         See CLI help menu for [`run_default.py`](python_cli_help__run_default.py.txt) for details.
+    cold_start_datetime: datetime | None
+        Start time of the coldstart realization. If None, coldstart is not performed.
     """
 
     cycle_datetime: datetime
@@ -678,6 +680,7 @@ class RTEDefaultConfig(RTEBaseConfig):
     fcst_run_name: str
     # For medium-range lagged ensemble
     lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
+    cold_start_datetime: datetime | None
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
@@ -706,6 +709,8 @@ class RTERegionConfig(RTEBaseConfig):
         File containing formulation assignments for catchments
     cat_grp_file: str
         File containing catchment groupings for regionalization
+    cold_start_datetime: datetime | None
+        Start time of the coldstart realization. If None, coldstart is not performed.
     """
 
     cycle_datetime: datetime
@@ -716,6 +721,7 @@ class RTERegionConfig(RTEBaseConfig):
     lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
     form_assign_file: str
     cat_grp_file: str
+    cold_start_datetime: datetime | None
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init
