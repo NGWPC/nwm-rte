@@ -28,11 +28,20 @@ set -x
 
 
 # 7 day Cold Start
-docker_run python -um "ngen_rte.run_default" -n 2 -csdt "2025-09-14 00:00:00" -dt "2025-09-15 00:00:00" -rname "default_cs_7day" -fconfig short_range --save_state
+docker_run python -um "ngen_rte.run_default" -n 2 -csdt "2025-09-14 00:00:00" -dt "2025-09-15 00:00:00" -rname "default_ana_7day" -fconfig short_range --save_state
 
 # 1 day Intermediate AnAs
+docker_run python -um "ngen_rte.run_default" -n 2 -csdt "2025-09-15 00:00:00" -dt "2025-09-16 00:00:00" -rname "default_ana_-2d_-1d" -fconfig short_range --save_state --load_state_from /ngwpc/run_ngen/default/default_ana_7day/01123000/state_save/
+docker_run python -um "ngen_rte.run_default" -n 2 -csdt "2025-09-16 00:00:00" -dt "2025-09-17 00:00:00" -rname "default_ana_-1d_0d" -fconfig short_range --save_state --load_state_from /ngwpc/run_ngen/default/default_ana_-2d_-1d/01123000/state_save/
+docker_run python -um "ngen_rte.run_default" -n 2 -csdt "2025-09-17 00:00:00" -dt "2025-09-18 00:00:00" -rname "default_ana_0d_1d" -fconfig short_range --save_state --load_state_from /ngwpc/run_ngen/default/default_ana_-1d_0d/01123000/state_save/
+docker_run python -um "ngen_rte.run_default" -n 2 -csdt "2025-09-18 00:00:00" -dt "2025-09-19 00:00:00" -rname "default_ana_1d_2d" -fconfig short_range --save_state --load_state_from /ngwpc/run_ngen/default/default_ana_0d_1d/01123000/state_save/
 
-
+# 5 Short Range
+docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2025-09-15 00:00:00" -rname "default_sr_-2d" --load_state_from /ngwpc/run_ngen/default/default_ana_7day/01123000/state_save/
+docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2025-09-16 00:00:00" -rname "default_sr_-1d" --load_state_from /ngwpc/run_ngen/default/default_ana_-2d_-1d/01123000/state_save/
+docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2025-09-17 00:00:00" -rname "default_sr_0d" --load_state_from /ngwpc/run_ngen/default/default_ana_-1d_0d/01123000/state_save/
+docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2025-09-18 00:00:00" -rname "default_sr_1d" --load_state_from /ngwpc/run_ngen/default/default_ana_0d_1d/01123000/state_save/
+docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2025-09-19 00:00:00" -rname "default_sr_2d" --load_state_from /ngwpc/run_ngen/default/default_ana_1d_2d/01123000/state_save/
 
 # # Short Range
 # docker_run python -um "ngen_rte.run_default" -n 2 -fconfig "short_range" -dt "2026-03-30 06:00:00" -rname "default_sr"
