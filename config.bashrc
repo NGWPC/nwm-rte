@@ -26,7 +26,7 @@ NO_CACHE=${NO_CACHE:-""}
 # STAGE=${STAGE:-"ngen_rte_base"}
 STAGE=${STAGE:-"ngen_rte_eval_verf"}
 
-## \env INSTALL_DEBUGGERS Passed to ./install_debuggers.sh, causes pip package `debugpy` and dnf package `gdb` to be installed. Choose from: `["NO", "YES"]`
+## \env INSTALL_DEBUGGERS Passed to ./install_debuggers.sh, causes pip package `debugpy` and OS package `gdb` to be installed. Choose from: `["NO", "YES"]`
 INSTALL_DEBUGGERS=${INSTALL_DEBUGGERS:-"NO"}
 # INSTALL_DEBUGGERS=${INSTALL_DEBUGGERS:-"YES"}
 
@@ -102,6 +102,9 @@ TARGET_IMAGE_NAME=${TARGET_IMAGE_NAME:-"ngen_rte_${NGEN_SOURCE_MODE}"}
 
 #### Misc
 
+## \env Python version string. If this is changed here, it should also be changed in the Python code in consts.py.
+PYTHON_VERSION_STR="3.12"
+
 # OCI Standard labels for Dockerfile.rte image
 # See https://specs.opencontainers.org/image-spec/annotations/
 TARGET_IMAGE_SOURCE=${TARGET_IMAGE_SOURCE:-"https://github.com/${GH_ORG}/nwm-rte"}
@@ -142,7 +145,7 @@ MNT__NWM_REGION_MGR__INPUT_DATA="${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr/data/
 
 ##### Installed regionalization results
 ## \env INSTALLED_REGIONALIZATION_RESULTS Results of regionalization, baked into the MSWM Python package, which can be used for testing the regionalized form of ngen forecasts.
-INSTALLED_REGIONALIZATION_RESULTS=/ngen-app/ngen-python/lib/python3.11/site-packages/mswm/example_inputs/regionalization
+INSTALLED_REGIONALIZATION_RESULTS=/ngen-app/ngen-python/lib/python${PYTHON_VERSION_STR}/site-packages/mswm/example_inputs/regionalization
 
 ### Remote data sources for setup_data.sh and setup_data_one_gage.sh
 ## \env SOURCE_BUCKET_DEV Name of cloud bucket (no s3:// prefix in the string), used by setup_data.sh and setup_data_one_gage.sh

@@ -25,11 +25,11 @@ set -x
 ## \usage ./run_suite.sh
 ## 
 
-# CONUS NWM calibration using a short duration
+# CONUS NWM calibration using a shorter duration
 # sudo rm -rf ~/ngwpc/run_ngen/kge_dds/test_bmi/${TEST_GAGE}
-docker_run python -um "ngen_rte.run_calibration" -n 2 -fconfig "nwm" -start "2013-07-25 00:00:00" -dur 2
+# docker_run python -um "ngen_rte.run_calibration" -n 2 -fconfig "nwm" -start "2013-07-25 00:00:00" -dur 2
 
-# CONUS AORC calibration using a long duration
+# CONUS AORC calibration using a longer duration
 # sudo rm -rf ~/ngwpc/run_ngen/kge_dds/test_bmi/${TEST_GAGE}
 docker_run python -um "ngen_rte.run_calibration" -n 2 -fconfig "aorc" -start "2013-07-01 00:00:00" -dur 120
 

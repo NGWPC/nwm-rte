@@ -7,7 +7,7 @@ set -euo pipefail
 ## Install debugger packages. Used by `Dockerfile.rte`.
 ## 
 ## \desc
-## Install debugger packages: python package `debugpy` and dnf package `gdb`. Used by `Dockerfile.rte`.
+## Install debugger packages: python package `debugpy` and OS package `gdb`. Used by `Dockerfile.rte`.
 ## Optionally skip installation (noop). The choice of noop is to abstract the flow control away into
 ## a parameter to work around the non-branching nature of Docker build flow control.
 ## 
@@ -21,16 +21,27 @@ set -euo pipefail
 ## 
 
 install_debuggers=$1
+python_version=${2:-}
 
 if [ "$install_debuggers" = "YES" ]; then
     echo "Installing debugpy via pip"
     pip install debugpy
-    echo "Installing gdb via dnf"
-    dnf install -y gdb
-    yum install yum-utils -y
-    yum-config-manager --enable baseos-debug
-    # TODO parameterize or auto-determine Python version
-    debuginfo-install python3.11
+    echo "Installing gdb"
+
+    if grep -q '^ID=rocky' /etc/os-release; then
+        echo "Rocky detected. Installing gdb and Python debug symbols"
+        dnf install -y gdb
+        yum install yum-utils -y
+        yum-config-manager --enable baseos-debug
+        debuginfo-install python${python_version}
+    elif grep -q '^ID=debian' /etc/os-release; then
+        echo "Debian detected. Installing gdb. Python debug symbols will not be installed."
+        apt-get update
+        apt-get install -y gdb libc6-dbg
+    else
+        echo "Error: unexpected OS: `grep ^ID /etc/os-release`"
+        exit 1
+    fi
 
 elif [ "$install_debuggers" = "NO" ]; then
     echo "Not installing debuggers"

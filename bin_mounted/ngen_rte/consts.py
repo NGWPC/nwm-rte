@@ -12,6 +12,8 @@ from calib.strategy import (
     Objective as CalObjective,
 )
 
+PYTHON_VERSION_STRING = "3.12"
+"""Python version string, e.g. "3.12". If this is changed here, it should also be changed in the build code in config.bashrc"""
 CONTAINER_LOGS_DIR = "/ngen-app/logs_rte"
 
 RUN_NAME_TIMESTAMP_SUFFIX_FORMAT = r"%Y%m%d-%H%M%S-%f"
@@ -21,7 +23,7 @@ FORCING_PROVIDER = "bmi"
 
 ### .config section [Forcing]
 DEFAULT_FORECAST_RUN_NAME = "fcst_run1"
-FORCING_TEMPLATE_DIR = "/ngen-app/ngen-python/lib/python3.11/site-packages/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
+FORCING_TEMPLATE_DIR = f"/ngen-app/ngen-python/lib/python{PYTHON_VERSION_STRING}/site-packages/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates/"
 """Directory of forcing configuration template yaml files."""
 FORCING_ROOT_DIR = "/ngen-app/data"
 DIR_FORCING_RAW_INPUT = os.path.join(FORCING_ROOT_DIR, "raw_input")
@@ -65,9 +67,7 @@ VALID_SIM_ADVANCEMENT_DEFAULT = timedelta(hours=0)  # Gets subtracted
 VALID_EVAL_CURTAILMENT_DEFAULT = timedelta(hours=0)  # Gets subtracted
 
 ### .config section [DataFile]
-MODULE_PARAMETER_FILES_DIR = (
-    "/ngen-app/ngen-python/lib/python3.11/site-packages/mswm/module_parameter_files"
-)
+MODULE_PARAMETER_FILES_DIR = f"/ngen-app/ngen-python/lib/python{PYTHON_VERSION_STRING}/site-packages/mswm/module_parameter_files"
 NGEN_DIR = "/ngen-app/ngen"
 NWM_RETRO_STREAMFLOW_DIR = f"{DEFAULT_MAIN_DIR}/data/nwm_retrospective"
 

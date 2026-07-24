@@ -211,3 +211,7 @@ __marimo__/
 /tmp/
 /bin_mounted/*_tests_results*.json
 /.devcontainer/tmp/
+
+# Outputs of full regionalization workflows (e.g. testing parreg -> ngen to produce regionalization files)
+/outputs/
+/run_time_*/
