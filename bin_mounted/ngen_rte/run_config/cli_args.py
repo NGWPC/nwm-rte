@@ -645,6 +645,18 @@ CONFIG_JSON_FILE = ArgsKwargs(
     ],
 )
 
+OUTPUT_TEMPLATES_FOLDER = ArgsKwargs(
+    args=["-otf", "--output_templates_folder"],
+    kwargs={
+        "type": str,
+        "default": "",
+        "help": """Path to the folder for NWM output templates.""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS,
+    ],
+)
+
 OUTPUT_CYCLE_HOUR = ArgsKwargs(
     args=["-och", "--output_cycle_hour"],
     kwargs={
