@@ -633,6 +633,42 @@ TROUTE_LAKEOUT_FILE = ArgsKwargs(
     ],
 )
 
+CONFIG_JSON_FILE = ArgsKwargs(
+    args=["-cfg", "--config_json_file"],
+    kwargs={
+        "type": str,
+        "required": True,
+        "help": """Path to the JSON file describing output variables.""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS,
+    ],
+)
+
+OUTPUT_CYCLE_HOUR = ArgsKwargs(
+    args=["-och", "--output_cycle_hour"],
+    kwargs={
+        "type": int,
+        "required": True,
+        "help": """Integer output cycle hour of the run for NWM postprocessing""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS,
+    ],
+)
+
+OUTPUT_CYCLE_TYPE = ArgsKwargs(
+    args=["-oct", "--output_cycle_type"],
+    kwargs={
+        "type": str,
+        "required": True,
+        "help": """Output cycle type (analysis_assim, short_range, etc.) to label the NWM NetCDF outputs""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS,
+    ],
+)
+
 REFERENCE_GRID = ArgsKwargs(
     args=["-ref", "--reference_grid"],
     kwargs={
@@ -656,3 +692,4 @@ NETCDF_FOLDER = ArgsKwargs(
         Script.OUTPUT_MOSAIC,
     ],
 )
+

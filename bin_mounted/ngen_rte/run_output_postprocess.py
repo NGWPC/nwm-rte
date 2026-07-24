@@ -5,7 +5,7 @@ Calls data-assimilation's overall_netcdf_workflow to convert ngen catchment outp
 
 import argparse
 
-from netcdf_production_sample import overall_netcdf_workflow
+from data_assimilation_engine.output_variables.NetCdfProductionManager import netcdf_production_workflow
 
 from ngen_rte.logger import initialize_logger
 from ngen_rte.run_config import cli_args
@@ -19,28 +19,58 @@ from ngen_rte.utils import (
 LOG = initialize_logger()
 
 
-def _main(ngen_netcdf_output_file: str, ngen_gpkg_file: str, output_folder: str, troute_output_file: str = "", troute_lakeout_file: str = "") -> None:
+def _main(
+        ngen_netcdf_output_file: str,
+        ngen_gpkg_file: str,
+        output_folder: str,
+        config_json_file: str,
+        output_cycle_hour: int,
+        output_cycle_type: str,
+        troute_output_file: str = "",
+        troute_lakeout_file: str = "",
+        output_templates_folder: str = ""
+) -> None:
 
     LOG.info(f"Starting NetCDF production workflow for: {ngen_netcdf_output_file}")
-    overall_netcdf_workflow(
-        ngen_netcdf_output_file=ngen_netcdf_output_file,
-        ngen_gpkg_file=ngen_gpkg_file,
-        output_folder=output_folder,
-        troute_output_file=troute_output_file,
-        troute_lakeout_file=troute_lakeout_file,
-    )
+    args_list = [
+        output_folder,
+        ngen_netcdf_output_file,
+        ngen_gpkg_file,
+        troute_output_file,
+        troute_lakeout_file,
+        config_json_file,
+        output_templates_folder,
+        output_cycle_hour,
+        output_cycle_type,
+        "all",
+    ]
+    netcdf_production_workflow(args_list)
     LOG.info(f"NetCDF production workflow complete. Outputs written to: {output_folder}")
 
 
-def main(ngen_netcdf_output_file: str, ngen_gpkg_file: str, output_folder: str, troute_output_file: str = "", troute_lakeout_file: str = "") -> None:
+def main(
+    ngen_netcdf_output_file: str,
+    ngen_gpkg_file: str,
+    output_folder: str,
+    config_json_file: str,
+    output_cycle_hour: int,
+    output_cycle_type: str,
+    troute_output_file: str = "",
+    troute_lakeout_file: str = "",
+    output_templates_folder: str = "",
+) -> None:
     _rte_transmit_job_start()
     try:
         _main(
             ngen_netcdf_output_file=ngen_netcdf_output_file,
             ngen_gpkg_file=ngen_gpkg_file,
             output_folder=output_folder,
+            config_json_file=config_json_file,
+            output_cycle_hour=output_cycle_hour,
+            output_cycle_type=output_cycle_type,
             troute_output_file=troute_output_file,
             troute_lakeout_file=troute_lakeout_file,
+            output_templates_folder=output_templates_folder
         )
     except Exception as e:
         transmit(exc=e)
@@ -66,6 +96,10 @@ if __name__ == "__main__":
         ngen_netcdf_output_file=args.ngen_netcdf_output_file,
         ngen_gpkg_file=args.ngen_gpkg_file,
         output_folder=args.output_folder,
+        config_json_file=args.config_json_file,
+        output_cycle_hour=args.output_cycle_hour,
+        output_cycle_type=args.output_cycle_type,
         troute_output_file=args.troute_output_file,
         troute_lakeout_file=args.troute_lakeout_file,
+        output_templates_folder=args.output_templates_folder
     )

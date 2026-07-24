@@ -26,10 +26,16 @@ set -x
 
 NGEN_NETCDF_OUTPUT_FILE="/ngwpc/run_ngen/default/default_ana/03S/Output/catchment_output.nc"
 NGEN_GPKG_FILE="/ngwpc/run_ngen/default/default_ana/03S/Input/vpu_03S.gpkg"
-OUTPUT_FOLDER="/ngwpc/run_ngen/default/output_postprocess/"
+OUTPUT_FOLDER="/ngwpc/run_ngen/output_postprocess/"
 TROUTE_OUTPUT_FILE="/ngwpc/run_ngen/default/default_ana/03S/Output/troute_output_202603300400.nc"
 TROUTE_LAKEOUT_FILE="/ngwpc/run_ngen/default/default_ana/03S/Output/troute_output_202603300400.nc"
+CONFIG_JSON_FILE="/ngwpc/run_ngen/output_postprocess/configs/metadata_config.json"
+OUTPUT_TEMPLATES_FOLDER=""
+OUTPUT_CYCLE_HOUR=0
+OUTPUT_CYCLE_TYPE="analysis_assim"
 
-docker_run python -um "ngen_rte.run_output_postprocess" -ncout "${NGEN_NETCDF_OUTPUT_FILE}" -gpkg "${NGEN_GPKG_FILE}" -of "${OUTPUT_FOLDER}" -tout "${TROUTE_OUTPUT_FILE}" -tlout "${TROUTE_LAKEOUT_FILE}"
+docker_run python -um "ngen_rte.run_output_postprocess" -ncout "${NGEN_NETCDF_OUTPUT_FILE}" -gpkg "${NGEN_GPKG_FILE}" -of "${OUTPUT_FOLDER}" -tout "${TROUTE_OUTPUT_FILE}" -tlout "${TROUTE_LAKEOUT_FILE}" \
+    -cfg "${CONFIG_JSON_FILE}" -otf "${OUTPUT_TEMPLATES_FOLDER}" -och "${OUTPUT_CYCLE_HOUR}" -oct "${OUTPUT_CYCLE_TYPE}"
+
 
 exit 0
