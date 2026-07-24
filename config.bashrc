@@ -79,14 +79,14 @@ REPO_TAG_EVAL=${REPO_TAG_EVAL:-"development"}
 ## * `"build_from_local"` and `"build_from_remote"` cause the `ngen` base image to be built from the bottom up (build ngen-forcing, then build ngen, then add the RTE layers). The former uses the existing state of the codebase currently on disk for `ngen-forcing` and for `ngen`, and the latter uses the provided GH refs for sourcing the codebases of `ngen-forcing` and `ngen`.
 ## 
 
-NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"ghcr"}
-## \env NGEN_BASE__REMOTE_GHCR_TAG (Only used when `NGEN_SOURCE_MODE="ghcr"`). GHCR image tag to use, e.g. `"latest"` or a commit hash.
-NGEN_BASE__REMOTE_GHCR_TAG=${NGEN_BASE__REMOTE_GHCR_TAG:-"latest"}
+# NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"ghcr"}
+# ## \env NGEN_BASE__REMOTE_GHCR_TAG (Only used when `NGEN_SOURCE_MODE="ghcr"`). GHCR image tag to use, e.g. `"latest"` or a commit hash.
+# NGEN_BASE__REMOTE_GHCR_TAG=${NGEN_BASE__REMOTE_GHCR_TAG:-"latest"}
 
-# NGEN_SOURCE_MODE="existing_local_tag"
-## \env NGEN_BASE__EXISTING_LOCAL_TAG (Only used when `NGEN_SOURCE_MODE="existing_local_tag"`). Choose any existing local image tag.
-# NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"existing_local_tag"}
-NGEN_BASE__EXISTING_LOCAL_TAG=${NGEN_BASE__EXISTING_LOCAL_TAG:-"ngen:localdebug"}
+NGEN_SOURCE_MODE="existing_local_tag"
+# \env NGEN_BASE__EXISTING_LOCAL_TAG (Only used when `NGEN_SOURCE_MODE="existing_local_tag"`). Choose any existing local image tag.
+NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"existing_local_tag"}
+NGEN_BASE__EXISTING_LOCAL_TAG=${NGEN_BASE__EXISTING_LOCAL_TAG:-"ngen:qlat"}
 
 # NGEN_SOURCE_MODE="build_from_local"
 
