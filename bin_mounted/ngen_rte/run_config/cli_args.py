@@ -641,7 +641,7 @@ CONFIG_JSON_FILE = ArgsKwargs(
         "help": """Path to the JSON file describing output variables.""",
     },
     scripts=[
-        Script.OUTPUT_POSTPROCESS,
+        Script.OUTPUT_POSTPROCESS, Script.OUTPUT_MOSAIC,
     ],
 )
 
@@ -665,7 +665,7 @@ OUTPUT_CYCLE_HOUR = ArgsKwargs(
         "help": """Integer output cycle hour of the run for NWM postprocessing""",
     },
     scripts=[
-        Script.OUTPUT_POSTPROCESS,
+        Script.OUTPUT_POSTPROCESS, Script.OUTPUT_MOSAIC,
     ],
 )
 
@@ -677,19 +677,19 @@ OUTPUT_CYCLE_TYPE = ArgsKwargs(
         "help": """Output cycle type (analysis_assim, short_range, etc.) to label the NWM NetCDF outputs""",
     },
     scripts=[
-        Script.OUTPUT_POSTPROCESS,
+        Script.OUTPUT_POSTPROCESS, Script.OUTPUT_MOSAIC,
     ],
 )
 
-REFERENCE_GRID = ArgsKwargs(
-    args=["-ref", "--reference_grid"],
+OUTPUT_CYCLE_DOMAIN = ArgsKwargs(
+    args=["-ocd", "--output_cycle_domain"],
     kwargs={
         "type": str,
         "required": True,
-        "help": """Path to the reference grid NetCDF file used as a template for the combined output grid""",
+        "help": """Output cycle domain (conus, hawaii, puertorico, etc.) to label the NWM NetCDF outputs""",
     },
     scripts=[
-        Script.OUTPUT_MOSAIC,
+        Script.OUTPUT_POSTPROCESS, Script.OUTPUT_MOSAIC,
     ],
 )
 
@@ -704,4 +704,3 @@ NETCDF_FOLDER = ArgsKwargs(
         Script.OUTPUT_MOSAIC,
     ],
 )
-

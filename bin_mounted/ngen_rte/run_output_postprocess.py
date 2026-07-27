@@ -26,6 +26,7 @@ def _main(
         config_json_file: str,
         output_cycle_hour: int,
         output_cycle_type: str,
+        output_cycle_domain: str,
         troute_output_file: str = "",
         troute_lakeout_file: str = "",
         output_templates_folder: str = ""
@@ -40,8 +41,9 @@ def _main(
         troute_lakeout_file,
         config_json_file,
         output_templates_folder,
-        output_cycle_hour,
+        str(output_cycle_hour),
         output_cycle_type,
+        output_cycle_domain,
         "all",
     ]
     netcdf_production_workflow(args_list)
@@ -55,6 +57,7 @@ def main(
     config_json_file: str,
     output_cycle_hour: int,
     output_cycle_type: str,
+    output_cycle_domain: str,
     troute_output_file: str = "",
     troute_lakeout_file: str = "",
     output_templates_folder: str = "",
@@ -68,6 +71,7 @@ def main(
             config_json_file=config_json_file,
             output_cycle_hour=output_cycle_hour,
             output_cycle_type=output_cycle_type,
+            output_cycle_domain=output_cycle_domain,
             troute_output_file=troute_output_file,
             troute_lakeout_file=troute_lakeout_file,
             output_templates_folder=output_templates_folder
@@ -99,6 +103,7 @@ if __name__ == "__main__":
         config_json_file=args.config_json_file,
         output_cycle_hour=args.output_cycle_hour,
         output_cycle_type=args.output_cycle_type,
+        output_cycle_domain=args.output_cycle_domain,
         troute_output_file=args.troute_output_file,
         troute_lakeout_file=args.troute_lakeout_file,
         output_templates_folder=args.output_templates_folder

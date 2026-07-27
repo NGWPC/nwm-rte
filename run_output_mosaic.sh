@@ -24,10 +24,14 @@ set -x
 ## \usage ./run_output_mosaic.sh
 ## 
 
-REFERENCE_GRID="/ngwpc/run_ngen/output_postprocess/nwm_output/analysis_assim/nwm.t00z.analysis_assim.land.tm00.conus.nc"
-NETCDF_FOLDER="/ngwpc/run_ngen/output_postprocess/"
-OUTPUT_FOLDER="/ngwpc/run_ngen/output_postprocess/"
+NETCDF_FOLDER="/ngwpc/run_ngen/output_postprocess/nwm_output/"
+OUTPUT_FOLDER="/ngwpc/run_ngen/output_postprocess/mosaic/"
+CONFIG_JSON_FILE="/ngwpc/run_ngen/output_postprocess/configs/metadata_config.json"
+OUTPUT_CYCLE_HOUR=0
+OUTPUT_CYCLE_TYPE="analysis_assim"
+OUTPUT_CYCLE_DOMAIN="conus"
 
-docker_run python -um "ngen_rte.run_output_mosaic" -ref "${REFERENCE_GRID}" -ncf "${NETCDF_FOLDER}" -of "${OUTPUT_FOLDER}"
+docker_run python -um "ngen_rte.run_output_mosaic" -ncf "${NETCDF_FOLDER}" -of "${OUTPUT_FOLDER}"\
+    -cfg "${CONFIG_JSON_FILE}" -och "${OUTPUT_CYCLE_HOUR}" -oct "${OUTPUT_CYCLE_TYPE}" -ocd "${OUTPUT_CYCLE_DOMAIN}"
 
 exit 0
