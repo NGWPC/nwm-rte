@@ -28,10 +28,10 @@ set -x
 
 
 # 7 day Cold Start
-docker_run python -um "ngen_rte.run_default" -n 2 -csdt "2023-12-10 00:00:00" -dt "2023-12-17 00:00:00" -rname "default_ana_7day" -fconfig short_range --save_state -v "01" --output_format NetCDF
+# docker_run python -um "ngen_rte.run_default" -n 2 -csdt "2023-12-10 00:00:00" -dt "2023-12-17 00:00:00" -rname "default_ana_7day" -fconfig short_range --save_state -v "01" --output_format NetCDF
 
 # 1 day Intermediate AnAs
-docker_run python -um "ngen_rte.run_default" -n 2 -csdt "2023-12-17 00:00:00" -dt "2023-12-18 00:00:00" -rname "default_ana_-2d_-1d" -fconfig short_range --save_state --load_state_from /ngwpc/run_ngen/default/default_ana_7day/01/state_save/ -v "01" --output_format NetCDF
+# docker_run python -um "ngen_rte.run_default" -n 2 -csdt "2023-12-17 00:00:00" -dt "2023-12-18 00:00:00" -rname "default_ana_-2d_-1d" -fconfig short_range --save_state --load_state_from /ngwpc/run_ngen/default/default_ana_7day/01/state_save/ -v "01" --output_format NetCDF
 docker_run python -um "ngen_rte.run_default" -n 2 -csdt "2023-12-18 00:00:00" -dt "2023-12-19 00:00:00" -rname "default_ana_-1d_0d" -fconfig short_range --save_state --load_state_from /ngwpc/run_ngen/default/default_ana_-2d_-1d/01/state_save/ -v "01" --output_format NetCDF 
 docker_run python -um "ngen_rte.run_default" -n 2 -csdt "2023-12-19 00:00:00" -dt "2023-12-20 00:00:00" -rname "default_ana_0d_1d" -fconfig short_range --save_state --load_state_from /ngwpc/run_ngen/default/default_ana_-1d_0d/01/state_save/ -v "01" --output_format NetCDF
 docker_run python -um "ngen_rte.run_default" -n 2 -csdt "2023-12-20 00:00:00" -dt "2023-12-21 00:00:00" -rname "default_ana_1d_2d" -fconfig short_range --save_state --load_state_from /ngwpc/run_ngen/default/default_ana_0d_1d/01/state_save/ -v "01" --output_format NetCDF

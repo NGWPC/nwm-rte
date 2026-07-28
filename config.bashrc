@@ -24,7 +24,7 @@ NO_CACHE=${NO_CACHE:-""}
 
 ## \env STAGE The stage of the docker build sequence to stop at. Choose from: `["ngen_rte_base", "ngen_rte_eval_verf"]`.  See `Dockerfile.rte` for more information
 # STAGE=${STAGE:-"ngen_rte_base"}
-STAGE=${STAGE:-"ngen_rte_eval_verf"}
+STAGE=${STAGE:-"ngen_rte_base"}
 
 ## \env INSTALL_DEBUGGERS Passed to ./install_debuggers.sh, causes pip package `debugpy` and OS package `gdb` to be installed. Choose from: `["NO", "YES"]`
 INSTALL_DEBUGGERS=${INSTALL_DEBUGGERS:-"NO"}
