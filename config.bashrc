@@ -51,21 +51,21 @@ NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE:-"NO"}
 ## It only causes an optional `pip install` call to be executed on the `ngen-forcing` Python package, after the manager packages have been installed on top of the ngen base image.
 ## 
 ## \env REPO_TAG_FCST_MGR Source for `nwm-fcst-mgr`.
-REPO_TAG_FCST_MGR=${REPO_TAG_FCST_MGR:-"development"}
+REPO_TAG_FCST_MGR=${REPO_TAG_FCST_MGR:-"development-pw"}
 ## \env REPO_TAG_MSW_MGR Source for `nwm-mswm-mgr`.
-REPO_TAG_MSW_MGR=${REPO_TAG_MSW_MGR:-"development"}
+REPO_TAG_MSW_MGR=${REPO_TAG_MSW_MGR:-"development-pw"}
 ## \env REPO_TAG_CAL_MGR Source for `nwm-cal-mgr`.
-REPO_TAG_CAL_MGR=${REPO_TAG_CAL_MGR:-"development"}
+REPO_TAG_CAL_MGR=${REPO_TAG_CAL_MGR:-"development-pw"}
 ## \env REPO_TAG_REGION_MGR Source for `nwm-region-mgr`.
-REPO_TAG_REGION_MGR=${REPO_TAG_REGION_MGR:-"development"}
+REPO_TAG_REGION_MGR=${REPO_TAG_REGION_MGR:-"development-pw"}
 ## \env REPO_TAG_DATA_ASSIM_ENGINE Source for `nwm-data-assimilation`.
-REPO_TAG_DATA_ASSIM_ENGINE=${REPO_TAG_DATA_ASSIM_ENGINE:-"development"}
+REPO_TAG_DATA_ASSIM_ENGINE=${REPO_TAG_DATA_ASSIM_ENGINE:-"development-pw"}
 ## \env REPO_TAG_NGEN_FORCING (Optional). Source for *re-installing* `ngen-forcing` Python package. Note that this does not affect the sourcing of the base image.
 REPO_TAG_NGEN_FORCING=${REPO_TAG_NGEN_FORCING:-""}
 ## \env REPO_TAG_EWTS (Optional). Source for *re-installing* `nwm-ewts` Python package.
 REPO_TAG_EWTS=${REPO_TAG_EWTS:-""}
 ## \env REPO_TAG_EVAL Source for `nwm-eval-mgr`.
-REPO_TAG_EVAL=${REPO_TAG_EVAL:-"development"}
+REPO_TAG_EVAL=${REPO_TAG_EVAL:-"development-pw"}
 
 
 #### Sourcing of ngen Base
@@ -81,7 +81,7 @@ REPO_TAG_EVAL=${REPO_TAG_EVAL:-"development"}
 
 NGEN_SOURCE_MODE=${NGEN_SOURCE_MODE:-"ghcr"}
 ## \env NGEN_BASE__REMOTE_GHCR_TAG (Only used when `NGEN_SOURCE_MODE="ghcr"`). GHCR image tag to use, e.g. `"latest"` or a commit hash.
-NGEN_BASE__REMOTE_GHCR_TAG=${NGEN_BASE__REMOTE_GHCR_TAG:-"latest"}
+NGEN_BASE__REMOTE_GHCR_TAG=${NGEN_BASE__REMOTE_GHCR_TAG:-"latest-pw"}
 
 # NGEN_SOURCE_MODE="existing_local_tag"
 ## \env NGEN_BASE__EXISTING_LOCAL_TAG (Only used when `NGEN_SOURCE_MODE="existing_local_tag"`). Choose any existing local image tag.
