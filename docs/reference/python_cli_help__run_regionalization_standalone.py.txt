@@ -1,0 +1,160 @@
+usage: run_regionalization_standalone.py [-h] [-dur DURATION] -cgf
+                                         CAT_GRP_FILE [-cd CHECKPOINT_DIR]
+                                         [-c CHECKPOINT_INTERVAL]
+                                         [-csdt COLD_START_DATETIME] -dt
+                                         CYCLE_DATETIME [-delraw]
+                                         [-delscratch] [-e {test,oe}]
+                                         [-rname FCST_RUN_NAME]
+                                         [-fconfig FORCING_CONFIGURATION]
+                                         [-fstatic FORCING_STATIC_DIR] -faf
+                                         FORM_ASSIGN_FILE [-g GAGE_ID]
+                                         [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
+                                         [--hydrofab_file HYDROFAB_FILE]
+                                         [-le LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS LAGGED_ENSEMBLE_ARGS]
+                                         [-lsf LOAD_STATE_FROM] [-lb LOOKBACK]
+                                         [-nwmout] [-n NPROCS]
+                                         [-outfmt OUTPUT_FORMAT [OUTPUT_FORMAT ...]]
+                                         [-rfc RESERVOIR_RFC_DIR] [-ss]
+                                         [-ssd SAVE_STATE_DIR] [-ts] [-v VPU]
+
+Script for building and running regionalization realizations
+using realtime forcing configurations or historical / retrospective forcing.
+The CLI arguments mostly follow that of run_default.py.
+
+options:
+  -h, --help : type=None
+                        show this help message and exit
+
+  -dur, --duration : type=timedelta_from_effective_days default=datetime.timedelta(days=1, seconds=82800)
+                        Duration of calibration/default/regionalization realization. Units: days (integer). Ignored by default/regionalization realization when a realtime forcing configuration is chosen.
+
+  -cgf, --cat_grp_file : type=str default=None
+                        Path to file containing catchment groupings.
+
+  -cd, --checkpoint_dir : type=str default=None
+                        Directory to save checkpoint states. Defaults to work_dir>/checkpoint/ in msw-mgr.
+
+  -c, --checkpoint_interval : type=int default=None
+                        Checkpointing interval in integer number of timesteps. If provided, enables checkpointing during the run.
+
+  -csdt, --cold_start_datetime : type=datetime_type default=None
+                        If provided, a cold-start realization will be ran prior to the forecast,
+                        and this value will be the start time for the cold-start.
+                        Format: '%Y-%m-%d %H:%M:%S'.
+
+  -dt, --cycle_datetime : type=datetime_type default=None
+                        For a regular forecast, this is the start time.
+                        When cold-start is used, this is the *end* of the cold-start cycle.
+                        Format: '%Y-%m-%d %H:%M:%S'.
+
+  -delraw, --delete_forcing_raw_input_first : bool-switch(store-true) default=False
+                        Delete contents of '/ngen-app/data/raw_input' before the run,
+                        which forces forcing data to be re-downloaded.
+
+  -delscratch, --delete_scratch_and_mesh_first : bool-switch(store-true) default=False
+                        Delete scratch dir and ESMF mesh files before the run,
+                        which forces ESMF and NetCDF actions to occur.
+
+  -e, --environment : type=str default='test'
+                        Operating environment. Affects name of server used to fetch input data. Passed to MSWM GeneralConfig.
+
+  -rname, --fcst_run_name : type=str default='fcst_run1'
+                        Forecast run name.
+
+  -fconfig, --forcing_configuration : type=str default=None
+                        Forcing configuration to use, e.g., 'short_range', 'standard_ana', 'aorc', etc.
+                        Choices and defaults vary per realization type:
+                          Forecast Realization:
+                            Default: 'standard_ana'. Choices:
+                            'standard_ana', 'standard_ana_alaska', 'standard_ana_hawaii'
+                            'standard_ana_puertorico', 'extended_ana', 'extended_ana_alaska'
+                            'short_range', 'short_range_alaska', 'short_range_hawaii'
+                            'short_range_puertorico', 'short_range_extended_alaska', 'medium_range_blend'
+                            'medium_range_blend_alaska', 'long_range_mem1', 'long_range_mem2'
+                            'long_range_mem3', 'long_range_mem4'
+                          Calibration Realization:
+                            Default: 'aorc'. Choices: 
+                            'aorc', 'nwm'
+                          Default Realization:
+                            Default: 'aorc'. Choices: 
+                            'standard_ana', 'standard_ana_alaska', 'standard_ana_hawaii'
+                            'standard_ana_puertorico', 'extended_ana', 'extended_ana_alaska'
+                            'short_range', 'short_range_alaska', 'short_range_hawaii'
+                            'short_range_puertorico', 'short_range_extended_alaska', 'medium_range_blend'
+                            'medium_range_blend_alaska', 'long_range_mem1', 'long_range_mem2'
+                            'long_range_mem3', 'long_range_mem4', 'aorc'
+                            'nwm', 'medium_range'
+
+  -fstatic, --forcing_static_dir : type=str default='/ngen-app/data'
+                        Directory for static forcing files, used when forcing_provider is 'bmi'.
+
+  -faf, --form_assign_file : type=str default=None
+                        Path to file containing formulation assignments for catchments.
+
+  -g, --gage_id : type=str default=None
+                        Gage ID. CLI defaults to None, but ``RTEBaseConfig.model_post_init`` effectively defaults it to 01123000 when -v / --vpu is not provided.
+
+  -gdomain, --global_domain : type=str default='CONUS'
+                        Global domain/region of forcing data.
+
+  --hydrofab_file : type=str default=None
+                        Path to local hydrofabric gpkg file. If provided, bypasses msw-mgr Icefabric API call.
+
+  -le, --lagged-ensemble : type=str default=None
+                        Provide this multi-part argument to run one member
+                        of a lagged ensemble (see nwm-fcst-mgr function `run_lagged_ensemble`).
+                        Only applicable to the "medium_range" forcing configuration.
+                        Not applicable to the cold-start realization.
+                        
+                        To run an ensemble, call this script multiple times
+                        with varying values for this argument, e.g. "mem1", "mem2", etc.
+                        
+                        This argument has 3 parts:
+                            1. member_name : str (required when -le provided)
+                                Name of the ensemble member. Choose from: 
+                            'no_da', 'mem1', 'mem2'
+                            'mem3', 'mem4', 'mem5'
+                            'mem6'
+                            2. open_loop_state : str (optional)
+                                Path to an existing open-loop state file.
+                                To omit, provide an empty string for this part.
+                            3. closed_loop_state : str (optional)
+                                Path to an existing closed-loop state file.
+                                To omit, provide an empty string for this part.
+                        
+                        To run a lagged ensemble member without the optional parts,
+                        provide them as empty strings e.g. `-le 'mem2' '' ''`.
+
+  -lsf, --load_state_from : type=str default=None
+                        Path to existing state file to load at start of run.
+
+  -lb, --lookback : type=int default=None
+                        If provided, override the forcing template `LookBack` value (in minutes).
+                        This controls the analysis (AnA) simulation window for AnA forcing configurations,
+                        e.g. 'standard_ana' or 'extended_ana'. The simulated window length in hours is
+                        `LookBack/60 - 1`, ending at the cycle datetime (-dt). Ignored if not provided.
+
+  -nwmout, --nwm_output_vars_true : bool-switch(store-true) default=False
+                        If provided, NWMOutputConfig.nwm_output_variables will be set to True
+
+  -n, --nprocs : type=int default=1
+                        Number of processors
+
+  -outfmt, --output_format : type=str default=['CSV']
+                        Output format(s) for NWM output variables. Accepts 'CSV', 'NetCDF' or both.
+                        Provide as space-separated values e.g. -outfmt CSV NetCDF.
+
+  -rfc, --reservoir_rfc_dir : type=str default=None
+                        Path to reservoir RFC forecast time-series directory. If provided,reservoir data assimilation is enabled and reservoir_da is set to True.
+
+  -ss, --save_state : bool-switch(store-true) default=False
+                        If provided, save the model state at the end of the run.
+
+  -ssd, --save_state_dir : type=str default=None
+                        Directory to save model state at end of run. Defaults in <work_dir>/state_save/ in msw-mgr.
+
+  -ts, --timestamp_run_name : bool-switch(store-true) default=False
+                        If provided, add a timestamp suffix to the run name.
+
+  -v, --vpu : type=str default=None
+                        VPU identifier. When provided, sets subset_type to 'vpu'. Cannot be used with gage_id.

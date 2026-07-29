@@ -121,7 +121,7 @@ ENVIRONMENT = ArgsKwargs(
         "choices": ["test", "oe"],
         "help": "Operating environment. Affects name of server used to fetch input data. Passed to MSWM GeneralConfig.",
     },
-    scripts=[Script.ALL],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
 
 
@@ -133,7 +133,7 @@ GLOBAL_DOMAIN = ArgsKwargs(
         "choices": c.GLOBAL_DOMAINS,
         "help": "Global domain/region of forcing data.",
     },
-    scripts=[Script.ALL],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
 
 # Note: This is defaulted to c.DEFAULT_GAGE_ID in configs.py,
@@ -145,7 +145,7 @@ GAGE_ID = ArgsKwargs(
         "default": None,
         "help": f"Gage ID. CLI defaults to None, but ``RTEBaseConfig.model_post_init`` effectively defaults it to {c.DEFAULT_GAGE_ID} when -v / --vpu is not provided.",
     },
-    scripts=[Script.ALL],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
 
 N_PROCS = ArgsKwargs(
@@ -155,7 +155,7 @@ N_PROCS = ArgsKwargs(
         "help": "Number of processors",
         "default": c.DEFAULT_NPROCS,
     },
-    scripts=[Script.ALL],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
 
 FORCING_CONFIGURATION = ArgsKwargs(
@@ -416,7 +416,7 @@ DEL_SCRATCH = ArgsKwargs(
         "help": """Delete scratch dir and ESMF mesh files before the run,
 which forces ESMF and NetCDF actions to occur.""",
     },
-    scripts=[Script.ALL],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
 
 DEL_RAW = ArgsKwargs(
@@ -426,7 +426,7 @@ DEL_RAW = ArgsKwargs(
         "help": f"""Delete contents of {repr(c.DIR_FORCING_RAW_INPUT)} before the run,
 which forces forcing data to be re-downloaded.""",
     },
-    scripts=[Script.ALL],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
 
 FORCING_STATIC_DIR = ArgsKwargs(
@@ -436,7 +436,7 @@ FORCING_STATIC_DIR = ArgsKwargs(
         "default": c.FORCING_STATIC_DIR_DEFAULT,
         "help": "Directory for static forcing files, used when forcing_provider is 'bmi'.",
     },
-    scripts=[Script.ALL],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
 
 HYDROFAB_FILE = ArgsKwargs(
