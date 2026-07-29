@@ -1,0 +1,43 @@
+usage: run_output_postprocess.py [-h] -cfg CONFIG_JSON_FILE -gpkg
+                                 NGEN_GPKG_FILE -ncout NGEN_NETCDF_OUTPUT_FILE
+                                 -ocd OUTPUT_CYCLE_DOMAIN -och
+                                 OUTPUT_CYCLE_HOUR -oct OUTPUT_CYCLE_TYPE -of
+                                 OUTPUT_FOLDER [-otf OUTPUT_TEMPLATES_FOLDER]
+                                 [-tlout TROUTE_LAKEOUT_FILE]
+                                 [-tout TROUTE_OUTPUT_FILE]
+
+Run NetCDF production workflow to convert ngen catchment output into NWM gridded NetCDF products.
+
+options:
+  -h, --help : type=None
+                        show this help message and exit
+
+  -cfg, --config_json_file : type=str default=None
+                        Path to the JSON file describing output variables.
+
+  -gpkg, --ngen_gpkg_file : type=str default=None
+                        Path to the ngen hydrofabric geopackage file for output postprocessing.
+
+  -ncout, --ngen_netcdf_output_file : type=str default=None
+                        Path to the ngen catchment output NetCDF file.
+
+  -ocd, --output_cycle_domain : type=str default=None
+                        Output cycle domain (conus, hawaii, puertorico, etc.) to label the NWM NetCDF outputs
+
+  -och, --output_cycle_hour : type=int default=None
+                        Integer output cycle hour of the run for NWM postprocessing
+
+  -oct, --output_cycle_type : type=str default=None
+                        Output cycle type (analysis_assim, short_range, etc.) to label the NWM NetCDF outputs
+
+  -of, --output_folder : type=str default=None
+                        Path to the output folder where postprocessing outputs will be written.
+
+  -otf, --output_templates_folder : type=str default=''
+                        Path to the folder for NWM output templates.
+
+  -tlout, --troute_lakeout_file : type=str default=''
+                        Path to the T-Route lakeout file.
+
+  -tout, --troute_output_file : type=str default=''
+                        Path to the T-Route output file.

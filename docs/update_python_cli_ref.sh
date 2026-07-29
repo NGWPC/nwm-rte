@@ -18,6 +18,6 @@ function write_python_cli_help_txt () {
         -um "${module}" --help > "${output_file}"
 }
 
-for module in "ngen_rte.run_default" "ngen_rte.run_calibration" "ngen_rte.run_forecast" "ngen_rte.tests.run_tests" "ngen_rte.run_regionalization" "ngen_rte.run_restart"; do
+for module in "ngen_rte.run_default" "ngen_rte.run_calibration" "ngen_rte.run_forecast" "ngen_rte.tests.run_tests" "ngen_rte.run_regionalization" "ngen_rte.run_regionalization_standalone" "ngen_rte.run_restart" "ngen_rte.run_output_postprocess" "ngen_rte.run_output_mosaic"; do
     write_python_cli_help_txt "${module}"
 done
