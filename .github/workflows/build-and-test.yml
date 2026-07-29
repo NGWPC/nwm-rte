@@ -4,12 +4,14 @@ on:
   push:
     branches:
       - development
+      - development-pw
       - main
       - ngwpc-candidate
       - ngwpc-release
   pull_request:
     branches:
       - development
+      - development-pw
       - main
       - ngwpc-candidate
       - ngwpc-release
@@ -136,19 +138,41 @@ jobs:
           CLEAN_REF=$(echo "$REAL_REF" | tr '[:upper:]' '[:lower:]' | sed 's/\//-/g')
           SHORT_SHA="${REAL_SHA:0:7}"
 
-          # set input variables for optional workflow_dispatch parameters with defaults if not provided
+          # lane-aware defaults: a run on development-pw defaults to pw-lane artifacts,
+          # a run on development behaves exactly as before. Explicit inputs always win.
+          # The lane ref is the PR target branch on pull requests, else the pushed/dispatched branch.
+          LANE_REF="${GITHUB_BASE_REF:-$GITHUB_REF_NAME}"
+          if [ "$LANE_REF" = "development-pw" ]; then
+            DEFAULT_REF="development-pw"
+            DEFAULT_BASE_TAG="latest-pw"
+          else
+            DEFAULT_REF="development"
+            DEFAULT_BASE_TAG="latest"
+          fi
+
+          # set input variables for optional workflow_dispatch parameters with lane defaults if not provided
           NGEN_SOURCE_MODE="${{ inputs.NGEN_SOURCE_MODE || 'ghcr' }}"
-          FORCING_BASE_REMOTE_TAG="${{ inputs.FORCING_BASE_REMOTE_TAG || 'development' }}"
-          NGEN_BASE_REMOTE_TAG="${{ inputs.NGEN_BASE_REMOTE_TAG || 'development' }}"
-          NGEN_BASE__REMOTE_GHCR_TAG="${{ inputs.NGEN_BASE__REMOTE_GHCR_TAG || 'latest' }}"
-          REPO_TAG_FCST_MGR="${{ inputs.REPO_TAG_FCST_MGR || 'development' }}"
-          REPO_TAG_MSW_MGR="${{ inputs.REPO_TAG_MSW_MGR || 'development' }}"
-          REPO_TAG_CAL_MGR="${{ inputs.REPO_TAG_CAL_MGR || 'development' }}"
-          REPO_TAG_REGION_MGR="${{ inputs.REPO_TAG_REGION_MGR || 'development' }}"
-          REPO_TAG_DATA_ASSIM_ENGINE="${{ inputs.REPO_TAG_DATA_ASSIM_ENGINE || 'development' }}"
+          FORCING_BASE_REMOTE_TAG="${{ inputs.FORCING_BASE_REMOTE_TAG }}"
+          FORCING_BASE_REMOTE_TAG="${FORCING_BASE_REMOTE_TAG:-$DEFAULT_REF}"
+          NGEN_BASE_REMOTE_TAG="${{ inputs.NGEN_BASE_REMOTE_TAG }}"
+          NGEN_BASE_REMOTE_TAG="${NGEN_BASE_REMOTE_TAG:-$DEFAULT_REF}"
+          NGEN_BASE__REMOTE_GHCR_TAG="${{ inputs.NGEN_BASE__REMOTE_GHCR_TAG }}"
+          NGEN_BASE__REMOTE_GHCR_TAG="${NGEN_BASE__REMOTE_GHCR_TAG:-$DEFAULT_BASE_TAG}"
+          REPO_TAG_FCST_MGR="${{ inputs.REPO_TAG_FCST_MGR }}"
+          REPO_TAG_FCST_MGR="${REPO_TAG_FCST_MGR:-$DEFAULT_REF}"
+          REPO_TAG_MSW_MGR="${{ inputs.REPO_TAG_MSW_MGR }}"
+          REPO_TAG_MSW_MGR="${REPO_TAG_MSW_MGR:-$DEFAULT_REF}"
+          REPO_TAG_CAL_MGR="${{ inputs.REPO_TAG_CAL_MGR }}"
+          REPO_TAG_CAL_MGR="${REPO_TAG_CAL_MGR:-$DEFAULT_REF}"
+          REPO_TAG_REGION_MGR="${{ inputs.REPO_TAG_REGION_MGR }}"
+          REPO_TAG_REGION_MGR="${REPO_TAG_REGION_MGR:-$DEFAULT_REF}"
+          REPO_TAG_DATA_ASSIM_ENGINE="${{ inputs.REPO_TAG_DATA_ASSIM_ENGINE }}"
+          REPO_TAG_DATA_ASSIM_ENGINE="${REPO_TAG_DATA_ASSIM_ENGINE:-$DEFAULT_REF}"
           # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
-          REPO_TAG_NGEN_FORCING="${{ inputs.REPO_TAG_NGEN_FORCING || 'development' }}"
-          REPO_TAG_EVAL="${{ inputs.REPO_TAG_EVAL || 'development' }}"
+          REPO_TAG_NGEN_FORCING="${{ inputs.REPO_TAG_NGEN_FORCING }}"
+          REPO_TAG_NGEN_FORCING="${REPO_TAG_NGEN_FORCING:-$DEFAULT_REF}"
+          REPO_TAG_EVAL="${{ inputs.REPO_TAG_EVAL }}"
+          REPO_TAG_EVAL="${REPO_TAG_EVAL:-$DEFAULT_REF}"
 
           # INSTALL_DEBUGGERS is a boolean input, convert to "YES"/"NO" string for use in build args
           if [ "${{ inputs.INSTALL_DEBUGGERS }}" = "true" ]; then
@@ -364,11 +388,19 @@ jobs:
             --all \
             "docker://${IMAGE_BASE}:${TEST_TAG}" "docker://${IMAGE_BASE}:${ALIAS_TAG}"
 
-          # tag with 'latest' on development branch push
+          # promotion is branch-keyed: development -> latest, development-pw -> latest-pw.
+          # Do not manually dispatch cross-lane (e.g. pw refs from a development run); the
+          # alias would be promoted under the wrong lane.
           if [ "$GITHUB_REF_NAME" = "development" ]; then
             skopeo copy \
               --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
               --dest-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
               --all \
               "docker://${IMAGE_BASE}:${TEST_TAG}" "docker://${IMAGE_BASE}:latest"
+          elif [ "$GITHUB_REF_NAME" = "development-pw" ]; then
+            skopeo copy \
+              --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+              --dest-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+              --all \
+              "docker://${IMAGE_BASE}:${TEST_TAG}" "docker://${IMAGE_BASE}:latest-pw"
           fi
