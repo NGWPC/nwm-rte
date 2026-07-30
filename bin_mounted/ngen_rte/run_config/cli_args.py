@@ -27,6 +27,8 @@ class Script(StrEnum):
     CALIBRATION = "run_calibration"
     FORECAST = "run_forecast"
     TESTS = "run_tests"
+    OUTPUT_POSTPROCESS = "run_output_postprocess"
+    OUTPUT_MOSAIC = "run_output_mosaic"
     ALL = "all"
 
 
@@ -119,7 +121,7 @@ ENVIRONMENT = ArgsKwargs(
         "choices": ["test", "oe"],
         "help": "Operating environment. Affects name of server used to fetch input data. Passed to MSWM GeneralConfig.",
     },
-    scripts=[Script.ALL],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
 
 
@@ -131,7 +133,7 @@ GLOBAL_DOMAIN = ArgsKwargs(
         "choices": c.GLOBAL_DOMAINS,
         "help": "Global domain/region of forcing data.",
     },
-    scripts=[Script.ALL],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
 
 # Note: This is defaulted to c.DEFAULT_GAGE_ID in configs.py,
@@ -143,7 +145,7 @@ GAGE_ID = ArgsKwargs(
         "default": None,
         "help": f"Gage ID. CLI defaults to None, but ``RTEBaseConfig.model_post_init`` effectively defaults it to {c.DEFAULT_GAGE_ID} when -v / --vpu is not provided.",
     },
-    scripts=[Script.ALL],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
 
 N_PROCS = ArgsKwargs(
@@ -153,7 +155,7 @@ N_PROCS = ArgsKwargs(
         "help": "Number of processors",
         "default": c.DEFAULT_NPROCS,
     },
-    scripts=[Script.ALL],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
 
 FORCING_CONFIGURATION = ArgsKwargs(
@@ -414,7 +416,7 @@ DEL_SCRATCH = ArgsKwargs(
         "help": """Delete scratch dir and ESMF mesh files before the run,
 which forces ESMF and NetCDF actions to occur.""",
     },
-    scripts=[Script.ALL],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
 
 DEL_RAW = ArgsKwargs(
@@ -424,7 +426,7 @@ DEL_RAW = ArgsKwargs(
         "help": f"""Delete contents of {repr(c.DIR_FORCING_RAW_INPUT)} before the run,
 which forces forcing data to be re-downloaded.""",
     },
-    scripts=[Script.ALL],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
 
 FORCING_STATIC_DIR = ArgsKwargs(
@@ -434,7 +436,7 @@ FORCING_STATIC_DIR = ArgsKwargs(
         "default": c.FORCING_STATIC_DIR_DEFAULT,
         "help": "Directory for static forcing files, used when forcing_provider is 'bmi'.",
     },
-    scripts=[Script.ALL],
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
 
 HYDROFAB_FILE = ArgsKwargs(
@@ -568,5 +570,137 @@ RESERVOIR_RFC_DIR = ArgsKwargs(
         Script.FORECAST,
         Script.DEFAULT,
         Script.REGIONALIZATION,
+    ],
+)
+
+NGEN_NETCDF_OUTPUT_FILE = ArgsKwargs(
+    args=["-ncout", "--ngen_netcdf_output_file"],
+    kwargs={
+        "type": str,
+        "required": True,
+        "help": """Path to the ngen catchment output NetCDF file.""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS,
+    ],
+)
+
+NGEN_GPKG_FILE = ArgsKwargs(
+    args=["-gpkg", "--ngen_gpkg_file"],
+    kwargs={
+        "type": str,
+        "required": True,
+        "help": """Path to the ngen hydrofabric geopackage file for output postprocessing.""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS,
+    ],
+)
+
+OUTPUT_FOLDER = ArgsKwargs(
+    args=["-of", "--output_folder"],
+    kwargs={
+        "type": str,
+        "required": True,
+        "help": """Path to the output folder where postprocessing outputs will be written.""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS, Script.OUTPUT_MOSAIC,
+    ],
+)
+
+TROUTE_OUTPUT_FILE = ArgsKwargs(
+    args=["-tout", "--troute_output_file"],
+    kwargs={
+        "type": str,
+        "default": "",
+        "help": """Path to the T-Route output file.""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS,
+    ],
+)
+
+TROUTE_LAKEOUT_FILE = ArgsKwargs(
+    args=["-tlout", "--troute_lakeout_file"],
+    kwargs={
+        "type": str,
+        "default": "",
+        "help": """Path to the T-Route lakeout file.""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS,
+    ],
+)
+
+CONFIG_JSON_FILE = ArgsKwargs(
+    args=["-cfg", "--config_json_file"],
+    kwargs={
+        "type": str,
+        "required": True,
+        "help": """Path to the JSON file describing output variables.""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS, Script.OUTPUT_MOSAIC,
+    ],
+)
+
+OUTPUT_TEMPLATES_FOLDER = ArgsKwargs(
+    args=["-otf", "--output_templates_folder"],
+    kwargs={
+        "type": str,
+        "default": "",
+        "help": """Path to the folder for NWM output templates.""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS,
+    ],
+)
+
+OUTPUT_CYCLE_HOUR = ArgsKwargs(
+    args=["-och", "--output_cycle_hour"],
+    kwargs={
+        "type": int,
+        "required": True,
+        "help": """Integer output cycle hour of the run for NWM postprocessing""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS, Script.OUTPUT_MOSAIC,
+    ],
+)
+
+OUTPUT_CYCLE_TYPE = ArgsKwargs(
+    args=["-oct", "--output_cycle_type"],
+    kwargs={
+        "type": str,
+        "required": True,
+        "help": """Output cycle type (analysis_assim, short_range, etc.) to label the NWM NetCDF outputs""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS, Script.OUTPUT_MOSAIC,
+    ],
+)
+
+OUTPUT_CYCLE_DOMAIN = ArgsKwargs(
+    args=["-ocd", "--output_cycle_domain"],
+    kwargs={
+        "type": str,
+        "required": True,
+        "help": """Output cycle domain (conus, hawaii, puertorico, etc.) to label the NWM NetCDF outputs""",
+    },
+    scripts=[
+        Script.OUTPUT_POSTPROCESS, Script.OUTPUT_MOSAIC,
+    ],
+)
+
+NETCDF_FOLDER = ArgsKwargs(
+    args=["-ncf", "--netcdf_folder"],
+    kwargs={
+        "type": str,
+        "required": True,
+        "help": """Path to the folder containing per-timestep NetCDF gridded outputs to combine.""",
+    },
+    scripts=[
+        Script.OUTPUT_MOSAIC,
     ],
 )
