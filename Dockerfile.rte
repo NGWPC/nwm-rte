@@ -51,32 +51,41 @@ RUN --mount=type=bind,src=nwm-rte/install_debuggers.sh,dst=/src/${GH_ORG}/nwm-rt
 ### Install nwm packages
 
 ARG REPO_TAG_FCST_MGR
+# The optional github_token secret (passed by ngen_rte_build.sh when GITHUB_TOKEN is set)
+# lets add_git_info.py make authenticated GitHub API calls, avoiding the unauthenticated
+# per-IP rate limit that shared CI runner IPs regularly exhaust. Absent secret = skipped.
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=secret,id=github_token \
     --mount=type=bind,src=nwm-fcst-mgr,dst=/src/${GH_ORG}/nwm-fcst-mgr \
     "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-fcst-mgr" "nwm-fcst-mgr" "${REPO_TAG_FCST_MGR}" ""
 
 ARG REPO_TAG_MSW_MGR
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=secret,id=github_token \
     --mount=type=bind,src=nwm-msw-mgr,dst=/src/${GH_ORG}/nwm-msw-mgr \
     "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-msw-mgr" "mswm" "${REPO_TAG_MSW_MGR}" ""
 
 ARG REPO_TAG_EVAL
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=secret,id=github_token \
     --mount=type=bind,src=nwm-eval-mgr,dst=/src/${GH_ORG}/nwm-eval-mgr \
     "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-eval-mgr" "nwm_metrics" "${REPO_TAG_EVAL}" "" "nwm_metrics"
 
 ARG REPO_TAG_CAL_MGR
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=secret,id=github_token \
     --mount=type=bind,src=nwm-cal-mgr,dst=/src/${GH_ORG}/nwm-cal-mgr \
     "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-cal-mgr" "nwm-cal-mgr" "${REPO_TAG_CAL_MGR}" ""
 
 ARG REPO_TAG_REGION_MGR
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=secret,id=github_token \
     --mount=type=bind,src=nwm-region-mgr,dst=/src/${GH_ORG}/nwm-region-mgr \
     "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-region-mgr" "nwm-region-mgr" "${REPO_TAG_REGION_MGR}" "[parreg]"
 
 ARG REPO_TAG_DATA_ASSIM_ENGINE
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=secret,id=github_token \
     --mount=type=bind,src=nwm-data-assimilation,dst=/src/${GH_ORG}/nwm-data-assimilation \
     "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-data-assimilation" "data-assimilation-engine" "${REPO_TAG_DATA_ASSIM_ENGINE}" ""
 
@@ -85,12 +94,14 @@ RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/
 ## See README.md for caveats.
 ARG REPO_TAG_NGEN_FORCING
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=secret,id=github_token \
     --mount=type=bind,src=ngen-forcing,dst=/src/${GH_ORG}/ngen-forcing \
     "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "ngen-forcing" "ngen-forcings" "${REPO_TAG_NGEN_FORCING}" ""
 
 ## nwm-ewts package is included with the starting base image, but its Python package can be reinstalled from another branch or from local.
 ARG REPO_TAG_EWTS
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=secret,id=github_token \
     --mount=type=bind,src=nwm-ewts,dst=/src/${GH_ORG}/nwm-ewts \
     "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-ewts" "ewts" "${REPO_TAG_EWTS}" "" "runtime/python/ewts"
 
@@ -122,11 +133,13 @@ ENV PYTHONPATH="${EVAL_VERF_PYTHON_BIN_DIR}/lib/python${PYTHON_VERSION_STR}/site
 
 ARG REPO_TAG_EVAL
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=secret,id=github_token \
     --mount=type=bind,src=nwm-eval-mgr,dst=/src/${GH_ORG}/nwm-eval-mgr \
     "/src/${GH_ORG}/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "${GH_ORG}" "nwm-eval-mgr" "nwm_metrics" "${REPO_TAG_EVAL}" "" "nwm_metrics"
 
 ARG REPO_TAG_EVAL
 RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=secret,id=github_token \
     --mount=type=bind,src=nwm-eval-mgr,dst=/src/${GH_ORG}/nwm-eval-mgr \
     "/src/${GH_ORG}/nwm-rte/install_package.sh" "/ngen-app/venvs/eval_verf/bin/python" "${GH_ORG}" "nwm-eval-mgr" "nwm_eval" "${REPO_TAG_EVAL}" "" "nwm_eval"
 
