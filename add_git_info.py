@@ -42,6 +42,17 @@ def get_repo_name(gh_org: str, local_repo_path: str) -> str:
     return repo_name
 
 
+def get_github_token() -> str:
+    """Return a GitHub API token from the BuildKit secret mount or the environment, or empty string"""
+    secret_path = "/run/secrets/github_token"
+    if os.path.isfile(secret_path):
+        with open(secret_path) as f:
+            token = f.read().strip()
+        if token:
+            return token
+    return os.environ.get("GITHUB_TOKEN", "").strip()
+
+
 def fetch_github_commit_info(gh_org: str, repo_name: str, branch: str) -> dict:
     """Fetch commit information from GitHub API for a given repo and branch/tag/commit"""
     if not gh_org:
@@ -55,6 +66,11 @@ def fetch_github_commit_info(gh_org: str, repo_name: str, branch: str) -> dict:
         req = urllib.request.Request(api_url)
         # Add user agent to avoid GitHub API rate limiting issues
         req.add_header("User-Agent", "nwm-rte-build-script")
+        token = get_github_token()
+        if token:
+            # Authenticated requests avoid the unauthenticated per-IP rate
+            # limit, which shared CI runner IPs regularly exhaust.
+            req.add_header("Authorization", f"Bearer {token}")
 
         with urllib.request.urlopen(req) as response:
             data = json.loads(response.read().decode())
