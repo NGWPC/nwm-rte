@@ -274,6 +274,9 @@ jobs:
           # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
           REPO_TAG_NGEN_FORCING: ${{ needs.setup.outputs.repo_tag_ngen_forcing }}
           REPO_TAG_EVAL: ${{ needs.setup.outputs.repo_tag_eval }}
+          # Lets the build make authenticated GitHub API calls via a BuildKit secret
+          # (see ngen_rte_build.sh), avoiding the unauthenticated per-IP rate limit.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Create a temporary parent directory structure for the build context
           # The Dockerfile expects to COPY from nwm-rte/* so we need the repo to be in a subdirectory

@@ -153,7 +153,19 @@ info "Building image: ${TARGET_IMAGE_NAME}"
 # Sanitize the image name for the log file (replace / and : with _)
 SAFE_LOG_NAME=$(echo "${TARGET_IMAGE_NAME}" | tr '/:' '__')
 
-sudo docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target ${STAGE} \
+# When a GitHub token is available (e.g. GITHUB_TOKEN in CI), pass it to the build as a
+# BuildKit secret so add_git_info.py can make authenticated GitHub API calls. Unauthenticated
+# calls share a per-IP rate limit that CI runner IPs regularly exhaust. The token value never
+# appears in the command line, the log, or the image layers.
+SUDO_ENV_ARGS=()
+SECRET_ARGS=()
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+    SUDO_ENV_ARGS=(--preserve-env=GITHUB_TOKEN)
+    SECRET_ARGS=(--secret id=github_token,env=GITHUB_TOKEN)
+fi
+
+sudo ${SUDO_ENV_ARGS[@]+"${SUDO_ENV_ARGS[@]}"} docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target ${STAGE} \
+    ${SECRET_ARGS[@]+"${SECRET_ARGS[@]}"} \
     --build-arg GH_ORG=${GH_ORG} \
     --build-arg TARGET_IMAGE_SOURCE=${TARGET_IMAGE_SOURCE} \
     --build-arg TARGET_IMAGE_VENDOR=${TARGET_IMAGE_VENDOR} \
