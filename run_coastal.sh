@@ -41,7 +41,7 @@ set -x
 
 #Operational Configurations
 
-# CONUS - DOES NOT WORK YET
+# CONUS - REQUIRES LOTS OF MEMORY TO SUCCESSFULLY RUN
 # docker_run python -um "ngen_rte.run_coastal" -dt "2025-09-15 00:00:00" -rname "${run_name}_aorc" -fconfig aorc -gdomain CONUS
 # docker_run python -um "ngen_rte.run_coastal" -dt "2025-09-15 00:00:00" -rname "${run_name}_cold_start" -fconfig cold_start -gdomain CONUS
 # docker_run python -um "ngen_rte.run_coastal" -dt "2025-09-15 00:00:00" -rname "${run_name}_extended_ana" -fconfig extended_ana -gdomain CONUS
