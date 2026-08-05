@@ -54,7 +54,6 @@ def build_config(forcing_configuration: str, global_domain: str, b_date_proc: da
         for k, v in c.COASTAL_CONFIG_OVERRIDES.items()
     }
     cfg.update(overrides)
-    print(f"[DEBUG coastal config] RegridWeightsDir = {cfg.get('RegridWeightsDir', '<NOT SET>')}")
     cfg["ScratchDir"] = f"{{root_dir}}/scratch/{forcing_configuration}_coastal/"
     if b_date_proc is not None:
         cfg["RefcstBDateProc"] = b_date_proc.strftime("%Y%m%d%H%M")
