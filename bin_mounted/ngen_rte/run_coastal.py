@@ -125,23 +125,7 @@ def main(
         forecast_hours = forecast_hours_from_config(raw_cfg)
         start_time = cycle_datetime + timedelta(hours=1)
         end_time = cycle_datetime + timedelta(hours=forecast_hours)
-        # b_date_proc is always the raw cycle_datetime, ana_flag or not --
-        # matching every other script in this codebase (run_default.py,
-        # run_forecast.py, run_regionalization_standalone.py all pass
-        # cycle_datetime straight through via configs.py's shared
-        # mswm_ForcingConfig property, with no compensating offset). This
-        # used to pre-add (LookBack - OutputFrequency) minutes for
-        # ana_flag runs, on the theory that config.py's
-        # calculate_lookback_window() would subtract the same amount back
-        # off and land on cycle_datetime again -- confirmed live (and by
-        # tracing calculate_lookback_window's actual arithmetic) that this
-        # was backwards: it shifted the whole processing window (LookBack
-        # - OutputFrequency) minutes into the FUTURE from cycle_datetime
-        # instead of producing the intended backward-looking AnA window
-        # ending AT cycle_datetime. Passing cycle_datetime unmodified lets
-        # calculate_lookback_window's own subtraction do what it's meant
-        # to: b_date_proc(final) = cycle_datetime - (LookBack -
-        # OutputFrequency), e_date_proc = cycle_datetime.
+        # calculate_lookback_window() handles the AnA lookback internally.
         b_date_proc = cycle_datetime
     else:
         raise ValueError("Must provide either --cycle_datetime or both --start_time and --end_time")
