@@ -17,6 +17,7 @@ See `run_coastal.sh` for example calls.
 
 import argparse
 import functools
+import hashlib
 import os
 import tempfile
 from datetime import datetime, timedelta
@@ -27,8 +28,35 @@ from ngen_rte import consts as c
 from ngen_rte.utils import datetime_type
 
 from NextGen_Forcings_Engine_BMI.run_bmi_model import run_bmi
+# The vendored engine's own model.py uses this nested copy of the regrid
+# module, not its top-level sibling.
+from NextGen_Forcings_Engine_BMI.NextGen_Forcings_Engine.core import regrid as _regrid_nested
 
 print = functools.partial(print, flush=True)
+
+
+def _make_stable_weight_file_names(stable_geogrid_path: str):
+    """For coastal runs, to reuse precomputed weights between simulations,
+    make the filename consistent between simulations (product_name +
+    geogrid only, no per-process random component)."""
+
+    def _get_weight_file_names(mpi_config, config_options, input_forcings):
+        if not config_options.weightsDir:
+            return None, None
+        file_key = f"{input_forcings.product_name}_{stable_geogrid_path}"
+        hash_key = hashlib.md5(file_key.encode()).hexdigest()[:8]
+        weight_file = os.path.join(
+            config_options.weightsDir, f"ESMF_weight_{hash_key}.nc4"
+        )
+        if config_options.grid_type == "unstructured":
+            weight_file_elem = os.path.join(
+                config_options.weightsDir, f"ESMF_weight_{hash_key}_elem.nc4"
+            )
+        else:
+            weight_file_elem = None
+        return weight_file, weight_file_elem
+
+    return _get_weight_file_names
 
 
 def build_config(forcing_configuration: str, global_domain: str, b_date_proc: datetime | None = None) -> tuple[str, dict]:
@@ -122,11 +150,17 @@ def main(
 
     geogrid = f"{c.COASTAL_GEOGRID_DIR}/geo_em_{global_domain}.nc"
 
+    # Must be applied before run_bmi() below.
+    _regrid_nested.get_weight_file_names = _make_stable_weight_file_names(geogrid)
+
     output_dir = os.path.join(
         c.FORCING_ROOT_DIR, "scratch", f"{forcing_configuration}_coastal"
     )
     os.makedirs(output_dir, exist_ok=True)
-    os.makedirs(os.path.join(c.FORCING_ROOT_DIR, "regrid_weights"), exist_ok=True)
+    # Must match COASTAL_CONFIG_OVERRIDES["RegridWeightsDir"] in consts.py --
+    # under esmf_mesh/ so it lands in a host-mounted, persistent directory
+    # instead of being wiped when the container exits.
+    os.makedirs(os.path.join(c.FORCING_ROOT_DIR, "esmf_mesh", "regrid_weights"), exist_ok=True)
     file_date = cycle_datetime if cycle_datetime is not None else b_date_proc
     output_path = os.path.join(output_dir, f"{global_domain}_{file_date.strftime('%Y%m%d%H%M')}.nc")
 
