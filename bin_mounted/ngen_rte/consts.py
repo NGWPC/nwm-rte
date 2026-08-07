@@ -103,7 +103,13 @@ COASTAL_CONFIG_OVERRIDES: dict = {
     "SpatialMetaIn": "{root_dir}/esmf_mesh/NWM/domain/GEOGRID_LDASOUT_Spatial_Metadata_{spatial_meta_suffix}.nc",
     "LONVAR": "XLONG_M",
     "LATVAR": "XLAT_M",
-    "RegridWeightsDir": "{root_dir}/regrid_weights/",
+    # Under esmf_mesh/ (not directly under root_dir) so it lands inside a
+    # host-mounted, persistent directory (docker_run only mounts
+    # data/esmf_mesh, data/scratch, and data/raw_input individually, not
+    # root_dir/data as a whole) -- computed ESMF regrid weight files
+    # survive across container runs instead of being recomputed every
+    # invocation.
+    "RegridWeightsDir": "{root_dir}/esmf_mesh/regrid_weights/",
 }
 
 
