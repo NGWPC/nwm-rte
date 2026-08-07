@@ -19,13 +19,14 @@ def initialize_logger() -> ewts.EwtsLogger:
         log_dir = os.path.join(c.CONTAINER_LOGS_DIR, "rte")
         log_file_name = f"rte_{now_str}.log"
         print(f"RTE: initializing EWTS log at: {os.path.join(log_dir, log_file_name)}")
+        ewts_enabled = os.environ.get("EWTS_ENABLED", "").strip().lower() not in ("0", "false", "off", "no")
         LOG = ewts.logger.setup_logger(
             MODULE_KEY,
             level="INFO",
             log_dir=log_dir,
             log_file_name=log_file_name,
             running_in_ngen=False,
-            enabled=True,
+            enabled=ewts_enabled,
         )
         if LOG is None:
             raise TypeError("LOG is unexpectedly None after ewts setup_logger call.")
