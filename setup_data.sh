@@ -55,5 +55,8 @@ s3_sync "${SOURCE_BUCKET_DEV}/${SOURCE_PREFIX_ROOT}/esmf/esmf_mesh" "${RUN_NGEN_
 # Download RFC reservoir gage timeseries data
 s3_sync "${SOURCE_BUCKET_DEV}/${SOURCE_PREFIX_ROOT}/rfc/reservoirs/timeseries" "${RUN_NGEN_ROOT__HOST}/data/rfc/reservoirs/timeseries"
 
+# Download USGS timeslice data
+s3_sync "${SOURCE_BUCKET_DEV}/${SOURCE_PREFIX_ROOT}/usgs_timeslice" "${RUN_NGEN_ROOT__HOST}/data/usgs_timeslice"
+
 set -x
 exit 0
