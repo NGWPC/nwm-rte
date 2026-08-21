@@ -59,11 +59,11 @@ set -x
 # docker_run python -um "ngen_rte.run_coastal" -dt "2025-09-15 00:00:00" -rname "${run_name}_medium_range_mem6" -fconfig medium_range_mem6 -gdomain CONUS
 # docker_run python -um "ngen_rte.run_coastal" -dt "2025-09-15 00:00:00" -rname "${run_name}_medium_range_mem_no_da" -fconfig medium_range_no_da -gdomain CONUS
 # docker_run python -um "ngen_rte.run_coastal" -dt "2025-09-15 00:00:00" -rname "${run_name}_nwm" -fconfig nwm -gdomain CONUS
-# docker_run python -um "ngen_rte.run_coastal" -dt "2025-09-15 00:00:00" -rname "${run_name}_short_range" -fconfig short_range -gdomain CONUS
+docker_run python -um "ngen_rte.run_coastal" -dt "2025-09-15 00:00:00" -rname "${run_name}_short_range" -fconfig short_range -gdomain CONUS
 # docker_run python -um "ngen_rte.run_coastal" -dt "2025-09-15 00:00:00" -rname "${run_name}_standard_ana" -fconfig standard_ana -gdomain CONUS
 
 # Alaska
-docker_run python -um "ngen_rte.run_coastal" -dt "2025-09-15 00:00:00" -rname "${run_name}_cold_start_alaska" -fconfig cold_start_alaska -gdomain Alaska
+# docker_run python -um "ngen_rte.run_coastal" -dt "2025-09-15 00:00:00" -rname "${run_name}_cold_start_alaska" -fconfig cold_start_alaska -gdomain Alaska
 # docker_run python -um "ngen_rte.run_coastal" -dt "2025-09-15 00:00:00" -rname "${run_name}_extended_ana_alaska" -fconfig extended_ana_alaska -gdomain Alaska
 # docker_run python -um "ngen_rte.run_coastal" -dt "2025-09-15 00:00:00" -rname "${run_name}_medium_range_blend_alaska" -fconfig medium_range_blend_alaska -gdomain Alaska
 # docker_run python -um "ngen_rte.run_coastal" -dt "2025-09-15 00:00:00" -rname "${run_name}_short_range_alaska" -fconfig short_range_alaska -gdomain Alaska
