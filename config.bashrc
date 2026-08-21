@@ -34,6 +34,10 @@ INSTALL_DEBUGGERS=${INSTALL_DEBUGGERS:-"NO"}
 NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE:-"NO"}
 # NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE:-"YES"}
 
+## \env EWTS_ENABLED Master on/off switch for the vendored `ewts` package's logging. Choose from: `["NO", "YES"]`
+EWTS_ENABLED=${EWTS_ENABLED:-"YES"}
+# EWTS_ENABLED=${EWTS_ENABLED:-"NO"}
+
 #### Component Packages
 ## 
 ## \desc <u>Choices of Component Packages:</u>
@@ -61,7 +65,7 @@ REPO_TAG_REGION_MGR=${REPO_TAG_REGION_MGR:-"development-pw"}
 ## \env REPO_TAG_DATA_ASSIM_ENGINE Source for `nwm-data-assimilation`.
 REPO_TAG_DATA_ASSIM_ENGINE=${REPO_TAG_DATA_ASSIM_ENGINE:-"development-pw"}
 ## \env REPO_TAG_NGEN_FORCING (Optional). Source for *re-installing* `ngen-forcing` Python package. Note that this does not affect the sourcing of the base image.
-REPO_TAG_NGEN_FORCING=${REPO_TAG_NGEN_FORCING:-""}
+REPO_TAG_NGEN_FORCING=${REPO_TAG_NGEN_FORCING:-"LOCAL"}
 ## \env REPO_TAG_EWTS (Optional). Source for *re-installing* `nwm-ewts` Python package.
 REPO_TAG_EWTS=${REPO_TAG_EWTS:-""}
 ## \env REPO_TAG_EVAL Source for `nwm-eval-mgr`.
