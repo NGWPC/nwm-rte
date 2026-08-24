@@ -29,8 +29,7 @@ source config.bashrc
 ##   - Pre-computed ESMF regrid weights from
 ##     `s3://ngwpc-coastal/coastal_forecast_demo/regrid_weights/`, synced
 ##     into `data/esmf_mesh/regrid_weights/` -- this is the exact path
-##     `ngen_rte.run_coastal` looks in/writes to at runtime (NOT the
-##     top-level `data/regrid_weights/`, which is unused dead weight).
+##     `ngen_rte.run_coastal` looks in/writes to at runtime
 ##     Pre-staging these avoids the (slow/memory-heavy) weight generation
 ##     step on first run.
 ##   - Regionalization input data (same as `setup_data.sh -r`). Should be
@@ -39,8 +38,7 @@ source config.bashrc
 ##     `schism_models/`), from
 ##     `s3://ngwpc-coastal/coastal_forecast_demo/run_coastal/`. This is
 ##     the `RUN_COASTAL_ROOT` sibling directory expected by
-##     `nwm-coastal/forecast_demo` (SCHISM/SFINCS working dir) -- it does
-##     not exist yet on a fresh checkout, unlike `run_ngen`.
+##     `nwm-coastal/forecast_demo` (SCHISM/SFINCS working dir)
 ##   - ESMF domain extract polygons (e.g.
 ##     `esmf_conus_03s_extract.geojson`), from
 ##     `s3://ngwpc-coastal/coastal_forecast_demo/esmf_domain_extract/`,
@@ -58,7 +56,7 @@ source config.bashrc
 ## \option -s, --skip-existing
 ## If provided, skip re-downloading the named domain files (ESMF mesh
 ## `GEOGRID_LDASOUT_Spatial_Metadata_*.nc`/`geo_em_*.nc`) that already
-## exist locally -- these are the large, slow ones. Synced directories
+## may exist locally -- these can be slow to download. Synced directories
 ## (regrid weights, regionalization inputs, `run_coastal`) are always
 ## re-synced regardless of this flag; `aws s3 sync` already only
 ## transfers changed/missing objects within them. Omit this flag to
