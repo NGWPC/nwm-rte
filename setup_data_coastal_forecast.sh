@@ -39,8 +39,17 @@ source config.bashrc
 ##     `schism_models/`), from
 ##     `s3://ngwpc-coastal/coastal_forecast_demo/run_coastal/`. This is
 ##     the `RUN_COASTAL_ROOT` sibling directory expected by
-##     `nwm-coastal/ecflow_demo` (SCHISM/SFINCS working dir) -- it does
+##     `nwm-coastal/forecast_demo` (SCHISM/SFINCS working dir) -- it does
 ##     not exist yet on a fresh checkout, unlike `run_ngen`.
+##   - ESMF domain extract polygons (e.g.
+##     `esmf_conus_03s_extract.geojson`), from
+##     `s3://ngwpc-coastal/coastal_forecast_demo/esmf_domain_extract/`,
+##     synced into `data/esmf_mesh/esmf_domain_extract/`. These are inputs
+##     to `nwm-coastal/forecast_demo/bin/extract_esmf_domain.py`, which
+##     cuts a small ESMF/GEOGRID domain (e.g. one VPU's extent) out of an
+##     existing large one (CONUS/Alaska/Hawaii/Puerto_Rico), so the forcing
+##     engine can regrid onto a domain sized for the area actually needed
+##     instead of the full source domain.
 ##
 ## Uses various OS env vars from `config.bashrc`.
 ##
@@ -88,12 +97,14 @@ SOURCE_PREFIX_COASTAL_DEMO="coastal_forecast_demo"
 
 TGT_DIR_ESMF_DOMAIN="${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/NWM/domain"
 TGT_DIR_REGRID_WEIGHTS="${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/regrid_weights"
-## \env RUN_COASTAL_ROOT__HOST Root of the SCHISM/SFINCS working directory (sibling of `nwm-rte`, matching `RUN_COASTAL_ROOT` in `nwm-coastal/ecflow_demo`).
+TGT_DIR_ESMF_DOMAIN_EXTRACT="${RUN_NGEN_ROOT__HOST}/data/esmf_mesh/esmf_domain_extract"
+## \env RUN_COASTAL_ROOT__HOST Root of the SCHISM/SFINCS working directory (sibling of `nwm-rte`, matching `RUN_COASTAL_ROOT` in `nwm-coastal/forecast_demo`).
 RUN_COASTAL_ROOT__HOST=${RUN_COASTAL_ROOT__HOST:-"${REPOS_COMMON_ROOT__HOST}/run_coastal"}
 
 mkdir_p "${RUN_NGEN_ROOT__HOST}"
 mkdir_p "${TGT_DIR_ESMF_DOMAIN}"
 mkdir_p "${TGT_DIR_REGRID_WEIGHTS}"
+mkdir_p "${TGT_DIR_ESMF_DOMAIN_EXTRACT}"
 mkdir_p "${RUN_COASTAL_ROOT__HOST}"
 
 # ESMF mesh domain files. Each region subdirectory under
@@ -129,6 +140,9 @@ s3_sync "${SOURCE_BUCKET_DEV}/${SOURCE_PREFIX_ROOT}/regionalization/data/inputs"
 
 # run_coastal working directory (SCHISM/SFINCS model folders)
 s3_sync "${SOURCE_BUCKET_COASTAL}/${SOURCE_PREFIX_COASTAL_DEMO}/run_coastal" "${RUN_COASTAL_ROOT__HOST}"
+
+# ESMF domain extract polygons (inputs to extract_esmf_domain.py)
+s3_sync "${SOURCE_BUCKET_COASTAL}/${SOURCE_PREFIX_COASTAL_DEMO}/esmf_domain_extract" "${TGT_DIR_ESMF_DOMAIN_EXTRACT}"
 
 set -x
 exit 0

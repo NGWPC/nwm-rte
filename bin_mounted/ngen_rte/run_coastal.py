@@ -159,7 +159,12 @@ def build_config(
     with open(template_path, "r") as f:
         cfg = yaml.safe_load(f)
 
-    spatial_meta_suffix = c.COASTAL_SPATIAL_META_SUFFIX[global_domain]
+    # Known domains (CONUS/Alaska/Hawaii/Puerto_Rico) use an abbreviated
+    # GEOGRID_LDASOUT_Spatial_Metadata_<suffix>.nc filename; any other
+    # (e.g. custom-extracted) domain name is expected to match its own
+    # geo_em_<global_domain>.nc / GEOGRID_LDASOUT_Spatial_Metadata_<global_domain>.nc
+    # pair directly, with no separate abbreviation.
+    spatial_meta_suffix = c.COASTAL_SPATIAL_META_SUFFIX.get(global_domain, global_domain)
 
     overrides = {
         k: v.replace("{spatial_meta_suffix}", spatial_meta_suffix) if isinstance(v, str) else v
@@ -436,8 +441,14 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         "-gdomain", "--global_domain",
         type=str,
         default=c.COASTAL_GLOBAL_DOMAINS[0],
-        choices=c.COASTAL_GLOBAL_DOMAINS,
-        help=f"Output domain. Default: {repr(c.COASTAL_GLOBAL_DOMAINS[0])}",
+        help=(
+            f"Output domain. Default: {repr(c.COASTAL_GLOBAL_DOMAINS[0])}. "
+            f"Not restricted to {c.COASTAL_GLOBAL_DOMAINS} -- any domain name "
+            "with a matching geo_em_<name>.nc / "
+            "GEOGRID_LDASOUT_Spatial_Metadata_<name>.nc pair under "
+            f"{c.COASTAL_GEOGRID_DIR} works (e.g. one produced by "
+            "forecast_demo/bin/extract_esmf_domain.py)."
+        ),
     )
     parser.add_argument(
         "-lb", "--lookback",
