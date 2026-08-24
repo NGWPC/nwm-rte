@@ -57,6 +57,7 @@ s3_sync "${SOURCE_BUCKET_DEV}/${SOURCE_PREFIX_ROOT}/rfc/reservoirs/timeseries" "
 
 # Download USGS timeslice data
 s3_sync "${SOURCE_BUCKET_DEV}/${SOURCE_PREFIX_ROOT}/usgs_timeslice" "${RUN_NGEN_ROOT__HOST}/data/usgs_timeslice"
+s3_sync "${SOURCE_BUCKET_DEV}/${SOURCE_PREFIX_ROOT}/usgs_timeslice_gages" "${RUN_NGEN_ROOT__HOST}/data/usgs_timeslice_gages"
 
 set -x
 exit 0
