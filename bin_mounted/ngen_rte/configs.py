@@ -87,6 +87,8 @@ class RTEBaseConfig(BaseModelStrict):
         Optional hydrofabric file path. If provided, bypasses MSWM Icefabric server API call.
     reservoir_rfc_dir: str | None = Field(default=None)
         Optional path to reservoir RFC forecast time-series directory. If provided, reservoir_da is set to True and passed to DataAssimilationConfig
+    usgs_timeslice_dir: str | None = Field(default=None)
+        Optional path to USGS timeslice time-series directory. If provided, streamflow_da is set to True and passed to DataAssimilationConfig
     fcst_run_name: str | None = Field(default=None)
         Forecast run name.
     cycle_datetime: datetime | None = Field(default=None)
@@ -122,6 +124,7 @@ class RTEBaseConfig(BaseModelStrict):
     output_format: list[str] | None = Field(default=None)
     hydrofab_file: str | None = Field(default=None)
     reservoir_rfc_dir: str | None = Field(default=None)
+    usgs_timeslice_dir: str | None = Field(default=None)
     fcst_run_name: str | None = Field(default=None)
     cycle_datetime: datetime | None = Field(default=None)
     lookback: int | None = Field(default=None)
@@ -557,13 +560,15 @@ class RTEBaseConfig(BaseModelStrict):
             )
         )
         return dfc
-    
+
     @property
     def mswm_DataAssimilationConfig(self) -> DataAssimilationConfig:
         """MSWM DataAssimilationConfig instance"""
         dac = DataAssimilationConfig(
             reservoir_da=bool(self.reservoir_rfc_dir),
             reservoir_rfc_dir=self.reservoir_rfc_dir,
+            streamflow_da=bool(self.usgs_timeslice_dir),
+            usgs_timeslice_dir=self.usgs_timeslice_dir,
         )
         return dac
 
