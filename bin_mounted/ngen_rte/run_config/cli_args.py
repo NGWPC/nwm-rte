@@ -573,6 +573,21 @@ RESERVOIR_RFC_DIR = ArgsKwargs(
     ],
 )
 
+USGS_TIMESLICE_DIR = ArgsKwargs(
+    args=["-usgs", "--usgs_timeslice_dir"],
+    kwargs={
+        "type": str,
+        "default": None,
+        "help": "Path to usgs timeslice time-series directory. If provided,"
+        "streamflow data assimilation is enabled and streamflow_da is set to True.",
+    },
+    scripts=[
+        Script.FORECAST,
+        Script.DEFAULT,
+        Script.REGIONALIZATION,
+    ],
+)
+
 NGEN_NETCDF_OUTPUT_FILE = ArgsKwargs(
     args=["-ncout", "--ngen_netcdf_output_file"],
     kwargs={
