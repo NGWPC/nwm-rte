@@ -183,6 +183,7 @@ sudo ${SUDO_ENV_ARGS[@]+"${SUDO_ENV_ARGS[@]}"} docker build -t ${TARGET_IMAGE_NA
     --build-arg REPO_TAG_NGEN_FORCING="${REPO_TAG_NGEN_FORCING}" \
     --build-arg REPO_TAG_EWTS="${REPO_TAG_EWTS}" \
     --build-arg REPO_TAG_EVAL="${REPO_TAG_EVAL}" \
+    --build-arg REPO_TAG_ECF_TASK_MGR="${REPO_TAG_ECF_TASK_MGR}" \
     ".." \
     |& tee "logs/docker/build/${SAFE_LOG_NAME}-${TIMESTAMP}.log"
 

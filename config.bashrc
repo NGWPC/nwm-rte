@@ -66,7 +66,8 @@ REPO_TAG_NGEN_FORCING=${REPO_TAG_NGEN_FORCING:-""}
 REPO_TAG_EWTS=${REPO_TAG_EWTS:-""}
 ## \env REPO_TAG_EVAL Source for `nwm-eval-mgr`.
 REPO_TAG_EVAL=${REPO_TAG_EVAL:-"development"}
-
+## \env REPO_TAG_ECF_TASK_MGR Source for `ecf_task_mgr` Python package.
+REPO_TAG_ECF_TASK_MGR=${REPO_TAG_ECF_TASK_MGR:-"development"}
 
 #### Sourcing of ngen Base
 ## 

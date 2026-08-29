@@ -11,8 +11,10 @@ import time
 from collections.abc import Generator
 from pathlib import Path
 
+from ecf_task_mgr import EcflowInterface, SubtaskCallbackContext
 from ewts import LogParts
 from mswm.build_inputs import RealizationBuilder
+from ngen_rte.consts import UNSET_LOG_PATHS_METADATA
 from ngen_rte.execution.ngen_logs import (
     _LogParserBase,
     _LogParserGeneric,
@@ -56,8 +58,12 @@ class NgenRunnerAsync(BaseModelStrict):
     """Passed to ForecastExecutionManager.postprocess()"""
     timeout_secs: float | None = None
     """Timeout limit on ngen execution"""
-    do_override_log_file_prefix : bool = False
+    do_override_log_file_prefix: bool = False
     """Passed to ForecastExecutionManager.preprocess()"""
+    ecf_iface: EcflowInterface | None = None
+    """Optional EcflowInterface instance, for sending transmissions to the ecFlow server."""
+    ecf_ctx: SubtaskCallbackContext | None = None
+    """Optional SubtaskCallbackContext instance, for sending transmissions to the ecFlow server."""
 
     fem: ForecastExecutionManager | None = Field(default=None, init=False)
     log_parsers: list[_LogParserBase] = Field(default_factory=list, init=False)
@@ -144,7 +150,12 @@ class NgenRunnerAsync(BaseModelStrict):
                 new_log_parts,
                 log_file,
             ) in self._iter_new_log_parts_until_complete():
-                transmit(new_log_parts, log_file)
+                transmit(
+                    new_log_parts,
+                    log_file,
+                    ecf_iface=self.ecf_iface,
+                    ecf_ctx=self.ecf_ctx,
+                )
         except NgenCalledProcessError as e:
             raise RuntimeError(f"Error during forecast run: {e}") from e
         except NgenIntentionallyStoppedError as e:
@@ -227,3 +238,24 @@ class NgenRunnerAsync(BaseModelStrict):
             raise e
         finally:
             yield from self._iter_new_log_parts(final=True)
+
+    @staticmethod
+    def single_path_stats(path: str) -> dict:
+        """Return a dictionary with keys "exists" and "size_bytes" for a single path (does not walk)."""
+        d = {"path": path}
+        if os.path.exists(path):
+            d["exists"] = True
+            d["size_bytes"] = os.path.getsize(path)
+        else:
+            d["exists"] = False
+            d["size_bytes"] = None
+        return d
+
+    @property
+    def log_paths_meta(self) -> dict:
+        """Inspect the registered log files and return metadata for them."""
+        d = UNSET_LOG_PATHS_METADATA.copy()
+        for parser in self.log_parsers:
+            for _, log_path in parser._iter_log_paths():
+                d["logs"].append(self.single_path_stats(log_path))
+        return d
