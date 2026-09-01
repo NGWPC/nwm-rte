@@ -34,6 +34,10 @@ INSTALL_DEBUGGERS=${INSTALL_DEBUGGERS:-"NO"}
 NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE:-"NO"}
 # NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE:-"YES"}
 
+## \env EWTS_ENABLED Master on/off switch for the vendored `ewts` package's logging. Choose from: `["NO", "YES"]`
+EWTS_ENABLED=${EWTS_ENABLED:-"YES"}
+# EWTS_ENABLED=${EWTS_ENABLED:-"NO"}
+
 #### Component Packages
 ## 
 ## \desc <u>Choices of Component Packages:</u>
@@ -64,6 +68,8 @@ REPO_TAG_DATA_ASSIM_ENGINE=${REPO_TAG_DATA_ASSIM_ENGINE:-"development"}
 REPO_TAG_NGEN_FORCING=${REPO_TAG_NGEN_FORCING:-""}
 ## \env REPO_TAG_EWTS (Optional). Source for *re-installing* `nwm-ewts` Python package.
 REPO_TAG_EWTS=${REPO_TAG_EWTS:-""}
+## \env REPO_TAG_VERF Source for `nwm-verf`.
+REPO_TAG_VERF=${REPO_TAG_VERF:-"development"}
 ## \env REPO_TAG_EVAL Source for `nwm-eval-mgr`.
 REPO_TAG_EVAL=${REPO_TAG_EVAL:-"development"}
 

@@ -65,6 +65,7 @@ function docker_run {
         -v "$(pwd)/logs:/ngen-app/logs_rte" \
         -v "$(pwd)/.devcontainer/tmp:/tmp" \
         -e NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE} \
+        -e EWTS_ENABLED=${EWTS_ENABLED} \
         \
         -v "${REPOS_COMMON_ROOT__HOST}/nwm-automation-scripts/:/ngen-app/nwm-automation-scripts/" \
         \

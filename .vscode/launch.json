@@ -201,6 +201,86 @@
                 "/ngen-app/bin/ngen_rte/tests/test_data/gauge_01123000.gpkg"
             ],
         },
+        {
+            "name": "run_coastal.py - Hawaii Standard ANA",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/bin_mounted",
+            "module": "ngen_rte.run_coastal",
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "python": "${command:python.interpreterPath}",
+            "args": [
+                "-dt",
+                "2025-09-15 00:00:00",
+                "-rname",
+                "test_coastal_forcing_hawaii_ana",
+                "-fconfig",
+                "standard_ana_hawaii",
+                "-gdomain",
+                "Hawaii"
+            ],
+        },
+        {
+            "name": "run_coastal.py - Alaska Standard ANA",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/bin_mounted",
+            "module": "ngen_rte.run_coastal",
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "python": "${command:python.interpreterPath}",
+            "args": [
+                "-dt",
+                "2025-09-15 00:00:00",
+                "-rname",
+                "test_coastal_forcing_ak_ana",
+                "-fconfig",
+                "standard_ana_alaska",
+                "-gdomain",
+                "Alaska"
+            ],
+        },
+        {
+            "name": "run_coastal.py - Puerto Rico Standard ANA",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/bin_mounted",
+            "module": "ngen_rte.run_coastal",
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "python": "${command:python.interpreterPath}",
+            "args": [
+                "-dt",
+                "2025-09-15 00:00:00",
+                "-rname",
+                "test_coastal_forcing_pr_ana",
+                "-fconfig",
+                "standard_ana_puertorico",
+                "-gdomain",
+                "Puerto_Rico"
+            ],
+        },
+        {
+            "name": "run_coastal.py - CONUS Short Range",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/bin_mounted",
+            "module": "ngen_rte.run_coastal",
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "python": "${command:python.interpreterPath}",
+            "args": [
+                "-dt",
+                "2025-09-15 00:00:00",
+                "-rname",
+                "test_coastal_forcing_conus_sr",
+                "-fconfig",
+                "short_range",
+                "-gdomain",
+                "CONUS"
+            ],
+        },
         //// 
         //// BEGIN private configurations
         //// 
