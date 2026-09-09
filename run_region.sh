@@ -24,11 +24,13 @@ set -euo pipefail
 ## Run evaluation
 ## \option -c, --config_dir DIR
 ## (default: `"./configs"`) Set config directory
-## \option -r, --repos PATH
-## (default: auto-detect) Set root directory for NGWPC repos
+## \option -r, --rte_path PATH
+## (default: `"$(realpath .)/rte_scripts/run_region.sh"`) Set path to the run_region.sh script for nwm-rte
+## \option -i, --image
+## (default: ghcr.io/ngwpc/nwm-rte)
 ## \option -t, --image-tag TAG
 ## (default: `"latest"`) Set Docker image tag
-## \option -i, --pull-image
+## \option --pull-image
 ## (optional switch) Pull the latest Docker image before running
 ## \option -d, --delete-runtime-dir
 ## (optional switch) Delete runtime directory after completion
@@ -78,49 +80,20 @@ set -euo pipefail
 ## 
 # -----------------------------------------------------------------------------
 
-# Initial context
-WORK_DIR="$(realpath .)"  
-USER_NAME="${USER%%@*}"
-
-# Determine REPOS_COMMON_ROOT__HOST (NGWPC repos) based on environment
-if [[ -d "/ngen-dev/$USER_NAME" || -d "/ngen-dev/${USER_NAME,,}" ]]; then
-    REPOS_COMMON_ROOT__HOST="/ngencerf-app"
-elif [[ -d "/ngen-oe/$USER_NAME" || -d "/ngen-oe/${USER_NAME,,}" ]]; then
-    REPOS_COMMON_ROOT__HOST="/ngencerf-app"
-else
-    # Resolve USER_DIR (case-insensitive)
-    # Note USER_NAME and USER_DIR can be different on some systems
-    USER_DIR="$(find /home -maxdepth 1 -type d -iname "$USER_NAME" | head -n 1 || true)"
-    if [[ -z "$USER_DIR" ]]; then
-        echo "ERROR: Could not locate home directory for user $USER_NAME under /home" >&2
-        exit 1
-    fi
-
-    if [[ -d "$USER_DIR/repos" ]]; then
-        REPOS_COMMON_ROOT__HOST="$USER_DIR/repos"
-    elif [[ -d "$USER_DIR/ngwpc" ]]; then
-        REPOS_COMMON_ROOT__HOST="$USER_DIR/ngwpc"
-    fi
-fi
-
-export WORK_DIR
-if [[ ! -w "$WORK_DIR" ]]; then
-    echo "ERROR: WORK_DIR is not writable: $WORK_DIR" >&2
-    exit 1
-fi
-
 # Default workflow flags
 parreg=false
 formreg=false
 ngen=false
 eval=false
-CONFIG_DIR="${WORK_DIR}/configs"
+CONFIG_DIR="$(realpath .)/configs"
+RTE_PATH="$(realpath .)/rte_scripts/run_region.sh"
+IMAGE="ghcr.io/ngwpc/nwm-rte"
 IMAGE_TAG="latest"
 PULL_IMAGE=false
 DELETE_RUNTIME_DIR=false
 
 # Parse command line arguments
-ARGS=$(getopt -o pfnehc:r:t:i:d --long parreg,formreg,ngen,eval,help,config_dir:,repos:,image-tag:,pull-image,delete-runtime-dir -- "$@")
+ARGS=$(getopt -o pfnehc:r:i:t:d --long parreg,formreg,ngen,eval,help,config_dir:,rte_path:,image:,image-tag:,pull-image,delete-runtime-dir -- "$@")
 if [ $? != 0 ]; then echo "Failed parsing options." >&2; exit 1; fi
 eval set -- "$ARGS"
 
@@ -131,23 +104,25 @@ while true; do
         -n|--ngen) ngen=true; shift;;
         -e|--eval) eval=true; shift;;
         -c|--config_dir) CONFIG_DIR="$2"; shift 2;;
-        -r|--repos) REPOS_COMMON_ROOT__HOST="$2"; shift 2;;
+        -r|--rte_path) RTE_PATH="$2"; shift 2;;
+        -i|--image) IMAGE="$2"; shift 2;;
         -t|--image-tag) IMAGE_TAG="$2"; shift 2;;
-        -i|--pull-image) PULL_IMAGE=true; shift;;
+        --pull-image) PULL_IMAGE=true; shift;;
         -d|--delete-runtime-dir) DELETE_RUNTIME_DIR=true; shift;;
         -h|--help)
             echo "Usage: $0 [OPTIONS]
 Options:
-  -p, --parreg         Run parameter regionalization (includes formulation)
-  -f, --formreg        Run formulation regionalization only
-  -n, --ngen           Run NGEN simulation
-  -e, --eval           Run evaluation
-  -c, --config_dir DIR Set config directory (default: ./configs)
-  -r, --repos PATH     Set root directory for NGWPC repos 
-  -t, --image-tag TAG  Set Docker image tag (default: latest)
-  -i, --pull-image     Pull the latest Docker image (with tag "latest" or as specified by --image-tag) before running (optional)
+  -p, --parreg                 Run parameter regionalization (includes formulation)
+  -f, --formreg                Run formulation regionalization only
+  -n, --ngen                   Run NGEN simulation
+  -e, --eval                   Run evaluation
+  -c, --config_dir             Set config directory (default: ./configs)
+  -r, --rte_path               Set path to the run_region.sh script for nwm-rte (default: "$(realpath .)/rte_scripts/run_region.sh")
+  -i, --image                  Set Docker image (default: ghcr.io/ngwpc/nwm-rte)
+  -t, --image-tag              Set Docker image tag (default: latest)
+  --pull-image                 Pull the latest Docker image (default: false) before running
   -d, --delete-runtime-dir     Delete runtime directory after completion (default: keep for debugging)
-  -h, --help           Show this message and exit
+  -h, --help                   Show this message and exit
 " >&2
             exit 0;;
         --) shift; break;;
@@ -168,20 +143,6 @@ if [[ ${#selected_workflows[@]} -eq 0 ]]; then
 fi
 echo "Selected workflows: ${selected_workflows[*]}"
 
-# make sure REPOS_COMMON_ROOT__HOST is set
-if [[ -z "${REPOS_COMMON_ROOT__HOST:-}" ]]; then
-    echo "ERROR: REPOS_COMMON_ROOT__HOST is not set and could not be auto-detected (/ngencerf-app on INT/EA/UAT; ~/repos or ~/ngwpc in AWS workspace)."
-    echo "Please specify with -r or --repos option." >&2
-    exit 1
-fi
-
-# Determine config directory
-CONFIG_DIR="$(realpath "$CONFIG_DIR")"
-if [[ ! -d "$CONFIG_DIR" ]]; then
-    echo "ERROR: Config directory not found at $CONFIG_DIR" >&2
-    exit 1
-fi
-
 # function to create runtime directory if it doesn't exist and set ownership to current user (for docker permissions)
 ensure_dir() {
     mkdir -p "$1"
@@ -198,15 +159,93 @@ require_dir() {
     fi
 }
 
-# ensure static data directory exists on host (currently required for ngen-forcing)
-require_dir "${REPOS_COMMON_ROOT__HOST}/run_ngen/data"
+# Function to make sure required config files exist
+require_config_files() {
+    local mode="$1"
+    local required_files=(
+        "$CONFIG_DIR/config_general.yaml"
+    )
+    local missing_files=()
 
-# ensure ngen-forcing config template folder exists on host
-forcing_config_dir="${REPOS_COMMON_ROOT__HOST}/ngen-forcing/NextGen_Forcings_Engine_BMI/BMI_NextGen_Configs/config_templates"
-require_dir "${forcing_config_dir}"
+    if [ "$mode" = "parreg" ]; then
+        required_files+=(
+            "$CONFIG_DIR/config_formreg.yaml"
+            "$CONFIG_DIR/config_parreg.yaml"
+        )
+    elif [ "$mode" = "formreg" ]; then
+        required_files+=(
+            "$CONFIG_DIR/config_formreg.yaml"
+        )
+    elif [ "$mode" = "ngen" ]; then
+        required_files+=(
+            "$CONFIG_DIR/config_ngen.yaml"
+        )
+    elif [ "$mode" = "eval" ]; then
+        required_files=(
+            "$CONFIG_DIR/config_eval.yaml"
+        )
+    else
+        echo "Error: Unknown mode: $mode" >&2
+        exit 1
+    fi
 
-# Create run-time temporary directory with timestamp to avoid conflicts between simultaneous runs
-RUNTIME_DIR_TMP=$(mktemp -d "${WORK_DIR}/run_time_XXXXXXXX")
+    # Check all required files
+    for config_file in "${required_files[@]}"; do
+        if [ ! -f "$config_file" ]; then
+            missing_files+=("$config_file")
+        fi
+    done
+
+    # Report all missing files
+    if [ ${#missing_files[@]} -gt 0 ]; then
+        echo "Error: The following required config files are missing:" >&2
+        for config_file in "${missing_files[@]}"; do
+            echo "  - $config_file" >&2
+        done
+        exit 1
+    fi
+}
+
+# make sure required config files exist for the selected workflows
+$formreg && require_config_files "formreg"
+$parreg && require_config_files "parreg"
+$ngen && require_config_files "ngen"
+$eval && require_config_files "eval"
+
+# Extract directories from config_general.yaml
+CONFIG_FILE="${CONFIG_DIR}/config_general.yaml"
+BASE_DIR=$(yq -r '.general.base_dir' "$CONFIG_FILE")
+STATIC_DATA_DIR=$(yq -r '.general.static_data_dir' "$CONFIG_FILE")
+
+# Determine whether ~ was used
+DOCKER_HOME_ARGS=()
+
+if [[ "$BASE_DIR" == "~" || "$BASE_DIR" == "~/"* ||
+      "$STATIC_DATA_DIR" == "~" || "$STATIC_DATA_DIR" == "~/"* ]]; then
+    DOCKER_HOME_ARGS=(-e "HOME=${HOME}")
+fi
+
+# Expand a leading "~"
+BASE_DIR="${BASE_DIR/#\~/$HOME}"
+STATIC_DATA_DIR="${STATIC_DATA_DIR/#\~/$HOME}"
+RTE_PATH="${RTE_PATH/#\~/$HOME}"
+
+ensure_dir "$BASE_DIR"
+require_dir "$STATIC_DATA_DIR"
+require_dir "$RTE_PATH"
+
+echo "BASE_DIR (working directory): $BASE_DIR"
+echo "STATIC_DATA_DIR: $STATIC_DATA_DIR"
+echo "RTE_PATH: $RTE_PATH"
+
+# ensure required static forcing data exists on host
+FORCING_STATIC_DIR="${STATIC_DATA_DIR}/ngen/forcing/static_data"
+FORCING_CONFIG_DIR="${STATIC_DATA_DIR}/ngen/forcing/config_templates"
+require_dir "$FORCING_STATIC_DIR"
+require_dir "$FORCING_CONFIG_DIR"
+
+# create run-time temporary directory with timestamp to avoid conflicts between simultaneous runs
+RUNTIME_DIR_TMP=$(mktemp -d "${BASE_DIR}/run_time_XXXXXXXX")
 ensure_dir "$RUNTIME_DIR_TMP"
 chmod a+rx "${RUNTIME_DIR_TMP}"
 echo "Created run-time temporary directory: ${RUNTIME_DIR_TMP}."
@@ -235,14 +274,13 @@ if $DELETE_RUNTIME_DIR; then
 fi
 
 # Python module to run with docker run
-RUN_REGION_MODULE="ngen_rte.run_regionalization"
-# Parent dir of where the ngen_rte module is mounted inside the container (for setting PYTHONPATH)
-CONTAINER_PYTHONPATH_ENTRY="${REPOS_COMMON_ROOT__HOST}/nwm-rte/bin_mounted"
+RUN_REGION_MODULE="run_regionalization"
+
+# Parent dir of where RUN_REGION_MODULE is mounted inside the container (for setting PYTHONPATH)
+CONTAINER_PYTHONPATH_ENTRY="${RTE_PATH}"
 
 # docker image to use
-TARGET_IMAGE_NAME="ghcr.io/ngwpc/nwm-rte:${IMAGE_TAG}"
-#TARGET_IMAGE_NAME=ngen_rte_ghcr:latest # Using local image for testing
-
+TARGET_IMAGE_NAME="${IMAGE}:${IMAGE_TAG}"
 echo "Using Docker image: ${TARGET_IMAGE_NAME}"
 
 # pull the latest image if requested
@@ -260,22 +298,21 @@ function docker_run {
     docker run \
         --entrypoint python \
         --user "$(id -u):$(id -g)" \
-        -e WORK_DIR="${WORK_DIR}" \
         -e PYTHONPATH="${CONTAINER_PYTHONPATH_COMBINED}" \
-        -e REPOS_COMMON_ROOT__HOST="${REPOS_COMMON_ROOT__HOST}" \
-        -e HOME="${RUNTIME_DIR_TMP}/home" \
-        -w "${WORK_DIR}" \
-        -v "${WORK_DIR}:${WORK_DIR}" \
-        -v "${REPOS_COMMON_ROOT__HOST}:${REPOS_COMMON_ROOT__HOST}" \
-        -v "${REPOS_COMMON_ROOT__HOST}/run_ngen/data:/ngencerf-app/static_data" \
-        -v "${forcing_config_dir}:/ngencerf-app/forcing_config_templates" \
-        -v "${CONFIG_DIR}:${CONFIG_DIR}" \
-        -v "${RUNTIME_DIR_TMP}/run_ngen/data:/ngencerf-app/runtime_data" \
-        -v "${RUNTIME_DIR_TMP}/docker_logs/run:/ngencerf/data/run-logs" \
+        "${DOCKER_HOME_ARGS[@]}" \
+        -w "${BASE_DIR}" \
+        -v "${BASE_DIR}:${BASE_DIR}:rw" \
+        -v "${STATIC_DATA_DIR}:${STATIC_DATA_DIR}:ro" \
+        -v "${RTE_PATH}:${RTE_PATH}:ro" \
+        -v "${CONFIG_DIR}:${CONFIG_DIR}:ro" \
+        -v "${FORCING_STATIC_DIR}:/ngencerf-app/static_data:ro" \
+        -v "${FORCING_CONFIG_DIR}:/ngencerf-app/forcing_config_templates:ro" \
+        -v "${RUNTIME_DIR_TMP}/run_ngen/data:/ngencerf-app/runtime_data:rw" \
+        -v "${RUNTIME_DIR_TMP}/docker_logs/run:/ngencerf/data/run-logs:rw" \
         --rm ${TARGET_IMAGE_NAME} -um "$@"
 }
 
-# Run requested workflow steps
+# Run requested workflow steps using Docker
 $parreg  && docker_run "$RUN_REGION_MODULE" -c "$CONFIG_DIR" --parreg
 $formreg && docker_run "$RUN_REGION_MODULE" -c "$CONFIG_DIR" --formreg
 $ngen    && docker_run "$RUN_REGION_MODULE" -c "$CONFIG_DIR" --ngen
