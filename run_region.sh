@@ -214,8 +214,15 @@ $eval && require_config_files "eval"
 
 # Extract directories from config_general.yaml
 CONFIG_FILE="${CONFIG_DIR}/config_general.yaml"
-BASE_DIR=$(yq -r '.general.base_dir' "$CONFIG_FILE")
-STATIC_DATA_DIR=$(yq -r '.general.static_data_dir' "$CONFIG_FILE")
+# BASE_DIR=$(yq -r '.general.base_dir' "$CONFIG_FILE")
+# STATIC_DATA_DIR=$(yq -r '.general.static_data_dir' "$CONFIG_FILE")
+BASE_DIR=$(sed -n "s/^[[:space:]]*base_dir:[[:space:]]*//p" "$CONFIG_FILE" |
+    sed 's/[[:space:]]*#.*$//' |
+    sed "s/^[[:space:]]*['\"]//; s/['\"][[:space:]]*$//")
+
+STATIC_DATA_DIR=$(sed -n "s/^[[:space:]]*static_data_dir:[[:space:]]*//p" "$CONFIG_FILE" |
+    sed 's/[[:space:]]*#.*$//' |
+    sed "s/^[[:space:]]*['\"]//; s/['\"][[:space:]]*$//")
 
 # Determine whether ~ was used
 DOCKER_HOME_ARGS=()
