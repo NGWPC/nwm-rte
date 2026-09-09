@@ -167,7 +167,6 @@ fi
 sudo ${SUDO_ENV_ARGS[@]+"${SUDO_ENV_ARGS[@]}"} docker build -t ${TARGET_IMAGE_NAME} -f Dockerfile.rte ${NO_CACHE} --target ${STAGE} \
     ${SECRET_ARGS[@]+"${SECRET_ARGS[@]}"} \
     --build-arg GH_ORG=${GH_ORG} \
-    --build-arg PYTHON_VERSION_STR=${PYTHON_VERSION_STR} \
     --build-arg TARGET_IMAGE_SOURCE=${TARGET_IMAGE_SOURCE} \
     --build-arg TARGET_IMAGE_VENDOR=${TARGET_IMAGE_VENDOR} \
     --build-arg TARGET_IMAGE_VERSION=${TARGET_IMAGE_VERSION} \

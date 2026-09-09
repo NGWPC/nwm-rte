@@ -21,7 +21,6 @@ set -euo pipefail
 ## 
 
 install_debuggers=$1
-python_version=${2:-}
 
 if [ "$install_debuggers" = "YES" ]; then
     echo "Installing debugpy via pip"
@@ -29,11 +28,18 @@ if [ "$install_debuggers" = "YES" ]; then
     echo "Installing gdb"
 
     if grep -q '^ID=rocky' /etc/os-release; then
-        echo "Rocky detected. Installing gdb and Python debug symbols"
         dnf install -y gdb
         yum install yum-utils -y
         yum-config-manager --enable baseos-debug
-        debuginfo-install python${python_version}
+
+        # Rocky 8's python3 is platform-python/a modular stream, neither of which has published debuginfo
+        . /etc/os-release
+        if [ "${VERSION_ID%%.*}" -ge 9 ]; then
+            echo "Rocky $VERSION_ID detected. Installing gdb and Python debug symbols"
+            debuginfo-install -y python3
+        else
+            echo "Rocky $VERSION_ID detected. Installing gdb. Python debug symbols are not published for this release and will not be installed."
+        fi
     elif grep -q '^ID=debian' /etc/os-release; then
         echo "Debian detected. Installing gdb. Python debug symbols will not be installed."
         apt-get update
