@@ -86,7 +86,7 @@ formreg=false
 ngen=false
 eval=false
 CONFIG_DIR="$(realpath .)/configs"
-RTE_PATH="$(realpath .)/rte_scripts/run_region.sh"
+RTE_PATH="$(realpath .)/rte_scripts"
 IMAGE="ghcr.io/ngwpc/nwm-rte"
 IMAGE_TAG="latest"
 PULL_IMAGE=false
@@ -214,8 +214,6 @@ $eval && require_config_files "eval"
 
 # Extract directories from config_general.yaml
 CONFIG_FILE="${CONFIG_DIR}/config_general.yaml"
-# BASE_DIR=$(yq -r '.general.base_dir' "$CONFIG_FILE")
-# STATIC_DATA_DIR=$(yq -r '.general.static_data_dir' "$CONFIG_FILE")
 BASE_DIR=$(sed -n "s/^[[:space:]]*base_dir:[[:space:]]*//p" "$CONFIG_FILE" |
     sed 's/[[:space:]]*#.*$//' |
     sed "s/^[[:space:]]*['\"]//; s/['\"][[:space:]]*$//")
@@ -264,9 +262,6 @@ ensure_dir "$RUNTIME_DIR_TMP/run_ngen/data/esmf_mesh"
 # create docker logs directory
 ensure_dir "$RUNTIME_DIR_TMP/docker_logs/run"
 
-# home dir inside container (required for some packages in nwm-eval-mgr and nwm-region-mgr)
-ensure_dir "$RUNTIME_DIR_TMP/home"
-
 cleanup() {
   rc=$?
   if [[ -n "${RUNTIME_DIR_TMP:-}" && -d "${RUNTIME_DIR_TMP}" ]]; then
@@ -301,13 +296,18 @@ CONTAINER_PYTHONPATH_EXISTING="$(docker run --rm --entrypoint sh ${TARGET_IMAGE_
 echo "Existing PYTHONPATH from the container: ${CONTAINER_PYTHONPATH_EXISTING}"
 CONTAINER_PYTHONPATH_COMBINED="${CONTAINER_PYTHONPATH_EXISTING}:${CONTAINER_PYTHONPATH_ENTRY}"
 
+# docker run function to execute the regionalization workflow inside the container
+# note $HOME is mounted inside the container for cartopy (used by nwm-eval-mgr)
 function docker_run {
     docker run \
         --entrypoint python \
         --user "$(id -u):$(id -g)" \
+        -e HOME="$HOME" \
         -e PYTHONPATH="${CONTAINER_PYTHONPATH_COMBINED}" \
+        -e CARTOPY_DATA_DIR="${RUNTIME_DIR_TMP}/cartopy" \
         "${DOCKER_HOME_ARGS[@]}" \
         -w "${BASE_DIR}" \
+        -v "${HOME}:${HOME}:rw" \
         -v "${BASE_DIR}:${BASE_DIR}:rw" \
         -v "${STATIC_DATA_DIR}:${STATIC_DATA_DIR}:ro" \
         -v "${RTE_PATH}:${RTE_PATH}:ro" \
@@ -316,6 +316,7 @@ function docker_run {
         -v "${FORCING_CONFIG_DIR}:/ngencerf-app/forcing_config_templates:ro" \
         -v "${RUNTIME_DIR_TMP}/run_ngen/data:/ngencerf-app/runtime_data:rw" \
         -v "${RUNTIME_DIR_TMP}/docker_logs/run:/ngencerf/data/run-logs:rw" \
+        -v "${RUNTIME_DIR_TMP}/cartopy:${RUNTIME_DIR_TMP}/cartopy:rw" \
         --rm ${TARGET_IMAGE_NAME} -um "$@"
 }
 
