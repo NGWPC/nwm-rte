@@ -21,4 +21,5 @@ sudo docker run --entrypoint "/ngen-app/ngen-python/bin/python" \
     -v "$(pwd)/bin_mounted/ngen_rte/:/ngen-app/bin/ngen_rte/" \
     -w "/ngen-app/bin/ngen_rte" \
     -v "${MNT__RUN_NGEN__HOST}/:${MNT__RUN_NGEN__CONTAINER}/" \
+    -e RTE_EWTS_ENABLED="${RTE_EWTS_ENABLED}" \
     --rm ${IMAGE} -m pytest
