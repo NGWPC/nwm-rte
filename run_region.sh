@@ -5,13 +5,13 @@ set -euo pipefail
 # run_region.sh
 #
 ## \brief
-## Script to run NWM regionalization, NGEN simulation, and evaluation workflows based on command line options.
+## Script to run NWM regionalization, NGEN simulation, and evaluation workflows using an RTE Docker container.
 ## 
 ## \desc
-## Has 0 positional arguments and many named arguments.
+## Takes no positional arguments. Workflow steps are specified using named command-line arguments.
 ## 
-## \usage cd [working_directory, e.g., /ngen-oe/$USER/run_region, /ngen-dev/$USER/run_region, or ~/run_region]
-## [NWM-RTE_ROOT]/run_region.sh [OPTIONS]
+## \usage
+## <root-path-to-script>/run_region.sh [OPTIONS]
 ## 
 # Arguments:
 ## \option -p, --parreg
@@ -22,12 +22,12 @@ set -euo pipefail
 ## Run NGEN simulation
 ## \option -e, --eval
 ## Run evaluation
-## \option -c, --config_dir DIR
+## \option -c, --config-dir DIR
 ## (default: `"./configs"`) Set config directory
 ## \option -r, --rte_path PATH
-## (default: `"$(realpath .)/rte_scripts/run_region.sh"`) Set path to the run_region.sh script for nwm-rte
+## (default: `"$(realpath .)/rte_scripts"`) Set path to the directory containing RTE scripts
 ## \option -i, --image
-## (default: ghcr.io/ngwpc/nwm-rte)
+## (default: ghcr.io/ngwpc/nwm-rte) Set Docker image to use for running the workflows
 ## \option -t, --image-tag TAG
 ## (default: `"latest"`) Set Docker image tag
 ## \option --pull-image
@@ -40,43 +40,44 @@ set -euo pipefail
 # Examples:
 ## \example Run parameter regionalization
 ## \example-code bash
-## # Sample config files can be found in nwm-region-mgr repo under configs directory
-## /ngencerf-app/nwm-rte/run_region.sh --parreg -c configs
-## ~/ngwpc/nwm-rte/run_region.sh --parreg -c configs
-## ~/ngwpc/nwm-rte/run_region.sh -p -c configs
-## ~/ngwpc/nwm-rte/run_region.sh -p -c ~/ngwpc/nwm-region-mgr/configs
+## #Sample config files can be found in nwm-region-mgr repo under configs directory
+## ./rte_scripts/run_region.sh --parreg
+## ./rte_scripts/run_region.sh --parreg -c configs
+## ./rte_scripts/run_region.sh -p -c configs
+## ./rte_scripts/run_region.sh -p -c ~/ngwpc/nwm-region-mgr/configs
 ##
 ## \example Run formulation regionalization only
 ## \example-code bash
-## /ngencerf-app/nwm-rte/run_region.sh --formreg -c configs
+## ./rte_scripts/run_region.sh --formreg -c configs
 ##
 ## \example Run NGEN simulation
 ## \example-code bash
-## /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs
+## ./rte_scripts/run_region.sh --ngen -c configs
 ##
 ## \example Run evaluation
 ## \example-code bash
-## /ngencerf-app/nwm-rte/run_region.sh --eval -c configs
+## ./rte_scripts/run_region.sh --eval -c configs
 ##
 ## \example Run multiple steps
 ## \example-code bash
-## /ngencerf-app/nwm-rte/run_region.sh --parreg --ngen -c configs
+## ./rte_scripts/run_region.sh --parreg --ngen -c configs
 ##
-## \example Run with different repos root directory
+## \example Run with run_regionalization.py at a different location (default: ./rte_scripts/run_regionalization.py)
 ## \example-code bash
-## /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs -r /ngen-oe/$USER
+## ./rte_scripts/run_region.sh --ngen -c configs -r ~/repos/nwm-rte/bin_mounted/ngen_rte
+## (where -r specifies the path to the directory containing RTE scripts)
 ##
 ## \example Run with different Docker image tag
 ## \example-code bash
-## /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs -t pr-20-build
+## ./rte_scripts/run_region.sh --ngen -c configs -t pr-20-build
 ##
 ## \example Run with pulling the latest Docker image before running
 ## \example-code bash
-## /ngencerf-app/nwm-rte/run_region.sh --ngen -c configs -i
+## ./rte_scripts/run_region.sh --ngen -c configs --pull-image
 ##
 ## \example Delete runtime directory after completion (default: keep for debugging)
 ## \example-code bash
-## /ngencerf-app/nwm-rte/run_region.sh -c configs -p -n -e -d
+## ./rte_scripts/run_region.sh -c configs -p -n -e -d
 ## 
 # -----------------------------------------------------------------------------
 
@@ -84,7 +85,7 @@ set -euo pipefail
 parreg=false
 formreg=false
 ngen=false
-eval=false
+do_eval=false
 CONFIG_DIR="$(realpath .)/configs"
 RTE_PATH="$(realpath .)/rte_scripts"
 IMAGE="ghcr.io/ngwpc/nwm-rte"
@@ -93,8 +94,15 @@ PULL_IMAGE=false
 DELETE_RUNTIME_DIR=false
 
 # Parse command line arguments
-ARGS=$(getopt -o pfnehc:r:i:t:d --long parreg,formreg,ngen,eval,help,config_dir:,rte_path:,image:,image-tag:,pull-image,delete-runtime-dir -- "$@")
-if [ $? != 0 ]; then echo "Failed parsing options." >&2; exit 1; fi
+#ARGS=$(getopt -o pfnehc:r:i:t:d --long parreg,formreg,ngen,eval,help,config-dir:,rte-path:,image:,image-tag:,pull-image,delete-runtime-dir -- "$@")
+#if [ $? != 0 ]; then echo "Failed parsing options." >&2; exit 1; fi
+if ! ARGS=$(getopt -o pfnehc:r:i:t:d \
+    --long parreg,formreg,ngen,eval,help,config-dir:,rte-path:,image:,image-tag:,pull-image,delete-runtime-dir \
+    -n "$0" -- "$@"); then
+    echo "Failed parsing options." >&2
+    exit 1
+fi
+
 eval set -- "$ARGS"
 
 while true; do
@@ -102,9 +110,9 @@ while true; do
         -p|--parreg) parreg=true; shift;;
         -f|--formreg) formreg=true; shift;;
         -n|--ngen) ngen=true; shift;;
-        -e|--eval) eval=true; shift;;
-        -c|--config_dir) CONFIG_DIR="$2"; shift 2;;
-        -r|--rte_path) RTE_PATH="$2"; shift 2;;
+        -e|--eval) do_eval=true; shift;;
+        -c|--config-dir) CONFIG_DIR="$2"; shift 2;;
+        -r|--rte-path) RTE_PATH="$2"; shift 2;;
         -i|--image) IMAGE="$2"; shift 2;;
         -t|--image-tag) IMAGE_TAG="$2"; shift 2;;
         --pull-image) PULL_IMAGE=true; shift;;
@@ -116,8 +124,8 @@ Options:
   -f, --formreg                Run formulation regionalization only
   -n, --ngen                   Run NGEN simulation
   -e, --eval                   Run evaluation
-  -c, --config_dir             Set config directory (default: ./configs)
-  -r, --rte_path               Set path to the run_region.sh script for nwm-rte (default: "$(realpath .)/rte_scripts/run_region.sh")
+  -c, --config-dir             Set config directory (default: ./configs)
+  -r, --rte-path               Set path to the RTE scripts folder (default: "./rte_scripts")
   -i, --image                  Set Docker image (default: ghcr.io/ngwpc/nwm-rte)
   -t, --image-tag              Set Docker image tag (default: latest)
   --pull-image                 Pull the latest Docker image (default: false) before running
@@ -130,12 +138,18 @@ Options:
     esac
 done
 
+# make sure $HOME is set
+if [ -z "$HOME" ]; then
+    echo "ERROR: HOME environment variable is not set." >&2
+    exit 1
+fi
+
 # Validate workflow selection
 selected_workflows=()
 $parreg  && selected_workflows+=("parreg")
 $formreg && selected_workflows+=("formreg")
 $ngen    && selected_workflows+=("ngen")
-$eval    && selected_workflows+=("eval")
+$do_eval && selected_workflows+=("eval")
 
 if [[ ${#selected_workflows[@]} -eq 0 ]]; then
     echo "ERROR: No workflow specified to run. Use -h or --help for usage information." >&2
@@ -208,9 +222,9 @@ require_config_files() {
 
 # make sure required config files exist for the selected workflows
 $formreg && require_config_files "formreg"
-$parreg && require_config_files "parreg"
-$ngen && require_config_files "ngen"
-$eval && require_config_files "eval"
+$parreg  && require_config_files "parreg"
+$ngen    && require_config_files "ngen"
+$do_eval && require_config_files "eval"
 
 # Extract directories from config_general.yaml
 CONFIG_FILE="${CONFIG_DIR}/config_general.yaml"
@@ -222,15 +236,7 @@ STATIC_DATA_DIR=$(sed -n "s/^[[:space:]]*static_data_dir:[[:space:]]*//p" "$CONF
     sed 's/[[:space:]]*#.*$//' |
     sed "s/^[[:space:]]*['\"]//; s/['\"][[:space:]]*$//")
 
-# Determine whether ~ was used
-DOCKER_HOME_ARGS=()
-
-if [[ "$BASE_DIR" == "~" || "$BASE_DIR" == "~/"* ||
-      "$STATIC_DATA_DIR" == "~" || "$STATIC_DATA_DIR" == "~/"* ]]; then
-    DOCKER_HOME_ARGS=(-e "HOME=${HOME}")
-fi
-
-# Expand a leading "~"
+# Expand a leading "~" if any
 BASE_DIR="${BASE_DIR/#\~/$HOME}"
 STATIC_DATA_DIR="${STATIC_DATA_DIR/#\~/$HOME}"
 RTE_PATH="${RTE_PATH/#\~/$HOME}"
@@ -304,8 +310,6 @@ function docker_run {
         --user "$(id -u):$(id -g)" \
         -e HOME="$HOME" \
         -e PYTHONPATH="${CONTAINER_PYTHONPATH_COMBINED}" \
-        -e CARTOPY_DATA_DIR="${RUNTIME_DIR_TMP}/cartopy" \
-        "${DOCKER_HOME_ARGS[@]}" \
         -w "${BASE_DIR}" \
         -v "${HOME}:${HOME}:rw" \
         -v "${BASE_DIR}:${BASE_DIR}:rw" \
@@ -316,15 +320,14 @@ function docker_run {
         -v "${FORCING_CONFIG_DIR}:/ngencerf-app/forcing_config_templates:ro" \
         -v "${RUNTIME_DIR_TMP}/run_ngen/data:/ngencerf-app/runtime_data:rw" \
         -v "${RUNTIME_DIR_TMP}/docker_logs/run:/ngencerf/data/run-logs:rw" \
-        -v "${RUNTIME_DIR_TMP}/cartopy:${RUNTIME_DIR_TMP}/cartopy:rw" \
-        --rm ${TARGET_IMAGE_NAME} -um "$@"
+        --rm "${TARGET_IMAGE_NAME}" -um "$@"
 }
 
 # Run requested workflow steps using Docker
 $parreg  && docker_run "$RUN_REGION_MODULE" -c "$CONFIG_DIR" --parreg
 $formreg && docker_run "$RUN_REGION_MODULE" -c "$CONFIG_DIR" --formreg
 $ngen    && docker_run "$RUN_REGION_MODULE" -c "$CONFIG_DIR" --ngen
-$eval    && docker_run "$RUN_REGION_MODULE" -c "$CONFIG_DIR" --eval
+$do_eval && docker_run "$RUN_REGION_MODULE" -c "$CONFIG_DIR" --eval
 
 echo "All requested workflows (${selected_workflows[*]}) completed successfully."
 exit 0
