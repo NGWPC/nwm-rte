@@ -102,6 +102,9 @@ TARGET_IMAGE_NAME=${TARGET_IMAGE_NAME:-"ngen_rte_${NGEN_SOURCE_MODE}"}
 
 #### Misc
 
+## \env RTE_EWTS_ENABLED Switch for optional `nwm-ewts` integration. When enabled, modules' logs are treated as data via parsing of status Payloads and LogParts.
+RTE_EWTS_ENABLED=${RTE_EWTS_ENABLED:-"YES"}
+
 # OCI Standard labels for Dockerfile.rte image
 # See https://specs.opencontainers.org/image-spec/annotations/
 TARGET_IMAGE_SOURCE=${TARGET_IMAGE_SOURCE:-"https://github.com/${GH_ORG}/nwm-rte"}

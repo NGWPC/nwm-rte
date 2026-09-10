@@ -1,19 +1,25 @@
 """Live polling of ngen log files"""
 
+from __future__ import annotations
+
 import os
 import time
 import traceback
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import ngen_rte.consts as c
-from ewts import LogParts, parts_of_log_line
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
-from ngen_rte.logger import initialize_logger
+from ngen_rte.logger import EWTS_AVAILABLE, initialize_logger
 from ngen_rte.other_classes import BaseModelStrict
 from pydantic import Field
+
+if EWTS_AVAILABLE or TYPE_CHECKING:
+    from ewts import LogParts, parts_of_log_line
+
 
 LOG = initialize_logger()
 
@@ -35,7 +41,7 @@ class _LogParserBase(BaseModelStrict):
     """Parser for log files."""
 
     tolerant: bool = False
-    """Passed on to ``ewts.parts_of_log_line()`` to control whether parsing errors are tolerated or raise exceptions."""
+    """Passed on to ``ewts.parts_of_log_line()`` when EWTS is enabled."""
 
     log_lines_hash_cache: dict[int | None, set[int]] = Field(
         default_factory=dict, init=False
@@ -90,13 +96,16 @@ class _LogParserBase(BaseModelStrict):
             time.sleep(THROTTLE_SECONDS - (now - self.__throttle_last_time))
         self.__throttle_last_time = time.perf_counter()
 
-    def _new_log_parts(self) -> list[tuple[int, LogParts, Path | str]]:
-        """Returns (rank, LogParts, log_file) tuples for each *new* message extracted from the ngen log files.
+    def _new_log_parts(self) -> list[tuple[int | None, LogParts | str, Path | str]]:
+        """Returns (rank, LogParts | line_str, log file) tuples for each *new* message extracted from the ngen log files.
+
+        Specific behavior, for example whether LogParts or a string of the whole line is returned, depends on the availability of EWTS.
+
         Note that currently this reads the entire file, so a throttle has been added so that
         it does not get called too frequently. This could be optimized to keep the file handle open and
         yield lines only as they arrive into the file, but this change might introduce risks and complexity."""
         self.__throttle()
-        result: list[tuple[int, LogParts, Path | str]] = []
+        result: list[tuple[int | None, LogParts | str, Path | str]] = []
         for mpi_rank, log_file_path in self._iter_log_paths():
             if not os.path.exists(log_file_path):
                 LOG.debug(f"log file does not yet exist: {log_file_path}")
@@ -108,13 +117,16 @@ class _LogParserBase(BaseModelStrict):
                         if not self._line_is_new(mpi_rank, line):
                             continue
                         line = line.rstrip()
-                        try:
-                            parts = parts_of_log_line(line, tolerant=self.tolerant)
-                        except Exception as e:
-                            LOG.error(
-                                f"Error parsing line into parts: {line}. Error: {e}. Traceback: {traceback.format_exc()}"
-                            )
-                            continue
+                        if EWTS_AVAILABLE:
+                            try:
+                                parts = parts_of_log_line(line, tolerant=self.tolerant)
+                            except Exception as e:
+                                LOG.error(
+                                    f"Error parsing line into parts: {line}. Error: {e}. Traceback: {traceback.format_exc()}"
+                                )
+                                continue
+                        else:
+                            parts = line
                         result.append((mpi_rank, parts, log_file_path))
             except Exception as e:
                 msg_base = f"Error reading log file: {log_file_path}: {e}"
