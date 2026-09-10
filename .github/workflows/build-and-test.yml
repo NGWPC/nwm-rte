@@ -20,6 +20,10 @@ on:
         required: false
         type: boolean
         default: false
+      RTE_EWTS_ENABLED:
+        description: "RTE_EWTS_ENABLED"
+        required: false
+        type: string
       NGEN_SOURCE_MODE:
         description: "NGEN_SOURCE_MODE"
         required: false
@@ -89,6 +93,7 @@ jobs:
       alias_tag: ${{ steps.vars.outputs.alias_tag }}
       build_date: ${{ steps.vars.outputs.build_date }}
       clean_ref: ${{ steps.vars.outputs.clean_ref }}
+      rte_ewts_enabled: ${{ steps.vars.outputs.rte_ewts_enabled }}
       ngen_source_mode: ${{ steps.vars.outputs.ngen_source_mode }}
       forcing_base_remote_tag: ${{ steps.vars.outputs.forcing_base_remote_tag }}
       ngen_base_remote_tag: ${{ steps.vars.outputs.ngen_base_remote_tag }}
@@ -137,6 +142,7 @@ jobs:
           SHORT_SHA="${REAL_SHA:0:7}"
 
           # set input variables for optional workflow_dispatch parameters with defaults if not provided
+          RTE_EWTS_ENABLED="${{ inputs.RTE_EWTS_ENABLED || 'YES' }}"
           NGEN_SOURCE_MODE="${{ inputs.NGEN_SOURCE_MODE || 'ghcr' }}"
           FORCING_BASE_REMOTE_TAG="${{ inputs.FORCING_BASE_REMOTE_TAG || 'development' }}"
           NGEN_BASE_REMOTE_TAG="${{ inputs.NGEN_BASE_REMOTE_TAG || 'development' }}"
@@ -184,6 +190,7 @@ jobs:
           echo "commit_sha=${REAL_SHA}" >> "$GITHUB_OUTPUT"
           echo "commit_sha_short=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
           echo "clean_ref=${CLEAN_REF}" >> "$GITHUB_OUTPUT"
+          echo "rte_ewts_enabled=${RTE_EWTS_ENABLED}" >> "$GITHUB_OUTPUT"
           echo "ngen_source_mode=${NGEN_SOURCE_MODE}" >> "$GITHUB_OUTPUT"
           echo "forcing_base_remote_tag=${FORCING_BASE_REMOTE_TAG}" >> "$GITHUB_OUTPUT"
           echo "ngen_base_remote_tag=${NGEN_BASE_REMOTE_TAG}" >> "$GITHUB_OUTPUT"
@@ -237,6 +244,7 @@ jobs:
           TARGET_IMAGE_VERSION: ${{ needs.setup.outputs.clean_ref }}
           TARGET_IMAGE_REVISION: ${{ needs.setup.outputs.commit_sha }}
           TARGET_IMAGE_CREATED: ${{ needs.setup.outputs.build_date }}
+          RTE_EWTS_ENABLED: ${{ needs.setup.outputs.rte_ewts_enabled }}
           NGEN_SOURCE_MODE: ${{ needs.setup.outputs.ngen_source_mode }}
           FORCING_BASE_REMOTE_TAG: ${{ needs.setup.outputs.forcing_base_remote_tag }}
           NGEN_BASE_REMOTE_TAG: ${{ needs.setup.outputs.ngen_base_remote_tag }}
@@ -286,6 +294,7 @@ jobs:
 
       - name: Run RTE in noop mode
         env:
+          RTE_EWTS_ENABLED: ${{ needs.setup.outputs.rte_ewts_enabled }}
           TARGET_IMAGE_NAME: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
         run: |
           # Source the script to get docker_run function and config
@@ -295,6 +304,7 @@ jobs:
 
       - name: Run RTE pytest
         env:
+          RTE_EWTS_ENABLED: ${{ needs.setup.outputs.rte_ewts_enabled }}
           TARGET_IMAGE_NAME: ${{needs.setup.outputs.image_base}}:${{ needs.setup.outputs.test_image_tag }}
         run: |
           ./run_pytest_external.sh

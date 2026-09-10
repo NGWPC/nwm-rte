@@ -102,8 +102,8 @@ TARGET_IMAGE_NAME=${TARGET_IMAGE_NAME:-"ngen_rte_${NGEN_SOURCE_MODE}"}
 
 #### Misc
 
-## \env Python version string. If this is changed here, it should also be changed in the Python code in consts.py.
-PYTHON_VERSION_STR="3.12"
+## \env RTE_EWTS_ENABLED Switch for optional `nwm-ewts` integration. When enabled, modules' logs are treated as data via parsing of status Payloads and LogParts.
+RTE_EWTS_ENABLED=${RTE_EWTS_ENABLED:-"YES"}
 
 # OCI Standard labels for Dockerfile.rte image
 # See https://specs.opencontainers.org/image-spec/annotations/
@@ -145,7 +145,19 @@ MNT__NWM_REGION_MGR__INPUT_DATA="${REPOS_COMMON_ROOT__HOST}/nwm-region-mgr/data/
 
 ##### Installed regionalization results
 ## \env INSTALLED_REGIONALIZATION_RESULTS Results of regionalization, baked into the MSWM Python package, which can be used for testing the regionalized form of ngen forecasts.
-INSTALLED_REGIONALIZATION_RESULTS=/ngen-app/ngen-python/lib/python${PYTHON_VERSION_STR}/site-packages/mswm/example_inputs/regionalization
+## Not resolved eagerly here (most scripts sourcing this file don't need it).
+## Call `resolve_installed_regionalization_results` from scripts that do need this (only after building the image).
+function resolve_installed_regionalization_results () {
+    if [ -n "${INSTALLED_REGIONALIZATION_RESULTS:-}" ]; then
+        return
+    fi
+    if ! sudo docker image inspect "${TARGET_IMAGE_NAME}" >/dev/null 2>&1; then
+        fatal "Image ${TARGET_IMAGE_NAME} does not exist. Build it first (see ./ngen_rte_build.sh)."
+    fi
+    site_packages_dir=$(sudo docker run --rm --entrypoint python "${TARGET_IMAGE_NAME}" -c 'import site; print(site.getsitepackages()[0])')
+    INSTALLED_REGIONALIZATION_RESULTS="${site_packages_dir}/mswm/example_inputs/regionalization"
+    export INSTALLED_REGIONALIZATION_RESULTS
+}
 
 ### Remote data sources for setup_data.sh and setup_data_one_gage.sh
 ## \env SOURCE_BUCKET_DEV Name of cloud bucket (no s3:// prefix in the string), used by setup_data.sh and setup_data_one_gage.sh

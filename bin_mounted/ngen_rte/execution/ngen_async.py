@@ -6,19 +6,21 @@ Reads logs for:
     4. nwm-msw-mgr
 """
 
+from __future__ import annotations
+
 import os
 import time
 from collections.abc import Generator
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from ewts import LogParts
 from mswm.build_inputs import RealizationBuilder
 from ngen_rte.execution.ngen_logs import (
     _LogParserBase,
     _LogParserGeneric,
     _LogParserNgen,
 )
-from ngen_rte.logger import initialize_logger
+from ngen_rte.logger import EWTS_AVAILABLE, initialize_logger
 from ngen_rte.other_classes import BaseModelStrict
 from ngen_rte.utils import transmit
 from nwm_fcst_mgr.exceptions import (
@@ -27,6 +29,9 @@ from nwm_fcst_mgr.exceptions import (
 )
 from nwm_fcst_mgr.forecast import ConfigCache, ForecastExecutionManager, RunStatus
 from pydantic import Field
+
+if EWTS_AVAILABLE or TYPE_CHECKING:
+    from ewts import LogParts
 
 LOG = initialize_logger()
 
@@ -56,7 +61,7 @@ class NgenRunnerAsync(BaseModelStrict):
     """Passed to ForecastExecutionManager.postprocess()"""
     timeout_secs: float | None = None
     """Timeout limit on ngen execution"""
-    do_override_log_file_prefix : bool = False
+    do_override_log_file_prefix: bool = False
     """Passed to ForecastExecutionManager.preprocess()"""
 
     fem: ForecastExecutionManager | None = Field(default=None, init=False)
@@ -189,7 +194,7 @@ class NgenRunnerAsync(BaseModelStrict):
 
     def _iter_new_log_parts(
         self, final: bool = False
-    ) -> Generator[tuple[int, LogParts, Path | str], None, None]:
+    ) -> Generator[tuple[int | None, LogParts | str, Path | str], None, None]:
         """Generator that yields (mpi_rank, log_parts, log_file) tuples for each new message.
         If this is the final call, wait FINAL_WAIT seconds before reading logs, and optionally call postprocess() before that."""
         LOG.info(f"ForecastExecutionManager: {self.fem._status}")
@@ -210,7 +215,7 @@ class NgenRunnerAsync(BaseModelStrict):
 
     def _iter_new_log_parts_until_complete(
         self,
-    ) -> Generator[tuple[int, LogParts, Path | str], None, None]:
+    ) -> Generator[tuple[int | None, LogParts | str, Path | str], None, None]:
         """Generator that yields (mpi_rank, log_parts, log_file) tuples for each new message, until ngen finishes."""
         if self.fem is None:
             raise RuntimeError("Execution mgr is not set. Call start() first.")

@@ -2,6 +2,7 @@
 
 set -euo pipefail
 source config.bashrc
+resolve_installed_regionalization_results
 source run.sh
 set -x
 

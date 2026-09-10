@@ -1,5 +1,7 @@
 """Misc utilities and type handlers"""
 
+from __future__ import annotations
+
 import json
 import os
 import re
@@ -7,18 +9,27 @@ import traceback
 from dataclasses import asdict, dataclass, field, fields
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pandas as pd
-from ewts import LogParts, Status
-from ewts import Payload as Pld
-from ewts.modules import ModuleKey
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
-from pydantic import ConfigDict, validate_call
 
 from ngen_rte import consts as c
 from ngen_rte.execution.ngen_logs import dict_factory
-from ngen_rte.logger import MODULE_KEY, initialize_logger
+from ngen_rte.logger import (
+    EWTS_AVAILABLE,
+    MODULE_KEY,
+    ModuleKey,
+    Status,
+    initialize_logger,
+)
+
+if EWTS_AVAILABLE or TYPE_CHECKING:
+    from ewts import LogParts
+    from ewts import Payload as Pld
+    from ewts import Status as EwtsStatus
+
 
 LOG = initialize_logger()
 
@@ -59,7 +70,7 @@ class ExcInfo:
 
 
 def transmit(
-    log_parts: LogParts = None,
+    log_parts: LogParts | str | None = None,
     log_file: Path | str | None = None,
     exc: Exception | None = None,
 ) -> None:
@@ -85,21 +96,31 @@ def transmit(
     }
 
     # Default to transmitting as INFO, override with other level depending on circumstances.
-    transmitter = getattr(LOG, "info")
+    transmitter = LOG.info
 
     if log_parts:
-        tx_dict["log_parts"] = asdict(log_parts, dict_factory=dict_factory)
+        if EWTS_AVAILABLE:
+            tx_dict["log_parts"] = asdict(log_parts, dict_factory=dict_factory)
 
-        if log_parts.level in TRANSMISSION_CONCERN_LOG_LEVELS:
-            # Mimic the level of the original log message
-            tx_dict["concern"] = True
-            transmitter = getattr(LOG, log_parts.level.lower())
-
-        if log_parts.payload:
-            tx_dict["payload"] = asdict(log_parts.payload, dict_factory=dict_factory)
-            if log_parts.payload.status == Status.ERROR:
+            if log_parts.level in TRANSMISSION_CONCERN_LOG_LEVELS:
+                # Mimic the level of the original log message
                 tx_dict["concern"] = True
-                transmitter = LOG.fatal
+                transmitter = getattr(LOG, log_parts.level.lower())
+
+            if log_parts.payload:
+                tx_dict["payload"] = asdict(
+                    log_parts.payload, dict_factory=dict_factory
+                )
+                if log_parts.payload.status == Status.ERROR:
+                    tx_dict["concern"] = True
+                    transmitter = LOG.fatal
+        else:
+            tx_dict["log_parts"] = log_parts
+            for level in TRANSMISSION_CONCERN_LOG_LEVELS:
+                if level in log_parts.upper():
+                    tx_dict["concern"] = True
+                    transmitter = getattr(LOG, level.lower())
+                    break
 
     if exc_info:
         tx_dict["concern"] = True
@@ -112,14 +133,23 @@ def transmit(
     transmitter(f"tx: {tx_dict}")
 
 
-@validate_call(config=ConfigDict(strict=True))
-def LogParts_payload_only(payload: Pld) -> LogParts:
-    """Factory for a LogParts containing only the payload attribute.
-    For transmitting structured data that is not associated with a particular log line."""
-    kwargs = {f.name: None for f in fields(LogParts)}
-    kwargs["payload"] = payload
-    kwargs["tolerant"] = True
-    return LogParts(**kwargs)
+def _transmit_status(
+    status: EwtsStatus | str, msg: str, modnm: str, exc: Exception | None = None
+) -> None:
+    """Transmit structured EWTS Payload status if EWTS is available.
+    Otherwise, log the equivalent message.
+    """
+    if EWTS_AVAILABLE:
+        kwargs = {f.name: None for f in fields(LogParts)}
+        kwargs["payload"] = Pld(status, msg=msg, modnm=modnm)
+        kwargs["tolerant"] = True
+        transmit(LogParts(**kwargs), exc=exc)
+    elif exc is not None:
+        transmit(exc=exc)
+    elif status == Status.ERROR:
+        LOG.error(msg)
+    else:
+        LOG.info(msg)
 
 
 def build_realization(rb_kwargs: dict, build_method: str) -> RealizationBuilder:
@@ -130,11 +160,7 @@ def build_realization(rb_kwargs: dict, build_method: str) -> RealizationBuilder:
 
     e_wrapped = None
 
-    transmit(
-        LogParts_payload_only(
-            Pld(Status.INITTING, msg="Initializing RealizationBuilder", modnm=modnm)
-        )
-    )
+    _transmit_status(Status.INITTING, "Initializing RealizationBuilder", modnm)
     try:
         rb = RealizationBuilder(**rb_kwargs)
     except Exception as e:
@@ -142,16 +168,8 @@ def build_realization(rb_kwargs: dict, build_method: str) -> RealizationBuilder:
         e_wrapped = MSWMRealizationBuilderInitializeError(msg)
         e_wrapped.__cause__ = e
     else:
-        transmit(
-            LogParts_payload_only(
-                Pld(Status.INITTED, msg="Initialized RealizationBuilder", modnm=modnm)
-            )
-        )
-        transmit(
-            LogParts_payload_only(
-                Pld(Status.STARTING, msg=f"Calling: {build_method}", modnm=modnm)
-            )
-        )
+        _transmit_status(Status.INITTED, "Initialized RealizationBuilder", modnm)
+        _transmit_status(Status.STARTING, f"Calling: {build_method}", modnm)
         try:
             getattr(rb, build_method)()
         except Exception as e:
@@ -161,17 +179,10 @@ def build_realization(rb_kwargs: dict, build_method: str) -> RealizationBuilder:
         else:
             # Transmit the checkpoint settings explicitly so ecFlow can detect
             _rte_transmit_checkpoint_settings(rb)
-            transmit(
-                LogParts_payload_only(
-                    Pld(Status.COMPLETE, msg=f"Finished: {build_method}", modnm=modnm)
-                )
-            )
+            _transmit_status(Status.COMPLETE, f"Finished: {build_method}", modnm)
 
     if e_wrapped is not None:
-        transmit(
-            LogParts_payload_only(Pld(Status.ERROR, msg=msg, modnm=modnm)),
-            exc=e_wrapped,
-        )
+        _transmit_status(Status.ERROR, msg, modnm, exc=e_wrapped)
         raise e_wrapped
 
     LOG.info(f"Wrote: {rb.realization_file}")
@@ -180,29 +191,17 @@ def build_realization(rb_kwargs: dict, build_method: str) -> RealizationBuilder:
 
 def _rte_transmit_job_start():
     """General transmission for job starting"""
-    transmit(
-        LogParts_payload_only(
-            Pld(Status.STARTING, msg="Starting job", modnm=MODULE_KEY.value)
-        )
-    )
+    _transmit_status(Status.STARTING, "Starting job", MODULE_KEY.value)
 
 
 def _rte_transmit_job_complete():
     """General transmission for job completion"""
-    transmit(
-        LogParts_payload_only(
-            Pld(Status.COMPLETE, msg="Job complete", modnm=MODULE_KEY.value)
-        )
-    )
+    _transmit_status(Status.COMPLETE, "Job complete", MODULE_KEY.value)
 
 
 def _rte_transmit_job_failed():
     """General transmission for job completion"""
-    transmit(
-        LogParts_payload_only(
-            Pld(Status.ERROR, msg="Job failed", modnm=MODULE_KEY.value)
-        )
-    )
+    _transmit_status(Status.ERROR, "Job failed", MODULE_KEY.value)
 
 
 def _rte_transmit_checkpoint_settings(rb: RealizationBuilder) -> None:
@@ -212,10 +211,8 @@ def _rte_transmit_checkpoint_settings(rb: RealizationBuilder) -> None:
         "save_checkpoint_to": getattr(rb, "save_checkpoint_to", None),
     }
     dumped = json.dumps(checkpoint_settings, default=str)
-    status = Status.NULL
     msg = f"checkpoint_settings={dumped}"
-    modnm = ModuleKey.MSW_MGR.value
-    transmit(LogParts_payload_only(Pld(status, msg=msg, modnm=modnm)))
+    _transmit_status(Status.NULL, msg, ModuleKey.MSW_MGR.value)
 
 
 def make_symlink(link_path: str, target_path: str) -> None:
