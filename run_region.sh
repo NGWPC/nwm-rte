@@ -67,9 +67,9 @@ set -euo pipefail
 ## ./rte_scripts/run_region.sh --ngen -c configs -r ~/repos/nwm-rte/bin_mounted/ngen_rte
 ## (where -r specifies the path to the directory containing RTE scripts)
 ##
-## \example Run with different Docker image tag
+## \example Run with different Docker image & tag
 ## \example-code bash
-## ./rte_scripts/run_region.sh --ngen -c configs -t pr-20-build
+## ./rte_scripts/run_region.sh --ngen -c configs -i ghcr.io/noaa-owp/nwm-rte -t pr-20-build
 ##
 ## \example Run with pulling the latest Docker image before running
 ## \example-code bash
@@ -228,7 +228,7 @@ $do_eval && require_config_files "eval"
 
 # Extract directories from config_general.yaml
 CONFIG_FILE="${CONFIG_DIR}/config_general.yaml"
-BASE_DIR=$(sed -n "s/^[[:space:]]*base_dir:[[:space:]]*//p" "$CONFIG_FILE" |
+WORK_DIR=$(sed -n "s/^[[:space:]]*base_dir:[[:space:]]*//p" "$CONFIG_FILE" |
     sed 's/[[:space:]]*#.*$//' |
     sed "s/^[[:space:]]*['\"]//; s/['\"][[:space:]]*$//")
 
@@ -237,26 +237,24 @@ STATIC_DATA_DIR=$(sed -n "s/^[[:space:]]*static_data_dir:[[:space:]]*//p" "$CONF
     sed "s/^[[:space:]]*['\"]//; s/['\"][[:space:]]*$//")
 
 # Expand a leading "~" if any
-BASE_DIR="${BASE_DIR/#\~/$HOME}"
+WORK_DIR="${WORK_DIR/#\~/$HOME}"
 STATIC_DATA_DIR="${STATIC_DATA_DIR/#\~/$HOME}"
 RTE_PATH="${RTE_PATH/#\~/$HOME}"
 
-ensure_dir "$BASE_DIR"
+ensure_dir "$WORK_DIR"
 require_dir "$STATIC_DATA_DIR"
 require_dir "$RTE_PATH"
 
-echo "BASE_DIR (working directory): $BASE_DIR"
+echo "WORK_DIR: $WORK_DIR"
 echo "STATIC_DATA_DIR: $STATIC_DATA_DIR"
 echo "RTE_PATH: $RTE_PATH"
 
 # ensure required static forcing data exists on host
-FORCING_STATIC_DIR="${STATIC_DATA_DIR}/ngen/forcing/static_data"
-FORCING_CONFIG_DIR="${STATIC_DATA_DIR}/ngen/forcing/config_templates"
+FORCING_STATIC_DIR="${STATIC_DATA_DIR}/ngen"
 require_dir "$FORCING_STATIC_DIR"
-require_dir "$FORCING_CONFIG_DIR"
 
 # create run-time temporary directory with timestamp to avoid conflicts between simultaneous runs
-RUNTIME_DIR_TMP=$(mktemp -d "${BASE_DIR}/run_time_XXXXXXXX")
+RUNTIME_DIR_TMP=$(mktemp -d "${WORK_DIR}/run_time_XXXXXXXX")
 ensure_dir "$RUNTIME_DIR_TMP"
 chmod a+rx "${RUNTIME_DIR_TMP}"
 echo "Created run-time temporary directory: ${RUNTIME_DIR_TMP}."
@@ -310,14 +308,15 @@ function docker_run {
         --user "$(id -u):$(id -g)" \
         -e HOME="$HOME" \
         -e PYTHONPATH="${CONTAINER_PYTHONPATH_COMBINED}" \
-        -w "${BASE_DIR}" \
+        -e WORK_DIR="$WORK_DIR" \
+        -e STATIC_DATA_DIR="$STATIC_DATA_DIR" \
+        -w "${WORK_DIR}" \
         -v "${HOME}:${HOME}:rw" \
-        -v "${BASE_DIR}:${BASE_DIR}:rw" \
+        -v "${WORK_DIR}:${WORK_DIR}:rw" \
         -v "${STATIC_DATA_DIR}:${STATIC_DATA_DIR}:ro" \
         -v "${RTE_PATH}:${RTE_PATH}:ro" \
         -v "${CONFIG_DIR}:${CONFIG_DIR}:ro" \
         -v "${FORCING_STATIC_DIR}:/ngencerf-app/static_data:ro" \
-        -v "${FORCING_CONFIG_DIR}:/ngencerf-app/forcing_config_templates:ro" \
         -v "${RUNTIME_DIR_TMP}/run_ngen/data:/ngencerf-app/runtime_data:rw" \
         -v "${RUNTIME_DIR_TMP}/docker_logs/run:/ngencerf/data/run-logs:rw" \
         --rm "${TARGET_IMAGE_NAME}" -um "$@"
