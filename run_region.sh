@@ -168,7 +168,7 @@ require_dir() {
     local dir="$1"
 
     if [ ! -d "$dir" ]; then
-        echo "Error: Required directory does not exist: $dir" >&2
+        echo "ERROR: Required directory does not exist: $dir" >&2
         exit 1
     fi
 }
@@ -199,7 +199,7 @@ require_config_files() {
             "$CONFIG_DIR/config_eval.yaml"
         )
     else
-        echo "Error: Unknown mode: $mode" >&2
+        echo "ERROR: Unknown mode: $mode" >&2
         exit 1
     fi
 
@@ -212,7 +212,7 @@ require_config_files() {
 
     # Report all missing files
     if [ ${#missing_files[@]} -gt 0 ]; then
-        echo "Error: The following required config files are missing:" >&2
+        echo "ERROR: The following required config files are missing:" >&2
         for config_file in "${missing_files[@]}"; do
             echo "  - $config_file" >&2
         done
