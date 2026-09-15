@@ -67,7 +67,7 @@ function docker_run {
         -e NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE} \
         -e RTE_EWTS_ENABLED=${RTE_EWTS_ENABLED} \
         \
-        -v "${REPOS_COMMON_ROOT__HOST}/nwm-automation-scripts/:/ngen-app/nwm-automation-scripts/" \
+        -v "${REPOS_COMMON_ROOT__HOST}/nextgen-support-scripts/:/ngen-app/nextgen-support-scripts/" \
         \
         --rm ${TARGET_IMAGE_NAME} "${@:2}"
 }

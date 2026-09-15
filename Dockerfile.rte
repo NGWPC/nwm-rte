@@ -103,13 +103,18 @@ RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/
     --mount=type=bind,src=nwm-ewts,dst=/src/${GH_ORG}/nwm-ewts \
     "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-ewts" "ewts" "${REPO_TAG_EWTS}" "" "runtime/python/ewts"
 
+RUN python -m venv --upgrade "$(python -c 'import sys; print(sys.prefix)')" \
+    && python -c 'import site, sys; assert site.getsitepackages()[0].startswith(sys.prefix + "/")'
+
 
 ##################################################
 #### BEGIN SECOND STAGE: Adding a separate Python venv for nwm-eval-mgr (i.e., nwm_eval and nwm_metrics)
 FROM ngen_rte_base AS ngen_rte_eval_verf
 
 # Install Python 3.11 (required as of 2026-07-23 for the pinned version of teehr which pins duckdb to a version not compatible with Python 3.12)
-RUN apt-get update && apt-get install -y --no-install-recommends python3.11 python3.11-venv
+# If apt-get is available (Debuntu), use that. Otherwise (RHEL) use dnf.
+RUN if command -v apt-get >/dev/null 2>&1; then apt-get update && apt-get install -y --no-install-recommends python3.11 python3.11-venv; \
+    else dnf install -y python3.11; fi
 
 # Call modules like `python_eval_verf -m nwm_eval`
 ARG EVAL_VERF_PYTHON_ALIAS="python_eval_verf"

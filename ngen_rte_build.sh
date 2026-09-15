@@ -49,7 +49,7 @@ function build_intermediary_image_from_remote_source () {
     repo_tag=$2  # e.g. "development" or "3.1.2.1.0"
     dockerfile=$3  # e.g. "Dockerfile" or "Dockerfile.bmi-forcings"
     target_image=$4  # e.g. "ngen-forcing:local-3.1.2.1.0"
-    build_arg=$5  # Optional, passed to docker build call. e.g. "" or "NGEN_FORCING_IMAGE_TAG=ngen-forcing:local-3.1.2.1.0"
+    build_arg=$5  # Optional, passed to docker build call. e.g. "" or "FORCING_IMAGE=ngen-forcing:local-3.1.2.1.0"
 
     source_local_tmp="${REPOS_COMMON_ROOT__HOST}/${repo_name}_tmp"
     # source_local_tmp="${REPOS_COMMON_ROOT__HOST}/${repo_name}"
@@ -86,13 +86,13 @@ function build_intermediary_image_from_remote_source () {
         # Use the build arg, e.g. for building ngen from ngen-forcing
         ( \
             cd ${source_local_tmp}; sudo docker build -f ${dockerfile} -t ${target_image} --build-arg "${build_arg}" . \
-            |& tee "${REPOS_COMMON_ROOT__HOST}/nwm-rte/docker_logs/build/${target_image}-${TIMESTAMP}.log" \
+            |& tee "${REPOS_COMMON_ROOT__HOST}/nwm-rte/logs/docker/build/${target_image}-${TIMESTAMP}.log" \
         )
     else
         # No build arg
         ( \
             cd ${source_local_tmp}; sudo docker build -f ${dockerfile} -t ${target_image} . \
-            |& tee "${REPOS_COMMON_ROOT__HOST}/nwm-rte/docker_logs/build/${target_image}-${TIMESTAMP}.log" \
+            |& tee "${REPOS_COMMON_ROOT__HOST}/nwm-rte/logs/docker/build/${target_image}-${TIMESTAMP}.log" \
         )
     fi
 
@@ -123,7 +123,7 @@ elif [[ $NGEN_SOURCE_MODE == "build_from_remote" ]]; then
     ngen_build_arg=""  # Initialize empty, then replace if building forcing from source
 
     if [[ -n "${FORCING_BASE_REMOTE_TAG}" ]]; then
-        # Build forcing first. NOTE: requires that the ngen Dockerfile has an ARG NGEN_FORCING_IMAGE
+        # Build forcing first. NOTE: requires that the ngen Dockerfile has an ARG FORCING_IMAGE
         build_intermediary_image_from_remote_source \
             "ngen-forcing" \
             "${FORCING_BASE_REMOTE_TAG}" \
@@ -131,7 +131,7 @@ elif [[ $NGEN_SOURCE_MODE == "build_from_remote" ]]; then
             "ngen-forcing:remote-${FORCING_BASE_REMOTE_TAG}" \
             ""
 
-        ngen_build_arg="NGEN_FORCING_IMAGE=ngen-forcing:remote-${FORCING_BASE_REMOTE_TAG}"
+        ngen_build_arg="FORCING_IMAGE=ngen-forcing:remote-${FORCING_BASE_REMOTE_TAG}"
     fi
 
     # Build ngen
