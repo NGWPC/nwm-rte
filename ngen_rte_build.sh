@@ -86,13 +86,13 @@ function build_intermediary_image_from_remote_source () {
         # Use the build arg, e.g. for building ngen from ngen-forcing
         ( \
             cd ${source_local_tmp}; sudo docker build -f ${dockerfile} -t ${target_image} --build-arg "${build_arg}" . \
-            |& tee "${REPOS_COMMON_ROOT__HOST}/nwm-rte/docker_logs/build/${target_image}-${TIMESTAMP}.log" \
+            |& tee "${REPOS_COMMON_ROOT__HOST}/nwm-rte/logs/docker/build/${target_image}-${TIMESTAMP}.log" \
         )
     else
         # No build arg
         ( \
             cd ${source_local_tmp}; sudo docker build -f ${dockerfile} -t ${target_image} . \
-            |& tee "${REPOS_COMMON_ROOT__HOST}/nwm-rte/docker_logs/build/${target_image}-${TIMESTAMP}.log" \
+            |& tee "${REPOS_COMMON_ROOT__HOST}/nwm-rte/logs/docker/build/${target_image}-${TIMESTAMP}.log" \
         )
     fi
 
