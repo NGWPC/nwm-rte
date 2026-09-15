@@ -60,8 +60,8 @@ docker_run python -um "ngen_rte.tests.run_tests" --do_calibration --skip_forecas
 # docker_run python -um "ngen_rte.tests.run_tests" --do_all_forcing_configs --quit_forecast_after_duration 15 --fcst_run_name "${fcst_run_name}"
 # docker_run python -um "ngen_rte.tests.run_tests" --do_calibration --do_coldstart --do_all_forcing_configs --fcst_run_name "${fcst_run_name}"
 
-# docker_run python -um "ngen_rte.tests.run_tests" -calfsrcs "aorc" -mff "/ngen-app/nwm-automation-scripts/model_formulations/formulations_munged_setup.tsv" -calib -nofcst -rname "${fcst_run_name}_test_forms"
-# docker_run python "/ngen-app/bin/bin_mounted/parse_test_results.py" -mff "/ngen-app/nwm-automation-scripts/model_formulations/formulations_munged_setup.tsv"
+# docker_run python -um "ngen_rte.tests.run_tests" -calfsrcs "aorc" -mff "/ngen-app/nextgen-support-scripts/model_formulations/formulations_munged_setup.tsv" -calib -nofcst -rname "${fcst_run_name}_test_forms"
+# docker_run python "/ngen-app/bin/bin_mounted/parse_test_results.py" -mff "/ngen-app/nextgen-support-scripts/model_formulations/formulations_munged_setup.tsv"
 
 # docker_run python -um "ngen_rte.tests.run_tests" --do_calibration --skip_forecast --nprocs 2 --fcst_run_name "${fcst_run_name}" --gage_id ${TEST_GAGE} --hydrofab_file "${TEST_HYDROFAB_FILE}"
 
