@@ -69,6 +69,10 @@ on:
         description: "REPO_TAG_EVAL"
         required: false
         type: string
+      RTE_TAG_NAME:
+        description: "RTE_TAG_NAME (if set, used as the final promoted tag instead of 'latest')"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -107,6 +111,7 @@ jobs:
       # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
       repo_tag_ngen_forcing: ${{ steps.vars.outputs.repo_tag_ngen_forcing }}
       repo_tag_eval: ${{ steps.vars.outputs.repo_tag_eval }}
+      rte_tag_name: ${{ steps.vars.outputs.rte_tag_name }}
     steps:
       - name: Compute image vars
         id: vars
@@ -155,6 +160,7 @@ jobs:
           # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
           REPO_TAG_NGEN_FORCING="${{ inputs.REPO_TAG_NGEN_FORCING || 'development' }}"
           REPO_TAG_EVAL="${{ inputs.REPO_TAG_EVAL || 'development' }}"
+          RTE_TAG_NAME="${{ inputs.RTE_TAG_NAME || '' }}"
 
           # INSTALL_DEBUGGERS is a boolean input, convert to "YES"/"NO" string for use in build args
           if [ "${{ inputs.INSTALL_DEBUGGERS }}" = "true" ]; then
@@ -204,6 +210,7 @@ jobs:
           # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
           echo "repo_tag_ngen_forcing=${REPO_TAG_NGEN_FORCING}" >> "$GITHUB_OUTPUT"
           echo "repo_tag_eval=${REPO_TAG_EVAL}" >> "$GITHUB_OUTPUT"
+          echo "rte_tag_name=${RTE_TAG_NAME}" >> "$GITHUB_OUTPUT"
 
   build-and-test:
     name: build and test
@@ -369,6 +376,7 @@ jobs:
           IMAGE_BASE="${{ needs.setup.outputs.image_base }}"
           TEST_TAG="${{ needs.setup.outputs.test_image_tag }}"
           ALIAS_TAG="${{ needs.setup.outputs.alias_tag }}"
+          RTE_TAG_NAME="${{ needs.setup.outputs.rte_tag_name }}"
 
           # apply the primary alias (pr tag or timestamp-branch)
           skopeo copy \
@@ -377,8 +385,15 @@ jobs:
             --all \
             "docker://${IMAGE_BASE}:${TEST_TAG}" "docker://${IMAGE_BASE}:${ALIAS_TAG}"
 
-          # tag with 'latest' on development branch push
-          if [ "$GITHUB_REF_NAME" = "development" ]; then
+          # if RTE_TAG_NAME was provided, use it as the final promoted tag;
+          # otherwise fall back to tagging 'latest' on development branch push
+          if [ -n "$RTE_TAG_NAME" ]; then
+            skopeo copy \
+              --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+              --dest-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+              --all \
+              "docker://${IMAGE_BASE}:${TEST_TAG}" "docker://${IMAGE_BASE}:${RTE_TAG_NAME}"
+          elif [ "$GITHUB_REF_NAME" = "development" ]; then
             skopeo copy \
               --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
               --dest-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
