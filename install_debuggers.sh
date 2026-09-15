@@ -27,25 +27,25 @@ if [ "$install_debuggers" = "YES" ]; then
     pip install debugpy
     echo "Installing gdb"
 
-    if grep -q '^ID=rocky' /etc/os-release; then
+    . /etc/os-release
+    if [ "$ID" = "rocky" ]; then
         dnf install -y gdb
         yum install yum-utils -y
         yum-config-manager --enable baseos-debug
 
         # Rocky 8's python3 is platform-python/a modular stream, neither of which has published debuginfo
-        . /etc/os-release
         if [ "${VERSION_ID%%.*}" -ge 9 ]; then
             echo "Rocky $VERSION_ID detected. Installing gdb and Python debug symbols"
             debuginfo-install -y python3
         else
             echo "Rocky $VERSION_ID detected. Installing gdb. Python debug symbols are not published for this release and will not be installed."
         fi
-    elif grep -q '^ID=debian' /etc/os-release; then
+    elif [ "$ID" = "debian" ]; then
         echo "Debian detected. Installing gdb. Python debug symbols will not be installed."
         apt-get update
         apt-get install -y gdb libc6-dbg
     else
-        echo "Error: unexpected OS: `grep ^ID /etc/os-release`"
+        echo "Error: unexpected OS: ID=$ID"
         exit 1
     fi
 
