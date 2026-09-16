@@ -24,7 +24,7 @@ set -euo pipefail
 ## Run evaluation
 ## \option -c, --config-dir DIR
 ## (default: `"./configs"`) Set config directory
-## \option -r, --rte_path PATH
+## \option -r, --rte-path PATH
 ## (default: `"$(realpath .)/rte_scripts"`) Set path to the directory containing RTE scripts
 ## \option -i, --image
 ## (default: ghcr.io/ngwpc/nwm-rte) Set Docker image to use for running the workflows
@@ -41,43 +41,43 @@ set -euo pipefail
 ## \example Run parameter regionalization
 ## \example-code bash
 ## #Sample config files can be found in nwm-region-mgr repo under configs directory
-## ./rte_scripts/run_region.sh --parreg
-## ./rte_scripts/run_region.sh --parreg -c configs
-## ./rte_scripts/run_region.sh -p -c configs
-## ./rte_scripts/run_region.sh -p -c ~/ngwpc/nwm-region-mgr/configs
+## ./nwm-rte/run_region.sh --parreg
+## ./nwm-rte/run_region.sh --parreg -c configs
+## ./nwm-rte/run_region.sh -p -c configs
+## ./nwm-rte/run_region.sh -p -c ~/ngwpc/nwm-region-mgr/configs
 ##
 ## \example Run formulation regionalization only
 ## \example-code bash
-## ./rte_scripts/run_region.sh --formreg -c configs
+## ./nwm-rte/run_region.sh --formreg -c configs
 ##
 ## \example Run NGEN simulation
 ## \example-code bash
-## ./rte_scripts/run_region.sh --ngen -c configs
+## ./nwm-rte/run_region.sh --ngen -c configs
 ##
 ## \example Run evaluation
 ## \example-code bash
-## ./rte_scripts/run_region.sh --eval -c configs
+## ./nwm-rte/run_region.sh --eval -c configs
 ##
 ## \example Run multiple steps
 ## \example-code bash
-## ./rte_scripts/run_region.sh --parreg --ngen -c configs
+## ./nwm-rte/run_region.sh --parreg --ngen -c configs
 ##
 ## \example Run with run_regionalization.py at a different location (default: ./rte_scripts/run_regionalization.py)
 ## \example-code bash
-## ./rte_scripts/run_region.sh --ngen -c configs -r ~/repos/nwm-rte/bin_mounted/ngen_rte
+## ./nwm-rte/run_region.sh --ngen -c configs -r ~/repos/nwm-rte/bin_mounted/ngen_rte
 ## (where -r specifies the path to the directory containing RTE scripts)
 ##
 ## \example Run with different Docker image & tag
 ## \example-code bash
-## ./rte_scripts/run_region.sh --ngen -c configs -i ghcr.io/noaa-owp/nwm-rte -t pr-20-build
+## ./nwm-rte/run_region.sh --ngen -c configs -i ghcr.io/noaa-owp/nwm-rte -t pr-20-build
 ##
 ## \example Run with pulling the latest Docker image before running
 ## \example-code bash
-## ./rte_scripts/run_region.sh --ngen -c configs --pull-image
+## ./nwm-rte/run_region.sh --ngen -c configs --pull-image
 ##
 ## \example Delete runtime directory after completion (default: keep for debugging)
 ## \example-code bash
-## ./rte_scripts/run_region.sh -c configs -p -n -e -d
+## ./nwm-rte/run_region.sh -c configs -p -n -e -d
 ## 
 # -----------------------------------------------------------------------------
 
@@ -91,12 +91,7 @@ IMAGE="ghcr.io/ngwpc/nwm-rte"
 IMAGE_TAG="latest"
 PULL_IMAGE=false
 DELETE_RUNTIME_DIR=false
-
-# Path to RTE script run_regionalization.py (default: ./rte_scripts)
-# Use a fallback on the INT/EA/UAT clusters for backward compatibility if the default path does not exist.
-RTE_PATH="$(realpath .)/rte_scripts"
-RTE_PATH_FALLBACK="/ngencerf-app/nwm-rte/bin_mounted/ngen_rte"
-RTE_PATH_EXPLICIT=false
+RTE_PATH="$(dirname "$(realpath "$0")")/bin_mounted/ngen_rte"
 
 # Parse command line arguments
 if ! ARGS=$(getopt -o pfnehc:r:i:t:d \
@@ -115,7 +110,7 @@ while true; do
         -n|--ngen) ngen=true; shift;;
         -e|--eval) do_eval=true; shift;;
         -c|--config-dir) CONFIG_DIR="$2"; shift 2;;
-        -r|--rte-path) RTE_PATH="$2"; RTE_PATH_EXPLICIT=true; shift 2;;
+        -r|--rte-path) RTE_PATH="$2"; shift 2;;
         -i|--image) IMAGE="$2"; shift 2;;
         -t|--image-tag) IMAGE_TAG="$2"; shift 2;;
         --pull-image) PULL_IMAGE=true; shift;;
@@ -223,6 +218,11 @@ require_config_files() {
     fi
 }
 
+# expand and resolve CONFIG_DIR
+CONFIG_DIR="${CONFIG_DIR/#\~/$HOME}"
+CONFIG_DIR="$(realpath "$CONFIG_DIR")"
+require_dir "$CONFIG_DIR"
+
 # make sure required config files exist for the selected workflows
 $formreg && require_config_files "formreg"
 $parreg  && require_config_files "parreg"
@@ -243,29 +243,10 @@ STATIC_DATA_DIR=$(sed -n "s/^[[:space:]]*static_data_dir:[[:space:]]*//p" "$CONF
 WORK_DIR="${WORK_DIR/#\~/$HOME}"
 STATIC_DATA_DIR="${STATIC_DATA_DIR/#\~/$HOME}"
 RTE_PATH="${RTE_PATH/#\~/$HOME}"
-CONFIG_DIR="${CONFIG_DIR/#\~/$HOME}"
-CONFIG_DIR="$(realpath "$CONFIG_DIR")"
 
 ensure_dir "$WORK_DIR"
-ensure_dir "$CONFIG_DIR"
 require_dir "$STATIC_DATA_DIR"
-
-# Use the fallback RTE path if the default path does not exist.
-if [[ ! -d "$RTE_PATH" ]]; then
-    if [[ "$RTE_PATH_EXPLICIT" == false ]]; then
-        if [[ -d "$RTE_PATH_FALLBACK" ]]; then
-            echo "RTE path '$RTE_PATH' not found. Using fallback: $RTE_PATH_FALLBACK"
-            RTE_PATH="$RTE_PATH_FALLBACK"
-        else
-            echo "ERROR: Neither RTE path exists:" >&2
-            echo "  Default:  $RTE_PATH" >&2
-            echo "  Fallback: $RTE_PATH_FALLBACK" >&2
-            exit 1
-        fi
-    else
-        require_dir "$RTE_PATH"
-    fi
-fi
+require_dir "$RTE_PATH"
 
 echo "WORK_DIR: $WORK_DIR"
 echo "STATIC_DATA_DIR: $STATIC_DATA_DIR"
@@ -304,7 +285,7 @@ fi
 # Python module to run with docker run
 RUN_REGION_MODULE="run_regionalization"
 
-# Parent dir of where RUN_REGION_MODULE is mounted inside the container (for setting PYTHONPATH)
+# Parent dir of where run_regionalization.py is mounted inside the container (for setting PYTHONPATH)
 CONTAINER_PYTHONPATH_ENTRY="${RTE_PATH}"
 
 # docker image to use
@@ -317,13 +298,13 @@ if $PULL_IMAGE || ! docker image inspect "${TARGET_IMAGE_NAME}" >/dev/null 2>&1;
     docker pull "${TARGET_IMAGE_NAME}"
 fi
 
-echo "Getting existing PYTHONPATH from the container..."
 CONTAINER_PYTHONPATH_EXISTING="$(docker run --rm --entrypoint sh ${TARGET_IMAGE_NAME} -lc 'printf "%s" "$PYTHONPATH"')"
-echo "Existing PYTHONPATH from the container: ${CONTAINER_PYTHONPATH_EXISTING}"
 CONTAINER_PYTHONPATH_COMBINED="${CONTAINER_PYTHONPATH_EXISTING}:${CONTAINER_PYTHONPATH_ENTRY}"
+echo "Combined PYTHONPATH for the container: ${CONTAINER_PYTHONPATH_COMBINED}"
 
 # docker run function to execute the regionalization workflow inside the container
 # note $HOME/.local is mounted inside the container for cartopy (used by nwm-eval-mgr)
+ensure_dir "$HOME/.local"
 function docker_run {
     docker run \
         --entrypoint python \
@@ -333,7 +314,7 @@ function docker_run {
         -e WORK_DIR="$WORK_DIR" \
         -e STATIC_DATA_DIR="$STATIC_DATA_DIR" \
         -w "${WORK_DIR}" \
-        -v "${HOME}/.local/:${HOME}/.local:rw" \
+        -v "${HOME}/.local/:${HOME}/.local/:rw" \
         -v "${WORK_DIR}:${WORK_DIR}:rw" \
         -v "${STATIC_DATA_DIR}:${STATIC_DATA_DIR}:ro" \
         -v "${RTE_PATH}:${RTE_PATH}:ro" \
