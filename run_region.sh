@@ -87,15 +87,18 @@ formreg=false
 ngen=false
 do_eval=false
 CONFIG_DIR="$(realpath .)/configs"
-RTE_PATH="$(realpath .)/rte_scripts"
 IMAGE="ghcr.io/ngwpc/nwm-rte"
 IMAGE_TAG="latest"
 PULL_IMAGE=false
 DELETE_RUNTIME_DIR=false
 
+# Path to RTE script run_regionalization.py (default: ./rte_scripts)
+# Use a fallback on the INT/EA/UAT clusters for backward compatibility if the default path does not exist.
+RTE_PATH="$(realpath .)/rte_scripts"
+RTE_PATH_FALLBACK="/ngencerf-app/nwm-rte/bin_mounted/ngen_rte"
+RTE_PATH_EXPLICIT=false
+
 # Parse command line arguments
-#ARGS=$(getopt -o pfnehc:r:i:t:d --long parreg,formreg,ngen,eval,help,config-dir:,rte-path:,image:,image-tag:,pull-image,delete-runtime-dir -- "$@")
-#if [ $? != 0 ]; then echo "Failed parsing options." >&2; exit 1; fi
 if ! ARGS=$(getopt -o pfnehc:r:i:t:d \
     --long parreg,formreg,ngen,eval,help,config-dir:,rte-path:,image:,image-tag:,pull-image,delete-runtime-dir \
     -n "$0" -- "$@"); then
@@ -112,7 +115,7 @@ while true; do
         -n|--ngen) ngen=true; shift;;
         -e|--eval) do_eval=true; shift;;
         -c|--config-dir) CONFIG_DIR="$2"; shift 2;;
-        -r|--rte-path) RTE_PATH="$2"; shift 2;;
+        -r|--rte-path) RTE_PATH="$2"; RTE_PATH_EXPLICIT=true; shift 2;;
         -i|--image) IMAGE="$2"; shift 2;;
         -t|--image-tag) IMAGE_TAG="$2"; shift 2;;
         --pull-image) PULL_IMAGE=true; shift;;
@@ -139,7 +142,7 @@ Options:
 done
 
 # make sure $HOME is set
-if [ -z "$HOME" ]; then
+if [ -z "${HOME:-}" ]; then
     echo "ERROR: HOME environment variable is not set." >&2
     exit 1
 fi
@@ -195,7 +198,7 @@ require_config_files() {
             "$CONFIG_DIR/config_ngen.yaml"
         )
     elif [ "$mode" = "eval" ]; then
-        required_files=(
+        required_files+=(
             "$CONFIG_DIR/config_eval.yaml"
         )
     else
@@ -240,10 +243,29 @@ STATIC_DATA_DIR=$(sed -n "s/^[[:space:]]*static_data_dir:[[:space:]]*//p" "$CONF
 WORK_DIR="${WORK_DIR/#\~/$HOME}"
 STATIC_DATA_DIR="${STATIC_DATA_DIR/#\~/$HOME}"
 RTE_PATH="${RTE_PATH/#\~/$HOME}"
+CONFIG_DIR="${CONFIG_DIR/#\~/$HOME}"
+CONFIG_DIR="$(realpath "$CONFIG_DIR")"
 
 ensure_dir "$WORK_DIR"
+ensure_dir "$CONFIG_DIR"
 require_dir "$STATIC_DATA_DIR"
-require_dir "$RTE_PATH"
+
+# Use the fallback RTE path if the default path does not exist.
+if [[ ! -d "$RTE_PATH" ]]; then
+    if [[ "$RTE_PATH_EXPLICIT" == false ]]; then
+        if [[ -d "$RTE_PATH_FALLBACK" ]]; then
+            echo "RTE path '$RTE_PATH' not found. Using fallback: $RTE_PATH_FALLBACK"
+            RTE_PATH="$RTE_PATH_FALLBACK"
+        else
+            echo "ERROR: Neither RTE path exists:" >&2
+            echo "  Default:  $RTE_PATH" >&2
+            echo "  Fallback: $RTE_PATH_FALLBACK" >&2
+            exit 1
+        fi
+    else
+        require_dir "$RTE_PATH"
+    fi
+fi
 
 echo "WORK_DIR: $WORK_DIR"
 echo "STATIC_DATA_DIR: $STATIC_DATA_DIR"
@@ -301,7 +323,7 @@ echo "Existing PYTHONPATH from the container: ${CONTAINER_PYTHONPATH_EXISTING}"
 CONTAINER_PYTHONPATH_COMBINED="${CONTAINER_PYTHONPATH_EXISTING}:${CONTAINER_PYTHONPATH_ENTRY}"
 
 # docker run function to execute the regionalization workflow inside the container
-# note $HOME is mounted inside the container for cartopy (used by nwm-eval-mgr)
+# note $HOME/.local is mounted inside the container for cartopy (used by nwm-eval-mgr)
 function docker_run {
     docker run \
         --entrypoint python \
@@ -311,7 +333,7 @@ function docker_run {
         -e WORK_DIR="$WORK_DIR" \
         -e STATIC_DATA_DIR="$STATIC_DATA_DIR" \
         -w "${WORK_DIR}" \
-        -v "${HOME}:${HOME}:rw" \
+        -v "${HOME}/.local/:${HOME}/.local:rw" \
         -v "${WORK_DIR}:${WORK_DIR}:rw" \
         -v "${STATIC_DATA_DIR}:${STATIC_DATA_DIR}:ro" \
         -v "${RTE_PATH}:${RTE_PATH}:ro" \

@@ -17,81 +17,30 @@ set -euo pipefail
 ## \option WORKFLOW_OPTIONS
 ## (optional, default: "parreg") Workflow steps to run: parreg, formreg, ngen, or eval
 ##
-## \option --dry-run
+## \option -n, --dry-run
 ## (optional switch) Print the generated SLURM script instead of submitting
 ##
-## \option --image IMAGE
+## \option -i, --image IMAGE
 ## (optional, default: "ghcr.io/ngwpc/nwm-rte") Docker image to use for the RTE
 ##
-## \option --image-tag TAG
+## \option -t, --image-tag TAG
 ## (optional, default: "latest") Docker image tag to use for the RTE
 ##
-## \option --script RUN_REGION_SCRIPT
+## \option -s, --script RUN_REGION_SCRIPT
 ## (optional, default: "/ngen-app/nwm-rte/run_region.sh")
 ## Path to the regionalization script to run inside the Docker container
 ##
-## \option --walltime WALLTIME
+## \option -w, --walltime WALLTIME
 ## (optional, default: "48:00:00") Walltime for the SLURM job
 ##
-## \option --pull-image
+## \option -p, --pull-image
 ## (optional switch) Pull the latest Docker image before running
 ##
-## \option --delete-runtime-dir
+## \option -d, --delete-runtime-dir
 ## (optional switch) Delete runtime directory after completion
 ##
-## \option --help
+## \option -h, --help
 ## Display this help message and exit
-##
-# Examples:
-##
-## \example Do a dry-run to see the generated SLURM script
-## \example-code bash
-## ./sbatch_run_region.sh configs parreg ngen eval --dry-run
-##
-## \example Submit parameter regionalization
-## \example-code bash
-## ./sbatch_run_region.sh configs parreg
-## ./sbatch_run_region.sh configs
-##
-## \example Submit formulation regionalization only
-## \example-code bash
-## ./sbatch_run_region.sh configs formreg
-##
-## \example Submit NGEN simulation with a different config directory
-## \example-code bash
-## ./sbatch_run_region.sh /ngen-oe/$USER/myconfigs ngen
-##
-## \example Submit evaluation only
-## \example-code bash
-## ./sbatch_run_region.sh configs eval
-##
-## \example Using a different Docker image
-## \example-code bash
-## ./sbatch_run_region.sh configs ngen --image ghcr.io/noaa-owp/nwm-rte
-##
-## \example Using an image tag other than 'latest'
-## \example-code bash
-## ./sbatch_run_region.sh configs ngen --image-tag "069ad0f6d332"
-##
-## \example Pull the latest image before running
-## \example-code bash
-## ./sbatch_run_region.sh configs ngen --pull-image
-##
-## \example Delete runtime directory after completion
-## \example-code bash
-## ./sbatch_run_region.sh configs ngen --delete-runtime-dir
-##
-## \example Use a different regionalization script
-## \example-code bash
-## ./sbatch_run_region.sh configs parreg --script ./rte-scripts/run_region.sh
-##
-## \example Specify walltime for the SLURM job
-## \example-code bash
-## ./sbatch_run_region.sh configs ngen --walltime "04:00:00"
-##
-## \example Display help
-## \example-code bash
-## ./sbatch_run_region.sh --help
 ##
 # -----------------------------------------------------------------------------
 
@@ -99,10 +48,10 @@ OPTIONS=()
 DRY_RUN=false
 IMAGE="ghcr.io/ngwpc/nwm-rte"
 IMAGE_TAG="latest"
-RUN_REGION_SCRIPT="/ngen-app/nwm-rte/run_region.sh"
 PULL_IMAGE=false
 DELETE_RUNTIME_DIR=false
 WALLTIME="48:00:00"
+RUN_REGION_SCRIPT="$(dirname "$(realpath "$0")")/run_region.sh"
 
 show_help() {
     cat <<EOF
@@ -112,7 +61,8 @@ Usage:
 Submit the regionalization workflow to SLURM using sbatch.
 
 CONFIG_DIR:
-  Optional directory containing configuration YAML files.
+  Optional directory containing configuration YAML files. If specified, it must
+  precede any workflow options.
   Default: configs
 
 WORKFLOW_OPTIONS:
@@ -125,40 +75,37 @@ WORKFLOW_OPTIONS:
   Default: parreg
 
 OPTIONS:
-  --dry-run
+  -n, --dry-run
       Print the generated SLURM script instead of submitting it.
 
-  --image IMAGE
-      Docker image to use for the RTE.
+  -i, --image IMAGE
+      Docker image to use for running regionalization.
       Default: $IMAGE
 
-  --image-tag TAG
-      Docker image tag to use for the RTE.
+  -t, --image-tag TAG
+      Docker image tag to use for running regionalization.
       Default: $IMAGE_TAG
 
-  --script SCRIPT
+  -s, --script SCRIPT
       Regionalization script to run inside the Docker container.
       Default: $RUN_REGION_SCRIPT
 
-  --walltime WALLTIME
+  -w, --walltime WALLTIME
       Walltime for the SLURM job.
       Default: $WALLTIME
 
-  --pull-image
+  -p, --pull-image
       Pull the latest Docker image before running.
 
-  --delete-runtime-dir
+  -d, --delete-runtime-dir
       Delete the runtime directory after completion.
 
-  --help
-      Display this help message and exit.
+  -h, --help
+      Display this help message and exit
 
 Examples:
-  Submit parameter regionalization:
-    $0 configs parreg
-
-  Submit the default workflow:
-    $0 configs
+  Submit default workflow with default configuration directory configs/:
+    $0
 
   Submit formulation regionalization:
     $0 configs formreg
@@ -171,9 +118,11 @@ Examples:
 
   Use a different Docker image:
     $0 configs ngen --image ghcr.io/noaa-owp/nwm-rte
+    $0 configs ngen -i ghcr.io/noaa-owp/nwm-rte
 
   Use a different image tag:
     $0 configs ngen --image-tag 069ad0f6d332
+    $0 configs ngen -t 069ad0f6d332
 
   Pull the latest image before running:
     $0 configs ngen --pull-image
@@ -183,6 +132,7 @@ Examples:
 
   Use a different regionalization script:
     $0 configs parreg --script ./rte-scripts/run_region.sh
+    $0 configs parreg -s ./rte-scripts/run_region.sh
 
   Specify walltime for the SLURM job:
     $0 configs ngen --walltime "04:00:00"
@@ -194,18 +144,25 @@ EOF
     exit 0
 }
 
+
 # Handle --help before processing CONFIG_DIR.
-if [[ $# -gt 0 && "$1" == "--help" ]]; then
+if [[ $# -gt 0 && ("$1" == "-h" || "$1" == "--help") ]]; then
     show_help
 fi
 
-# CONFIG_DIR is the first argument only if it is not an option.
-if [[ $# -gt 0 && "$1" != -* ]]; then
-    CONFIG_DIR="$(realpath "$1")"
-    shift
-else
-    CONFIG_DIR="$(realpath "configs")"
-fi
+# CONFIG_DIR is the first argument unless it is a workflow option.
+CONFIG_DIR="$(realpath "configs")"
+
+case "${1:-}" in
+    parreg|formreg|ngen|eval|"")
+        ;;
+    -*)
+        ;;
+    *)
+        CONFIG_DIR="$(realpath "$1")"
+        shift
+        ;;
+esac
 
 if [[ ! -d "${CONFIG_DIR}" ]]; then
     echo "ERROR: Config directory '${CONFIG_DIR}' does not exist." >&2
@@ -216,53 +173,61 @@ export CONFIG_DIR
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --dry-run)
+        -n|--dry-run)
             DRY_RUN=true
             shift
             ;;
-        --image)
+
+        -i|--image)
             if [[ $# -lt 2 ]]; then
-                echo "ERROR: --image requires a value." >&2
+                echo "ERROR: $1 requires a value." >&2
                 exit 1
             fi
             IMAGE="$2"
             shift 2
             ;;
-        --image-tag)
+
+        -t|--image-tag)
             if [[ $# -lt 2 ]]; then
-                echo "ERROR: --image-tag requires a value." >&2
+                echo "ERROR: $1 requires a value." >&2
                 exit 1
             fi
             IMAGE_TAG="$2"
             shift 2
             ;;
-        --script)
+
+        -s|--script)
             if [[ $# -lt 2 ]]; then
-                echo "ERROR: --script requires a value." >&2
+                echo "ERROR: $1 requires a value." >&2
                 exit 1
             fi
             RUN_REGION_SCRIPT="$2"
             shift 2
             ;;
-        --walltime)
+
+        -w|--walltime)
             if [[ $# -lt 2 ]]; then
-                echo "ERROR: --walltime requires a value." >&2
+                echo "ERROR: $1 requires a value." >&2
                 exit 1
             fi
             WALLTIME="$2"
             shift 2
             ;;
-        --pull-image)
+
+        -p|--pull-image)
             PULL_IMAGE=true
             shift
             ;;
-        --delete-runtime-dir)
+
+        -d|--delete-runtime-dir)
             DELETE_RUNTIME_DIR=true
             shift
             ;;
-        --help)
+
+        -h|--help)
             show_help
             ;;
+
         *)
             OPTIONS+=("$1")
             shift
@@ -270,9 +235,10 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Make sure $RUN_REGION_SCRIPT exists.
+# Make sure $RUN_REGION_SCRIPT exists
 if [[ ! -f "$RUN_REGION_SCRIPT" ]]; then
-    echo "ERROR: Run region script '$RUN_REGION_SCRIPT' does not exist." >&2
+    echo "ERROR: Run region script '$RUN_REGION_SCRIPT' does not exist."
+    echo "Use the -s or --script to specify the correct path to run_region.sh." >&2
     exit 1
 fi
 
@@ -313,20 +279,18 @@ if $DELETE_RUNTIME_DIR; then
     OPTION_FLAGS+=("--delete-runtime-dir")
 fi
 
+OPTION_FLAGS_STR="${OPTION_FLAGS[*]}"
+
 # Determine total number of tasks (n_procs).
-NTASKS=$(python3 - <<'EOF'
-import os
-from pathlib import Path
+NTASKS=$(sed -n 's/^[[:space:]]*n_procs:[[:space:]]*\([^#]*\).*$/\1/p' \
+    "${CONFIG_DIR}/config_general.yaml" | tr -d '[:space:]')
 
-import yaml
+if [[ -z "$NTASKS" || ! "$NTASKS" =~ ^[0-9]+$ ]]; then
+    echo "ERROR: Could not determine a valid n_procs from '${CONFIG_DIR}/config_general.yaml'." >&2
+    exit 1
+fi
 
-cfg = yaml.safe_load(
-    (Path(os.environ["CONFIG_DIR"]) / "config_general.yaml").read_text()
-)
-n_procs = int(cfg["general"].get("n_procs", 0))
-print(max(n_procs, 1))
-EOF
-)
+NTASKS=$(( NTASKS < 1 ? 1 : NTASKS ))
 
 # Get all idle nodes and their CPU counts.
 IDLE_NODES=$(sinfo -h -t idle -N -o "%N %c %P")
@@ -380,7 +344,7 @@ echo "Nodes allocated: \$SLURM_JOB_NUM_NODES"
 echo "Running on directory: \$SLURM_SUBMIT_DIR"
 echo "Job ID: \$SLURM_JOB_ID"
 
-"${RUN_REGION_SCRIPT}" "${OPTION_FLAGS[@]}" -c "${CONFIG_DIR}" --image "${IMAGE}" --image-tag "${IMAGE_TAG}"
+"${RUN_REGION_SCRIPT}" ${OPTION_FLAGS_STR} -c "${CONFIG_DIR}" --image "${IMAGE}" --image-tag "${IMAGE_TAG}"
 EOF
 )
 
