@@ -104,7 +104,7 @@ def initialize_logger() -> EwtsLogger | FallbackLogger:
             log_dir=log_dir,
             log_file_name=log_file_name,
             running_in_ngen=False,
-            enabled=ewts_enabled,
+            enabled=True,
         )
         if LOG is None:
             raise TypeError("LOG is unexpectedly None after ewts setup_logger call.")
