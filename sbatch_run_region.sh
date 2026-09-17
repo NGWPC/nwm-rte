@@ -285,9 +285,14 @@ OPTION_FLAGS_STR="${OPTION_FLAGS[*]}"
 NTASKS=$(sed -n 's/^[[:space:]]*n_procs:[[:space:]]*\([^#]*\).*$/\1/p' \
     "${CONFIG_DIR}/config_general.yaml" | tr -d '[:space:]')
 
-if [[ -z "$NTASKS" || ! "$NTASKS" =~ ^[0-9]+$ ]]; then
-    echo "ERROR: Could not determine a valid n_procs from '${CONFIG_DIR}/config_general.yaml'." >&2
-    exit 1
+if grep -Eq '^[[:space:]]*n_procs:' "${CONFIG_DIR}/config_general.yaml"; then
+    if [[ -z "$NTASKS" || ! "$NTASKS" =~ ^[0-9]+$ ]]; then
+        echo "ERROR: Invalid n_procs ($NTASKS) in '${CONFIG_DIR}/config_general.yaml'." >&2
+        exit 1
+    fi
+else
+    echo "INFO: n_procs not specified in '${CONFIG_DIR}/config_general.yaml'. Using default of 1." >&2
+    NTASKS=1
 fi
 
 NTASKS=$(( NTASKS < 1 ? 1 : NTASKS ))
