@@ -11,6 +11,9 @@
     // "containerEnv": {
     //     "FORCING_LOGLEVEL": "DEBUG"
     // },
+    "containerEnv": {
+        "RTE_EWTS_ENABLED": "YES"
+    },
     "customizations": {
         "vscode": {
             "extensions": [
