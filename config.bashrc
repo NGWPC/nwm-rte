@@ -34,9 +34,9 @@ INSTALL_DEBUGGERS=${INSTALL_DEBUGGERS:-"NO"}
 NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE:-"NO"}
 # NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE:-"YES"}
 
-## \env EWTS_ENABLED Master on/off switch for the vendored `ewts` package's logging. Choose from: `["NO", "YES"]`
-EWTS_ENABLED=${EWTS_ENABLED:-"YES"}
-# EWTS_ENABLED=${EWTS_ENABLED:-"NO"}
+## \env RTE_EWTS_ENABLED Master on/off switch for the vendored `ewts` package's logging. Choose from: `["NO", "YES"]`
+RTE_EWTS_ENABLED=${RTE_EWTS_ENABLED:-"YES"}
+# RTE_EWTS_ENABLED=${RTE_EWTS_ENABLED:-"NO"}
 
 #### Component Packages
 ## 
