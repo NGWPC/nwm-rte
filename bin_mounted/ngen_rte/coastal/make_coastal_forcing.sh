@@ -92,8 +92,6 @@ docker_run python -um ngen_rte.coastal.make_coastal_forcing --cycle_datetime "20
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_cold_start_hi" -fconfig cold_start_hawaii -gdomain Hawaii
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_short_range_hawaii" -fconfig short_range_hawaii -gdomain Hawaii
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_standard_ana_hawaii" -fconfig standard_ana_hawaii -gdomain Hawaii
-### TODO delete me
-# docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2026-08-01 00:00:00" -rname "${run_name}_standard_ana_hawaii" -fconfig standard_ana_hawaii -gdomain Hawaii
 
 
 ##############################################

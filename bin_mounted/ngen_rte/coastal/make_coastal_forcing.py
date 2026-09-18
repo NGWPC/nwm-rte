@@ -1,5 +1,15 @@
 """CLI script to generate gridded atmospheric forcing files for coastal models.
 
+NOTE: This includes a T0 output needed for coastal, in addition to the normal T1+ outputs.
+NOTE: The T0 output has identical forcing values as T1.
+See comments in ngen-forcing model.py function ``write_t0_output``.
+An independent T0 state cannot be reliably computed because several forecast products omit required fields at hour zero and substitute hour one. Examples:
+https://github.com/NGWPC/ngen-forcing/blob/27e03ba138478dd449ce957b1c3ba4c36fc33d8f/NextGen_Forcings_Engine_BMI/NextGen_Forcings_Engine/core/time_handling.py#L1202-L1206
+https://github.com/NGWPC/ngen-forcing/blob/27e03ba138478dd449ce957b1c3ba4c36fc33d8f/NextGen_Forcings_Engine_BMI/NextGen_Forcings_Engine/core/time_handling.py#L1444-L1448
+https://github.com/NGWPC/ngen-forcing/blob/27e03ba138478dd449ce957b1c3ba4c36fc33d8f/NextGen_Forcings_Engine_BMI/NextGen_Forcings_Engine/core/time_handling.py#L2043-L2047
+https://github.com/NGWPC/ngen-forcing/blob/27e03ba138478dd449ce957b1c3ba4c36fc33d8f/NextGen_Forcings_Engine_BMI/NextGen_Forcings_Engine/core/time_handling.py#L4129-L4135
+
+
 NOTE:
     See repository ``nwm-coastal`` (file ``nwm-coastal/scripts/setup_data_coastal.sh``) for the scripts needed to download / set up input data required to run coastal forcing workflows:
 
@@ -85,7 +95,8 @@ def make_coastal_forcing(
     output_path = config_manager.output_path
     partial_output_path = output_path.with_suffix(f"{output_path.suffix}.partial")
     config_path = config_manager.write_config()
-    num_updates = analysis_num_updates(config_path)
+    num_ana_updates = analysis_num_updates(config_path)
+    is_ana = num_ana_updates is not None
 
     LOG.info(
         "Running coastal forcing %s: configuration=%s domain=%s output=%s",
@@ -103,9 +114,10 @@ def make_coastal_forcing(
         "cycle_datetime": cycle_datetime,
         "geogrid": str(config_manager.geogrid),
         "output_path": partial_output_path,
+        "output_t0": not is_ana,
     }
-    if num_updates is not None:
-        run_arguments["num_updates"] = num_updates
+    if is_ana:
+        run_arguments["num_updates"] = num_ana_updates
     run_bmi(**run_arguments)
     partial_output_path.replace(output_path)
 
