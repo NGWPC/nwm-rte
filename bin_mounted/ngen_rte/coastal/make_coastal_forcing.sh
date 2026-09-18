@@ -29,6 +29,7 @@ set -x
 
 ### CONUS subset (small spatial mask) for quick/debug runs using the CONUS logic.
 docker_run python -um ngen_rte.coastal.make_coastal_forcing --cycle_datetime "2025-09-15 00:00:00" -rname "${run_name}_debug_standard_ana" --forcing_configuration standard_ana --global_domain CONUS --debug_conus_subset
+# docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_cold_start" -fconfig cold_start -gdomain CONUS --lookback 240 --forecast_input_horizons 240 --debug_conus_subset
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing --cycle_datetime "2025-09-15 00:00:00" -rname "${run_name}_debug_short_range" --forcing_configuration short_range --global_domain CONUS --debug_conus_subset
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing --cycle_datetime "2025-09-15 00:00:00" -rname "${run_name}_debug_aorc" --forcing_configuration aorc --global_domain CONUS --debug_conus_subset
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing --cycle_datetime "2025-09-15 00:00:00" -rname "${run_name}_debug_extended_ana" --forcing_configuration extended_ana --global_domain CONUS --debug_conus_subset
@@ -53,7 +54,7 @@ docker_run python -um ngen_rte.coastal.make_coastal_forcing --cycle_datetime "20
 
 ### Actual runs without warming
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_aorc" -fconfig aorc -gdomain CONUS
-# docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_cold_start" -fconfig cold_start -gdomain CONUS
+# docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_cold_start" -fconfig cold_start -gdomain CONUS --lookback 240 --forecast_input_horizons 240
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_extended_ana" -fconfig extended_ana -gdomain CONUS
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_long_range_ana" -fconfig long_range_ana -gdomain CONUS
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_long_range_mem1" -fconfig long_range_mem1 -gdomain CONUS
@@ -77,7 +78,7 @@ docker_run python -um ngen_rte.coastal.make_coastal_forcing --cycle_datetime "20
 ### Alaska
 ##############################################
 
-# docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_cold_start_alaska" -fconfig cold_start_alaska -gdomain Alaska
+# docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_cold_start_alaska" -fconfig cold_start_alaska -gdomain Alaska --lookback 240 --forecast_input_horizons 240
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_extended_ana_alaska" -fconfig extended_ana_alaska -gdomain Alaska
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_medium_range_blend_alaska" -fconfig medium_range_blend_alaska -gdomain Alaska
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_short_range_alaska" -fconfig short_range_alaska -gdomain Alaska
@@ -89,7 +90,7 @@ docker_run python -um ngen_rte.coastal.make_coastal_forcing --cycle_datetime "20
 ### Hawaii
 ##############################################
 
-# docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_cold_start_hi" -fconfig cold_start_hawaii -gdomain Hawaii
+# docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_cold_start_hi" -fconfig cold_start_hawaii -gdomain Hawaii --lookback 240 --forecast_input_horizons 240
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_short_range_hawaii" -fconfig short_range_hawaii -gdomain Hawaii
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_standard_ana_hawaii" -fconfig standard_ana_hawaii -gdomain Hawaii
 
@@ -101,7 +102,7 @@ docker_run python -um ngen_rte.coastal.make_coastal_forcing --cycle_datetime "20
 ## Warmup
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -fconfig standard_ana_puertorico -gdomain Puerto_Rico --warm_weights
 ## Actual run
-# docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_cold_start_puertorico" -fconfig cold_start_puertorico -gdomain Puerto_Rico
+# docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_cold_start_puertorico" -fconfig cold_start_puertorico -gdomain Puerto_Rico --lookback 240 --forecast_input_horizons 240
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_short_range_puertorico" -fconfig short_range_puertorico -gdomain Puerto_Rico
 # docker_run python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -rname "${run_name}_standard_ana_puertorico" -fconfig standard_ana_puertorico -gdomain Puerto_Rico
 
