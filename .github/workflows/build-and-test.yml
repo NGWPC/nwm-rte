@@ -75,6 +75,8 @@ on:
         type: string
       RTE_TAG_NAME:
         description: "RTE_TAG_NAME (if set, used as the final promoted tag instead of 'latest')"
+        required: false
+        type: string
 
 permissions:
   contents: read
