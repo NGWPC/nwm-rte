@@ -113,17 +113,26 @@ def add_arg(parser: argparse.ArgumentParser, arg: ArgsKwargs) -> None:
     parser.add_argument(*arg.args, **arg.kwargs)
 
 
-ENVIRONMENT = ArgsKwargs(
-    args=["-e", "--environment"],
+EDFS_URL = ArgsKwargs(
+    args=["-eu", "--edfs_url"],
     kwargs={
         "type": str,
-        "default": c.DEFAULT_ENVIRONMENT,
-        "choices": ["test", "oe"],
-        "help": "Operating environment. Affects name of server used to fetch input data. Passed to MSWM GeneralConfig.",
+        "default": None,
+        "help": "Base URL for the Icefabric EDFS API, used to fetch the hydrofabric gpkg when --hydrofab_file is not provided",
     },
     scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
 
+ENVIRONMENT = ArgsKwargs(
+    args=["-e", "--environment"],
+    kwargs={
+        "type": str,
+        "default": argparse.SUPRESS,
+        "choices": ["test", "oe"],
+        "help": "Operating environment. Maps 'test' or 'oe' to the corresponding EDFS API base URL. Ignored if --edfs_url is also provided",
+    },
+    scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
+)
 
 GLOBAL_DOMAIN = ArgsKwargs(
     args=["-gdomain", "--global_domain"],
