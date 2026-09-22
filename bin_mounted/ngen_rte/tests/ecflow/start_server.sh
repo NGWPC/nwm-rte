@@ -9,10 +9,10 @@
 
 set -euo pipefail
 
-NWM_PACKAGE_DIR="${NWM_PACKAGE_DIR:=$(cd "../nwm-automation-scripts/nwm.v4.0.0" && pwd)}"
+NWM_PACKAGE_DIR="${NWM_PACKAGE_DIR:=$(cd "../nextgen-support-scripts/nwm.v4.0.0" && pwd)}"
 DATAROOT="${DATAROOT:-${HOME}/ngwpc/run_ngen}"
 
 export NWM_PACKAGE_DIR DATAROOT
 
-( cd ../nwm-automation-scripts/nwm.v4.0.0/ecflow-server && ./ecflow-server-docker-build.sh no )
-( cd ../nwm-automation-scripts/nwm.v4.0.0/ecflow-server && ./ecflow-server-start.sh )
+( cd ../nextgen-support-scripts/nwm.v4.0.0/ecflow-server && ./ecflow-server-docker-build.sh no )
+( cd ../nextgen-support-scripts/nwm.v4.0.0/ecflow-server && ./ecflow-server-start.sh )
