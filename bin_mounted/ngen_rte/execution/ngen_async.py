@@ -14,8 +14,8 @@ from collections.abc import Generator
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ecf_task_mgr import EcflowInterface, SubtaskCallbackContext
 from mswm.build_inputs import RealizationBuilder
+from ngen_rte._ecflow import EcflowInterface, SubtaskCallbackContext
 from ngen_rte.consts import UNSET_LOG_PATHS_METADATA
 from ngen_rte.execution.ngen_logs import (
     _LogParserBase,

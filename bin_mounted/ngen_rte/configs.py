@@ -6,18 +6,17 @@ import re
 import shutil
 from datetime import datetime, timedelta, timezone
 
-from ecf_task_mgr import EcflowConnection, EcflowInterface, SubtaskCallbackContext
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils import settings as mswm_settings
 from mswm.utils.input_configuration import (
     CalibConfig,
+    DataAssimilationConfig,
     DataFileConfig,
     ForcingConfig,
     GeneralConfig,
     InputConfig,
     ModulePropertiesConfig,
     NWMOutputConfig,
-    DataAssimilationConfig,
     ParallelConfig,
     RegionConfig,
 )
@@ -26,6 +25,12 @@ from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 from pydantic import Field
 
 from ngen_rte import consts as c
+from ngen_rte._ecflow import (
+    ECF_TASK_MGR_AVAILABLE,
+    EcflowConnection,
+    EcflowInterface,
+    SubtaskCallbackContext,
+)
 from ngen_rte.logger import initialize_logger
 from ngen_rte.other_classes import (
     BaseModelStrict,
@@ -212,6 +217,11 @@ class RTEBaseConfig(BaseModelStrict):
     def _ecflow_connect(self):
         # Initialize ecFlow interface if task and subtask are provided
         if self.ecf_task or self.ecf_subtask:
+            if not ECF_TASK_MGR_AVAILABLE:
+                raise RuntimeError(
+                    "ecf_task_mgr is required when --ecf-task and --ecf-subtask are provided."
+                )
+
             LOG.info("ecFlow task metadata provided, connecting to ecFlow server...")
             if not self.ecf_task and self.ecf_subtask:
                 raise ValueError(

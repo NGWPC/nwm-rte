@@ -11,13 +11,17 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import ecflow
 import pandas as pd
-from ecf_task_mgr import EcflowInterface, SubtaskCallbackContext, SubtaskInfoVarEntry
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
 from ngen_rte import consts as c
+from ngen_rte._ecflow import (
+    EcflowInterface,
+    SubtaskCallbackContext,
+    SubtaskInfoVarEntry,
+    ecflow,
+)
 from ngen_rte.execution.ngen_logs import dict_factory
 from ngen_rte.logger import (
     EWTS_AVAILABLE,
@@ -31,7 +35,6 @@ if EWTS_AVAILABLE or TYPE_CHECKING:
     from ewts import LogParts
     from ewts import Payload as Pld
     from ewts import Status as EwtsStatus
-
 
 LOG = initialize_logger()
 
