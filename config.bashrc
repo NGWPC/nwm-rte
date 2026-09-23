@@ -23,8 +23,8 @@ GH_ORG=${GH_ORG:-"NGWPC"}
 NO_CACHE=${NO_CACHE:-""}
 
 ## \env STAGE The stage of the docker build sequence to stop at. Choose from: `["ngen_rte_base", "ngen_rte_eval_verf"]`.  See `Dockerfile.rte` for more information
-# STAGE=${STAGE:-"ngen_rte_base"}
-STAGE=${STAGE:-"ngen_rte_eval_verf"}
+STAGE=${STAGE:-"ngen_rte_base"}
+# STAGE=${STAGE:-"ngen_rte_eval_verf"}
 
 ## \env INSTALL_DEBUGGERS Passed to ./install_debuggers.sh, causes pip package `debugpy` and OS package `gdb` to be installed. Choose from: `["NO", "YES"]`
 INSTALL_DEBUGGERS=${INSTALL_DEBUGGERS:-"NO"}
@@ -173,6 +173,11 @@ TEST_GAGE="01123000"
 TEST_VPU="vpu_03S"
 TEST_DOMAIN="CONUS"
 TEST_HYDROFAB_FILE="/ngen-app/bin/ngen_rte/tests/test_data/gauge_${TEST_GAGE}.gpkg"
+
+## EDFS_URL_TEST / EDFS_URL_OE Base URLs for the Icefabric EDFS API
+## Should match ngen_rte/consts.py's TEST_EDFS_URL / OE_EDFS_URL
+TEST_EDFS_URL="http://edfs.test.nextgenwaterprediction.com/api/v1"
+OE_EDFS_URL="https://edfs.oe.nextgenwaterprediction.com/api/v1"
 
 ### Logging functions
 BASENAME="$(basename "$(readlink -f "$0")")"

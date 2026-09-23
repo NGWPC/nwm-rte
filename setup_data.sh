@@ -17,6 +17,7 @@ source config.bashrc
 ## 
 ## \option -a, --api-environment
 ## For EDFS API URL for nwm-rte setup scripts. Used to construct URL subdomain. Not used during ngen runtime. See -e, --environment in the ngen runtime CLI scripts.
+## EDFS base URL set in config.bashrc for use in setup_data_one_gage.sh.
 ## Default: 'test'. Common choices: ['test', 'oe'].
 ## 
 ## \option -r, --regionalization

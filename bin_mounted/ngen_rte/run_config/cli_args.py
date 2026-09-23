@@ -118,7 +118,7 @@ EDFS_URL = ArgsKwargs(
     kwargs={
         "type": str,
         "default": None,
-        "help": "Base URL for the Icefabric EDFS API, used to fetch the hydrofabric gpkg when --hydrofab_file is not provided",
+        "help": "Base URL for the Icefabric EDFS API, used to fetch the hydrofabric gpkg when --hydrofab_file is not provided. Passed to MSWM General.",
     },
     scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
@@ -127,9 +127,9 @@ ENVIRONMENT = ArgsKwargs(
     args=["-e", "--environment"],
     kwargs={
         "type": str,
-        "default": argparse.SUPRESS,
+        "default": argparse.SUPPRESS,
         "choices": ["test", "oe"],
-        "help": "Operating environment. Maps 'test' or 'oe' to the corresponding EDFS API base URL. Ignored if --edfs_url is also provided",
+        "help": "Operating environment. Maps 'test' or 'oe' to the corresponding EDFS API base URL. Ignored if --edfs_url is also provided.",
     },
     scripts=[Script.DEFAULT, Script.REGIONALIZATION, Script.CALIBRATION, Script.FORECAST, Script.TESTS],
 )
