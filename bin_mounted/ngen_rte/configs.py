@@ -5,25 +5,25 @@ import os
 import re
 import shutil
 from datetime import datetime, timedelta, timezone
+from typing import Literal
 
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils import settings as mswm_settings
 from mswm.utils.input_configuration import (
     CalibConfig,
+    DataAssimilationConfig,
     DataFileConfig,
     ForcingConfig,
     GeneralConfig,
     InputConfig,
     ModulePropertiesConfig,
     NWMOutputConfig,
-    DataAssimilationConfig,
     ParallelConfig,
     RegionConfig,
 )
 from mswm.utils.settings import DEFAULT_DATETIME_FORMAT as DDF
 from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 from pydantic import Field
-from typing import Literal
 
 from ngen_rte import consts as c
 from ngen_rte.logger import initialize_logger
@@ -199,8 +199,12 @@ class RTEBaseConfig(BaseModelStrict):
                 self.edfs_url = c.OE_EDFS_URL
             elif self.environment == "test":
                 self.edfs_url = c.TEST_EDFS_URL
-            else:
+            elif self.environment is None:
                 self.edfs_url = c.DEFAULT_EDFS_URL
+            else:
+                raise ValueError(
+                    f"Invalid value for variable related to EDFS server, self.environment: {self.environment!r}. When EDFS URL not provided explicitly, then we expect self.environment to be in ('oe', 'test', None), where None triggers a default URL."
+                )
 
         # Set basin from vpu if provided else gage_id
         self.basin = self.vpu if self.vpu else self.gage_id
@@ -535,7 +539,8 @@ class RTEBaseConfig(BaseModelStrict):
             )
         cold_start_datetime = (
             self.cold_start_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT)
-            if isinstance(self, (RTEForecastConfig, RTEDefaultConfig, RTERegionConfig)) and self.cold_start_datetime
+            if isinstance(self, (RTEForecastConfig, RTEDefaultConfig, RTERegionConfig))
+            and self.cold_start_datetime
             else None
         )
         fc = ForcingConfig(
