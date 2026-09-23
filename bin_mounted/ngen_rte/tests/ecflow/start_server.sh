@@ -11,8 +11,12 @@ set -euo pipefail
 
 NWM_PACKAGE_DIR="${NWM_PACKAGE_DIR:=$(cd "../nextgen-support-scripts/nwm.v4.0.0" && pwd)}"
 DATAROOT="${DATAROOT:-${HOME}/ngwpc/run_ngen}"
+COMROOT="${COMROOT:-${DATAROOT}/com}"
+DBNROOT="${DBNROOT:-${DATAROOT}/dbn}"
+DCOMROOT="${DCOMROOT:-${DATAROOT}/dcom}"
+ECF_PORT="${ECF_PORT:-3141}"
 
-export NWM_PACKAGE_DIR DATAROOT
+export NWM_PACKAGE_DIR DATAROOT COMROOT DBNROOT DCOMROOT ECF_PORT
 
 ( cd ../nextgen-support-scripts/nwm.v4.0.0/ecflow-server && ./ecflow-server-docker-build.sh no )
 ( cd ../nextgen-support-scripts/nwm.v4.0.0/ecflow-server && ./ecflow-server-start.sh )
