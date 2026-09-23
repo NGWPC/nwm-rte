@@ -10,13 +10,13 @@ from mswm.build_inputs import RealizationBuilder
 from mswm.utils import settings as mswm_settings
 from mswm.utils.input_configuration import (
     CalibConfig,
+    DataAssimilationConfig,
     DataFileConfig,
     ForcingConfig,
     GeneralConfig,
     InputConfig,
     ModulePropertiesConfig,
     NWMOutputConfig,
-    DataAssimilationConfig,
     ParallelConfig,
     RegionConfig,
 )
@@ -25,6 +25,12 @@ from mswm.utils.settings import LAGGED_ENSEMBLE_MEMBER_LAGS
 from pydantic import Field
 
 from ngen_rte import consts as c
+from ngen_rte._ecflow import (
+    ECFLOW_AVAILABLE,
+    EcflowConnection,
+    EcflowInterface,
+    SubtaskCallbackContext,
+)
 from ngen_rte.logger import initialize_logger
 from ngen_rte.other_classes import (
     BaseModelStrict,
@@ -166,6 +172,16 @@ class RTEBaseConfig(BaseModelStrict):
     hc_num_iterations: int | None = Field(init=False, default=None)
     """Hindcast number of iterations."""
 
+    # For ecFlow integration
+    ecf_task: str | None = None
+    """ECFlow task path, e.g. '/nwm/hourly/nwm_analysis_assim/jnwm_conus_analysis_assim'."""
+    ecf_subtask: str | None = None
+    """ECFlow subtask base identifier. Example: 'no_subtask_type__20260615_120000_000000__vpu__03S'."""
+    ecf_iface: EcflowInterface | None = Field(init=False, default=None)
+    """EcflowInterface instance created if ecf_task and ecf_subtask are provided."""
+    ecf_ctx: SubtaskCallbackContext | None = Field(init=False, default=None)
+    """SubtaskCallbackContext instance created if ecf_task and ecf_subtask are provided."""
+
     def model_post_init(self, __context) -> None:
         self.time_at_init = datetime.now(tz=timezone.utc)
         self.errors = []
@@ -193,9 +209,53 @@ class RTEBaseConfig(BaseModelStrict):
         self.subset_type = "vpu" if self.vpu else "gage"
 
         self._parse_hindcast_args()
+        self._ecflow_connect()
 
         if self.errors:
             raise RuntimeError(self.errors)
+
+    def _ecflow_connect(self):
+        # Initialize ecFlow interface if task and subtask are provided
+        if self.ecf_task or self.ecf_subtask:
+            if not ECFLOW_AVAILABLE:
+                raise RuntimeError(
+                    "ecf_task_mgr is required when --ecf-task and --ecf-subtask are provided."
+                )
+
+            LOG.info("ecFlow task metadata provided, connecting to ecFlow server...")
+            if not self.ecf_task and self.ecf_subtask:
+                raise ValueError(
+                    "When ecf_task or ecf_subtask are provided, both must be provided."
+                )
+            conn = EcflowConnection(settings_path=c.ECFLOW_SETTINGS)
+            self.ecf_iface = EcflowInterface(conn)
+            LOG.info("Connected to ecFlow server.")
+            self.ecf_ctx = SubtaskCallbackContext(
+                task_path=self.ecf_task,
+                subtask_var_base=self.ecf_subtask,
+            )
+            LOG.info(
+                f"Checking that ecFlow task, subtask exists: {self.ecf_task}, {self.ecf_subtask}"
+            )
+            self.ecf_iface.get_node(self.ecf_ctx.task)
+            if not self.ecf_iface.var_exists(
+                self.ecf_ctx.task, self.ecf_ctx.var_status
+            ):
+                self.errors.append(
+                    RuntimeError(
+                        f"ecFlow var {self.ecf_ctx.task}, {self.ecf_ctx.var_status} not found."
+                    )
+                )
+            if not self.ecf_iface.var_exists(self.ecf_ctx.task, self.ecf_ctx.var_info):
+                self.errors.append(
+                    RuntimeError(
+                        f"ecFlow var {self.ecf_ctx.task}, {self.ecf_ctx.var_info} not found."
+                    )
+                )
+        else:
+            LOG.info("ecFlow task *not* provided, *not* connecting to ecFlow server...")
+            self.ecf_iface = None
+            self.ecf_ctx = None
 
     def configure_ngen_log(self, rb: RealizationBuilder) -> None:
         """Configure the ngen logging, by setting the associated OS env variable for the directory to hold the logs,
@@ -521,7 +581,8 @@ class RTEBaseConfig(BaseModelStrict):
             )
         cold_start_datetime = (
             self.cold_start_datetime.strftime(mswm_settings.DEFAULT_DATETIME_FORMAT)
-            if isinstance(self, (RTEForecastConfig, RTEDefaultConfig, RTERegionConfig)) and self.cold_start_datetime
+            if isinstance(self, (RTEForecastConfig, RTEDefaultConfig, RTERegionConfig))
+            and self.cold_start_datetime
             else None
         )
         fc = ForcingConfig(
@@ -677,6 +738,8 @@ class RTEDefaultConfig(RTEBaseConfig):
         See CLI help menu for [`run_default.py`](python_cli_help__run_default.py.txt) for details.
     cold_start_datetime: datetime | None
         Start time of the coldstart realization. If None, coldstart is not performed.
+    noop: bool
+        Causes a noop to occur (for confirming that Python packages are importable).
     """
 
     cycle_datetime: datetime
@@ -686,6 +749,7 @@ class RTEDefaultConfig(RTEBaseConfig):
     # For medium-range lagged ensemble
     lagged_ensemble_args: list[str] | None = Field(min_length=3, max_length=3)
     cold_start_datetime: datetime | None
+    noop: bool = False
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)  # Call RTEBaseConfig's post init

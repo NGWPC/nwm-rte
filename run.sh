@@ -11,7 +11,7 @@ source config.bashrc
 ## \desc
 ## Run the `ngen` runtime environment Docker image. Requires that the image has already been built.
 ## 
-## The function `docker_run` is sourced by and called by other scripts in the repository such as `./run_default.sh`, `./run_calib.sh`, `./run_fcst.sh`, and `./run_tests.sh`.
+## The function `docker_run` is sourced by and called by other scripts in the repository.
 ##
 ## When run as a script, causes the user to enter the container shell interactively.
 ## 
@@ -50,7 +50,17 @@ function docker_run {
         interactive_terminal=""
     fi
 
+    extra_args=""
+    # If the docker container "ecflow-server" is running, then use its network.
+    if docker container inspect ecflow-server >/dev/null 2>&1; then
+        echo "Container 'ecflow-server' is running, *will* use its network."
+        extra_args="--network container:ecflow-server"
+    else
+        echo "Container 'ecflow-server' is *not* running, will *not* use its network."
+    fi
+
     time sudo docker run --entrypoint "${entrypoint}" ${interactive_terminal} \
+        ${extra_args} \
         --ulimit nofile=100000:100000 \
         -v "$(pwd)/bin_mounted/ngen_rte:/ngen-app/bin/ngen_rte/" \
         -w "/ngen-app/bin" \
