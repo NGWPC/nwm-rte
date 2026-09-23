@@ -17,6 +17,7 @@ from mswm.utils.settings import DEFAULT_DATETIME_FORMAT
 
 from ngen_rte import consts as c
 from ngen_rte._ecflow import (
+    ECFLOW_AVAILABLE,
     EcflowInterface,
     SubtaskCallbackContext,
     SubtaskInfoVarEntry,
@@ -54,6 +55,13 @@ class MSWMRealizationBuilderInitializeError(Exception):
 
 class MSWMRealizationBuilderBuildError(Exception):
     """Raised when MSWM fails to build a realization using an instance of RealizationBuilder"""
+
+
+def _require_ecflow_available(ecf_iface=None, ecf_ctx=None) -> None:
+    if (ecf_iface is not None or ecf_ctx is not None) and not ECFLOW_AVAILABLE:
+        raise RuntimeError(
+            "ecflow and ecf_task_mgr are required for ecFlow transmissions."
+        )
 
 
 @dataclass
@@ -103,6 +111,8 @@ def transmit(
         Status payloads will be reported to the ecFlow server.
         Concern-level messages will be reported to the ecFlow server.
     """
+    _require_ecflow_available(ecf_iface, ecf_ctx)
+
     if (ecf_iface is not None and ecf_ctx is None) or (
         ecf_iface is None and ecf_ctx is not None
     ):
@@ -233,6 +243,7 @@ def build_realization(rb_kwargs: dict, build_method: str) -> RealizationBuilder:
 
 def _rte_transmit_job_start(ecf_iface=None, ecf_ctx=None):
     """General transmission for job starting"""
+    _require_ecflow_available(ecf_iface, ecf_ctx)
     _transmit_status(Status.STARTING, "Starting job", MODULE_KEY.value)
     if ecf_iface:
         ecf_iface.subtask_var_info_append(
@@ -253,6 +264,7 @@ def _rte_transmit_job_complete(
     exc: None = None,
 ):
     """General transmission for job completion"""
+    _require_ecflow_available(ecf_iface, ecf_ctx)
     _transmit_status(Status.COMPLETE, "Job complete", MODULE_KEY.value)
     if ecf_iface:
         ecf_iface.subtask_var_info_append(
@@ -283,6 +295,7 @@ def _rte_transmit_job_failed(
         If ``exc`` is provided, then the "reason" (ecFlow term) of the abort is built as the exception message and the formatted traceback.
             Else, the "reason" is a generic string indicating that the reason was not set.
     """
+    _require_ecflow_available(ecf_iface, ecf_ctx)
     _transmit_status(Status.ERROR, "Job failed", MODULE_KEY.value)
     if ecf_iface:
         if exc:

@@ -11,11 +11,11 @@ try:
         SubtaskInfoVarEntry,
     )
 except ImportError:
-    ECF_TASK_MGR_AVAILABLE = False
+    ECFLOW_AVAILABLE = False
     ecflow = None
     EcflowConnection = Any
     EcflowInterface = Any
     SubtaskCallbackContext = Any
     SubtaskInfoVarEntry = Any
 else:
-    ECF_TASK_MGR_AVAILABLE = True
+    ECFLOW_AVAILABLE = True
