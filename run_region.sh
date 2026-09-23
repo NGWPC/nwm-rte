@@ -123,7 +123,7 @@ Options:
   -n, --ngen                   Run NGEN simulation
   -e, --eval                   Run evaluation
   -c, --config-dir             Set config directory (default: ./configs)
-  -r, --rte-path               Set path to the RTE scripts folder (default: "./rte_scripts")
+  -r, --rte-path               Set path to the RTE scripts folder (default: $(dirname "$(realpath "$0")")/bin_mounted/ngen_rte) )
   -i, --image                  Set Docker image (default: ghcr.io/ngwpc/nwm-rte)
   -t, --image-tag              Set Docker image tag (default: latest)
   --pull-image                 Pull the latest Docker image (default: false) before running
@@ -304,7 +304,10 @@ echo "Combined PYTHONPATH for the container: ${CONTAINER_PYTHONPATH_COMBINED}"
 
 # docker run function to execute the regionalization workflow inside the container
 # note $HOME/.local is mounted inside the container for cartopy (used by nwm-eval-mgr)
+# note $HOME/.config and $HOME/.cache are mounted inside the container for matplotlib configuration and caching
 ensure_dir "$HOME/.local"
+ensure_dir "$HOME/.config"
+ensure_dir "$HOME/.cache"
 function docker_run {
     docker run \
         --entrypoint python \
@@ -315,6 +318,8 @@ function docker_run {
         -e STATIC_DATA_DIR="$STATIC_DATA_DIR" \
         -w "${WORK_DIR}" \
         -v "${HOME}/.local/:${HOME}/.local/:rw" \
+        -v "${HOME}/.config/:${HOME}/.config/:rw" \
+        -v "${HOME}/.cache/:${HOME}/.cache/:rw" \
         -v "${WORK_DIR}:${WORK_DIR}:rw" \
         -v "${STATIC_DATA_DIR}:${STATIC_DATA_DIR}:ro" \
         -v "${RTE_PATH}:${RTE_PATH}:ro" \
