@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 from datetime import datetime, timedelta, timezone
+from typing import Literal
 
 from mswm.build_inputs import RealizationBuilder
 from mswm.utils import settings as mswm_settings
@@ -63,8 +64,10 @@ class RTEBaseConfig(BaseModelStrict):
         Causes scratch dir and intermediate mesh file to be deleted before building the realization. Use with caution.
     delete_forcing_raw_input_first: bool
         Causes forcing raw input dir to be deleted before building the realization. Use with caution.
+    edfs_url: str | None = Field(default=None)
+        Base URL for the Icefabric EDFS API used to retrieve hydrofabric geopackage
     environment: str
-        Operating environment, e.g. 'test' or 'oe'.
+        Operating environment used to set edfs_url, e.g. 'test' or 'oe'. Overriden if specific edfs_url is provided.
     nprocs: int = Field(ge=1)
         Number of processors to use for ngen execution.
     global_domain: str
@@ -117,7 +120,8 @@ class RTEBaseConfig(BaseModelStrict):
     # Set during init
     delete_scratch_and_mesh_first: bool
     delete_forcing_raw_input_first: bool
-    environment: str
+    edfs_url: str | None = Field(default=None)
+    environment: Literal["test", "oe"] | None = Field(default=None)
     nprocs: int = Field(ge=1)
     global_domain: str
     forcing_static_dir: str
@@ -203,6 +207,20 @@ class RTEBaseConfig(BaseModelStrict):
 
         if not self.gage_id:
             self.gage_id = c.DEFAULT_GAGE_ID
+
+        # Resolve edfs_url, an explicit edfs_url value wins over environment
+        # environment maps to the corresponding base URL set in consts.py, otherwise use default
+        if not self.edfs_url:
+            if self.environment == "oe":
+                self.edfs_url = c.OE_EDFS_URL
+            elif self.environment == "test":
+                self.edfs_url = c.TEST_EDFS_URL
+            elif self.environment is None:
+                self.edfs_url = c.DEFAULT_EDFS_URL
+            else:
+                raise ValueError(
+                    f"Invalid value for variable related to EDFS server, self.environment: {self.environment!r}. When EDFS URL not provided explicitly, then we expect self.environment to be in ('oe', 'test', None), where None triggers a default URL."
+                )
 
         # Set basin from vpu if provided else gage_id
         self.basin = self.vpu if self.vpu else self.gage_id
@@ -487,7 +505,7 @@ class RTEBaseConfig(BaseModelStrict):
 
         return GeneralConfig(
             basin=self.basin,
-            environment=self.environment,
+            edfs_url=self.edfs_url,
             run_type=self.run_type,
             models=self.model_formulation.models_csv,
             formulation=formulation,
@@ -907,7 +925,7 @@ class RTEAsyncConfig(RTEBaseConfig):
 
     delete_scratch_and_mesh_first: bool = False
     delete_forcing_raw_input_first: bool = False
-    environment: str = ""
+    edfs_url: str = ""
     global_domain: str = ""
     forcing_static_dir: str = ""
     gage_id: str = ""

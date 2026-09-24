@@ -33,7 +33,11 @@ DT_END_COLDSTART = DT_START_FORECAST
 
 ### .config section [General]
 DEFAULT_GAGE_ID = "01123000"
-DEFAULT_ENVIRONMENT = "test"
+
+# Base URLs for the Icefabric EDFS API
+TEST_EDFS_URL = "http://edfs.test.nextgenwaterprediction.com/api/v1"
+OE_EDFS_URL = "https://edfs.oe.nextgenwaterprediction.com/api/v1"
+DEFAULT_EDFS_URL = os.environ.get("EDFS_URL", TEST_EDFS_URL)
 
 DEFAULT_MODEL_FORMULATION_ARGS = ("noah-owp-modular,cfe-s", False)
 # DEFAULT_MODEL_FORMULATION_ARGS = ("snow-17,noah-owp-modular,smp,lasam,t-route", False)

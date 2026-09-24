@@ -175,6 +175,11 @@ TEST_VPU="vpu_03S"
 TEST_DOMAIN="CONUS"
 TEST_HYDROFAB_FILE="/ngen-app/bin/ngen_rte/tests/test_data/gauge_${TEST_GAGE}.gpkg"
 
+## EDFS_URL_TEST / EDFS_URL_OE Base URLs for the Icefabric EDFS API
+## Should match ngen_rte/consts.py's TEST_EDFS_URL / OE_EDFS_URL
+TEST_EDFS_URL="http://edfs.test.nextgenwaterprediction.com/api/v1"
+OE_EDFS_URL="https://edfs.oe.nextgenwaterprediction.com/api/v1"
+
 ### Logging functions
 BASENAME="$(basename "$(readlink -f "$0")")"
 function log_to_stderr() { echo "[$(date -u +'%Y-%m-%dT%H:%M:%S%z')] ${BASENAME}: ${LINENO}: $*" >&2; }

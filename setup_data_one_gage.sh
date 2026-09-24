@@ -33,7 +33,13 @@ GAGE_ID="$1"
 DOMAIN="$2"
 EDFS_API_ENVIRONMENT="$3"
 
-SRC_URL_STREAMFLOW_OBS="http://edfs.${EDFS_API_ENVIRONMENT}.nextgenwaterprediction.com/api/${EDFS_API_VERSION}/streamflow_observations/${GAGE_ID}/csv"
+case "${EDFS_API_ENVIRONMENT}" in
+    test) EDFS_BASE_URL="${TEST_EDFS_URL}" ;;
+    oe)   EDFS_BASE_URL="${OE_EDFS_URL}" ;;
+    *)    fatal "Invalid EDFS_API_ENVIRONMENT: '${EDFS_API_ENVIRONMENT}'. Choose 'test' or 'oe'." ;;
+esac
+
+SRC_URL_STREAMFLOW_OBS="${EDFS_BASE_URL}/streamflow_observations/${GAGE_ID}/csv"
 
 TGT_DIR_OBS_FLOW="${RUN_NGEN_ROOT__HOST}/data/streamflow_observations/${DOMAIN}/edfs_api_${EDFS_API_VERSION}"
 TGT_FILE_OBS_FLOW="${TGT_DIR_OBS_FLOW}/${GAGE_ID}_hourly_discharge.csv"
