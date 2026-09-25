@@ -1,7 +1,16 @@
+# Dockerfile.rte
+#
+# Dockerfile for building the NextGen Runtime Environment, based on an existing ngen image.
+# Compatible with Docker (with Buildkit) and Podman. Likely compatible with Buildah, but that has not been tested.
+#
+# Called by ngen_rte_build.sh
+#
+# NGEN_BASE_IMAGE and GH_ORG have no default and must be provided as build arguments.
+#
 
-ARG GH_ORG
-ARG NGEN_BASE_IMAGE=ghcr.io/${GH_ORG,,}/ngen:latest
+ARG NGEN_BASE_IMAGE
 FROM $NGEN_BASE_IMAGE AS ngen_rte_base
+
 ARG GH_ORG
 
 # OCI Metadata Arguments
@@ -117,6 +126,7 @@ RUN python -m venv --upgrade "$(python -c 'import sys; print(sys.prefix)')" \
 ##################################################
 #### BEGIN SECOND STAGE: Adding a separate Python venv for nwm-eval-mgr (i.e., nwm_eval and nwm_metrics)
 FROM ngen_rte_base AS ngen_rte_eval_verf
+ARG GH_ORG
 
 # Install Python 3.11 (required as of 2026-07-23 for the pinned version of teehr which pins duckdb to a version not compatible with Python 3.12)
 # If apt-get is available (Debuntu), use that. Otherwise (RHEL) use dnf.
