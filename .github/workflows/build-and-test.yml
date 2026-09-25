@@ -163,7 +163,8 @@ jobs:
           REPO_TAG_REGION_MGR="${{ inputs.REPO_TAG_REGION_MGR || 'development' }}"
           REPO_TAG_DATA_ASSIM_ENGINE="${{ inputs.REPO_TAG_DATA_ASSIM_ENGINE || 'development' }}"
           # NOTE: REPO_TAG_NGEN_FORCING is optional. See README.md for caveats. This does not affect all aspects of ngen-forcing, this only causes a `pip install` of the ngen-forcing Python package specifically, on top of the ngen base image, after installing manager packages.
-          REPO_TAG_NGEN_FORCING="${{ inputs.REPO_TAG_NGEN_FORCING || 'development' }}"
+          # Defaults to empty (skip reinstall) to match config.bashrc, since ngen-forcing is already installed in the base image.
+          REPO_TAG_NGEN_FORCING="${{ inputs.REPO_TAG_NGEN_FORCING || '' }}"
           REPO_TAG_EVAL="${{ inputs.REPO_TAG_EVAL || 'development' }}"
           REPO_TAG_ECF_TASK_MGR="${{ inputs.REPO_TAG_ECF_TASK_MGR || 'development' }}"
           RTE_TAG_NAME="${{ inputs.RTE_TAG_NAME || '' }}"
