@@ -90,7 +90,7 @@ elif [[ $NGEN_SOURCE_MODE == "build_from_local" ]]; then
     NGEN_BASE_IMAGE="ngen:${NGEN_SOURCE_MODE}"
     NGEN_SOURCE_LOCAL="${REPOS_COMMON_ROOT__HOST}/ngen"
     # ./ngen_update_submodules.sh "${NGEN_SOURCE_LOCAL}"
-    ( cd ${NGEN_SOURCE_LOCAL}; sudo docker build -t ${NGEN_BASE_IMAGE} . )
+    ( cd ${NGEN_SOURCE_LOCAL}; sudo docker build -t ${NGEN_BASE_IMAGE} --build-arg GH_ORG=${GH_ORG} --build-arg GHCR_ORG=${GH_ORG,,} --build-arg IMAGE_NAMESPACE=${GH_ORG,,} . )
 
 elif [[ $NGEN_SOURCE_MODE == "build_from_remote" ]]; then
     if [[ -z "${NGEN_BASE_REMOTE_TAG}" ]]; then
