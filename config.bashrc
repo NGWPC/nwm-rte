@@ -96,9 +96,9 @@ NGEN_BASE__EXISTING_LOCAL_TAG=${NGEN_BASE__EXISTING_LOCAL_TAG:-"ngen:localdebug"
 # NGEN_SOURCE_MODE="build_from_local"
 
 # NGEN_SOURCE_MODE="build_from_remote"
-## \env FORCING_BASE_REMOTE_TAG Only used when `NGEN_SOURCE_MODE="build_from_remote"`. Source of the `ngen-forcing` codebase. Choose any GitHub ref.
+## \env FORCING_BASE_REMOTE_TAG Only used when `NGEN_SOURCE_MODE="build_from_remote"`. Source of the `ngen-forcing` codebase. Choose any GitHub tag or branch.
 FORCING_BASE_REMOTE_TAG=${FORCING_BASE_REMOTE_TAG:-"development"}
-## \env NGEN_BASE_REMOTE_TAG Only used when `NGEN_SOURCE_MODE="build_from_remote"`. Source of the `ngen` codebase. Choose any GitHub ref.
+## \env NGEN_BASE_REMOTE_TAG Only used when `NGEN_SOURCE_MODE="build_from_remote"`. Source of the `ngen` codebase. Choose any GitHub tag or branch.
 NGEN_BASE_REMOTE_TAG=${NGEN_BASE_REMOTE_TAG:-"development"}
 
 #### Target Image Name

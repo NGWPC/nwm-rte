@@ -54,6 +54,41 @@ ARG INSTALL_DEBUGGERS
 RUN --mount=type=bind,src=nwm-rte/install_debuggers.sh,dst=/src/${GH_ORG}/nwm-rte/install_debuggers.sh \
     "/src/${GH_ORG}/nwm-rte/install_debuggers.sh" "${INSTALL_DEBUGGERS}"
 
+## ``ewts`` and ``ngen-forcing`` are included with the starting base image,
+## but their Python packages can be reinstalled at a configurable (remote GitHub) ref or from ``"LOCAL"`` code.
+##
+## The primary reason to do this is when actively developing / iterating on changes to
+## those packages, and wanting to test changes without rebuilding the base images
+## ``ngen-forcing/Dockerfile.bmi-forcings`` and ``ngen/Dockerfile``.
+##
+## By default, these RUNs are no-ops since REPO_TAG_EWTS and REPO_TAG_NGEN_FORCING both default to empty string.
+##
+## See README.md for caveats.
+## 
+## NOTE regarding nwm-cal-mgr dependency conflict and the September 2026 re-ordering of Dockerfile.rte RUNs:
+#### In June 2026, nwm-cal-mgr pinned aiohttp to < 3.14 to address a "hydrotools" compatibility issue. See: https://github.com/NGWPC/nwm-cal-mgr/pull/66
+#### As of September 2026 this nwm-cal-mgr requirement conflicts with the version of aiohttp that passively comes with the ngen-forcing base.
+#### Since the nwm-rte's alternative build option of force-reinstalling ngen-forcing was near the bottom of ``Dockerfile.rte``,
+#### that build option was incompatible with nwm-cal-mgr usage ("calibration" workflows would not run after force-reinstalling ngen-forcing).
+####
+#### It was decided that the alternative ngen-forcing force-reinstall option be moved upward in the Dockerfile.rte such that
+#### it occurs before the nwm-cal-mgr installation, rather than changing the aiohttp pin in ngen-forcing to accommodate the nwm-cal-mgr change.
+#### Placing these RUNs at the top also causes the alternative build option to be sequenced in a manner consistent with the official / default build sequence.
+
+# Force-reinstall nwm-ewts Python package(s)
+ARG REPO_TAG_EWTS
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=secret,id=github_token \
+    --mount=type=bind,src=nwm-ewts,dst=/src/${GH_ORG}/nwm-ewts \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-ewts" "ewts" "${REPO_TAG_EWTS}" "" "runtime/python/ewts"
+
+# Force-reinstall ngen-forcing Python package(s)
+ARG REPO_TAG_NGEN_FORCING
+RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
+    --mount=type=secret,id=github_token \
+    --mount=type=bind,src=ngen-forcing,dst=/src/${GH_ORG}/ngen-forcing \
+    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "ngen-forcing" "ngen-forcings" "${REPO_TAG_NGEN_FORCING}" ""
+
 
 ### Install nwm packages
 
@@ -103,22 +138,8 @@ RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/
     --mount=type=bind,src=nwm-data-assimilation,dst=/src/${GH_ORG}/nwm-data-assimilation \
     "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-data-assimilation" "data-assimilation-engine" "${REPO_TAG_DATA_ASSIM_ENGINE}" ""
 
-## ngen-forcing package is included with the starting base image,
-## but it can be reinstalled from another branch or from local.
-## See README.md for caveats.
-ARG REPO_TAG_NGEN_FORCING
-RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
-    --mount=type=secret,id=github_token \
-    --mount=type=bind,src=ngen-forcing,dst=/src/${GH_ORG}/ngen-forcing \
-    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "ngen-forcing" "ngen-forcings" "${REPO_TAG_NGEN_FORCING}" ""
-
-## nwm-ewts package is included with the starting base image, but its Python package can be reinstalled from another branch or from local.
-ARG REPO_TAG_EWTS
-RUN --mount=type=bind,src=nwm-rte/install_package.sh,dst=/src/${GH_ORG}/nwm-rte/install_package.sh \
-    --mount=type=secret,id=github_token \
-    --mount=type=bind,src=nwm-ewts,dst=/src/${GH_ORG}/nwm-ewts \
-    "/src/${GH_ORG}/nwm-rte/install_package.sh" "python" "${GH_ORG}" "nwm-ewts" "ewts" "${REPO_TAG_EWTS}" "" "runtime/python/ewts"
-
+# Refresh the venv so that runtime code can consistently discover packaged files (templates and parameter files)
+# using site.getsitepackages()[0]. Without this, Rocky may report a system site-packages path.
 RUN python -m venv --upgrade "$(python -c 'import sys; print(sys.prefix)')" \
     && python -c 'import site, sys; assert site.getsitepackages()[0].startswith(sys.prefix + "/")'
 
