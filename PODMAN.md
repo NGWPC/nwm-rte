@@ -16,9 +16,12 @@ Some of the workflow patterns and GitHub Actions syntax were adapted from the `n
 
 ## Usage
 
-To build the RTE image with Podman and run its test, run [`./run_podman_build_and_test.sh`](run_podman_build_and_test.sh) after installing `podman`.
+To build the nwm-rte image with Podman and run its test:
 
-Note that you may wish to manually pull an updated ngen base image, as referenced by `NGEN_BASE_IMAGE`, before building the Podman image.
+1. Install `podman`. E.g. `sudo apt install podman`.
+2. Review `config.bashrc` and edit as needed. This is sourced by [`./run_podman_build_and_test.sh`](run_podman_build_and_test.sh), but the `NGEN_BASE_IMAGE` is overridden.
+3. Re-pull an updated ngen base image if needed. E.g. `sudo docker pull ghcr.io/<GH_ORG>/ngen:latest`. Referenced by `NGEN_BASE_IMAGE`.
+4. Run [`./run_podman_build_and_test.sh`](run_podman_build_and_test.sh)
 
 
 ## Behavior
