@@ -41,60 +41,39 @@ TIMESTAMP=`date '+%Y%m%d%H%M%S'`
 
 
 function build_intermediary_image_from_remote_source () {
-    # If the repo does not already exist in the tmp location, do a shallow clone of the desired tag/branch.
-    # If the repo does exist already, make the clone unshallow, and then check out the desired tag/branch.
-
     # target_image="ngen:${NGEN_SOURCE_MODE}"
     repo_name=$1  # e.g. "ngen-forcing"
     repo_tag=$2  # e.g. "development" or "3.1.2.1.0"
     dockerfile=$3  # e.g. "Dockerfile" or "Dockerfile.bmi-forcings"
     target_image=$4  # e.g. "ngen-forcing:local-3.1.2.1.0"
-    build_arg=$5  # Optional, passed to docker build call. e.g. "" or "FORCING_IMAGE=ngen-forcing:local-3.1.2.1.0"
+    build_args=()
+    for build_arg in "${@:5}"; do
+        if [[ -n "${build_arg}" ]]; then
+            build_args+=(--build-arg "${build_arg}")
+        fi
+    done
 
     source_local_tmp="${REPOS_COMMON_ROOT__HOST}/${repo_name}_tmp"
     # source_local_tmp="${REPOS_COMMON_ROOT__HOST}/${repo_name}"
 
     git_url="https://github.com/${GH_ORG}/${repo_name}.git"
 
-    if test -d ${source_local_tmp}; then
-        info "Pulling ref ${repo_tag} and submodules for ${source_local_tmp}"
-
-        is_shallow=`git -C "${source_local_tmp}" rev-parse --is-shallow-repository`
-        if [[ ${is_shallow} == "true" ]]; then
-            # It was cloned as shallow earlier, make it unshallow
-            ( cd "${source_local_tmp}"; git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"; git fetch --unshallow; )
-        fi
-        (
-            cd "${source_local_tmp}"
-            git fetch
-            git checkout "${repo_tag}"
-            if git symbolic-ref -q HEAD >/dev/null; then
-                # On a branch (not a detached head)
-                git pull --recurse-submodules
-            fi
-            git submodule update --init --recursive
-        )
-    else
-        info "Cloning ref ${repo_tag} from ${git_url}"
-        git clone --depth 1 --branch ${repo_tag} --recurse-submodules "${git_url}" "${source_local_tmp}"
+    if test -d "${source_local_tmp}"; then
+        info "Removing existing temporary clone: ${source_local_tmp}"
+        rm -rf "${source_local_tmp}"
     fi
+
+    info "Cloning ref ${repo_tag} from ${git_url}"
+    git clone --branch "${repo_tag}" --recurse-submodules "${git_url}" "${source_local_tmp}"
 
     info building image: ${target_image}
 
-    # Build the image, either with or without a build arg.
-    if [[ -n "${build_arg}" ]]; then
-        # Use the build arg, e.g. for building ngen from ngen-forcing
-        ( \
-            cd ${source_local_tmp}; sudo docker build -f ${dockerfile} -t ${target_image} --build-arg "${build_arg}" . \
-            |& tee "${REPOS_COMMON_ROOT__HOST}/nwm-rte/logs/docker/build/${target_image}-${TIMESTAMP}.log" \
-        )
-    else
-        # No build arg
-        ( \
-            cd ${source_local_tmp}; sudo docker build -f ${dockerfile} -t ${target_image} . \
-            |& tee "${REPOS_COMMON_ROOT__HOST}/nwm-rte/logs/docker/build/${target_image}-${TIMESTAMP}.log" \
-        )
-    fi
+    # Build the image with build args.
+    (
+        cd "${source_local_tmp}"
+        sudo docker build -f "${dockerfile}" -t "${target_image}" ${build_args[@]+"${build_args[@]}"} . |&
+            tee "${REPOS_COMMON_ROOT__HOST}/nwm-rte/logs/docker/build/${target_image}-${TIMESTAMP}.log"
+    )
 
     info built image: ${target_image}
 }
@@ -129,7 +108,9 @@ elif [[ $NGEN_SOURCE_MODE == "build_from_remote" ]]; then
             "${FORCING_BASE_REMOTE_TAG}" \
             "Dockerfile.bmi-forcings" \
             "ngen-forcing:remote-${FORCING_BASE_REMOTE_TAG}" \
-            ""
+            "GH_ORG=${GH_ORG}" \
+            "GHCR_ORG=${GH_ORG,,}" \
+            "IMAGE_NAMESPACE=${GH_ORG,,}"
 
         ngen_build_arg="FORCING_IMAGE=ngen-forcing:remote-${FORCING_BASE_REMOTE_TAG}"
     fi
