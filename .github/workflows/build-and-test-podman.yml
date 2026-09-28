@@ -67,9 +67,12 @@ jobs:
 
   build-test-and-publish-podman:
     name: Build, Test, and Publish RTE (Podman)
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.push_image }}
-    # Any user authorized to dispatch this workflow can select push_image=true,
-    # which gives this job's GITHUB_TOKEN packages: write for GHCR publication.
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/feature/podman-smoke' &&
+      contains(github.event.head_commit.message, '[podman-force-ghcr-publish]')
+    # Temporary one-shot test: only a marked push to feature/podman-smoke runs
+    # this package-write job. Restore the workflow_dispatch guard after testing.
     # A repository owner can protect this environment with required reviewers,
     # prevent self-review, and limit deployments to trusted branches.
     environment: podman-ghcr-publish
