@@ -1,0 +1,107 @@
+name: Build and Test RTE (Podman)
+
+on:
+  workflow_dispatch:
+    inputs:
+      push_image:
+        description: 'Push the :podman-test image to GHCR'
+        required: true
+        type: boolean
+        default: false
+  push:
+    branches:
+      # - main
+      # - master
+      # - development
+      - feature/podman-smoke
+    paths: &podman_paths
+      - '.github/workflows/build-and-test-podman.yml'
+      - 'Dockerfile*'
+      - 'config.bashrc'
+      - 'bin_mounted/**'
+      - '**/*.toml'
+      - '**/*.py'
+      - '**/*.sh'
+      - '**/*.json'
+  pull_request:
+    branches:
+      # - main
+      # - master
+      # - development
+      - feature/podman-smoke
+    paths: *podman_paths
+
+permissions:
+  contents: read
+
+env:
+  TARGET_IMAGE_NAME: ngen_rte_ghcr:podman-test
+
+jobs:
+  build-and-test-podman:
+    name: Build and Test RTE (Podman)
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.push_image }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    steps:
+      - &checkout
+        name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - &build_test
+        name: Build and test with Podman
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: ./run_podman_build_and_test.sh "${TARGET_IMAGE_NAME}"
+
+      - &inspect_image
+        name: Inspect Built OCI Image
+        run: |
+          podman image inspect "${TARGET_IMAGE_NAME}" \
+            --format 'Image ID: {{.Id}} | Digest: {{.Digest}} | RepoTags: {{.RepoTags}} | Entrypoint: {{.Config.Entrypoint}} | Cmd: {{.Config.Cmd}}'
+
+  build-test-and-publish-podman:
+    name: Build, Test, and Publish RTE (Podman)
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.push_image }}
+    # Any user authorized to dispatch this workflow can select push_image=true,
+    # which gives this job's GITHUB_TOKEN packages: write for GHCR publication.
+    # A repository owner can protect this environment with required reviewers,
+    # prevent self-review, and limit deployments to trusted branches.
+    environment: podman-ghcr-publish
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    steps:
+      - *checkout
+      - *build_test
+      - *inspect_image
+
+      - name: Push Podman GHCR Images (Test Tags Only)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO_LOWER=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+          DEST_BASE="ghcr.io/${REPO_LOWER}"
+          TAG_TEST="${DEST_BASE}:podman-test"
+          TAG_SHA="${DEST_BASE}:${GITHUB_SHA}-podman-test"
+
+          printf '%s' "${GITHUB_TOKEN}" | podman login ghcr.io \
+            -u "${GITHUB_ACTOR}" --password-stdin
+
+          echo "Publishing test verification tags..."
+          podman tag "${TARGET_IMAGE_NAME}" "${TAG_TEST}"
+          podman tag "${TARGET_IMAGE_NAME}" "${TAG_SHA}"
+
+          podman push "${TAG_TEST}"
+          podman push "${TAG_SHA}"
+
+          echo "Pushed ${TAG_TEST} and ${TAG_SHA}"
+          echo "NOTICE: Production aliases (:latest, branch tags) remain untouched."
