@@ -14,10 +14,11 @@ function write_python_cli_help_txt () {
         -v "$(pwd)/bin_mounted/:/ngen-app/bin/bin_mounted/" \
         -w "/ngen-app/bin/bin_mounted/" \
         -v "$(pwd)/docs/reference/:/docs/reference/" \
+        -e RTE_EWTS_ENABLED="NO" \
         --rm ${TARGET_IMAGE_NAME} \
         -um "${module}" --help > "${output_file}"
 }
 
-for module in "ngen_rte.run_default" "ngen_rte.run_calibration" "ngen_rte.run_forecast" "ngen_rte.tests.run_tests" "ngen_rte.run_regionalization" "ngen_rte.run_regionalization_standalone" "ngen_rte.run_restart" "ngen_rte.run_output_postprocess" "ngen_rte.run_output_mosaic"; do
+for module in "ngen_rte.run_default" "ngen_rte.run_calibration" "ngen_rte.run_forecast" "ngen_rte.tests.run_tests" "ngen_rte.run_regionalization" "ngen_rte.run_regionalization_standalone" "ngen_rte.run_restart" "ngen_rte.run_output_postprocess" "ngen_rte.run_output_mosaic" "ngen_rte.coastal.make_coastal_forcing"; do
     write_python_cli_help_txt "${module}"
 done
