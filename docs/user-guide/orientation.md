@@ -1,5 +1,6 @@
 # Orientation
 
+See the [Diagrams](../diagrams/index.md) page for build, data setup, and execution flows.
 
 ## Description of Primary Files
 
@@ -72,3 +73,5 @@ The separate `run_output_postprocess.sh` and `run_output_mosaic.sh` utilities ca
 [Configuration](configuration.md)
 
 [Code Reference](../reference/home.md)
+
+[Diagrams](../diagrams/index.md)

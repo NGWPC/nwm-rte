@@ -19,3 +19,7 @@ This integration can support deeper scheduler orchestration in future workflows,
 ## Data-Assimilation Postprocessing
 
 The `run_output_postprocess.py` and `run_output_mosaic.py` wrappers emit RTE job lifecycle messages, but RTE does not consume or retransmit the underlying `nwm-data-assimilation` postprocessing logs. See the `nwm-data-assimilation` and `nextgen-support-scripts` repositories for those workflows.
+
+## See Also
+
+[Diagrams](../diagrams/index.md)

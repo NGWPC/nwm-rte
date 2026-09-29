@@ -50,6 +50,8 @@ time ./setup_data.sh -r
 
 The optional `-a`/`--api-environment` value selects the `test` or `oe` EDFS streamflow-observations server during setup. `EDFS_API_VERSION` in `config.bashrc` selects the setup API version. These setup settings are separate from the Python runtime options `--environment` and `--edfs_url`.
 
+See the [Static Data Setup diagram](../diagrams/static-data-setup.md).
+
 
 ## Steps to Build
 
@@ -115,3 +117,5 @@ time ./run_test_formulations.sh
 [Code Reference](../reference/home.md)
 
 [Auxilliary Workflows](auxilliary-workflows.md)
+
+[Diagrams](../diagrams/index.md)

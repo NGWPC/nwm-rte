@@ -29,3 +29,7 @@ For additional documentation, see the GitHub pages site.
 [Auxilliary Workflows](user-guide/auxilliary-workflows.md)
 
 [Caveats](user-guide/caveats.md)
+
+## Diagrams
+
+[Diagrams](diagrams/index.md)

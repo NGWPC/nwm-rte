@@ -21,6 +21,11 @@ nav:
   - Custom Builds: user-guide/custom-builds.md
   - Auxilliary Workflows: user-guide/auxilliary-workflows.md
   - Caveats: user-guide/caveats.md
+- Diagrams:
+  - Diagrams Home: diagrams/index.md
+  - Build Flow: diagrams/build.md
+  - Static Data Setup: diagrams/static-data-setup.md
+  - Execution Flow: diagrams/execution.md
 - Reference:
   - Reference Home: reference/home.md
   - Shell: reference/shell.md

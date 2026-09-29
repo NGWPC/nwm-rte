@@ -14,6 +14,8 @@ The ngen runtime environment (RTE) OS image is built from the following inherita
 
 `nwm-rte/Dockerfile.rte`: RTE component packages
 
+See the [Build Flow diagram](../diagrams/build.md).
+
 ## Tested Platforms and Python Versions
 
 The build has been tested with Rocky Linux 8 and Debian 12 (Bookworm), and with ngen base images using Python 3.11 and Python 3.12. The current default image lineage uses Debian 12 and Python 3.12.
