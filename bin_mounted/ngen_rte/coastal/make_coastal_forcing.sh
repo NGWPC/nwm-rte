@@ -1,19 +1,22 @@
 #!/bin/bash
-#
-# make_coastal_forcing.sh
-#
-# This was renamed from /run_coastal.sh to /bin_mounted/ngen_rte/coastal/make_coastal_forcing.sh and edited.
-#
-# This is a script to generate coastal forcing data using the NextGen Forcings Engine as ran through the NextGen RTE build.
-#
-# NOTE:
-#     See repository ``nwm-coastal`` (file ``nwm-coastal/scripts/setup_data_coastal.sh``) for the scripts needed to download / set up input data required to run coastal forcing workflows:
-# 
-#     These files are masked versions of the full CONUS nc files, masked to an area around the test gage for testing CONUS workflows
-#     on a machine that may not have enough RAM for an actual full CONUS run:
-#         run_ngen/data/esmf_mesh/NWM/domain/GEOGRID_LDASOUT_Spatial_Metadata_CONUS_debug_gauge_01123000.nc
-#         run_ngen/data/esmf_mesh/NWM/domain/geo_em_CONUS_debug_gauge_01123000.nc
-#
+
+##
+## \brief
+## Generate gridded atmospheric forcing files for coastal models.
+##
+## \desc
+## Run `ngen_rte.coastal.make_coastal_forcing` in the RTE container. The calls below provide examples for operational cycles, retrospective windows, reusable regrid weights, and supported domains.
+##
+## See the `nwm-coastal` repository, including `scripts/setup_data_coastal.sh`, for complete coastal workflow and input-data setup documentation.
+##
+## Has 0 required positional arguments and 1 optional positional argument.
+##
+## \option RUN_NAME
+## Optional prefix used for run names in the example calls. Default: `"coastal"`.
+##
+## \usage ./bin_mounted/ngen_rte/coastal/make_coastal_forcing.sh
+## \usage ./bin_mounted/ngen_rte/coastal/make_coastal_forcing.sh "coastal_test"
+##
 
 set -euo pipefail
 

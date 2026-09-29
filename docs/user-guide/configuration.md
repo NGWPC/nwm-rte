@@ -17,7 +17,9 @@ Sourcing from remote allows the user to specify any Git "reference" or "ref" nam
 
 Most run settings are made via [CLI arguments of the executable Python modules](../reference/python.md#cli-help-menus) within `bin_mounted/`.
 
-Some run settings are configured in [`bin_mounted/ngen_rte/consts.py`](../reference/python.md#python-constants), [`bin_mounted/ngen_rte/run_config/ngen_logging.json`](../ngen_logging.json), [`config.bashrc`](../reference/shell.md#config.bashrc), and in some conditions [`bin_mounted/ngen_rte/run_config/ngen_forcing_vers.json`](../ngen_forcing_vers.json)
+Some run settings are configured in [`bin_mounted/ngen_rte/consts.py`](../reference/python.md#python-constants), [`bin_mounted/ngen_rte/run_config/ngen_logging.json`](../ngen_logging.json), [`config.bashrc`](../reference/shell.md#config.bashrc), and in some conditions [`bin_mounted/ngen_rte/run_config/ngen_forcing_vers.json`](../ngen_forcing_vers.json).
+
+[`bin_mounted/ngen_rte/run_config/ecflow_settings.json`](../ecflow_settings.json) supplies the ecFlow server host and port used by the optional `ecf_task_mgr` integration when both `--ecf-task` and `--ecf-subtask` are provided to `run_default.py`.
 
 ## Caveats
 
@@ -31,7 +33,7 @@ At runtime, host disk mounts occur within [`run.sh`](../reference/shell.md#run.s
 
 These include various data directory mounts for input data, intermediary output data, and output realizations.
 
-For [regionalization](regionalization.md) workflows, the local state of the `ngen-forcing` repository clone is used to mount the forcing configuration files. See the [regionalization](regionalization.md) notes for details.
+For [regionalization](auxilliary-workflows.md#regionalization) workflows, the local state of the `ngen-forcing` repository clone is used to mount the forcing configuration files. See the [regionalization](auxilliary-workflows.md#regionalization) notes for details.
 
 Note that for non-regionalization workflows, e.g. standard forecast and calibration runs, the forcing configuration files are sourced from the `site-packages` directory of the installed `ngen-forcing` Python package. See [consts.FORCING_TEMPLATE_DIR](../reference/python.md#ngen_rte.consts.FORCING_TEMPLATE_DIR) for details.
 

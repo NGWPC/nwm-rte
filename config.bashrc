@@ -30,11 +30,11 @@ STAGE=${STAGE:-"ngen_rte_eval_verf"}
 INSTALL_DEBUGGERS=${INSTALL_DEBUGGERS:-"NO"}
 # INSTALL_DEBUGGERS=${INSTALL_DEBUGGERS:-"YES"}
 
-## \env NGEN_LOG_TO_RTE Causes ngen's log files to be written to `./ngen_logs` rather than to the realization's dir. Choose from: `["NO", "YES"]`
+## \env NGEN_LOG_TO_RTE Causes ngen's log files to be written to host path `./logs/ngen/`, mounted in the container at `/ngen-app/logs_rte/ngen/`, rather than to the realization's directory. Choose from: `["NO", "YES"]`
 NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE:-"NO"}
 # NGEN_LOG_TO_RTE=${NGEN_LOG_TO_RTE:-"YES"}
 
-## \env RTE_EWTS_ENABLED Master on/off switch for the vendored `ewts` package's logging. Choose from: `["NO", "YES"]`
+## \env RTE_EWTS_ENABLED Switch for optional `nwm-ewts` integration. When enabled, EWTS is used for RTE logging, and modules' logs are treated as data via parsing of status Payloads and LogParts. Choose from: `["NO", "YES"]`
 RTE_EWTS_ENABLED=${RTE_EWTS_ENABLED:-"YES"}
 # RTE_EWTS_ENABLED=${RTE_EWTS_ENABLED:-"NO"}
 
@@ -50,13 +50,13 @@ RTE_EWTS_ENABLED=${RTE_EWTS_ENABLED:-"YES"}
 ## 
 ## * If any other string is provided, the package will install from GitHub, and the string must be a valid tag, branch, or commit.
 ## 
-## \caveat `REPO_TAG_NGEN_FORCING` provision causes the ngen-forcing Python package to be reinstalled, but does not affect other aspects of `ngen-forcing` (does not cause a rebuild from the `ngen-forcing` base).
-## This does not affect the base image, does not reflect changes to C++ code nor changes to `ngen-forcing/Dockerfile.bmi-forcings`, nor changes to other ngen-forcing build instructions.
-## It only causes an optional `pip install` call to be executed on the `ngen-forcing` Python package, after the manager packages have been installed on top of the ngen base image.
+## \caveat `REPO_TAG_NGEN_FORCING` and `REPO_TAG_EWTS` reinstall only the respective Python packages on top of the existing ngen base image. They do not rebuild the base image or incorporate changes to C++ code, Dockerfiles, or other base-image build instructions.
+## These optional reinstalls occur before the component manager packages are installed. They write new source metadata files at `/ngen-app/git-info/ngen-forcing_git_info.json` and `/ngen-app/git-info/nwm-ewts_git_info.json`, respectively.
+## Neither reinstall updates the existing `/ngen-app/ngen-bmi-forcing_git_info.json` export inherited from the base image. That inherited file continues to describe the `ngen-forcing` and `nwm-ewts` versions that were included when the base image was built.
 ## 
 ## \env REPO_TAG_FCST_MGR Source for `nwm-fcst-mgr`.
 REPO_TAG_FCST_MGR=${REPO_TAG_FCST_MGR:-"development"}
-## \env REPO_TAG_MSW_MGR Source for `nwm-mswm-mgr`.
+## \env REPO_TAG_MSW_MGR Source for `nwm-msw-mgr`.
 REPO_TAG_MSW_MGR=${REPO_TAG_MSW_MGR:-"development"}
 ## \env REPO_TAG_CAL_MGR Source for `nwm-cal-mgr`.
 REPO_TAG_CAL_MGR=${REPO_TAG_CAL_MGR:-"development"}
@@ -66,7 +66,7 @@ REPO_TAG_REGION_MGR=${REPO_TAG_REGION_MGR:-"development"}
 REPO_TAG_DATA_ASSIM_ENGINE=${REPO_TAG_DATA_ASSIM_ENGINE:-"development"}
 ## \env REPO_TAG_NGEN_FORCING (Optional). Source for *re-installing* `ngen-forcing` Python package. Note that this does not affect the sourcing of the base image.
 REPO_TAG_NGEN_FORCING=${REPO_TAG_NGEN_FORCING:-""}
-## \env REPO_TAG_EWTS (Optional). Source for *re-installing* `nwm-ewts` Python package.
+## \env REPO_TAG_EWTS (Optional). Source for *re-installing* the `nwm-ewts` Python package. Note that this does not affect the sourcing of the base image.
 REPO_TAG_EWTS=${REPO_TAG_EWTS:-""}
 ## \env REPO_TAG_EVAL Source for `nwm-eval-mgr`.
 REPO_TAG_EVAL=${REPO_TAG_EVAL:-"development"}
@@ -107,9 +107,6 @@ TARGET_IMAGE_NAME=${TARGET_IMAGE_NAME:-"ngen_rte_${NGEN_SOURCE_MODE}"}
 
 #### Misc
 
-## \env RTE_EWTS_ENABLED Switch for optional `nwm-ewts` integration. When enabled, modules' logs are treated as data via parsing of status Payloads and LogParts.
-RTE_EWTS_ENABLED=${RTE_EWTS_ENABLED:-"YES"}
-
 # OCI Standard labels for Dockerfile.rte image
 # See https://specs.opencontainers.org/image-spec/annotations/
 TARGET_IMAGE_SOURCE=${TARGET_IMAGE_SOURCE:-"https://github.com/${GH_ORG}/nwm-rte"}
@@ -127,7 +124,7 @@ THIS_SCRIPTS_GRANDPARENT_DIR="$(dirname "$(dirname "$(readlink -f "$0")")")"
 ## 
 ## * `./ngen_rte_build.sh` uses this to find `ngen` source code when `NGEN_SOURCE_MODE="build_from_local"`
 ## 
-## * `./ngen_rte_run.sh` mounts various subdirectories and files from this local directory, into the container, during runtime.
+## * `./run.sh` mounts various subdirectories and files from this local directory into the container during runtime.
 ##     
 ## * Choices for this variable:
 ##     * A typical choice for this is `${THIS_SCRIPTS_GRANDPARENT_DIR}`, which is equivalent to `"${HOME}/${GH_ORG,,}"` if you run this from `"${HOME}/${GH_ORG,,}/nwm-rte"` but another location such as `"${HOME}/${GH_ORG,,}__rte"` could be used if wanting to isolate the RTE from other work.

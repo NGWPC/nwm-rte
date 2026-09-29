@@ -21,6 +21,14 @@ To update these, run: `./docs/update_python_cli_ref.sh`
 
 [`run_regionalization.py --help`](python_cli_help__run_regionalization.py.txt)
 
+[`run_regionalization_standalone.py --help`](python_cli_help__run_regionalization_standalone.py.txt)
+
+[`run_output_postprocess.py --help`](python_cli_help__run_output_postprocess.py.txt)
+
+[`run_output_mosaic.py --help`](python_cli_help__run_output_mosaic.py.txt)
+
+[`make_coastal_forcing.py --help`](python_cli_help__make_coastal_forcing.py.txt)
+
 
 
 ## CLI Executable Modules
@@ -70,9 +78,45 @@ Called by [`run_test_formulations.sh`](../reference/shell.md#run_test_formulatio
 ::: ngen_rte.tests.run_tests
 
 
+### run_regionalization_standalone.py
+
+Called by [`run_region_standalone.sh`](../reference/shell.md#run_region_standalone.sh)
+
+[`run_regionalization_standalone.py --help`](python_cli_help__run_regionalization_standalone.py.txt)
+
+::: ngen_rte.run_regionalization_standalone
+
+
+### run_output_postprocess.py
+
+Called by [`run_output_postprocess.sh`](../reference/shell.md#run_output_postprocess.sh)
+
+[`run_output_postprocess.py --help`](python_cli_help__run_output_postprocess.py.txt)
+
+::: ngen_rte.run_output_postprocess
+
+
+### run_output_mosaic.py
+
+Called by [`run_output_mosaic.sh`](../reference/shell.md#run_output_mosaic.sh)
+
+[`run_output_mosaic.py --help`](python_cli_help__run_output_mosaic.py.txt)
+
+::: ngen_rte.run_output_mosaic
+
+
+### make_coastal_forcing.py
+
+Example calls are provided by [`make_coastal_forcing.sh`](../reference/shell.md#make_coastal_forcing.sh). See the `nwm-coastal` repository for complete coastal workflow documentation.
+
+[`make_coastal_forcing.py --help`](python_cli_help__make_coastal_forcing.py.txt)
+
+::: ngen_rte.coastal.make_coastal_forcing
+
+
 ## Python Constants
 
-Currently `bin_mounted/consts.py` contains variables which rarely need editing.
+Currently `bin_mounted/ngen_rte/consts.py` contains variables which rarely need editing.
 
 ::: ngen_rte.consts
     options:

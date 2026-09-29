@@ -1,3 +1,3 @@
 # Installation instructions
 
-Detailed instructions on how to install, configure, and get the project running.
+See the user guide in [docs/README.md](docs/README.md)

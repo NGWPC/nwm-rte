@@ -6,7 +6,7 @@ set -x
 
 ## 
 ## \brief
-## Example commands for running the "output_postprocess" (overall_netcdf_workflow)..  See CLI args for [`run_output_process.py`](python_cli_help__run_output_postprcoss.py.txt).
+## Example commands for running the "output_postprocess" (`overall_netcdf_workflow`). See CLI args for [`run_output_postprocess.py`](python_cli_help__run_output_postprocess.py.txt).
 ## 
 ## \desc
 ## Source `./run.sh` to call its `docker_run` command for running NetCDF output postprocess workflows.  It requires that the ngen runtime environment image has already been built using `./ngen_rte_build.sh`.
