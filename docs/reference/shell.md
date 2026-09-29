@@ -50,7 +50,27 @@ See also: [Steps to Run: pytest](../user-guide/get-started.md#pytest)
 ::: run_test_formulations.sh
     handler: shell
 
-## Additional Utiltities
+::: run_region_standalone.sh
+    handler: shell
+
+## Run Output Postprocessing
+
+For complete workflow documentation, see the `nwm-data-assimilation` repository.
+
+::: run_output_postprocess.sh
+    handler: shell
+
+::: run_output_mosaic.sh
+    handler: shell
+
+## Coastal Forcing
+
+For complete coastal workflow documentation, see the `nwm-coastal` repository.
+
+::: bin_mounted/ngen_rte/coastal/make_coastal_forcing.sh
+    handler: shell
+
+## Additional Utilities
 
 ::: install_debuggers.sh
     handler: shell

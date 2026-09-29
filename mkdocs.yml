@@ -16,10 +16,16 @@ nav:
   - Orientation: user-guide/orientation.md
   - Get Started: user-guide/get-started.md
   - Configuration: user-guide/configuration.md
+  - Logging and Status: user-guide/logging.md
   - DevContainer and Debugger: user-guide/devcon-debug.md
   - Custom Builds: user-guide/custom-builds.md
-  - Regionalization Workflows: user-guide/regionalization.md
+  - Auxilliary Workflows: user-guide/auxilliary-workflows.md
   - Caveats: user-guide/caveats.md
+- Diagrams:
+  - Diagrams Home: diagrams/index.md
+  - Build Flow: diagrams/build.md
+  - Static Data Setup: diagrams/static-data-setup.md
+  - Execution Flow: diagrams/execution.md
 - Reference:
   - Reference Home: reference/home.md
   - Shell: reference/shell.md

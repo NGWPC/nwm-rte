@@ -8,9 +8,8 @@ source config.bashrc
 ## Download input data for one gage.
 ## 
 ## \desc
-## Download input hydrofabric data from S3 and from APIs, for one USGS gage.
+## Download retrospective streamflow data from S3 and observed streamflow data from EDFS for one USGS gage.
 ## Not needed for the "default" gage at the "default" realization, since those inputs are included in the repository.
-## Downloads all vintages of hydrofabric associated with one gage ID.
 ##
 ## Uses various OS env vars from `config.bashrc`.
 ## 

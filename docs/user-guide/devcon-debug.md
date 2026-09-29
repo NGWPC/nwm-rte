@@ -16,13 +16,13 @@ This file also uses a `"postStartCommand"` directive to run a shell script `./.d
 
 `./.devcontainer/devcontainer.json.poststart.sh` runs when the Dev Container starts. This script has commented-out `pip install` calls which can be enabled in order to cause the Dev Container to use those local codebases for some of its component packages. When those packages are pip installed with the `-e` flag, then the user can edit (the Python aspects of) those component packages and see the effects "live" while they are in the container. This also allows the user to conveniently leverage a `debugpy` debugger, since breakpoints may be placed in the component packages' code, either by adding `debugpy.breakpoint()` in-line in the Python code or by leveraging the built-in IDE breakpoint capabilities (clicking in the margins of the editor).
 
-### `.devcontainer/launch.json`
+### `.vscode/launch.json`
 
 `launch.json` defines the available VS Code debugger configurations available once inside the Dev Container. The "compounds" and "configurations" listed in this file become choosable items in the VS Code GUI's Debugger dialog, once inside the Dev Container. Review this file to see what the various configurations do. They generally run a script or a module with explicit arguments.
 
 Do not choose configurations that begin with an underscore, as those are meant to be private (they are not functional alone, they are called on by the public configurations).
 
-### `.devcontainer/tasks.json`
+### `.vscode/tasks.json`
 
 `tasks.json` contains extra code required for some of the debugger configurations. For example for the complex configurations that involve multiple concurrent MPI ranks, the debugger uses a `sleep` directive to allow the main processes some time to start up before it sends external `debugpy` instances to "attach" to those ranks.
 
@@ -64,4 +64,4 @@ For usage of the `pytest` Dev Container, as well as for running `pytest` without
 
 When running a debugger configuration, sometimes the first 1 or 2 attempts fail due to pop-up error messages such as "Configured debug type 'debugpy' is not supported.", even if you have debugpy installed. Please try a few more times and it will likely start working.
 
-If you are trying a complex configuration that involves concurrent MPI ranks, and you are running into unexpected errors, you may need to increase the sleep time in `.devcontainer/tasks.json`, depending on your computer specifications.
+If you are trying a complex configuration that involves concurrent MPI ranks, and you are running into unexpected errors, you may need to increase the sleep time in `.vscode/tasks.json`, depending on your computer specifications.

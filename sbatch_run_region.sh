@@ -8,8 +8,9 @@ set -euo pipefail
 ## Submits the regionalization workflow to SLURM using sbatch.
 ##
 ## \desc
-## Usage:
-##    ./sbatch_run_region.sh [CONFIG_DIR] [WORKFLOW_OPTIONS] [OPTIONS]
+## Submit the regionalization workflow to SLURM using `sbatch`.
+##
+## \usage ./sbatch_run_region.sh [CONFIG_DIR] [WORKFLOW_OPTIONS] [OPTIONS]
 ##
 ## \option CONFIG_DIR
 ## (optional, default: "configs") Directory containing configuration YAML files

@@ -10,8 +10,7 @@ set -euo pipefail
 ## \desc
 ## Takes no positional arguments. Workflow steps are specified using named command-line arguments.
 ## 
-## \usage
-## <root-path-to-script>/run_region.sh [OPTIONS]
+## \usage <root-path-to-script>/run_region.sh [OPTIONS]
 ## 
 # Arguments:
 ## \option -p, --parreg

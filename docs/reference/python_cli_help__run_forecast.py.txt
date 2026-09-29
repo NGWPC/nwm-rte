@@ -1,5 +1,5 @@
 usage: run_forecast.py [-h] [-csdt COLD_START_DATETIME] -dt CYCLE_DATETIME
-                       [-delraw] [-delscratch] [-e {test,oe}]
+                       [-delraw] [-delscratch] [-eu EDFS_URL] [-e {test,oe}]
                        [-rname FCST_RUN_NAME] [-fconfig FORCING_CONFIGURATION]
                        [-fstatic FORCING_STATIC_DIR] [-g GAGE_ID]
                        [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
@@ -10,7 +10,7 @@ usage: run_forecast.py [-h] [-csdt COLD_START_DATETIME] -dt CYCLE_DATETIME
                        [-optalgo OPTIMIZATION_ALGORITHM]
                        [-outfmt OUTPUT_FORMAT [OUTPUT_FORMAT ...]]
                        [-rfc RESERVOIR_RFC_DIR] [-ss] [-ssd SAVE_STATE_DIR]
-                       [-ts]
+                       [-ts] [-usgs USGS_TIMESLICE_DIR]
 
 Script for building and running a forecast realization,
 optionally with a coldstart.
@@ -37,8 +37,11 @@ options:
                         Delete scratch dir and ESMF mesh files before the run,
                         which forces ESMF and NetCDF actions to occur.
 
-  -e, --environment : type=str default='test'
-                        Operating environment. Affects name of server used to fetch input data. Passed to MSWM GeneralConfig.
+  -eu, --edfs_url : type=str default=None
+                        Base URL for the Icefabric EDFS API, used to fetch the hydrofabric gpkg when --hydrofab_file is not provided. Passed to MSWM General. When provided, the -e / --environment flag is ignored in favor of this.
+
+  -e, --environment : type=str
+                        Operating environment. Maps 'test' or 'oe' to the corresponding EDFS API base URL. Ignored if --edfs_url is also provided.
 
   -rname, --fcst_run_name : type=str default='fcst_run1'
                         Forecast run name.
@@ -147,3 +150,6 @@ options:
 
   -ts, --timestamp_run_name : bool-switch(store-true) default=False
                         If provided, add a timestamp suffix to the run name.
+
+  -usgs, --usgs_timeslice_dir : type=str default=None
+                        Path to usgs timeslice time-series directory. If provided,streamflow data assimilation is enabled and streamflow_da is set to True.

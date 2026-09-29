@@ -36,6 +36,8 @@ time ./setup_clone_repos.sh https
 
 * Download data via [`setup_data.sh`](../reference/shell.md#setup_data.sh). Run once, either with or without `-r` flag for regionalization data.
 
+    The script downloads shared calibration, forcing-mesh, reservoir, and streamflow inputs from S3. It also calls `setup_data_one_gage.sh` to download retrospective and observed streamflow data for the configured test gage. The `-r` option adds regionalization inputs.
+
 ```shell
 # You need to set up s3 credentials before running.
 time ./setup_data.sh
@@ -45,6 +47,10 @@ time ./setup_data.sh
 # OPTIONAL: Pass the -r argument to download regionalization data.
 time ./setup_data.sh -r
 ```
+
+The optional `-a`/`--api-environment` value selects the `test` or `oe` EDFS streamflow-observations server during setup. `EDFS_API_VERSION` in `config.bashrc` selects the setup API version. These setup settings are separate from the Python runtime options `--environment` and `--edfs_url`.
+
+See the [Static Data Setup diagram](../diagrams/static-data-setup.md).
 
 
 ## Steps to Build
@@ -110,4 +116,6 @@ time ./run_test_formulations.sh
 
 [Code Reference](../reference/home.md)
 
-[Regionalization Workflows](regionalization.md)
+[Auxilliary Workflows](auxilliary-workflows.md)
+
+[Diagrams](../diagrams/index.md)

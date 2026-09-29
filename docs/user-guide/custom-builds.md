@@ -20,7 +20,7 @@ git submodule update --init --recursive
 ( cd extern/t-route && git checkout any-branch && git pull )
 ```
 
-4. If your `ngen/Dockerfile` is starting `FROM ghcr.io/{GH_ORG,,}/ngen-bmi-forcing:latest`, then pull the latest `ngen-bmi-forcing` GHCR image.
+4. If `ngen/Dockerfile` uses a published `ngen-bmi-forcing` image as `FORCING_IMAGE`, pull the desired GHCR image before building, for example: `sudo docker pull ghcr.io/<GH_ORG>/ngen:latest`
 
 5. Build the RTE image
 ```shell
@@ -28,7 +28,7 @@ git submodule update --init --recursive
 ./ngen_rte_build.sh
 ```
 
-6. Confirm in the build messages that the built was successful and that the image name built is `ngen_rte_build_from_local`
+6. Confirm in the build messages that the build was successful and that the image name built is `ngen_rte_build_from_local`.
 
 ## See Also
 

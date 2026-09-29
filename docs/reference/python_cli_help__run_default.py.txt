@@ -1,7 +1,9 @@
 usage: run_default.py [-h] [-dur DURATION] [-cd CHECKPOINT_DIR]
                       [-c CHECKPOINT_INTERVAL] [-csdt COLD_START_DATETIME] -dt
-                      CYCLE_DATETIME [-delraw] [-delscratch] [-e {test,oe}]
-                      [-rname FCST_RUN_NAME] [-fconfig FORCING_CONFIGURATION]
+                      CYCLE_DATETIME [-delraw] [-delscratch]
+                      [--ecf-subtask ECF_SUBTASK] [--ecf-task ECF_TASK]
+                      [-eu EDFS_URL] [-e {test,oe}] [-rname FCST_RUN_NAME]
+                      [-fconfig FORCING_CONFIGURATION]
                       [-fstatic FORCING_STATIC_DIR] [-g GAGE_ID]
                       [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
                       [--hydrofab_file HYDROFAB_FILE]
@@ -11,7 +13,7 @@ usage: run_default.py [-h] [-dur DURATION] [-cd CHECKPOINT_DIR]
                       [-rz MODEL_FORMULATION_CLI_ROOTZONE] [-nwmout]
                       [-n NPROCS] [-outfmt OUTPUT_FORMAT [OUTPUT_FORMAT ...]]
                       [-rfc RESERVOIR_RFC_DIR] [-ss] [-ssd SAVE_STATE_DIR]
-                      [-ts] [-v VPU]
+                      [-ts] [-usgs USGS_TIMESLICE_DIR] [-v VPU] [--noop]
 
 Script for building and running default realizations
 using realtime forcing configurations or historical / retrospective forcing.
@@ -50,8 +52,17 @@ options:
                         Delete scratch dir and ESMF mesh files before the run,
                         which forces ESMF and NetCDF actions to occur.
 
-  -e, --environment : type=str default='test'
-                        Operating environment. Affects name of server used to fetch input data. Passed to MSWM GeneralConfig.
+  --ecf-subtask : type=str default=None
+                        ecFlow subtask base identifier. Required when --ecf-task is provided. Example: 'no_subtask_type__20260615_120000_000000__gage__01123000'.
+
+  --ecf-task : type=str default=None
+                        ecFlow task path, e.g. '/nwm/hourly/nwm_analysis_assim/jnwm_conus_analysis_assim'. If provided, subtask info will be reported to the ecFlow server.
+
+  -eu, --edfs_url : type=str default=None
+                        Base URL for the Icefabric EDFS API, used to fetch the hydrofabric gpkg when --hydrofab_file is not provided. Passed to MSWM General. When provided, the -e / --environment flag is ignored in favor of this.
+
+  -e, --environment : type=str
+                        Operating environment. Maps 'test' or 'oe' to the corresponding EDFS API base URL. Ignored if --edfs_url is also provided.
 
   -rname, --fcst_run_name : type=str default='fcst_run1'
                         Forecast run name.
@@ -158,5 +169,11 @@ options:
   -ts, --timestamp_run_name : bool-switch(store-true) default=False
                         If provided, add a timestamp suffix to the run name.
 
+  -usgs, --usgs_timeslice_dir : type=str default=None
+                        Path to usgs timeslice time-series directory. If provided,streamflow data assimilation is enabled and streamflow_da is set to True.
+
   -v, --vpu : type=str default=None
                         VPU identifier. When provided, sets subset_type to 'vpu'. Cannot be used with gage_id.
+
+  --noop : bool-switch(store-true) default=False
+                        Run in noop mode - only verify that the script can import libraries and do initial pydantic config validation, and then exit after transmitting status.
