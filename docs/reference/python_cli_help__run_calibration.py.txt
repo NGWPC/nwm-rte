@@ -4,7 +4,8 @@ usage: run_calibration.py [-h] [-dur DURATION]
                           [-start CALIB_SIM_START]
                           [-validadvance VALID_SIM_ADVANCEMENT]
                           [-wrkr WORKER_NAME] [-delraw] [-delscratch]
-                          [-e {test,oe}] [-fconfig FORCING_CONFIGURATION]
+                          [-eu EDFS_URL] [-e {test,oe}]
+                          [-fconfig FORCING_CONFIGURATION]
                           [-fstatic FORCING_STATIC_DIR] [-g GAGE_ID]
                           [-gdomain {CONUS,Alaska,Hawaii,Puerto_Rico,GL}]
                           [--hydrofab_file HYDROFAB_FILE]
@@ -25,23 +26,16 @@ options:
                         Duration of calibration/default/regionalization realization. Units: days (integer). Ignored by default/regionalization realization when a realtime forcing configuration is chosen.
 
   -evalcurtail, --valid_eval_curtailment : type=timedelta_from_pandas_str default=datetime.timedelta(0)
-                        Used to calculate the end of the validation evaluation.
-                        Format: pandas-style timedelta string.
-                        See class CalibTimeWindows for details.
+                        Not yet supported. Intended to calculate the end of the validation evaluation. Providing this option raises an error.
 
   -evaldelay, --calib_eval_delayment : type=timedelta_from_pandas_str default=datetime.timedelta(0)
-                        Used to calculate the start time of the calibration evaluation.
-                        Format: pandas-style timedelta string.
-                        See class CalibTimeWindows for details.
+                        Not yet supported. Intended to calculate the start time of the calibration evaluation. Providing this option raises an error.
 
   -start, --calib_sim_start : type=datetime_from_str default='2013-07-25 00:00:00'
                         Start time for the calibration realization
 
   -validadvance, --valid_sim_advancement : type=timedelta_from_pandas_str default=datetime.timedelta(0)
-                        
-                        Used to calculate the start time of the validation simulation.
-                        Format: pandas-style timedelta string.
-                        See class CalibTimeWindows for details.
+                        Not yet supported. Intended to calculate the start time of the validation simulation. Providing this option raises an error.
 
   -wrkr, --worker_name : type=str default=None
                         If provided, will be used as the worker name,
@@ -58,8 +52,11 @@ options:
                         Delete scratch dir and ESMF mesh files before the run,
                         which forces ESMF and NetCDF actions to occur.
 
-  -e, --environment : type=str default='test'
-                        Operating environment. Affects name of server used to fetch input data. Passed to MSWM GeneralConfig.
+  -eu, --edfs_url : type=str default=None
+                        Base URL for the Icefabric EDFS API, used to fetch the hydrofabric gpkg when --hydrofab_file is not provided. Passed to MSWM General. When provided, the -e / --environment flag is ignored in favor of this.
+
+  -e, --environment : type=str
+                        Operating environment. Maps 'test' or 'oe' to the corresponding EDFS API base URL. Ignored if --edfs_url is also provided.
 
   -fconfig, --forcing_configuration : type=str default=None
                         Forcing configuration to use, e.g., 'short_range', 'standard_ana', 'aorc', etc.

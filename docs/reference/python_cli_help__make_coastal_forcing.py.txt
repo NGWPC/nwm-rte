@@ -1,0 +1,70 @@
+usage: make_coastal_forcing.py [-h] (-dt CYCLE_DATETIME | -start START_TIME)
+                               [-end END_TIME] [-rname FCST_RUN_NAME] -fconfig
+                               FORCING_CONFIGURATION [-gdomain GLOBAL_DOMAIN]
+                               [-lb LOOKBACK] [-fih FORECAST_INPUT_HORIZONS]
+                               [--warm_weights] [--debug_conus_subset]
+
+CLI script to generate gridded atmospheric forcing files for coastal models.
+
+NOTE: This includes a T0 output needed for coastal, in addition to the normal T1+ outputs.
+NOTE: The T0 output has identical forcing values as T1.
+See comments in ngen-forcing model.py function ``write_t0_output``.
+An independent T0 state cannot be reliably computed because several forecast products omit required fields at hour zero and substitute hour one. Examples:
+https://github.com/NGWPC/ngen-forcing/blob/27e03ba138478dd449ce957b1c3ba4c36fc33d8f/NextGen_Forcings_Engine_BMI/NextGen_Forcings_Engine/core/time_handling.py#L1202-L1206
+https://github.com/NGWPC/ngen-forcing/blob/27e03ba138478dd449ce957b1c3ba4c36fc33d8f/NextGen_Forcings_Engine_BMI/NextGen_Forcings_Engine/core/time_handling.py#L1444-L1448
+https://github.com/NGWPC/ngen-forcing/blob/27e03ba138478dd449ce957b1c3ba4c36fc33d8f/NextGen_Forcings_Engine_BMI/NextGen_Forcings_Engine/core/time_handling.py#L2043-L2047
+https://github.com/NGWPC/ngen-forcing/blob/27e03ba138478dd449ce957b1c3ba4c36fc33d8f/NextGen_Forcings_Engine_BMI/NextGen_Forcings_Engine/core/time_handling.py#L4129-L4135
+
+NOTE:
+    See repository ``nwm-coastal`` (file ``nwm-coastal/scripts/setup_data_coastal.sh``) for the scripts needed to download / set up input data required to run coastal forcing workflows:
+
+    These files are masked versions of the full CONUS nc files, masked to an area around the test gage for testing CONUS workflows
+    on a machine that may not have enough RAM for an actual full CONUS run:
+        run_ngen/data/esmf_mesh/NWM/domain/GEOGRID_LDASOUT_Spatial_Metadata_CONUS_debug_gauge_01123000.nc
+        run_ngen/data/esmf_mesh/NWM/domain/geo_em_CONUS_debug_gauge_01123000.nc
+
+Usage:
+    Choose exactly one timing mode:
+
+    * ``--cycle_datetime`` (``-dt``) runs an operational forecast cycle. The
+        forcing engine determines the time window from the selected configuration.
+    * ``--start_time`` (``-start``) together with ``--end_time`` (``-end``) runs
+        an explic`it time window, such as an AORC retrospective run.
+
+Examples:
+    python -um ngen_rte.coastal.make_coastal_forcing -dt "2025-09-15 00:00:00" -fconfig standard_ana_hawaii -gdomain Hawaii
+    python -um ngen_rte.coastal.make_coastal_forcing -start "2013-07-25 00:00:00" -end "2013-07-26 00:00:00" -fconfig aorc -gdomain Hawaii
+
+options:
+  -h, --help : type=None
+                        show this help message and exit
+
+  -dt, --cycle_datetime : type=datetime_type default=None
+                        Operational forecast cycle; cannot be used with --start_time.
+
+  -start, --start_time : type=datetime_type default=None
+                        Start of an explicit time window; requires --end_time.
+
+  -end, --end_time : type=datetime_type default=None
+                        End of an explicit time window; requires --start_time.
+
+  -rname, --fcst_run_name : type=None default='coastal_run1'
+                        Name used in log messages (default: coastal_run1).
+
+  -fconfig, --forcing_configuration : type=None default=None
+                        Installed forcing template name, such as short_range or aorc.
+
+  -gdomain, --global_domain : type=None default='CONUS'
+                        Coastal output domain (default: CONUS).
+
+  -lb, --lookback : type=int default=None
+                        Analysis-only override for the configured lookback window in minutes. Requires --cycle_datetime.
+
+  -fih, --forecast_input_horizons : type=int default=None
+                        Analysis-only uniform override for all configured forecast input horizons in minutes. Requires --cycle_datetime.
+
+  --warm_weights : bool-switch(store-true) default=False
+                        Recreate reusable regrid weights one product per subprocess, replacing matching cached weights instead of creating a forcing file. Requires --cycle_datetime.
+
+  --debug_conus_subset : bool-switch(store-true) default=False
+                        Use the gauge 01123000 CONUS target-grid subset and isolated output paths. Requires --global_domain CONUS.
