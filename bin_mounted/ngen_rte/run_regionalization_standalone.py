@@ -79,6 +79,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
 using realtime forcing configurations or historical / retrospective forcing.
 The CLI arguments mostly follow that of run_default.py.""",
         formatter_class=cli_args.HelpFormatter,
+        allow_abbrev=False,
     )
     cli_args.add_args_for_script(parser, cli_args.Script.REGIONALIZATION)
     return parser

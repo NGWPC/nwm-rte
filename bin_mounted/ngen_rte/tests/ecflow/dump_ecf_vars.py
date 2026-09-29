@@ -23,7 +23,7 @@ _SETTINGS_FILE = (
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument(
         "--ecf-task",
         required=True,

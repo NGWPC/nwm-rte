@@ -74,7 +74,7 @@ def main(config_dir: str, parreg: bool, formreg: bool, ngen: bool, run_eval: boo
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument("-c", "--config_dir", type=str, default=REG_CONFIGS)
     parser.add_argument("--parreg", action="store_true")
     parser.add_argument("--formreg", action="store_true")

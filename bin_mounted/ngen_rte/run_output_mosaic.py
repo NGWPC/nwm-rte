@@ -72,6 +72,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Combine NetCDF gridded outputs from multiple runs into a single NetCDF product.",
         formatter_class=cli_args.HelpFormatter,
+        allow_abbrev=False,
     )
     cli_args.add_args_for_script(parser, cli_args.Script.OUTPUT_MOSAIC)
     return parser

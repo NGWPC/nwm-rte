@@ -124,6 +124,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Restart a default ngen realization from a checkpoint.",
         formatter_class=cli_args.HelpFormatter,
+        allow_abbrev=False,
     )
     parser.add_argument("--src_path", "-src", required=True, help="Path to the existing run to restart from.")
     parser.add_argument("--dst_path", "-dst", required=True, help="Path to the new restart run destination. Defaults to src_path + '_restart'.")
