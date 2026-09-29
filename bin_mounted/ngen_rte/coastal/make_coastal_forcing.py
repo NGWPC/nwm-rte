@@ -128,7 +128,9 @@ def make_coastal_forcing(
 
 
 def cli_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=HelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=HelpFormatter, allow_abbrev=False
+    )
     timing = parser.add_mutually_exclusive_group(required=True)
     timing.add_argument(
         "-dt",

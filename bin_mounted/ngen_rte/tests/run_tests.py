@@ -184,14 +184,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
 realizations, optionally including calibration, coldstart, and forecasts,
 using various forcing configurations and model formulations.""",
         formatter_class=cli_args.HelpFormatter,
-    )
-    cli_args.add_args_for_script(parser, cli_args.Script.TESTS)
-
-    parser = argparse.ArgumentParser(
-        description="""Script for building and running a series of test
-realizations, optionally including calibration, coldstart, and forecasts,
-using various forcing configurations and model formulations.""",
-        formatter_class=cli_args.HelpFormatter,
+        allow_abbrev=False,
     )
     parser.add_argument(
         "-nofcst",

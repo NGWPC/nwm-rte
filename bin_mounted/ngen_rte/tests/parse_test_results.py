@@ -108,7 +108,7 @@ def main(model_formulations_file: str | None = None) -> None:
 
 
 def cli_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument(
         "-mff",
         "--model_formulations_file",

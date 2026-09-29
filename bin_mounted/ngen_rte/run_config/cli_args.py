@@ -43,6 +43,13 @@ class ArgsKwargs:
     scripts: list[Script]
 
 
+class UnsupportedArgumentAction(argparse.Action):
+    """Reject a CLI option that is retained for interface visibility."""
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        raise argparse.ArgumentError(self, f"{option_string} is not yet supported")
+
+
 def add_args_for_script(parser: argparse.ArgumentParser, script: Script) -> None:
     """Auto-discover the instances of ArgsKwargs in this file and add them to the provided parser,
     if they match the type of Script provided."""
@@ -384,11 +391,10 @@ realization (which is not a calibration).""",
 CALIB_EVAL_DELAYMENT = ArgsKwargs(
     args=["-evaldelay", "--calib_eval_delayment"],
     kwargs={
+        "action": UnsupportedArgumentAction,
         "type": timedelta_from_pandas_str,
         "default": c.CALIB_EVAL_DELAYMENT_DEFAULT,
-        "help": """Used to calculate the start time of the calibration evaluation.
-Format: pandas-style timedelta string.
-See class CalibTimeWindows for details.""",
+        "help": """Not yet supported. Intended to calculate the start time of the calibration evaluation. Providing this option raises an error.""",
     },
     scripts=[Script.CALIBRATION],
 )
@@ -396,12 +402,10 @@ See class CalibTimeWindows for details.""",
 CALIB_VALID_ADVANCE = ArgsKwargs(
     args=["-validadvance", "--valid_sim_advancement"],
     kwargs={
+        "action": UnsupportedArgumentAction,
         "type": timedelta_from_pandas_str,
         "default": c.VALID_SIM_ADVANCEMENT_DEFAULT,
-        "help": """
-Used to calculate the start time of the validation simulation.
-Format: pandas-style timedelta string.
-See class CalibTimeWindows for details.""",
+        "help": """Not yet supported. Intended to calculate the start time of the validation simulation. Providing this option raises an error.""",
     },
     scripts=[Script.CALIBRATION],
 )
@@ -409,11 +413,10 @@ See class CalibTimeWindows for details.""",
 CALIB_EVAL_CURTAILMENT = ArgsKwargs(
     args=["-evalcurtail", "--valid_eval_curtailment"],
     kwargs={
+        "action": UnsupportedArgumentAction,
         "type": timedelta_from_pandas_str,
         "default": c.VALID_EVAL_CURTAILMENT_DEFAULT,
-        "help": """Used to calculate the end of the validation evaluation.
-Format: pandas-style timedelta string.
-See class CalibTimeWindows for details.""",
+        "help": """Not yet supported. Intended to calculate the end of the validation evaluation. Providing this option raises an error.""",
     },
     scripts=[Script.CALIBRATION],
 )

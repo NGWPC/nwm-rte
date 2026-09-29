@@ -88,6 +88,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Run NetCDF production workflow to convert ngen catchment output into NWM gridded NetCDF products.",
         formatter_class=cli_args.HelpFormatter,
+        allow_abbrev=False,
     )
     cli_args.add_args_for_script(parser, cli_args.Script.OUTPUT_POSTPROCESS)
     return parser

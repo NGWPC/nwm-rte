@@ -105,6 +105,7 @@ def cli_arg_parser() -> argparse.ArgumentParser:
         description="""Script for building and running a calibration
 realization using historical / retrospective forcing.""",
         formatter_class=cli_args.HelpFormatter,
+        allow_abbrev=False,
     )
     cli_args.add_args_for_script(parser, cli_args.Script.CALIBRATION)
     return parser
