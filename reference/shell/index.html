@@ -2357,9 +2357,7 @@ which is typically sourced by other scripts and ran externally.</p>
 
   <strong>Usage</strong>
     <pre><code>./run_fcst.sh 
-
-Regular warmstart
-Hindcast warmstart</code></pre>
+</code></pre>
 
   <strong>Description</strong>
       <p>Source <code>./run.sh</code> to call its <code>docker_run</code> command for running "forecast" realizations.  It requires that the ngen runtime environment image has already been built using <code>./ngen_rte_build.sh</code>.</p>
@@ -2605,28 +2603,7 @@ See CLI args for <a href="../python_cli_help__run_tests.py.txt"><code>run_tests.
   <strong>Usage</strong>
     <pre><code>./bin_mounted/ngen_rte/coastal/make_coastal_forcing.sh </code></pre>
     <pre><code>./bin_mounted/ngen_rte/coastal/make_coastal_forcing.sh &#34;coastal_test&#34;
-
- CONUS subset (small spatial mask) for quick/debug runs using the CONUS logic.
-Warmup
-Actual run
-Analysis timing overrides: retain a four-hour lookback window while processing two hourly updates.
-###########################################
- FULL CONUS - REQUIRES LOTS OF MEMORY
-###########################################
- Warmup the reusable weights first (one product at a time in series) for scalability. Each configured product is processed in its own subprocess, reducing peak memory during the subsequent forcing run.
- Actual run
- Actual runs without warming
-###########################################
- Alaska
-###########################################
-###########################################
- Hawaii
-###########################################
-###########################################
- Puerto Rico
-###########################################
-Warmup
-Actual run</code></pre>
+</code></pre>
 
   <strong>Description</strong>
       <p>Run <code>ngen_rte.coastal.make_coastal_forcing</code> in the RTE container. The calls below provide examples for operational cycles, retrospective windows, reusable regrid weights, and supported domains.</p>
@@ -2794,8 +2771,7 @@ so if it is specified here, it receives a <code>--force-reinstall</code> flag.</
   <p>Script to run NWM regionalization, NGEN simulation, and evaluation workflows using an RTE Docker container.</p>
 
   <strong>Usage</strong>
-    <pre><code> 
-&lt;root-path-to-script&gt;/run_region.sh [OPTIONS]
+    <pre><code>&lt;root-path-to-script&gt;/run_region.sh [OPTIONS]
 </code></pre>
 
   <strong>Description</strong>
@@ -2918,10 +2894,12 @@ so if it is specified here, it receives a <code>--force-reinstall</code> flag.</
 <h2 id="sbatch_run_region.sh">sbatch_run_region.sh<a href="#sbatch_run_region.sh" class="headerlink" title="Permanent link">#</a></h2>
   <p>Submits the regionalization workflow to SLURM using sbatch.</p>
 
+  <strong>Usage</strong>
+    <pre><code>./sbatch_run_region.sh [CONFIG_DIR] [WORKFLOW_OPTIONS] [OPTIONS]
+</code></pre>
 
   <strong>Description</strong>
-      <p>Usage:
-   ./sbatch_run_region.sh [CONFIG_DIR][WORKFLOW_OPTIONS] [OPTIONS]</p>
+      <p>Submit the regionalization workflow to SLURM using <code>sbatch</code>.</p>
 
 
   <strong>Options</strong>
