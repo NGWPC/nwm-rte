@@ -181,8 +181,8 @@ TEST_HYDROFAB_FILE="/ngen-app/bin/ngen_rte/tests/test_data/gauge_${TEST_GAGE}.gp
 
 ## EDFS_URL_TEST / EDFS_URL_OE Base URLs for the Icefabric EDFS API
 ## Should match ngen_rte/consts.py's TEST_EDFS_URL / OE_EDFS_URL
-TEST_EDFS_URL="http://edfs.test.nextgenwaterprediction.com/api/v1"
-OE_EDFS_URL="https://edfs.oe.nextgenwaterprediction.com/api/v1"
+TEST_EDFS_URL="http://edfs.test.nextgenwaterprediction.com/api/${EDFS_API_VERSION}"
+OE_EDFS_URL="https://edfs.oe.nextgenwaterprediction.com/api/${EDFS_API_VERSION}"
 
 ### Logging functions
 BASENAME="$(basename "$(readlink -f "$0")")"
